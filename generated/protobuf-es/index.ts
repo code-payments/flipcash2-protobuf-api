@@ -1,0 +1,16 @@
+export * as Activity from './activity/v1';
+export * as Activity from './activity/v1';
+export * as Push from './push/v1';
+export * as Iap from './iap/v1';
+export * as Common from './common/v1';
+export * as Profile from './profile/v1';
+export * as Profile from './profile/v1';
+export * as Phone from './phone/v1';
+export * as Phone from './phone/v1';
+export * as Account from './account/v1';
+export * as Event from './event/v1';
+export * as Event from './event/v1';
+export * as Thirdparty from './thirdparty/v1';
+export * as Thirdparty from './thirdparty/v1';
+export * as Email from './email/v1';
+export * as Email from './email/v1';
