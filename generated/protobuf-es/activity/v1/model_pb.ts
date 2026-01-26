@@ -186,6 +186,18 @@ export class Notification extends Message<Notification> {
      */
     value: DepositedCryptoNotificationMetadata;
     case: "depositedCrypto";
+  } | {
+    /**
+     * @generated from field: flipcash.activity.v1.BoughtCryptoNotificationMetadata bought_crypto = 12;
+     */
+    value: BoughtCryptoNotificationMetadata;
+    case: "boughtCrypto";
+  } | {
+    /**
+     * @generated from field: flipcash.activity.v1.SoldCryptoNotificationMetadata sold_crypto = 13;
+     */
+    value: SoldCryptoNotificationMetadata;
+    case: "soldCrypto";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Notification>) {
@@ -207,6 +219,8 @@ export class Notification extends Message<Notification> {
     { no: 9, name: "withdrew_crypto", kind: "message", T: WithdrewCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 10, name: "sent_crypto", kind: "message", T: SentCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 11, name: "deposited_crypto", kind: "message", T: DepositedCryptoNotificationMetadata, oneof: "additional_metadata" },
+    { no: 12, name: "bought_crypto", kind: "message", T: BoughtCryptoNotificationMetadata, oneof: "additional_metadata" },
+    { no: 13, name: "sold_crypto", kind: "message", T: SoldCryptoNotificationMetadata, oneof: "additional_metadata" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Notification {
@@ -425,6 +439,68 @@ export class DepositedCryptoNotificationMetadata extends Message<DepositedCrypto
 
   static equals(a: DepositedCryptoNotificationMetadata | PlainMessage<DepositedCryptoNotificationMetadata> | undefined, b: DepositedCryptoNotificationMetadata | PlainMessage<DepositedCryptoNotificationMetadata> | undefined): boolean {
     return proto3.util.equals(DepositedCryptoNotificationMetadata, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.activity.v1.BoughtCryptoNotificationMetadata
+ */
+export class BoughtCryptoNotificationMetadata extends Message<BoughtCryptoNotificationMetadata> {
+  constructor(data?: PartialMessage<BoughtCryptoNotificationMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.activity.v1.BoughtCryptoNotificationMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BoughtCryptoNotificationMetadata {
+    return new BoughtCryptoNotificationMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BoughtCryptoNotificationMetadata {
+    return new BoughtCryptoNotificationMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BoughtCryptoNotificationMetadata {
+    return new BoughtCryptoNotificationMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BoughtCryptoNotificationMetadata | PlainMessage<BoughtCryptoNotificationMetadata> | undefined, b: BoughtCryptoNotificationMetadata | PlainMessage<BoughtCryptoNotificationMetadata> | undefined): boolean {
+    return proto3.util.equals(BoughtCryptoNotificationMetadata, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.activity.v1.SoldCryptoNotificationMetadata
+ */
+export class SoldCryptoNotificationMetadata extends Message<SoldCryptoNotificationMetadata> {
+  constructor(data?: PartialMessage<SoldCryptoNotificationMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.activity.v1.SoldCryptoNotificationMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SoldCryptoNotificationMetadata {
+    return new SoldCryptoNotificationMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SoldCryptoNotificationMetadata {
+    return new SoldCryptoNotificationMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SoldCryptoNotificationMetadata {
+    return new SoldCryptoNotificationMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SoldCryptoNotificationMetadata | PlainMessage<SoldCryptoNotificationMetadata> | undefined, b: SoldCryptoNotificationMetadata | PlainMessage<SoldCryptoNotificationMetadata> | undefined): boolean {
+    return proto3.util.equals(SoldCryptoNotificationMetadata, a, b);
   }
 }
 

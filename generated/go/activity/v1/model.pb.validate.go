@@ -517,6 +517,88 @@ func (m *Notification) validate(all bool) error {
 			}
 		}
 
+	case *Notification_BoughtCrypto:
+		if v == nil {
+			err := NotificationValidationError{
+				field:  "AdditionalMetadata",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetBoughtCrypto()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  "BoughtCrypto",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  "BoughtCrypto",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetBoughtCrypto()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NotificationValidationError{
+					field:  "BoughtCrypto",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Notification_SoldCrypto:
+		if v == nil {
+			err := NotificationValidationError{
+				field:  "AdditionalMetadata",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetSoldCrypto()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  "SoldCrypto",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  "SoldCrypto",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSoldCrypto()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NotificationValidationError{
+					field:  "SoldCrypto",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1269,3 +1351,211 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DepositedCryptoNotificationMetadataValidationError{}
+
+// Validate checks the field values on BoughtCryptoNotificationMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *BoughtCryptoNotificationMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BoughtCryptoNotificationMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BoughtCryptoNotificationMetadataMultiError, or nil if none found.
+func (m *BoughtCryptoNotificationMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BoughtCryptoNotificationMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return BoughtCryptoNotificationMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// BoughtCryptoNotificationMetadataMultiError is an error wrapping multiple
+// validation errors returned by
+// BoughtCryptoNotificationMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type BoughtCryptoNotificationMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BoughtCryptoNotificationMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BoughtCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
+
+// BoughtCryptoNotificationMetadataValidationError is the validation error
+// returned by BoughtCryptoNotificationMetadata.Validate if the designated
+// constraints aren't met.
+type BoughtCryptoNotificationMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BoughtCryptoNotificationMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BoughtCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BoughtCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BoughtCryptoNotificationMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BoughtCryptoNotificationMetadataValidationError) ErrorName() string {
+	return "BoughtCryptoNotificationMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BoughtCryptoNotificationMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBoughtCryptoNotificationMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BoughtCryptoNotificationMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BoughtCryptoNotificationMetadataValidationError{}
+
+// Validate checks the field values on SoldCryptoNotificationMetadata with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SoldCryptoNotificationMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SoldCryptoNotificationMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SoldCryptoNotificationMetadataMultiError, or nil if none found.
+func (m *SoldCryptoNotificationMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SoldCryptoNotificationMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return SoldCryptoNotificationMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// SoldCryptoNotificationMetadataMultiError is an error wrapping multiple
+// validation errors returned by SoldCryptoNotificationMetadata.ValidateAll()
+// if the designated constraints aren't met.
+type SoldCryptoNotificationMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SoldCryptoNotificationMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SoldCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
+
+// SoldCryptoNotificationMetadataValidationError is the validation error
+// returned by SoldCryptoNotificationMetadata.Validate if the designated
+// constraints aren't met.
+type SoldCryptoNotificationMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SoldCryptoNotificationMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SoldCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SoldCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SoldCryptoNotificationMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SoldCryptoNotificationMetadataValidationError) ErrorName() string {
+	return "SoldCryptoNotificationMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SoldCryptoNotificationMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSoldCryptoNotificationMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SoldCryptoNotificationMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SoldCryptoNotificationMetadataValidationError{}
