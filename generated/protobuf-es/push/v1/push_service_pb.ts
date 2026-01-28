@@ -5,37 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
+import { TokenType } from "./model_pb";
 import { AppInstallId, Auth } from "../../common/v1/common_pb";
-
-/**
- * @generated from enum flipcash.push.v1.TokenType
- */
-export enum TokenType {
-  /**
-   * @generated from enum value: UNKNOWN = 0;
-   */
-  UNKNOWN = 0,
-
-  /**
-   * FCM registration token for an Android device
-   *
-   * @generated from enum value: FCM_ANDROID = 1;
-   */
-  FCM_ANDROID = 1,
-
-  /**
-   * FCM registration token or an iOS device
-   *
-   * @generated from enum value: FCM_APNS = 2;
-   */
-  FCM_APNS = 2,
-}
-// Retrieve enum metadata with: proto3.getEnumType(TokenType)
-proto3.util.setEnumType(TokenType, "flipcash.push.v1.TokenType", [
-  { no: 0, name: "UNKNOWN" },
-  { no: 1, name: "FCM_ANDROID" },
-  { no: 2, name: "FCM_APNS" },
-]);
 
 /**
  * @generated from message flipcash.push.v1.AddTokenRequest
