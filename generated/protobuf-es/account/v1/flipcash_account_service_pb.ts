@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Duration, Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { Auth, CountryCode, Platform, PublicKey, Signature, UserId } from "../../common/v1/common_pb";
 
 /**
@@ -510,6 +510,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   minBuildNumber = 0;
 
+  /**
+   * Exchange data timeout for sequential give/grabs for bills
+   *
+   * @generated from field: google.protobuf.Duration bill_exchange_data_timeout = 7;
+   */
+  billExchangeDataTimeout?: Duration;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -524,6 +531,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 4, name: "supported_on_ramp_providers", kind: "enum", T: proto3.getEnumType(UserFlags_OnRampProvider), repeated: true },
     { no: 5, name: "preferred_on_ramp_provider", kind: "enum", T: proto3.getEnumType(UserFlags_OnRampProvider) },
     { no: 6, name: "min_build_number", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 7, name: "bill_exchange_data_timeout", kind: "message", T: Duration },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {

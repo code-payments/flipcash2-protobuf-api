@@ -1292,6 +1292,35 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for MinBuildNumber
 
+	if all {
+		switch v := interface{}(m.GetBillExchangeDataTimeout()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UserFlagsValidationError{
+					field:  "BillExchangeDataTimeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UserFlagsValidationError{
+					field:  "BillExchangeDataTimeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBillExchangeDataTimeout()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UserFlagsValidationError{
+				field:  "BillExchangeDataTimeout",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
