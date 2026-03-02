@@ -152,12 +152,6 @@ export class Notification extends Message<Notification> {
    */
   additionalMetadata: {
     /**
-     * @generated from field: flipcash.activity.v1.WelcomeBonusNotificationMetadata welcome_bonus = 6;
-     */
-    value: WelcomeBonusNotificationMetadata;
-    case: "welcomeBonus";
-  } | {
-    /**
      * @generated from field: flipcash.activity.v1.GaveCryptoNotificationMetadata gave_crypto = 7;
      */
     value: GaveCryptoNotificationMetadata;
@@ -213,7 +207,6 @@ export class Notification extends Message<Notification> {
     { no: 3, name: "payment_amount", kind: "message", T: CryptoPaymentAmount },
     { no: 4, name: "ts", kind: "message", T: Timestamp },
     { no: 5, name: "state", kind: "enum", T: proto3.getEnumType(NotificationState) },
-    { no: 6, name: "welcome_bonus", kind: "message", T: WelcomeBonusNotificationMetadata, oneof: "additional_metadata" },
     { no: 7, name: "gave_crypto", kind: "message", T: GaveCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 8, name: "received_crypto", kind: "message", T: ReceivedCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 9, name: "withdrew_crypto", kind: "message", T: WithdrewCryptoNotificationMetadata, oneof: "additional_metadata" },
@@ -237,37 +230,6 @@ export class Notification extends Message<Notification> {
 
   static equals(a: Notification | PlainMessage<Notification> | undefined, b: Notification | PlainMessage<Notification> | undefined): boolean {
     return proto3.util.equals(Notification, a, b);
-  }
-}
-
-/**
- * @generated from message flipcash.activity.v1.WelcomeBonusNotificationMetadata
- */
-export class WelcomeBonusNotificationMetadata extends Message<WelcomeBonusNotificationMetadata> {
-  constructor(data?: PartialMessage<WelcomeBonusNotificationMetadata>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.activity.v1.WelcomeBonusNotificationMetadata";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WelcomeBonusNotificationMetadata {
-    return new WelcomeBonusNotificationMetadata().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WelcomeBonusNotificationMetadata {
-    return new WelcomeBonusNotificationMetadata().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WelcomeBonusNotificationMetadata {
-    return new WelcomeBonusNotificationMetadata().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: WelcomeBonusNotificationMetadata | PlainMessage<WelcomeBonusNotificationMetadata> | undefined, b: WelcomeBonusNotificationMetadata | PlainMessage<WelcomeBonusNotificationMetadata> | undefined): boolean {
-    return proto3.util.equals(WelcomeBonusNotificationMetadata, a, b);
   }
 }
 
