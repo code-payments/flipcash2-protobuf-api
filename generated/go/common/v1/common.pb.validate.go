@@ -1497,6 +1497,239 @@ var _ interface {
 	ErrorName() string
 } = CountryCodeValidationError{}
 
+// Validate checks the field values on Locale with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Locale) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Locale with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in LocaleMultiError, or nil if none found.
+func (m *Locale) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Locale) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetValue()); l < 2 || l > 35 {
+		err := LocaleValidationError{
+			field:  "Value",
+			reason: "value length must be between 2 and 35 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Locale_Value_Pattern.MatchString(m.GetValue()) {
+		err := LocaleValidationError{
+			field:  "Value",
+			reason: "value does not match regex pattern \"^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{1,8})*$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return LocaleMultiError(errors)
+	}
+
+	return nil
+}
+
+// LocaleMultiError is an error wrapping multiple validation errors returned by
+// Locale.ValidateAll() if the designated constraints aren't met.
+type LocaleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LocaleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LocaleMultiError) AllErrors() []error { return m }
+
+// LocaleValidationError is the validation error returned by Locale.Validate if
+// the designated constraints aren't met.
+type LocaleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LocaleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LocaleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LocaleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LocaleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LocaleValidationError) ErrorName() string { return "LocaleValidationError" }
+
+// Error satisfies the builtin error interface
+func (e LocaleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLocale.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LocaleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LocaleValidationError{}
+
+var _Locale_Value_Pattern = regexp.MustCompile("^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{1,8})*$")
+
+// Validate checks the field values on Region with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Region) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Region with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in RegionMultiError, or nil if none found.
+func (m *Region) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Region) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_Region_Value_Pattern.MatchString(m.GetValue()) {
+		err := RegionValidationError{
+			field:  "Value",
+			reason: "value does not match regex pattern \"^[a-z]{3,4}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return RegionMultiError(errors)
+	}
+
+	return nil
+}
+
+// RegionMultiError is an error wrapping multiple validation errors returned by
+// Region.ValidateAll() if the designated constraints aren't met.
+type RegionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RegionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RegionMultiError) AllErrors() []error { return m }
+
+// RegionValidationError is the validation error returned by Region.Validate if
+// the designated constraints aren't met.
+type RegionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RegionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RegionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RegionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RegionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RegionValidationError) ErrorName() string { return "RegionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RegionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRegion.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RegionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RegionValidationError{}
+
+var _Region_Value_Pattern = regexp.MustCompile("^[a-z]{3,4}$")
+
 // Validate checks the field values on Auth_KeyPair with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
