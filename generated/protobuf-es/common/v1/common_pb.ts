@@ -679,3 +679,81 @@ export class CountryCode extends Message<CountryCode> {
   }
 }
 
+/**
+ * Locale represents an IETF BCP 47 language tag (e.g. "en", "en-US", "zh-Hans-CN")
+ *
+ * @generated from message flipcash.common.v1.Locale
+ */
+export class Locale extends Message<Locale> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Locale>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.Locale";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Locale {
+    return new Locale().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Locale {
+    return new Locale().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Locale {
+    return new Locale().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Locale | PlainMessage<Locale> | undefined, b: Locale | PlainMessage<Locale> | undefined): boolean {
+    return proto3.util.equals(Locale, a, b);
+  }
+}
+
+/**
+ * Region represents a fiat currency region identified by its ISO 4217 alpha-3 currency code (e.g. "usd", "eur")
+ *
+ * @generated from message flipcash.common.v1.Region
+ */
+export class Region extends Message<Region> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Region>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.Region";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Region {
+    return new Region().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Region {
+    return new Region().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Region {
+    return new Region().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Region | PlainMessage<Region> | undefined, b: Region | PlainMessage<Region> | undefined): boolean {
+    return proto3.util.equals(Region, a, b);
+  }
+}
+

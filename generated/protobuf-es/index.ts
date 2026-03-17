@@ -1,3 +1,4 @@
+export * as Settings from './settings/v1';
 export * as Activity from './activity/v1';
 export * as Activity from './activity/v1';
 export * as Push from './push/v1';
