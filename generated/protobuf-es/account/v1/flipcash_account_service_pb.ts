@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Duration, Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { Auth, CountryCode, Platform, PublicKey, Signature, UserId } from "../../common/v1/common_pb";
 
 /**
@@ -517,6 +517,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   billExchangeDataTimeout?: Duration;
 
+  /**
+   * USDF amount, in quarks, that must be purchased when launching a new currency
+   *
+   * @generated from field: uint64 new_currency_purchase_amount = 8;
+   */
+  newCurrencyPurchaseAmount = protoInt64.zero;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -532,6 +539,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 5, name: "preferred_on_ramp_provider", kind: "enum", T: proto3.getEnumType(UserFlags_OnRampProvider) },
     { no: 6, name: "min_build_number", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 7, name: "bill_exchange_data_timeout", kind: "message", T: Duration },
+    { no: 8, name: "new_currency_purchase_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {

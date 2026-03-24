@@ -1321,6 +1321,8 @@ func (m *UserFlags) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for NewCurrencyPurchaseAmount
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
