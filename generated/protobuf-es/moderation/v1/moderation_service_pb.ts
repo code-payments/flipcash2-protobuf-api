@@ -8,6 +8,34 @@ import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { Auth, PublicKey, Signature, UserId } from "../../common/v1/common_pb";
 
 /**
+ * @generated from enum flipcash.moderation.v1.FlaggedCategory
+ */
+export enum FlaggedCategory {
+  /**
+   * Fallback category when flagged content does not fit into a well-defined FlaggedCategory
+   *
+   * @generated from enum value: OTHER = 0;
+   */
+  OTHER = 0,
+
+  /**
+   * @generated from enum value: NSFW = 1;
+   */
+  NSFW = 1,
+
+  /**
+   * @generated from enum value: IMPERSONATION = 2;
+   */
+  IMPERSONATION = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(FlaggedCategory)
+proto3.util.setEnumType(FlaggedCategory, "flipcash.moderation.v1.FlaggedCategory", [
+  { no: 0, name: "OTHER" },
+  { no: 1, name: "NSFW" },
+  { no: 2, name: "IMPERSONATION" },
+]);
+
+/**
  * @generated from message flipcash.moderation.v1.ModerateTextRequest
  */
 export class ModerateTextRequest extends Message<ModerateTextRequest> {
@@ -69,11 +97,18 @@ export class ModerateTextResponse extends Message<ModerateTextResponse> {
   isAllowed = false;
 
   /**
-   * Signed attestation of the moderation result
+   * Signed attestation of the moderation result when content is allowed
    *
    * @generated from field: flipcash.moderation.v1.ModerationAttestation attestation = 3;
    */
   attestation?: ModerationAttestation;
+
+  /**
+   * The best fit flagged category when content is not allowed
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 4;
+   */
+  flaggedCategory = FlaggedCategory.OTHER;
 
   constructor(data?: PartialMessage<ModerateTextResponse>) {
     super();
@@ -86,6 +121,7 @@ export class ModerateTextResponse extends Message<ModerateTextResponse> {
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ModerateTextResponse_Result) },
     { no: 2, name: "is_allowed", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "attestation", kind: "message", T: ModerationAttestation },
+    { no: 4, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModerateTextResponse {
@@ -187,11 +223,18 @@ export class ModerateImageResponse extends Message<ModerateImageResponse> {
   isAllowed = false;
 
   /**
-   * Signed attestation of the moderation result
+   * Signed attestation of the moderation result when content is allowed
    *
    * @generated from field: flipcash.moderation.v1.ModerationAttestation attestation = 3;
    */
   attestation?: ModerationAttestation;
+
+  /**
+   * The best fit flagged category when content is not allowed
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 4;
+   */
+  flaggedCategory = FlaggedCategory.OTHER;
 
   constructor(data?: PartialMessage<ModerateImageResponse>) {
     super();
@@ -204,6 +247,7 @@ export class ModerateImageResponse extends Message<ModerateImageResponse> {
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ModerateImageResponse_Result) },
     { no: 2, name: "is_allowed", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "attestation", kind: "message", T: ModerationAttestation },
+    { no: 4, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModerateImageResponse {

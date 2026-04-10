@@ -38,8 +38,11 @@ message ModerateTextResponse {
     // Whether the text content is allowed
     bool is_allowed = 2;
 
-    // Signed attestation of the moderation result
+    // Signed attestation of the moderation result when content is allowed
     ModerationAttestation attestation = 3;
+
+    // The best fit flagged category when content is not allowed
+    FlaggedCategory flagged_category = 4;
 }
 
 message ModerateImageRequest {
@@ -62,8 +65,11 @@ message ModerateImageResponse {
     // Whether the image content is allowed
     bool is_allowed = 2;
 
-    // Signed attestation of the moderation result
+    // Signed attestation of the moderation result when content is allowed
     ModerationAttestation attestation = 3;
+
+    // The best fit flagged category when content is not allowed
+    FlaggedCategory flagged_category = 4;
 }
 
 // ModerationAttestation is a signed proof of the moderation result.
@@ -83,4 +89,10 @@ message ModerationAttestation {
 
     // Attestor signature over this message
     common.v1.Signature signature = 5;
+}
+
+enum FlaggedCategory {
+    OTHER         = 0; // Fallback category when flagged content does not fit into a well-defined FlaggedCategory
+    NSFW          = 1;
+    IMPERSONATION = 2;
 }
