@@ -298,11 +298,17 @@ export enum ModerateImageResponse_Result {
    * @generated from enum value: DENIED = 1;
    */
   DENIED = 1,
+
+  /**
+   * @generated from enum value: UNSUPPORTED_FORMAT = 2;
+   */
+  UNSUPPORTED_FORMAT = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ModerateImageResponse_Result)
 proto3.util.setEnumType(ModerateImageResponse_Result, "flipcash.moderation.v1.ModerateImageResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
+  { no: 2, name: "UNSUPPORTED_FORMAT" },
 ]);
 
 /**

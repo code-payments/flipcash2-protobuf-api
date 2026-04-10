@@ -31,7 +31,7 @@ message ModerateTextRequest {
 message ModerateTextResponse {
     Result result = 1;
     enum Result {
-        OK = 0;
+        OK     = 0;
         DENIED = 1;
     }
 
@@ -58,8 +58,9 @@ message ModerateImageRequest {
 message ModerateImageResponse {
     Result result = 1;
     enum Result {
-        OK = 0;
-        DENIED = 1;
+        OK                 = 0;
+        DENIED             = 1;
+        UNSUPPORTED_FORMAT = 2;
     }
 
     // Whether the image content is allowed
