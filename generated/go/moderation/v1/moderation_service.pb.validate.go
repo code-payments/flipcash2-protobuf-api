@@ -243,6 +243,8 @@ func (m *ModerateTextResponse) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for FlaggedCategory
+
 	if len(errors) > 0 {
 		return ModerateTextResponseMultiError(errors)
 	}
@@ -530,6 +532,8 @@ func (m *ModerateImageResponse) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for FlaggedCategory
 
 	if len(errors) > 0 {
 		return ModerateImageResponseMultiError(errors)
