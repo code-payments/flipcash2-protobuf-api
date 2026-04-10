@@ -27,12 +27,24 @@ export enum FlaggedCategory {
    * @generated from enum value: IMPERSONATION = 2;
    */
   IMPERSONATION = 2,
+
+  /**
+   * @generated from enum value: MISLEADING = 3;
+   */
+  MISLEADING = 3,
+
+  /**
+   * @generated from enum value: SPAM = 4;
+   */
+  SPAM = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FlaggedCategory)
 proto3.util.setEnumType(FlaggedCategory, "flipcash.moderation.v1.FlaggedCategory", [
   { no: 0, name: "OTHER" },
   { no: 1, name: "NSFW" },
   { no: 2, name: "IMPERSONATION" },
+  { no: 3, name: "MISLEADING" },
+  { no: 4, name: "SPAM" },
 ]);
 
 /**
