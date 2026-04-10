@@ -95,4 +95,6 @@ enum FlaggedCategory {
     OTHER         = 0; // Fallback category when flagged content does not fit into a well-defined FlaggedCategory
     NSFW          = 1;
     IMPERSONATION = 2;
+    MISLEADING    = 3;
+    SPAM          = 4;
 }
