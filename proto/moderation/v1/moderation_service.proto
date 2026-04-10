@@ -92,9 +92,10 @@ message ModerationAttestation {
 }
 
 enum FlaggedCategory {
-    OTHER         = 0; // Fallback category when flagged content does not fit into a well-defined FlaggedCategory
-    NSFW          = 1;
-    IMPERSONATION = 2;
-    MISLEADING    = 3;
-    SPAM          = 4;
+    NONE          = 0;
+    OTHER         = 1; // Fallback category when flagged content does not fit into a well-defined FlaggedCategory
+    NSFW          = 2;
+    IMPERSONATION = 3;
+    MISLEADING    = 4;
+    SPAM          = 5;
 }

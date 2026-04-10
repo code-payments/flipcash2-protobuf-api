@@ -12,39 +12,45 @@ import { Auth, PublicKey, Signature, UserId } from "../../common/v1/common_pb";
  */
 export enum FlaggedCategory {
   /**
+   * @generated from enum value: NONE = 0;
+   */
+  NONE = 0,
+
+  /**
    * Fallback category when flagged content does not fit into a well-defined FlaggedCategory
    *
-   * @generated from enum value: OTHER = 0;
+   * @generated from enum value: OTHER = 1;
    */
-  OTHER = 0,
+  OTHER = 1,
 
   /**
-   * @generated from enum value: NSFW = 1;
+   * @generated from enum value: NSFW = 2;
    */
-  NSFW = 1,
+  NSFW = 2,
 
   /**
-   * @generated from enum value: IMPERSONATION = 2;
+   * @generated from enum value: IMPERSONATION = 3;
    */
-  IMPERSONATION = 2,
+  IMPERSONATION = 3,
 
   /**
-   * @generated from enum value: MISLEADING = 3;
+   * @generated from enum value: MISLEADING = 4;
    */
-  MISLEADING = 3,
+  MISLEADING = 4,
 
   /**
-   * @generated from enum value: SPAM = 4;
+   * @generated from enum value: SPAM = 5;
    */
-  SPAM = 4,
+  SPAM = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FlaggedCategory)
 proto3.util.setEnumType(FlaggedCategory, "flipcash.moderation.v1.FlaggedCategory", [
-  { no: 0, name: "OTHER" },
-  { no: 1, name: "NSFW" },
-  { no: 2, name: "IMPERSONATION" },
-  { no: 3, name: "MISLEADING" },
-  { no: 4, name: "SPAM" },
+  { no: 0, name: "NONE" },
+  { no: 1, name: "OTHER" },
+  { no: 2, name: "NSFW" },
+  { no: 3, name: "IMPERSONATION" },
+  { no: 4, name: "MISLEADING" },
+  { no: 5, name: "SPAM" },
 ]);
 
 /**
@@ -120,7 +126,7 @@ export class ModerateTextResponse extends Message<ModerateTextResponse> {
    *
    * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 4;
    */
-  flaggedCategory = FlaggedCategory.OTHER;
+  flaggedCategory = FlaggedCategory.NONE;
 
   constructor(data?: PartialMessage<ModerateTextResponse>) {
     super();
@@ -246,7 +252,7 @@ export class ModerateImageResponse extends Message<ModerateImageResponse> {
    *
    * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 4;
    */
-  flaggedCategory = FlaggedCategory.OTHER;
+  flaggedCategory = FlaggedCategory.NONE;
 
   constructor(data?: PartialMessage<ModerateImageResponse>) {
     super();
