@@ -172,11 +172,17 @@ export enum ModerateTextResponse_Result {
    * @generated from enum value: DENIED = 1;
    */
   DENIED = 1,
+
+  /**
+   * @generated from enum value: UNSUPPORTED_LANGUAGE = 2;
+   */
+  UNSUPPORTED_LANGUAGE = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ModerateTextResponse_Result)
 proto3.util.setEnumType(ModerateTextResponse_Result, "flipcash.moderation.v1.ModerateTextResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
+  { no: 2, name: "UNSUPPORTED_LANGUAGE" },
 ]);
 
 /**
