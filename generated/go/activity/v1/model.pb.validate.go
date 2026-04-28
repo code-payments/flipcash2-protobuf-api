@@ -1229,6 +1229,17 @@ func (m *BoughtCryptoNotificationMetadata) validate(all bool) error {
 
 	var errors []error
 
+	if _, ok := _BoughtCryptoNotificationMetadata_SwapState_NotInLookup[m.GetSwapState()]; ok {
+		err := BoughtCryptoNotificationMetadataValidationError{
+			field:  "SwapState",
+			reason: "value must not be in list [SWAP_STATE_UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return BoughtCryptoNotificationMetadataMultiError(errors)
 	}
@@ -1311,6 +1322,10 @@ var _ interface {
 	ErrorName() string
 } = BoughtCryptoNotificationMetadataValidationError{}
 
+var _BoughtCryptoNotificationMetadata_SwapState_NotInLookup = map[SwapState]struct{}{
+	0: {},
+}
+
 // Validate checks the field values on SoldCryptoNotificationMetadata with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1332,6 +1347,17 @@ func (m *SoldCryptoNotificationMetadata) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if _, ok := _SoldCryptoNotificationMetadata_SwapState_NotInLookup[m.GetSwapState()]; ok {
+		err := SoldCryptoNotificationMetadataValidationError{
+			field:  "SwapState",
+			reason: "value must not be in list [SWAP_STATE_UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return SoldCryptoNotificationMetadataMultiError(errors)
@@ -1413,3 +1439,7 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SoldCryptoNotificationMetadataValidationError{}
+
+var _SoldCryptoNotificationMetadata_SwapState_NotInLookup = map[SwapState]struct{}{
+	0: {},
+}

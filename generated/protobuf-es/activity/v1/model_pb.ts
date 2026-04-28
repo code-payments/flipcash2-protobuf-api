@@ -66,6 +66,38 @@ proto3.util.setEnumType(NotificationState, "flipcash.activity.v1.NotificationSta
 ]);
 
 /**
+ * @generated from enum flipcash.activity.v1.SwapState
+ */
+export enum SwapState {
+  /**
+   * @generated from enum value: SWAP_STATE_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: SWAP_STATE_PENDING = 1;
+   */
+  PENDING = 1,
+
+  /**
+   * @generated from enum value: SWAP_STATE_SUCCEEDED = 2;
+   */
+  SUCCEEDED = 2,
+
+  /**
+   * @generated from enum value: SWAP_STATE_FAILED = 3;
+   */
+  FAILED = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SwapState)
+proto3.util.setEnumType(SwapState, "flipcash.activity.v1.SwapState", [
+  { no: 0, name: "SWAP_STATE_UNKNOWN" },
+  { no: 1, name: "SWAP_STATE_PENDING" },
+  { no: 2, name: "SWAP_STATE_SUCCEEDED" },
+  { no: 3, name: "SWAP_STATE_FAILED" },
+]);
+
+/**
  * The ID of the notification
  *
  * @generated from message flipcash.activity.v1.NotificationId
@@ -408,6 +440,11 @@ export class DepositedCryptoNotificationMetadata extends Message<DepositedCrypto
  * @generated from message flipcash.activity.v1.BoughtCryptoNotificationMetadata
  */
 export class BoughtCryptoNotificationMetadata extends Message<BoughtCryptoNotificationMetadata> {
+  /**
+   * @generated from field: flipcash.activity.v1.SwapState swap_state = 1;
+   */
+  swapState = SwapState.UNKNOWN;
+
   constructor(data?: PartialMessage<BoughtCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -416,6 +453,7 @@ export class BoughtCryptoNotificationMetadata extends Message<BoughtCryptoNotifi
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.activity.v1.BoughtCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "swap_state", kind: "enum", T: proto3.getEnumType(SwapState) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BoughtCryptoNotificationMetadata {
@@ -439,6 +477,11 @@ export class BoughtCryptoNotificationMetadata extends Message<BoughtCryptoNotifi
  * @generated from message flipcash.activity.v1.SoldCryptoNotificationMetadata
  */
 export class SoldCryptoNotificationMetadata extends Message<SoldCryptoNotificationMetadata> {
+  /**
+   * @generated from field: flipcash.activity.v1.SwapState swap_state = 1;
+   */
+  swapState = SwapState.UNKNOWN;
+
   constructor(data?: PartialMessage<SoldCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -447,6 +490,7 @@ export class SoldCryptoNotificationMetadata extends Message<SoldCryptoNotificati
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.activity.v1.SoldCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "swap_state", kind: "enum", T: proto3.getEnumType(SwapState) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SoldCryptoNotificationMetadata {
