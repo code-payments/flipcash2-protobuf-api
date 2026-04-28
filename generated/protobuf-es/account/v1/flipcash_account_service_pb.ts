@@ -531,6 +531,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   newCurrencyFeeAmount = protoInt64.zero;
 
+  /**
+   * USDF amount, in quarks, that must be paid when doing a withdrawal with a swap to USDC
+   *
+   * @generated from field: uint64 usdc_withdrawal_fee_amount = 10;
+   */
+  usdcWithdrawalFeeAmount = protoInt64.zero;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -548,6 +555,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 7, name: "bill_exchange_data_timeout", kind: "message", T: Duration },
     { no: 8, name: "new_currency_purchase_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 9, name: "new_currency_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 10, name: "usdc_withdrawal_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {
