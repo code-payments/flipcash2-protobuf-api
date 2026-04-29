@@ -500,7 +500,7 @@ export class UserFlags extends Message<UserFlags> {
    *
    * @generated from field: flipcash.account.v1.UserFlags.OnRampProvider preferred_on_ramp_provider = 5;
    */
-  preferredOnRampProvider = UserFlags_OnRampProvider.UNKNOWN;
+  preferredOnRampProvider = UserFlags_OnRampProvider.UNKNOWN_ON_RAMP_PROVIDER;
 
   /**
    * The minumum build number for this user. If their build number is less than the
@@ -538,6 +538,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   usdcWithdrawalFeeAmount = protoInt64.zero;
 
+  /**
+   * The preferred USDC liquidity pool for external wallet on ramp flows
+   *
+   * @generated from field: flipcash.account.v1.UserFlags.UsdcLiquidityPool preferred_on_ramp_usdc_liquidity_pool = 11;
+   */
+  preferredOnRampUsdcLiquidityPool = UserFlags_UsdcLiquidityPool.UNKNOWN_USDC_LIQUIDITY_POOL;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -556,6 +563,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 8, name: "new_currency_purchase_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 9, name: "new_currency_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 10, name: "usdc_withdrawal_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 11, name: "preferred_on_ramp_usdc_liquidity_pool", kind: "enum", T: proto3.getEnumType(UserFlags_UsdcLiquidityPool) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {
@@ -580,9 +588,9 @@ export class UserFlags extends Message<UserFlags> {
  */
 export enum UserFlags_OnRampProvider {
   /**
-   * @generated from enum value: UNKNOWN = 0;
+   * @generated from enum value: UNKNOWN_ON_RAMP_PROVIDER = 0;
    */
-  UNKNOWN = 0,
+  UNKNOWN_ON_RAMP_PROVIDER = 0,
 
   /**
    * @generated from enum value: COINBASE_VIRTUAL = 1;
@@ -626,7 +634,7 @@ export enum UserFlags_OnRampProvider {
 }
 // Retrieve enum metadata with: proto3.getEnumType(UserFlags_OnRampProvider)
 proto3.util.setEnumType(UserFlags_OnRampProvider, "flipcash.account.v1.UserFlags.OnRampProvider", [
-  { no: 0, name: "UNKNOWN" },
+  { no: 0, name: "UNKNOWN_ON_RAMP_PROVIDER" },
   { no: 1, name: "COINBASE_VIRTUAL" },
   { no: 2, name: "COINBASE_PHYSICAL_DEBIT" },
   { no: 3, name: "COINBASE_PHYSICAL_CREDIT" },
@@ -635,5 +643,31 @@ proto3.util.setEnumType(UserFlags_OnRampProvider, "flipcash.account.v1.UserFlags
   { no: 6, name: "SOLFLARE" },
   { no: 7, name: "BACKPACK" },
   { no: 8, name: "BASE" },
+]);
+
+/**
+ * @generated from enum flipcash.account.v1.UserFlags.UsdcLiquidityPool
+ */
+export enum UserFlags_UsdcLiquidityPool {
+  /**
+   * @generated from enum value: UNKNOWN_USDC_LIQUIDITY_POOL = 0;
+   */
+  UNKNOWN_USDC_LIQUIDITY_POOL = 0,
+
+  /**
+   * @generated from enum value: FLIPCASH = 1;
+   */
+  FLIPCASH = 1,
+
+  /**
+   * @generated from enum value: COINBASE_STABLE_SWAPPER = 2;
+   */
+  COINBASE_STABLE_SWAPPER = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UserFlags_UsdcLiquidityPool)
+proto3.util.setEnumType(UserFlags_UsdcLiquidityPool, "flipcash.account.v1.UserFlags.UsdcLiquidityPool", [
+  { no: 0, name: "UNKNOWN_USDC_LIQUIDITY_POOL" },
+  { no: 1, name: "FLIPCASH" },
+  { no: 2, name: "COINBASE_STABLE_SWAPPER" },
 ]);
 
