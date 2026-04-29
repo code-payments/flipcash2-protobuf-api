@@ -532,11 +532,11 @@ export class UserFlags extends Message<UserFlags> {
   newCurrencyFeeAmount = protoInt64.zero;
 
   /**
-   * USDF amount, in quarks, that must be paid when doing a withdrawal with a swap to USDC
+   * USDF amount, in quarks, that must be paid when doing a withdrawal
    *
-   * @generated from field: uint64 usdc_withdrawal_fee_amount = 10;
+   * @generated from field: uint64 withdrawal_fee_amount = 10;
    */
-  usdcWithdrawalFeeAmount = protoInt64.zero;
+  withdrawalFeeAmount = protoInt64.zero;
 
   /**
    * The preferred USDC liquidity pool for external wallet on ramp flows
@@ -562,7 +562,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 7, name: "bill_exchange_data_timeout", kind: "message", T: Duration },
     { no: 8, name: "new_currency_purchase_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 9, name: "new_currency_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 10, name: "usdc_withdrawal_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 10, name: "withdrawal_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 11, name: "preferred_on_ramp_usdc_liquidity_pool", kind: "enum", T: proto3.getEnumType(UserFlags_UsdcLiquidityPool) },
   ]);
 
