@@ -1327,6 +1327,8 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for UsdcWithdrawalFeeAmount
 
+	// no validation rules for PreferredOnRampUsdcLiquidityPool
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
