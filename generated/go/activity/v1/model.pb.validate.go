@@ -874,6 +874,17 @@ func (m *WithdrewCryptoNotificationMetadata) validate(all bool) error {
 
 	var errors []error
 
+	if _, ok := _WithdrewCryptoNotificationMetadata_SwapState_NotInLookup[m.GetSwapState()]; ok {
+		err := WithdrewCryptoNotificationMetadataValidationError{
+			field:  "SwapState",
+			reason: "value must not be in list [SWAP_STATE_UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return WithdrewCryptoNotificationMetadataMultiError(errors)
 	}
@@ -955,6 +966,10 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = WithdrewCryptoNotificationMetadataValidationError{}
+
+var _WithdrewCryptoNotificationMetadata_SwapState_NotInLookup = map[SwapState]struct{}{
+	0: {},
+}
 
 // Validate checks the field values on SentCryptoNotificationMetadata with the
 // rules defined in the proto definition for this message. If any rules are

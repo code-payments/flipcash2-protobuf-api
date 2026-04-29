@@ -88,6 +88,11 @@ export enum SwapState {
    * @generated from enum value: SWAP_STATE_FAILED = 3;
    */
   FAILED = 3,
+
+  /**
+   * @generated from enum value: SWAP_STATE_NONE = 4;
+   */
+  NONE = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SwapState)
 proto3.util.setEnumType(SwapState, "flipcash.activity.v1.SwapState", [
@@ -95,6 +100,7 @@ proto3.util.setEnumType(SwapState, "flipcash.activity.v1.SwapState", [
   { no: 1, name: "SWAP_STATE_PENDING" },
   { no: 2, name: "SWAP_STATE_SUCCEEDED" },
   { no: 3, name: "SWAP_STATE_FAILED" },
+  { no: 4, name: "SWAP_STATE_NONE" },
 ]);
 
 /**
@@ -331,6 +337,11 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
  * @generated from message flipcash.activity.v1.WithdrewCryptoNotificationMetadata
  */
 export class WithdrewCryptoNotificationMetadata extends Message<WithdrewCryptoNotificationMetadata> {
+  /**
+   * @generated from field: flipcash.activity.v1.SwapState swap_state = 1;
+   */
+  swapState = SwapState.UNKNOWN;
+
   constructor(data?: PartialMessage<WithdrewCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -339,6 +350,7 @@ export class WithdrewCryptoNotificationMetadata extends Message<WithdrewCryptoNo
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.activity.v1.WithdrewCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "swap_state", kind: "enum", T: proto3.getEnumType(SwapState) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WithdrewCryptoNotificationMetadata {
