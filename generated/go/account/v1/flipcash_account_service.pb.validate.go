@@ -1325,7 +1325,7 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for NewCurrencyFeeAmount
 
-	// no validation rules for UsdcWithdrawalFeeAmount
+	// no validation rules for WithdrawalFeeAmount
 
 	// no validation rules for PreferredOnRampUsdcLiquidityPool
 
