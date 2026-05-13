@@ -70,6 +70,43 @@ export class PublicKey extends Message<PublicKey> {
 }
 
 /**
+ * @generated from message flipcash.common.v1.PrivateKey
+ */
+export class PrivateKey extends Message<PrivateKey> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<PrivateKey>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.PrivateKey";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PrivateKey {
+    return new PrivateKey().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PrivateKey {
+    return new PrivateKey().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PrivateKey {
+    return new PrivateKey().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PrivateKey | PlainMessage<PrivateKey> | undefined, b: PrivateKey | PlainMessage<PrivateKey> | undefined): boolean {
+    return proto3.util.equals(PrivateKey, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.common.v1.Signature
  */
 export class Signature extends Message<Signature> {

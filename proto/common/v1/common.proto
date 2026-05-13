@@ -15,6 +15,13 @@ message PublicKey {
     }];
 }
 
+message PrivateKey {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 64
+        max_len: 64
+    }];
+}
+
 message Signature {
     bytes value = 1 [(validate.rules).bytes = {
         min_len: 64

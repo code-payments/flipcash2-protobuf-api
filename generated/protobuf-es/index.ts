@@ -1,6 +1,8 @@
 export * as Settings from './settings/v1';
 export * as Activity from './activity/v1';
 export * as Activity from './activity/v1';
+export * as Storage from './storage/v1';
+export * as Storage from './storage/v1';
 export * as Push from './push/v1';
 export * as Push from './push/v1';
 export * as Iap from './iap/v1';

@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package flipcash.storage.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/storage/v1;storagepb";
+option java_package = "com.codeinc.flipcash.gen.storage.v1";
+option objc_class_prefix = "FPBStorageV1";
+
+import "common/v1/common.proto";
+import "storage/v1/model.proto";
+import "validate/validate.proto";
+
+// EncryptedStorage persists user-encrypted blobs on behalf of users.
+//
+// Storage model:
+//   * Each blob is addressed by (authenticated owner, StorageKey). One blob
+//     per address; PutBlob overwrites.
+//   * Blobs are X25519Blob envelopes that the owner has encrypted under
+//     their own long-term X25519 public key. Only the envelope's
+//     encrypted_blob field is opaque; ephemeral_pub_key is visible to the
+//     server.
+//   * The encrypted_blob decrypts to a marshalled EncryptedPayload (see
+//     storage/v1/model.proto for the encryption and slot-binding model).
+//
+// The server cannot decrypt blob contents. It can see the ephemeral X25519
+// pubkey on each blob and the StorageKey of each slot. Reads are scoped to
+// the authenticated caller — there is no way to fetch another user's blob.
+service EncryptedStorage {
+    // PutBlob writes the blob at `key` for the authenticated owner.
+    rpc PutBlob(PutBlobRequest) returns (PutBlobResponse);
+
+    // GetBlob fetches the blob at `key` for the authenticated caller.
+    rpc GetBlob(GetBlobRequest) returns (GetBlobResponse);
+}
+
+message PutBlobRequest {
+    StorageKey key = 1 [(validate.rules).message.required = true];
+
+    // Encrypted envelope addressed by `key`. The X25519Blob's AEAD is bound
+    // to `key` as associated data (see storage/v1/model.proto), so the
+    // ciphertext only decrypts cleanly when later fetched under the same
+    // StorageKey.
+    X25519Blob blob = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message PutBlobResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        DENIED = 1;
+        EXISTS = 2;
+    }
+}
+
+message GetBlobRequest {
+    StorageKey key = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetBlobResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        NOT_FOUND = 1;
+        DENIED    = 2;
+    }
+
+    // Stored envelope. Empty unless result is OK. Clients MUST decrypt
+    // blob.encrypted_blob with AAD set to the deterministic protobuf
+    // serialization of the StorageKey used to fetch — a slot-swap attack by
+    // the server will fail the AEAD tag check.
+    X25519Blob blob = 2;
+}

@@ -17,6 +17,7 @@ The APIs and models for communication between Flipcash clients and server.
 - [Profile](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/profile/v1/profile_service.proto)
 - [Push](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/push/v1/push_service.proto)
 - [Settings](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/settings/v1/settings_service.proto)
+- [Storage](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/storage/v1/storage_service.proto)
 - [Third Party](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/thirdparty/v1/third_party_service.proto)
 
 ## Code Generation
