@@ -18,4 +18,6 @@ export * as Thirdparty from './thirdparty/v1';
 export * as Thirdparty from './thirdparty/v1';
 export * as Email from './email/v1';
 export * as Email from './email/v1';
+export * as Resolver from './resolver/v1';
+export * as Resolver from './resolver/v1';
 export * as Moderation from './moderation/v1';
