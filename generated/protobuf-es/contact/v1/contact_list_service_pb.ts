@@ -486,9 +486,19 @@ export class ConnectRequest extends Message<ConnectRequest> {
   auth?: Auth;
 
   /**
+   * The signed connection for the caller's own phone number and public key
+   *
    * @generated from field: flipcash.contact.v1.VerifiedPhoneConnection verified_connection = 2;
    */
   verifiedConnection?: VerifiedPhoneConnection;
+
+  /**
+   * The phone number for the other contact that will be connected. This guarantees
+   * a unique 1:1 connection between two phone numbers for a single verification key.
+   *
+   * @generated from field: flipcash.phone.v1.PhoneNumber other_contact = 3;
+   */
+  otherContact?: PhoneNumber;
 
   constructor(data?: PartialMessage<ConnectRequest>) {
     super();
@@ -500,6 +510,7 @@ export class ConnectRequest extends Message<ConnectRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "verified_connection", kind: "message", T: VerifiedPhoneConnection },
+    { no: 3, name: "other_contact", kind: "message", T: PhoneNumber },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectRequest {
@@ -574,11 +585,17 @@ export enum ConnectResponse_Result {
    * @generated from enum value: VERIFICATION_KEY_NOT_FOUND = 2;
    */
   VERIFICATION_KEY_NOT_FOUND = 2,
+
+  /**
+   * @generated from enum value: UNEXPECTED_PHONE_NUMBER = 3;
+   */
+  UNEXPECTED_PHONE_NUMBER = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ConnectResponse_Result)
 proto3.util.setEnumType(ConnectResponse_Result, "flipcash.contact.v1.ConnectResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "VERIFICATION_KEY_NOT_FOUND" },
+  { no: 3, name: "UNEXPECTED_PHONE_NUMBER" },
 ]);
 

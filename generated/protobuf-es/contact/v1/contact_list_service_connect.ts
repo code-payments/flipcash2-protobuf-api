@@ -73,7 +73,7 @@ export const ContactList = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * Connect connects a contact for payment using a verifiable proto messaged
+     * Connect connects a contact for payment using a verifiable proto message
      * signed with an out-of-band verification key. Both contacts must connect
      * with the same verification key to enable payments. The verification key
      * must be stored in secure storage prior to calling this RPC. 

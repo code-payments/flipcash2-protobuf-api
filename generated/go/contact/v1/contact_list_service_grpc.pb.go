@@ -54,7 +54,7 @@ type ContactListClient interface {
 	FullUpload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[FullUploadRequest, FullUploadResponse], error)
 	// GetFlipcashContacts gets the set of contacts that are on Flipcash
 	GetFlipcashContacts(ctx context.Context, in *GetFlipcashContactsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetFlipcashContactsResponse], error)
-	// Connect connects a contact for payment using a verifiable proto messaged
+	// Connect connects a contact for payment using a verifiable proto message
 	// signed with an out-of-band verification key. Both contacts must connect
 	// with the same verification key to enable payments. The verification key
 	// must be stored in secure storage prior to calling this RPC.
@@ -159,7 +159,7 @@ type ContactListServer interface {
 	FullUpload(grpc.ClientStreamingServer[FullUploadRequest, FullUploadResponse]) error
 	// GetFlipcashContacts gets the set of contacts that are on Flipcash
 	GetFlipcashContacts(*GetFlipcashContactsRequest, grpc.ServerStreamingServer[GetFlipcashContactsResponse]) error
-	// Connect connects a contact for payment using a verifiable proto messaged
+	// Connect connects a contact for payment using a verifiable proto message
 	// signed with an out-of-band verification key. Both contacts must connect
 	// with the same verification key to enable payments. The verification key
 	// must be stored in secure storage prior to calling this RPC.
