@@ -49,7 +49,7 @@ message CheckSyncRequest {
     common.v1.Auth auth = 1 [(validate.rules).message.required = true];
 
     // XOR-of-SHA256 over the client's current set of normalized E.164 phones.
-    bytes client_checksum = 2 [(validate.rules).bytes.len = 32];
+    common.v1.Hash client_checksum = 2 [(validate.rules).message.required = true];
 }
 
 message CheckSyncResponse {
@@ -61,7 +61,7 @@ message CheckSyncResponse {
 
     // Authoritative server-side checksum. Clients persist this and use it
     // as the basis for the next DeltaUpload.old_checksum.
-    bytes server_checksum = 2 [(validate.rules).bytes.len = 32];
+    common.v1.Hash server_checksum = 2;
 }
 
 message DeltaUploadRequest {
@@ -73,12 +73,12 @@ message DeltaUploadRequest {
 
     // The checksum the client expected the server to have *before* applying
     // this delta. Server applies only if stored == old_checksum.
-    bytes old_checksum = 4 [(validate.rules).bytes.len = 32];
+    common.v1.Hash old_checksum = 4 [(validate.rules).message.required = true];
 
     // The checksum the client computes for the state *after* applying this
     // delta. Server persists this on success. Used to detect retries: if
     // stored == new_checksum, the server treats the request as a no-op.
-    bytes new_checksum = 5 [(validate.rules).bytes.len = 32];
+    common.v1.Hash new_checksum = 5 [(validate.rules).message.required = true];
 }
 
 message DeltaUploadResponse {
@@ -100,7 +100,7 @@ message FullUploadRequest {
 
     // XOR-of-SHA256 over the client's current set of normalized E.164 phones.
     // Sent on the last streamed request to indicate the end of the upload.
-    bytes expected_checksum = 3;
+    common.v1.Hash expected_checksum = 3 [(validate.rules).message.required = true];
 }
 
 message FullUploadResponse {
@@ -115,7 +115,7 @@ message FullUploadResponse {
 message GetFlipcashContactsRequest {
     common.v1.Auth auth = 1 [(validate.rules).message.required = true];
 
-    bytes checksum = 2 [(validate.rules).bytes.len = 32];
+    common.v1.Hash checksum = 2 [(validate.rules).message.required = true];
 }
 
 message GetFlipcashContactsResponse {
