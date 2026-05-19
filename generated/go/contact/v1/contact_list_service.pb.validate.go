@@ -97,15 +97,44 @@ func (m *CheckSyncRequest) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetClientChecksum()) != 32 {
+	if m.GetClientChecksum() == nil {
 		err := CheckSyncRequestValidationError{
 			field:  "ClientChecksum",
-			reason: "value length must be 32 bytes",
+			reason: "value is required",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetClientChecksum()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CheckSyncRequestValidationError{
+					field:  "ClientChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CheckSyncRequestValidationError{
+					field:  "ClientChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetClientChecksum()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CheckSyncRequestValidationError{
+				field:  "ClientChecksum",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -210,15 +239,33 @@ func (m *CheckSyncResponse) validate(all bool) error {
 
 	// no validation rules for Result
 
-	if len(m.GetServerChecksum()) != 32 {
-		err := CheckSyncResponseValidationError{
-			field:  "ServerChecksum",
-			reason: "value length must be 32 bytes",
+	if all {
+		switch v := interface{}(m.GetServerChecksum()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CheckSyncResponseValidationError{
+					field:  "ServerChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CheckSyncResponseValidationError{
+					field:  "ServerChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetServerChecksum()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CheckSyncResponseValidationError{
+				field:  "ServerChecksum",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -453,10 +500,10 @@ func (m *DeltaUploadRequest) validate(all bool) error {
 
 	}
 
-	if len(m.GetOldChecksum()) != 32 {
+	if m.GetOldChecksum() == nil {
 		err := DeltaUploadRequestValidationError{
 			field:  "OldChecksum",
-			reason: "value length must be 32 bytes",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -464,15 +511,73 @@ func (m *DeltaUploadRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetNewChecksum()) != 32 {
+	if all {
+		switch v := interface{}(m.GetOldChecksum()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeltaUploadRequestValidationError{
+					field:  "OldChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeltaUploadRequestValidationError{
+					field:  "OldChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOldChecksum()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeltaUploadRequestValidationError{
+				field:  "OldChecksum",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetNewChecksum() == nil {
 		err := DeltaUploadRequestValidationError{
 			field:  "NewChecksum",
-			reason: "value length must be 32 bytes",
+			reason: "value is required",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetNewChecksum()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeltaUploadRequestValidationError{
+					field:  "NewChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeltaUploadRequestValidationError{
+					field:  "NewChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetNewChecksum()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeltaUploadRequestValidationError{
+				field:  "NewChecksum",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -766,7 +871,45 @@ func (m *FullUploadRequest) validate(all bool) error {
 
 	}
 
-	// no validation rules for ExpectedChecksum
+	if m.GetExpectedChecksum() == nil {
+		err := FullUploadRequestValidationError{
+			field:  "ExpectedChecksum",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetExpectedChecksum()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, FullUploadRequestValidationError{
+					field:  "ExpectedChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, FullUploadRequestValidationError{
+					field:  "ExpectedChecksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExpectedChecksum()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return FullUploadRequestValidationError{
+				field:  "ExpectedChecksum",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return FullUploadRequestMultiError(errors)
@@ -1014,15 +1157,44 @@ func (m *GetFlipcashContactsRequest) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetChecksum()) != 32 {
+	if m.GetChecksum() == nil {
 		err := GetFlipcashContactsRequestValidationError{
 			field:  "Checksum",
-			reason: "value length must be 32 bytes",
+			reason: "value is required",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChecksum()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetFlipcashContactsRequestValidationError{
+					field:  "Checksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetFlipcashContactsRequestValidationError{
+					field:  "Checksum",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChecksum()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetFlipcashContactsRequestValidationError{
+				field:  "Checksum",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {

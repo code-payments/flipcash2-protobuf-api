@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth } from "../../common/v1/common_pb";
+import { Auth, Hash } from "../../common/v1/common_pb";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 import { FlipcashContact, VerifiedPhoneConnection } from "./model_pb";
 
@@ -21,9 +21,9 @@ export class CheckSyncRequest extends Message<CheckSyncRequest> {
   /**
    * XOR-of-SHA256 over the client's current set of normalized E.164 phones.
    *
-   * @generated from field: bytes client_checksum = 2;
+   * @generated from field: flipcash.common.v1.Hash client_checksum = 2;
    */
-  clientChecksum = new Uint8Array(0);
+  clientChecksum?: Hash;
 
   constructor(data?: PartialMessage<CheckSyncRequest>) {
     super();
@@ -34,7 +34,7 @@ export class CheckSyncRequest extends Message<CheckSyncRequest> {
   static readonly typeName = "flipcash.contact.v1.CheckSyncRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
-    { no: 2, name: "client_checksum", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 2, name: "client_checksum", kind: "message", T: Hash },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckSyncRequest {
@@ -67,9 +67,9 @@ export class CheckSyncResponse extends Message<CheckSyncResponse> {
    * Authoritative server-side checksum. Clients persist this and use it
    * as the basis for the next DeltaUpload.old_checksum.
    *
-   * @generated from field: bytes server_checksum = 2;
+   * @generated from field: flipcash.common.v1.Hash server_checksum = 2;
    */
-  serverChecksum = new Uint8Array(0);
+  serverChecksum?: Hash;
 
   constructor(data?: PartialMessage<CheckSyncResponse>) {
     super();
@@ -80,7 +80,7 @@ export class CheckSyncResponse extends Message<CheckSyncResponse> {
   static readonly typeName = "flipcash.contact.v1.CheckSyncResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(CheckSyncResponse_Result) },
-    { no: 2, name: "server_checksum", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 2, name: "server_checksum", kind: "message", T: Hash },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckSyncResponse {
@@ -143,18 +143,18 @@ export class DeltaUploadRequest extends Message<DeltaUploadRequest> {
    * The checksum the client expected the server to have *before* applying
    * this delta. Server applies only if stored == old_checksum.
    *
-   * @generated from field: bytes old_checksum = 4;
+   * @generated from field: flipcash.common.v1.Hash old_checksum = 4;
    */
-  oldChecksum = new Uint8Array(0);
+  oldChecksum?: Hash;
 
   /**
    * The checksum the client computes for the state *after* applying this
    * delta. Server persists this on success. Used to detect retries: if
    * stored == new_checksum, the server treats the request as a no-op.
    *
-   * @generated from field: bytes new_checksum = 5;
+   * @generated from field: flipcash.common.v1.Hash new_checksum = 5;
    */
-  newChecksum = new Uint8Array(0);
+  newChecksum?: Hash;
 
   constructor(data?: PartialMessage<DeltaUploadRequest>) {
     super();
@@ -167,8 +167,8 @@ export class DeltaUploadRequest extends Message<DeltaUploadRequest> {
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "adds", kind: "message", T: PhoneNumber, repeated: true },
     { no: 3, name: "removes", kind: "message", T: PhoneNumber, repeated: true },
-    { no: 4, name: "old_checksum", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-    { no: 5, name: "new_checksum", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 4, name: "old_checksum", kind: "message", T: Hash },
+    { no: 5, name: "new_checksum", kind: "message", T: Hash },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeltaUploadRequest {
@@ -269,9 +269,9 @@ export class FullUploadRequest extends Message<FullUploadRequest> {
    * XOR-of-SHA256 over the client's current set of normalized E.164 phones.
    * Sent on the last streamed request to indicate the end of the upload.
    *
-   * @generated from field: bytes expected_checksum = 3;
+   * @generated from field: flipcash.common.v1.Hash expected_checksum = 3;
    */
-  expectedChecksum = new Uint8Array(0);
+  expectedChecksum?: Hash;
 
   constructor(data?: PartialMessage<FullUploadRequest>) {
     super();
@@ -283,7 +283,7 @@ export class FullUploadRequest extends Message<FullUploadRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "phones", kind: "message", T: PhoneNumber, repeated: true },
-    { no: 3, name: "expected_checksum", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: "expected_checksum", kind: "message", T: Hash },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FullUploadRequest {
@@ -372,9 +372,9 @@ export class GetFlipcashContactsRequest extends Message<GetFlipcashContactsReque
   auth?: Auth;
 
   /**
-   * @generated from field: bytes checksum = 2;
+   * @generated from field: flipcash.common.v1.Hash checksum = 2;
    */
-  checksum = new Uint8Array(0);
+  checksum?: Hash;
 
   constructor(data?: PartialMessage<GetFlipcashContactsRequest>) {
     super();
@@ -385,7 +385,7 @@ export class GetFlipcashContactsRequest extends Message<GetFlipcashContactsReque
   static readonly typeName = "flipcash.contact.v1.GetFlipcashContactsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
-    { no: 2, name: "checksum", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 2, name: "checksum", kind: "message", T: Hash },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetFlipcashContactsRequest {
