@@ -241,11 +241,17 @@ export enum DeltaUploadResponse_Result {
    * @generated from enum value: CHECKSUM_DRIFT = 1;
    */
   CHECKSUM_DRIFT = 1,
+
+  /**
+   * @generated from enum value: TOO_MANY_CONTACTS = 2;
+   */
+  TOO_MANY_CONTACTS = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(DeltaUploadResponse_Result)
 proto3.util.setEnumType(DeltaUploadResponse_Result, "flipcash.contact.v1.DeltaUploadResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "CHECKSUM_DRIFT" },
+  { no: 2, name: "TOO_MANY_CONTACTS" },
 ]);
 
 /**
@@ -355,11 +361,17 @@ export enum FullUploadResponse_Result {
    * @generated from enum value: CHECKSUM_MISMATCH = 1;
    */
   CHECKSUM_MISMATCH = 1,
+
+  /**
+   * @generated from enum value: TOO_MANY_CONTACTS = 2;
+   */
+  TOO_MANY_CONTACTS = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FullUploadResponse_Result)
 proto3.util.setEnumType(FullUploadResponse_Result, "flipcash.contact.v1.FullUploadResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "CHECKSUM_MISMATCH" },
+  { no: 2, name: "TOO_MANY_CONTACTS" },
 ]);
 
 /**
