@@ -55,7 +55,8 @@ message CheckSyncRequest {
 message CheckSyncResponse {
     enum Result {
         OK          = 0;
-        OUT_OF_SYNC = 1;
+        DENIED      = 1;
+        OUT_OF_SYNC = 2;
     }
     Result result = 1;
 
@@ -84,12 +85,13 @@ message DeltaUploadRequest {
 message DeltaUploadResponse {
     enum Result {
         OK                = 0;
+        DENIED            = 1;
         // Server's recomputed checksum did not match expected_checksum.
-        CHECKSUM_MISMATCH = 1;
+        CHECKSUM_MISMATCH = 2;
         // Stored checksum matched neither old_checksum nor new_checksum.
         // Client should call FullUpload to reconcile.
-        CHECKSUM_DRIFT    = 2;
-        TOO_MANY_CONTACTS = 3;
+        CHECKSUM_DRIFT    = 3;
+        TOO_MANY_CONTACTS = 4;
     }
     Result result = 1;
 }
@@ -109,9 +111,10 @@ message FullUploadRequest {
 message FullUploadResponse {
     enum Result {
         OK                = 0;
+        DENIED            = 1;
         // Server's recomputed checksum did not match expected_checksum.
-        CHECKSUM_MISMATCH = 1;
-        TOO_MANY_CONTACTS = 2;
+        CHECKSUM_MISMATCH = 2;
+        TOO_MANY_CONTACTS = 3;
     }
     Result result = 1;
 }
@@ -125,9 +128,10 @@ message GetFlipcashContactsRequest {
 message GetFlipcashContactsResponse {
     enum Result {
         OK             = 0;
-        // Server checksum doesn't match client checksum.
-        CHECKSUM_DRIFT = 1;
+        DENIED         = 1;
         NOT_FOUND      = 2;
+        // Server checksum doesn't match client checksum.
+        CHECKSUM_DRIFT = 3;
     }
     Result result = 1;
 
