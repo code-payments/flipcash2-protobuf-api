@@ -110,14 +110,20 @@ export enum CheckSyncResponse_Result {
   OK = 0,
 
   /**
-   * @generated from enum value: OUT_OF_SYNC = 1;
+   * @generated from enum value: DENIED = 1;
    */
-  OUT_OF_SYNC = 1,
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: OUT_OF_SYNC = 2;
+   */
+  OUT_OF_SYNC = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CheckSyncResponse_Result)
 proto3.util.setEnumType(CheckSyncResponse_Result, "flipcash.contact.v1.CheckSyncResponse.Result", [
   { no: 0, name: "OK" },
-  { no: 1, name: "OUT_OF_SYNC" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "OUT_OF_SYNC" },
 ]);
 
 /**
@@ -235,31 +241,37 @@ export enum DeltaUploadResponse_Result {
   OK = 0,
 
   /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
    * Server's recomputed checksum did not match expected_checksum.
    *
-   * @generated from enum value: CHECKSUM_MISMATCH = 1;
+   * @generated from enum value: CHECKSUM_MISMATCH = 2;
    */
-  CHECKSUM_MISMATCH = 1,
+  CHECKSUM_MISMATCH = 2,
 
   /**
    * Stored checksum matched neither old_checksum nor new_checksum.
    * Client should call FullUpload to reconcile.
    *
-   * @generated from enum value: CHECKSUM_DRIFT = 2;
+   * @generated from enum value: CHECKSUM_DRIFT = 3;
    */
-  CHECKSUM_DRIFT = 2,
+  CHECKSUM_DRIFT = 3,
 
   /**
-   * @generated from enum value: TOO_MANY_CONTACTS = 3;
+   * @generated from enum value: TOO_MANY_CONTACTS = 4;
    */
-  TOO_MANY_CONTACTS = 3,
+  TOO_MANY_CONTACTS = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(DeltaUploadResponse_Result)
 proto3.util.setEnumType(DeltaUploadResponse_Result, "flipcash.contact.v1.DeltaUploadResponse.Result", [
   { no: 0, name: "OK" },
-  { no: 1, name: "CHECKSUM_MISMATCH" },
-  { no: 2, name: "CHECKSUM_DRIFT" },
-  { no: 3, name: "TOO_MANY_CONTACTS" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "CHECKSUM_MISMATCH" },
+  { no: 3, name: "CHECKSUM_DRIFT" },
+  { no: 4, name: "TOO_MANY_CONTACTS" },
 ]);
 
 /**
@@ -364,22 +376,28 @@ export enum FullUploadResponse_Result {
   OK = 0,
 
   /**
-   * Server's recomputed checksum did not match expected_checksum.
-   *
-   * @generated from enum value: CHECKSUM_MISMATCH = 1;
+   * @generated from enum value: DENIED = 1;
    */
-  CHECKSUM_MISMATCH = 1,
+  DENIED = 1,
 
   /**
-   * @generated from enum value: TOO_MANY_CONTACTS = 2;
+   * Server's recomputed checksum did not match expected_checksum.
+   *
+   * @generated from enum value: CHECKSUM_MISMATCH = 2;
    */
-  TOO_MANY_CONTACTS = 2,
+  CHECKSUM_MISMATCH = 2,
+
+  /**
+   * @generated from enum value: TOO_MANY_CONTACTS = 3;
+   */
+  TOO_MANY_CONTACTS = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(FullUploadResponse_Result)
 proto3.util.setEnumType(FullUploadResponse_Result, "flipcash.contact.v1.FullUploadResponse.Result", [
   { no: 0, name: "OK" },
-  { no: 1, name: "CHECKSUM_MISMATCH" },
-  { no: 2, name: "TOO_MANY_CONTACTS" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "CHECKSUM_MISMATCH" },
+  { no: 3, name: "TOO_MANY_CONTACTS" },
 ]);
 
 /**
@@ -478,22 +496,28 @@ export enum GetFlipcashContactsResponse_Result {
   OK = 0,
 
   /**
-   * Server checksum doesn't match client checksum.
-   *
-   * @generated from enum value: CHECKSUM_DRIFT = 1;
+   * @generated from enum value: DENIED = 1;
    */
-  CHECKSUM_DRIFT = 1,
+  DENIED = 1,
 
   /**
    * @generated from enum value: NOT_FOUND = 2;
    */
   NOT_FOUND = 2,
+
+  /**
+   * Server checksum doesn't match client checksum.
+   *
+   * @generated from enum value: CHECKSUM_DRIFT = 3;
+   */
+  CHECKSUM_DRIFT = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetFlipcashContactsResponse_Result)
 proto3.util.setEnumType(GetFlipcashContactsResponse_Result, "flipcash.contact.v1.GetFlipcashContactsResponse.Result", [
   { no: 0, name: "OK" },
-  { no: 1, name: "CHECKSUM_DRIFT" },
+  { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "CHECKSUM_DRIFT" },
 ]);
 
 /**
