@@ -23,7 +23,6 @@ const (
 	ContactList_DeltaUpload_FullMethodName         = "/flipcash.contact.v1.ContactList/DeltaUpload"
 	ContactList_FullUpload_FullMethodName          = "/flipcash.contact.v1.ContactList/FullUpload"
 	ContactList_GetFlipcashContacts_FullMethodName = "/flipcash.contact.v1.ContactList/GetFlipcashContacts"
-	ContactList_Connect_FullMethodName             = "/flipcash.contact.v1.ContactList/Connect"
 )
 
 // ContactListClient is the client API for ContactList service.
@@ -54,11 +53,6 @@ type ContactListClient interface {
 	FullUpload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[FullUploadRequest, FullUploadResponse], error)
 	// GetFlipcashContacts gets the set of contacts that are on Flipcash
 	GetFlipcashContacts(ctx context.Context, in *GetFlipcashContactsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetFlipcashContactsResponse], error)
-	// Connect connects a contact for payment using a verifiable proto message
-	// signed with an out-of-band verification key. Both contacts must connect
-	// with the same verification key to enable payments. The verification key
-	// must be stored in secure storage prior to calling this RPC.
-	Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error)
 }
 
 type contactListClient struct {
@@ -121,16 +115,6 @@ func (c *contactListClient) GetFlipcashContacts(ctx context.Context, in *GetFlip
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ContactList_GetFlipcashContactsClient = grpc.ServerStreamingClient[GetFlipcashContactsResponse]
 
-func (c *contactListClient) Connect(ctx context.Context, in *ConnectRequest, opts ...grpc.CallOption) (*ConnectResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConnectResponse)
-	err := c.cc.Invoke(ctx, ContactList_Connect_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ContactListServer is the server API for ContactList service.
 // All implementations must embed UnimplementedContactListServer
 // for forward compatibility.
@@ -159,11 +143,6 @@ type ContactListServer interface {
 	FullUpload(grpc.ClientStreamingServer[FullUploadRequest, FullUploadResponse]) error
 	// GetFlipcashContacts gets the set of contacts that are on Flipcash
 	GetFlipcashContacts(*GetFlipcashContactsRequest, grpc.ServerStreamingServer[GetFlipcashContactsResponse]) error
-	// Connect connects a contact for payment using a verifiable proto message
-	// signed with an out-of-band verification key. Both contacts must connect
-	// with the same verification key to enable payments. The verification key
-	// must be stored in secure storage prior to calling this RPC.
-	Connect(context.Context, *ConnectRequest) (*ConnectResponse, error)
 	mustEmbedUnimplementedContactListServer()
 }
 
@@ -185,9 +164,6 @@ func (UnimplementedContactListServer) FullUpload(grpc.ClientStreamingServer[Full
 }
 func (UnimplementedContactListServer) GetFlipcashContacts(*GetFlipcashContactsRequest, grpc.ServerStreamingServer[GetFlipcashContactsResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method GetFlipcashContacts not implemented")
-}
-func (UnimplementedContactListServer) Connect(context.Context, *ConnectRequest) (*ConnectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Connect not implemented")
 }
 func (UnimplementedContactListServer) mustEmbedUnimplementedContactListServer() {}
 func (UnimplementedContactListServer) testEmbeddedByValue()                     {}
@@ -264,24 +240,6 @@ func _ContactList_GetFlipcashContacts_Handler(srv interface{}, stream grpc.Serve
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ContactList_GetFlipcashContactsServer = grpc.ServerStreamingServer[GetFlipcashContactsResponse]
 
-func _ContactList_Connect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConnectRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ContactListServer).Connect(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ContactList_Connect_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContactListServer).Connect(ctx, req.(*ConnectRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // ContactList_ServiceDesc is the grpc.ServiceDesc for ContactList service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -296,10 +254,6 @@ var ContactList_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeltaUpload",
 			Handler:    _ContactList_DeltaUpload_Handler,
-		},
-		{
-			MethodName: "Connect",
-			Handler:    _ContactList_Connect_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, Hash } from "../../common/v1/common_pb";
 import { PhoneNumber } from "../../phone/v1/model_pb";
-import { FlipcashContact, VerifiedPhoneConnection } from "./model_pb";
+import { FlipcashContact } from "./model_pb";
 
 /**
  * @generated from message flipcash.contact.v1.CheckSyncRequest
@@ -518,128 +518,5 @@ proto3.util.setEnumType(GetFlipcashContactsResponse_Result, "flipcash.contact.v1
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "CHECKSUM_DRIFT" },
-]);
-
-/**
- * @generated from message flipcash.contact.v1.ConnectRequest
- */
-export class ConnectRequest extends Message<ConnectRequest> {
-  /**
-   * @generated from field: flipcash.common.v1.Auth auth = 1;
-   */
-  auth?: Auth;
-
-  /**
-   * The signed connection for the caller's own phone number and public key
-   *
-   * @generated from field: flipcash.contact.v1.VerifiedPhoneConnection verified_connection = 2;
-   */
-  verifiedConnection?: VerifiedPhoneConnection;
-
-  /**
-   * The phone number for the other contact that will be connected. This guarantees
-   * a unique 1:1 connection between two phone numbers for a single verification key.
-   *
-   * @generated from field: flipcash.phone.v1.PhoneNumber other_contact = 3;
-   */
-  otherContact?: PhoneNumber;
-
-  constructor(data?: PartialMessage<ConnectRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.contact.v1.ConnectRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "auth", kind: "message", T: Auth },
-    { no: 2, name: "verified_connection", kind: "message", T: VerifiedPhoneConnection },
-    { no: 3, name: "other_contact", kind: "message", T: PhoneNumber },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectRequest {
-    return new ConnectRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectRequest {
-    return new ConnectRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectRequest {
-    return new ConnectRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectRequest | PlainMessage<ConnectRequest> | undefined, b: ConnectRequest | PlainMessage<ConnectRequest> | undefined): boolean {
-    return proto3.util.equals(ConnectRequest, a, b);
-  }
-}
-
-/**
- * @generated from message flipcash.contact.v1.ConnectResponse
- */
-export class ConnectResponse extends Message<ConnectResponse> {
-  /**
-   * @generated from field: flipcash.contact.v1.ConnectResponse.Result result = 1;
-   */
-  result = ConnectResponse_Result.OK;
-
-  constructor(data?: PartialMessage<ConnectResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.contact.v1.ConnectResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ConnectResponse_Result) },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectResponse {
-    return new ConnectResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectResponse {
-    return new ConnectResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectResponse {
-    return new ConnectResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConnectResponse | PlainMessage<ConnectResponse> | undefined, b: ConnectResponse | PlainMessage<ConnectResponse> | undefined): boolean {
-    return proto3.util.equals(ConnectResponse, a, b);
-  }
-}
-
-/**
- * @generated from enum flipcash.contact.v1.ConnectResponse.Result
- */
-export enum ConnectResponse_Result {
-  /**
-   * @generated from enum value: OK = 0;
-   */
-  OK = 0,
-
-  /**
-   * @generated from enum value: DENIED = 1;
-   */
-  DENIED = 1,
-
-  /**
-   * @generated from enum value: VERIFICATION_KEY_NOT_FOUND = 2;
-   */
-  VERIFICATION_KEY_NOT_FOUND = 2,
-
-  /**
-   * @generated from enum value: UNEXPECTED_PHONE_NUMBER = 3;
-   */
-  UNEXPECTED_PHONE_NUMBER = 3,
-}
-// Retrieve enum metadata with: proto3.getEnumType(ConnectResponse_Result)
-proto3.util.setEnumType(ConnectResponse_Result, "flipcash.contact.v1.ConnectResponse.Result", [
-  { no: 0, name: "OK" },
-  { no: 1, name: "DENIED" },
-  { no: 2, name: "VERIFICATION_KEY_NOT_FOUND" },
-  { no: 3, name: "UNEXPECTED_PHONE_NUMBER" },
 ]);
 
