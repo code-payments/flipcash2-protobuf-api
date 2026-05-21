@@ -6,7 +6,6 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
-import { Auth, PublicKey } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.contact.v1.FlipcashContact
@@ -17,13 +16,6 @@ export class FlipcashContact extends Message<FlipcashContact> {
    */
   phone?: PhoneNumber;
 
-  /**
-   * Is this contact connected for payment?
-   *
-   * @generated from field: bool is_connected_for_payment = 2;
-   */
-  isConnectedForPayment = false;
-
   constructor(data?: PartialMessage<FlipcashContact>) {
     super();
     proto3.util.initPartial(data, this);
@@ -33,7 +25,6 @@ export class FlipcashContact extends Message<FlipcashContact> {
   static readonly typeName = "flipcash.contact.v1.FlipcashContact";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber },
-    { no: 2, name: "is_connected_for_payment", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FlipcashContact {
@@ -50,57 +41,6 @@ export class FlipcashContact extends Message<FlipcashContact> {
 
   static equals(a: FlipcashContact | PlainMessage<FlipcashContact> | undefined, b: FlipcashContact | PlainMessage<FlipcashContact> | undefined): boolean {
     return proto3.util.equals(FlipcashContact, a, b);
-  }
-}
-
-/**
- * @generated from message flipcash.contact.v1.VerifiedPhoneConnection
- */
-export class VerifiedPhoneConnection extends Message<VerifiedPhoneConnection> {
-  /**
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 1;
-   */
-  phoneNumber?: PhoneNumber;
-
-  /**
-   * @generated from field: flipcash.common.v1.PublicKey payment_destination = 2;
-   */
-  paymentDestination?: PublicKey;
-
-  /**
-   * Keypair auth using an out-of-band verification private key
-   *
-   * @generated from field: flipcash.common.v1.Auth auth = 3;
-   */
-  auth?: Auth;
-
-  constructor(data?: PartialMessage<VerifiedPhoneConnection>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.contact.v1.VerifiedPhoneConnection";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "phone_number", kind: "message", T: PhoneNumber },
-    { no: 2, name: "payment_destination", kind: "message", T: PublicKey },
-    { no: 3, name: "auth", kind: "message", T: Auth },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): VerifiedPhoneConnection {
-    return new VerifiedPhoneConnection().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): VerifiedPhoneConnection {
-    return new VerifiedPhoneConnection().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): VerifiedPhoneConnection {
-    return new VerifiedPhoneConnection().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: VerifiedPhoneConnection | PlainMessage<VerifiedPhoneConnection> | undefined, b: VerifiedPhoneConnection | PlainMessage<VerifiedPhoneConnection> | undefined): boolean {
-    return proto3.util.equals(VerifiedPhoneConnection, a, b);
   }
 }
 

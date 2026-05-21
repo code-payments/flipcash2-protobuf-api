@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckSyncRequest, CheckSyncResponse, ConnectRequest, ConnectResponse, DeltaUploadRequest, DeltaUploadResponse, FullUploadRequest, FullUploadResponse, GetFlipcashContactsRequest, GetFlipcashContactsResponse } from "./contact_list_service_pb";
+import { CheckSyncRequest, CheckSyncResponse, DeltaUploadRequest, DeltaUploadResponse, FullUploadRequest, FullUploadResponse, GetFlipcashContactsRequest, GetFlipcashContactsResponse } from "./contact_list_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -71,20 +71,6 @@ export const ContactList = {
       I: GetFlipcashContactsRequest,
       O: GetFlipcashContactsResponse,
       kind: MethodKind.ServerStreaming,
-    },
-    /**
-     * Connect connects a contact for payment using a verifiable proto message
-     * signed with an out-of-band verification key. Both contacts must connect
-     * with the same verification key to enable payments. The verification key
-     * must be stored in secure storage prior to calling this RPC. 
-     *
-     * @generated from rpc flipcash.contact.v1.ContactList.Connect
-     */
-    connect: {
-      name: "Connect",
-      I: ConnectRequest,
-      O: ConnectResponse,
-      kind: MethodKind.Unary,
     },
   }
 } as const;

@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package flipcash.contact.v1;
 
-import "common/v1/common.proto";
 import "phone/v1/model.proto";
 import "validate/validate.proto";
 
@@ -10,16 +9,4 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 
 message FlipcashContact {
     phone.v1.PhoneNumber phone = 1 [(validate.rules).message.required = true];
-
-    // Is this contact connected for payment?
-    bool is_connected_for_payment = 2;
-}
-
-message VerifiedPhoneConnection {
-    phone.v1.PhoneNumber phone_number = 1 [(validate.rules).message.required = true];
-
-    common.v1.PublicKey payment_destination = 2 [(validate.rules).message.required = true];
-
-    // Keypair auth using an out-of-band verification private key
-    common.v1.Auth auth = 3 [(validate.rules).message.required = true];
 }

@@ -36,12 +36,6 @@ service ContactList {
 
     // GetFlipcashContacts gets the set of contacts that are on Flipcash
     rpc GetFlipcashContacts(GetFlipcashContactsRequest) returns (stream GetFlipcashContactsResponse);
-
-    // Connect connects a contact for payment using a verifiable proto message
-    // signed with an out-of-band verification key. Both contacts must connect
-    // with the same verification key to enable payments. The verification key
-    // must be stored in secure storage prior to calling this RPC. 
-    rpc Connect(ConnectRequest) returns (ConnectResponse);
 }
 
 
@@ -136,25 +130,4 @@ message GetFlipcashContactsResponse {
     Result result = 1;
 
     repeated FlipcashContact contacts = 2 [(validate.rules).repeated.max_items = 1000];
-}
-
-message ConnectRequest {
-    common.v1.Auth auth = 1 [(validate.rules).message.required = true];
-
-    // The signed connection for the caller's own phone number and public key
-    VerifiedPhoneConnection verified_connection = 2 [(validate.rules).message.required = true];
-
-    // The phone number for the other contact that will be connected. This guarantees
-    // a unique 1:1 connection between two phone numbers for a single verification key.
-    phone.v1.PhoneNumber other_contact = 3 [(validate.rules).message.required = true];
-}
-
-message ConnectResponse {
-    enum Result {
-        OK                         = 0;
-        DENIED                     = 1;
-        VERIFICATION_KEY_NOT_FOUND = 2;
-        UNEXPECTED_PHONE_NUMBER    = 3;
-    }
-    Result result = 1;
 }
