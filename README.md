@@ -17,6 +17,7 @@ The APIs and models for communication between Flipcash clients and server.
 - [Phone Verification](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/phone/v1/phone_verification_service.proto)
 - [Profile](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/profile/v1/profile_service.proto)
 - [Push](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/push/v1/push_service.proto)
+- [Resolver](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/resolver/v1/resolver_service.proto)
 - [Settings](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/settings/v1/settings_service.proto)
 - [Third Party](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/thirdparty/v1/third_party_service.proto)
 
