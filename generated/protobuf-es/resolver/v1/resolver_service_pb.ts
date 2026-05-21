@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth } from "../../common/v1/common_pb";
-import { Identifier, VerifiableAddress } from "./model_pb";
+import { Identifier, Resolution } from "./model_pb";
 
 /**
  * @generated from message flipcash.resolver.v1.ResolveRequest
@@ -61,11 +61,11 @@ export class ResolveResponse extends Message<ResolveResponse> {
   result = ResolveResponse_Result.OK;
 
   /**
-   * The verifiable payment destination address. Set when result == OK.
+   * The resolved payment destination address. Set when result == OK.
    *
-   * @generated from field: flipcash.resolver.v1.VerifiableAddress verifiable_address = 2;
+   * @generated from field: flipcash.resolver.v1.Resolution resolution = 2;
    */
-  verifiableAddress?: VerifiableAddress;
+  resolution?: Resolution;
 
   constructor(data?: PartialMessage<ResolveResponse>) {
     super();
@@ -76,7 +76,7 @@ export class ResolveResponse extends Message<ResolveResponse> {
   static readonly typeName = "flipcash.resolver.v1.ResolveResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ResolveResponse_Result) },
-    { no: 2, name: "verifiable_address", kind: "message", T: VerifiableAddress },
+    { no: 2, name: "resolution", kind: "message", T: Resolution },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResolveResponse {

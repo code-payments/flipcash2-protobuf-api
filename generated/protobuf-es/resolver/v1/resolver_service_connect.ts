@@ -16,8 +16,7 @@ export const Resolver = {
   typeName: "flipcash.resolver.v1.Resolver",
   methods: {
     /**
-     * Resolve looks up the verifiable payment destination address for the
-     * given identifier.
+     * Resolve looks up the payment destination address for the given identifier.
      *
      * @generated from rpc flipcash.resolver.v1.Resolver.Resolve
      */

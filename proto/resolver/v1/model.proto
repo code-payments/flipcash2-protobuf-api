@@ -6,7 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.resolver.v1";
 option objc_class_prefix = "FPBResolverV1";
 
-import "contact/v1/model.proto";
+import "common/v1/common.proto";
 import "phone/v1/model.proto";
 import "validate/validate.proto";
 
@@ -20,12 +20,12 @@ message Identifier {
     }
 }
 
-// VerifiableAddress contains an address with an optional proof when required
-// by the identifier type.
-message VerifiableAddress {
+// Resolution contains a payment destiation address mapping for an
+// Identifier
+message Resolution {
     oneof kind {
         option (validate.required) = true;
 
-        contact.v1.VerifiedPhoneConnection phone = 1;
+        common.v1.PublicKey address = 1;
     }
 }

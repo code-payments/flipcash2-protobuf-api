@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
-import { VerifiedPhoneConnection } from "../../contact/v1/model_pb";
+import { PublicKey } from "../../common/v1/common_pb";
 
 /**
  * Identifier wraps a real-world identifier that can be resolved to a
@@ -55,48 +55,48 @@ export class Identifier extends Message<Identifier> {
 }
 
 /**
- * VerifiableAddress contains an address with an optional proof when required
- * by the identifier type.
+ * Resolution contains a payment destiation address mapping for an
+ * Identifier
  *
- * @generated from message flipcash.resolver.v1.VerifiableAddress
+ * @generated from message flipcash.resolver.v1.Resolution
  */
-export class VerifiableAddress extends Message<VerifiableAddress> {
+export class Resolution extends Message<Resolution> {
   /**
-   * @generated from oneof flipcash.resolver.v1.VerifiableAddress.kind
+   * @generated from oneof flipcash.resolver.v1.Resolution.kind
    */
   kind: {
     /**
-     * @generated from field: flipcash.contact.v1.VerifiedPhoneConnection phone = 1;
+     * @generated from field: flipcash.common.v1.PublicKey address = 1;
      */
-    value: VerifiedPhoneConnection;
-    case: "phone";
+    value: PublicKey;
+    case: "address";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  constructor(data?: PartialMessage<VerifiableAddress>) {
+  constructor(data?: PartialMessage<Resolution>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.resolver.v1.VerifiableAddress";
+  static readonly typeName = "flipcash.resolver.v1.Resolution";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "phone", kind: "message", T: VerifiedPhoneConnection, oneof: "kind" },
+    { no: 1, name: "address", kind: "message", T: PublicKey, oneof: "kind" },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): VerifiableAddress {
-    return new VerifiableAddress().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Resolution {
+    return new Resolution().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): VerifiableAddress {
-    return new VerifiableAddress().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Resolution {
+    return new Resolution().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): VerifiableAddress {
-    return new VerifiableAddress().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Resolution {
+    return new Resolution().fromJsonString(jsonString, options);
   }
 
-  static equals(a: VerifiableAddress | PlainMessage<VerifiableAddress> | undefined, b: VerifiableAddress | PlainMessage<VerifiableAddress> | undefined): boolean {
-    return proto3.util.equals(VerifiableAddress, a, b);
+  static equals(a: Resolution | PlainMessage<Resolution> | undefined, b: Resolution | PlainMessage<Resolution> | undefined): boolean {
+    return proto3.util.equals(Resolution, a, b);
   }
 }
 

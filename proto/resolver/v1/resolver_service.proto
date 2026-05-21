@@ -13,8 +13,7 @@ import "validate/validate.proto";
 // Resolver maps a real-world identifier (phone number, etc.) to a payment
 // destination address.
 service Resolver {
-    // Resolve looks up the verifiable payment destination address for the
-    // given identifier.
+    // Resolve looks up the payment destination address for the given identifier.
     rpc Resolve(ResolveRequest) returns (ResolveResponse);
 }
 
@@ -32,6 +31,6 @@ message ResolveResponse {
         DENIED    = 2;
     }
 
-    // The verifiable payment destination address. Set when result == OK.
-    VerifiableAddress verifiable_address = 2;
+    // The resolved payment destination address. Set when result == OK.
+    Resolution resolution = 2;
 }

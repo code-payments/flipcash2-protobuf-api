@@ -29,8 +29,7 @@ const (
 // Resolver maps a real-world identifier (phone number, etc.) to a payment
 // destination address.
 type ResolverClient interface {
-	// Resolve looks up the verifiable payment destination address for the
-	// given identifier.
+	// Resolve looks up the payment destination address for the given identifier.
 	Resolve(ctx context.Context, in *ResolveRequest, opts ...grpc.CallOption) (*ResolveResponse, error)
 }
 
@@ -59,8 +58,7 @@ func (c *resolverClient) Resolve(ctx context.Context, in *ResolveRequest, opts .
 // Resolver maps a real-world identifier (phone number, etc.) to a payment
 // destination address.
 type ResolverServer interface {
-	// Resolve looks up the verifiable payment destination address for the
-	// given identifier.
+	// Resolve looks up the payment destination address for the given identifier.
 	Resolve(context.Context, *ResolveRequest) (*ResolveResponse, error)
 	mustEmbedUnimplementedResolverServer()
 }

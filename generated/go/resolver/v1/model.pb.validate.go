@@ -192,22 +192,22 @@ var _ interface {
 	ErrorName() string
 } = IdentifierValidationError{}
 
-// Validate checks the field values on VerifiableAddress with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *VerifiableAddress) Validate() error {
+// Validate checks the field values on Resolution with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Resolution) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on VerifiableAddress with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// VerifiableAddressMultiError, or nil if none found.
-func (m *VerifiableAddress) ValidateAll() error {
+// ValidateAll checks the field values on Resolution with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ResolutionMultiError, or
+// nil if none found.
+func (m *Resolution) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *VerifiableAddress) validate(all bool) error {
+func (m *Resolution) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -216,9 +216,9 @@ func (m *VerifiableAddress) validate(all bool) error {
 
 	oneofKindPresent := false
 	switch v := m.Kind.(type) {
-	case *VerifiableAddress_Phone:
+	case *Resolution_Address:
 		if v == nil {
-			err := VerifiableAddressValidationError{
+			err := ResolutionValidationError{
 				field:  "Kind",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -230,28 +230,28 @@ func (m *VerifiableAddress) validate(all bool) error {
 		oneofKindPresent = true
 
 		if all {
-			switch v := interface{}(m.GetPhone()).(type) {
+			switch v := interface{}(m.GetAddress()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, VerifiableAddressValidationError{
-						field:  "Phone",
+					errors = append(errors, ResolutionValidationError{
+						field:  "Address",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, VerifiableAddressValidationError{
-						field:  "Phone",
+					errors = append(errors, ResolutionValidationError{
+						field:  "Address",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetPhone()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetAddress()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return VerifiableAddressValidationError{
-					field:  "Phone",
+				return ResolutionValidationError{
+					field:  "Address",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -262,7 +262,7 @@ func (m *VerifiableAddress) validate(all bool) error {
 		_ = v // ensures v is used
 	}
 	if !oneofKindPresent {
-		err := VerifiableAddressValidationError{
+		err := ResolutionValidationError{
 			field:  "Kind",
 			reason: "value is required",
 		}
@@ -273,19 +273,18 @@ func (m *VerifiableAddress) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return VerifiableAddressMultiError(errors)
+		return ResolutionMultiError(errors)
 	}
 
 	return nil
 }
 
-// VerifiableAddressMultiError is an error wrapping multiple validation errors
-// returned by VerifiableAddress.ValidateAll() if the designated constraints
-// aren't met.
-type VerifiableAddressMultiError []error
+// ResolutionMultiError is an error wrapping multiple validation errors
+// returned by Resolution.ValidateAll() if the designated constraints aren't met.
+type ResolutionMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m VerifiableAddressMultiError) Error() string {
+func (m ResolutionMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -294,11 +293,11 @@ func (m VerifiableAddressMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m VerifiableAddressMultiError) AllErrors() []error { return m }
+func (m ResolutionMultiError) AllErrors() []error { return m }
 
-// VerifiableAddressValidationError is the validation error returned by
-// VerifiableAddress.Validate if the designated constraints aren't met.
-type VerifiableAddressValidationError struct {
+// ResolutionValidationError is the validation error returned by
+// Resolution.Validate if the designated constraints aren't met.
+type ResolutionValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -306,24 +305,22 @@ type VerifiableAddressValidationError struct {
 }
 
 // Field function returns field value.
-func (e VerifiableAddressValidationError) Field() string { return e.field }
+func (e ResolutionValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e VerifiableAddressValidationError) Reason() string { return e.reason }
+func (e ResolutionValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e VerifiableAddressValidationError) Cause() error { return e.cause }
+func (e ResolutionValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e VerifiableAddressValidationError) Key() bool { return e.key }
+func (e ResolutionValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e VerifiableAddressValidationError) ErrorName() string {
-	return "VerifiableAddressValidationError"
-}
+func (e ResolutionValidationError) ErrorName() string { return "ResolutionValidationError" }
 
 // Error satisfies the builtin error interface
-func (e VerifiableAddressValidationError) Error() string {
+func (e ResolutionValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -335,14 +332,14 @@ func (e VerifiableAddressValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sVerifiableAddress.%s: %s%s",
+		"invalid %sResolution.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = VerifiableAddressValidationError{}
+var _ error = ResolutionValidationError{}
 
 var _ interface {
 	Field() string
@@ -350,4 +347,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = VerifiableAddressValidationError{}
+} = ResolutionValidationError{}
