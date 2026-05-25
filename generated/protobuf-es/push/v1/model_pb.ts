@@ -140,6 +140,11 @@ export enum Payload_Category {
    * @generated from enum value: CHAT = 4;
    */
   CHAT = 4,
+
+  /**
+   * @generated from enum value: CONTACT_JOIN = 5;
+   */
+  CONTACT_JOIN = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(Payload_Category)
 proto3.util.setEnumType(Payload_Category, "flipcash.push.v1.Payload.Category", [
@@ -148,6 +153,7 @@ proto3.util.setEnumType(Payload_Category, "flipcash.push.v1.Payload.Category", [
   { no: 2, name: "BUY_SELL" },
   { no: 3, name: "GAIN" },
   { no: 4, name: "CHAT" },
+  { no: 5, name: "CONTACT_JOIN" },
 ]);
 
 /**
