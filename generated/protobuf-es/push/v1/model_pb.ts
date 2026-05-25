@@ -65,6 +65,21 @@ export class Payload extends Message<Payload> {
    */
   bodySubstitutions: Substitution[] = [];
 
+  /**
+   * Push notification category
+   *
+   * @generated from field: flipcash.push.v1.Payload.Category category = 4;
+   */
+  category = Payload_Category.DEFAULT;
+
+  /**
+   * Push notification key for grouping pushes. If not set, then no grouping
+   * is applied.
+   *
+   * @generated from field: string group_key = 5;
+   */
+  groupKey = "";
+
   constructor(data?: PartialMessage<Payload>) {
     super();
     proto3.util.initPartial(data, this);
@@ -76,6 +91,8 @@ export class Payload extends Message<Payload> {
     { no: 1, name: "navigation", kind: "message", T: Navigation },
     { no: 2, name: "title_substitutions", kind: "message", T: Substitution, repeated: true },
     { no: 3, name: "body_substitutions", kind: "message", T: Substitution, repeated: true },
+    { no: 4, name: "category", kind: "enum", T: proto3.getEnumType(Payload_Category) },
+    { no: 5, name: "group_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payload {
@@ -94,6 +111,44 @@ export class Payload extends Message<Payload> {
     return proto3.util.equals(Payload, a, b);
   }
 }
+
+/**
+ * @generated from enum flipcash.push.v1.Payload.Category
+ */
+export enum Payload_Category {
+  /**
+   * @generated from enum value: DEFAULT = 0;
+   */
+  DEFAULT = 0,
+
+  /**
+   * @generated from enum value: DEPOSIT_WITHDRAWAL = 1;
+   */
+  DEPOSIT_WITHDRAWAL = 1,
+
+  /**
+   * @generated from enum value: BUY_SELL = 2;
+   */
+  BUY_SELL = 2,
+
+  /**
+   * @generated from enum value: GAIN = 3;
+   */
+  GAIN = 3,
+
+  /**
+   * @generated from enum value: CHAT = 4;
+   */
+  CHAT = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(Payload_Category)
+proto3.util.setEnumType(Payload_Category, "flipcash.push.v1.Payload.Category", [
+  { no: 0, name: "DEFAULT" },
+  { no: 1, name: "DEPOSIT_WITHDRAWAL" },
+  { no: 2, name: "BUY_SELL" },
+  { no: 3, name: "GAIN" },
+  { no: 4, name: "CHAT" },
+]);
 
 /**
  * Navigation within the app upon clicking the push
