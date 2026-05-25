@@ -37,6 +37,7 @@ message Payload {
         BUY_SELL           = 2;
         GAIN               = 3;
         CHAT               = 4;
+        CONTACT_JOIN       = 5;
     }
 
     // Push notification key for grouping pushes. If not set, then no grouping
