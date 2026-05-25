@@ -85,6 +85,74 @@ func (m *Payload) validate(all bool) error {
 		}
 	}
 
+	for idx, item := range m.GetTitleSubstitutions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PayloadValidationError{
+						field:  fmt.Sprintf("TitleSubstitutions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PayloadValidationError{
+						field:  fmt.Sprintf("TitleSubstitutions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PayloadValidationError{
+					field:  fmt.Sprintf("TitleSubstitutions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetBodySubstitutions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PayloadValidationError{
+						field:  fmt.Sprintf("BodySubstitutions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PayloadValidationError{
+						field:  fmt.Sprintf("BodySubstitutions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PayloadValidationError{
+					field:  fmt.Sprintf("BodySubstitutions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return PayloadMultiError(errors)
 	}
@@ -318,3 +386,171 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = NavigationValidationError{}
+
+// Validate checks the field values on Substitution with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Substitution) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Substitution with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SubstitutionMultiError, or
+// nil if none found.
+func (m *Substitution) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Substitution) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetFallback()); l < 1 || l > 4096 {
+		err := SubstitutionValidationError{
+			field:  "Fallback",
+			reason: "value length must be between 1 and 4096 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	oneofKindPresent := false
+	switch v := m.Kind.(type) {
+	case *Substitution_Contact:
+		if v == nil {
+			err := SubstitutionValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetContact()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SubstitutionValidationError{
+						field:  "Contact",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SubstitutionValidationError{
+						field:  "Contact",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetContact()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SubstitutionValidationError{
+					field:  "Contact",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofKindPresent {
+		err := SubstitutionValidationError{
+			field:  "Kind",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return SubstitutionMultiError(errors)
+	}
+
+	return nil
+}
+
+// SubstitutionMultiError is an error wrapping multiple validation errors
+// returned by Substitution.ValidateAll() if the designated constraints aren't met.
+type SubstitutionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SubstitutionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SubstitutionMultiError) AllErrors() []error { return m }
+
+// SubstitutionValidationError is the validation error returned by
+// Substitution.Validate if the designated constraints aren't met.
+type SubstitutionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SubstitutionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SubstitutionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SubstitutionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SubstitutionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SubstitutionValidationError) ErrorName() string { return "SubstitutionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SubstitutionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSubstitution.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SubstitutionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SubstitutionValidationError{}
