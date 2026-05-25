@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { PublicKey } from "../../common/v1/common_pb";
+import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
  * @generated from enum flipcash.push.v1.TokenType
@@ -50,6 +51,20 @@ export class Payload extends Message<Payload> {
    */
   navigation?: Navigation;
 
+  /**
+   * Ordered substitutions to apply to push title
+   *
+   * @generated from field: repeated flipcash.push.v1.Substitution title_substitutions = 2;
+   */
+  titleSubstitutions: Substitution[] = [];
+
+  /**
+   * Ordered substitutions to apply to push body
+   *
+   * @generated from field: repeated flipcash.push.v1.Substitution body_substitutions = 3;
+   */
+  bodySubstitutions: Substitution[] = [];
+
   constructor(data?: PartialMessage<Payload>) {
     super();
     proto3.util.initPartial(data, this);
@@ -59,6 +74,8 @@ export class Payload extends Message<Payload> {
   static readonly typeName = "flipcash.push.v1.Payload";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "navigation", kind: "message", T: Navigation },
+    { no: 2, name: "title_substitutions", kind: "message", T: Substitution, repeated: true },
+    { no: 3, name: "body_substitutions", kind: "message", T: Substitution, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payload {
@@ -122,6 +139,59 @@ export class Navigation extends Message<Navigation> {
 
   static equals(a: Navigation | PlainMessage<Navigation> | undefined, b: Navigation | PlainMessage<Navigation> | undefined): boolean {
     return proto3.util.equals(Navigation, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.push.v1.Substitution
+ */
+export class Substitution extends Message<Substitution> {
+  /**
+   * Fallback string for forwards compatibility
+   *
+   * @generated from field: string fallback = 1;
+   */
+  fallback = "";
+
+  /**
+   * @generated from oneof flipcash.push.v1.Substitution.kind
+   */
+  kind: {
+    /**
+     * Phone number -> contact name or formatted phone number
+     *
+     * @generated from field: flipcash.phone.v1.PhoneNumber contact = 2;
+     */
+    value: PhoneNumber;
+    case: "contact";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Substitution>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.push.v1.Substitution";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fallback", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "contact", kind: "message", T: PhoneNumber, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Substitution {
+    return new Substitution().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Substitution {
+    return new Substitution().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Substitution {
+    return new Substitution().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Substitution | PlainMessage<Substitution> | undefined, b: Substitution | PlainMessage<Substitution> | undefined): boolean {
+    return proto3.util.equals(Substitution, a, b);
   }
 }
 
