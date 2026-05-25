@@ -153,6 +153,19 @@ func (m *Payload) validate(all bool) error {
 
 	}
 
+	// no validation rules for Category
+
+	if utf8.RuneCountInString(m.GetGroupKey()) > 4096 {
+		err := PayloadValidationError{
+			field:  "GroupKey",
+			reason: "value length must be at most 4096 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return PayloadMultiError(errors)
 	}
