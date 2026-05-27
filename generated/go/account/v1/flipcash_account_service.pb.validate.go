@@ -1329,6 +1329,8 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for PreferredOnRampUsdcLiquidityPool
 
+	// no validation rules for EnablePhoneNumberSend
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
