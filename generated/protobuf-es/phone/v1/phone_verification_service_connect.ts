@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckVerificationCodeRequest, CheckVerificationCodeResponse, SendVerificationCodeRequest, SendVerificationCodeResponse, UnlinkRequest, UnlinkResponse } from "./phone_verification_service_pb";
+import { CheckVerificationCodeRequest, CheckVerificationCodeResponse, LinkForPaymentRequest, LinkForPaymentResponse, SendVerificationCodeRequest, SendVerificationCodeResponse, UnlinkRequest, UnlinkResponse } from "./phone_verification_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -46,6 +46,17 @@ export const PhoneVerification = {
       name: "Unlink",
       I: UnlinkRequest,
       O: UnlinkResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * LinkForPayment links the verified phone number for the requesting user for payment.
+     *
+     * @generated from rpc flipcash.phone.v1.PhoneVerification.LinkForPayment
+     */
+    linkForPayment: {
+      name: "LinkForPayment",
+      I: LinkForPaymentRequest,
+      O: LinkForPaymentResponse,
       kind: MethodKind.Unary,
     },
   }

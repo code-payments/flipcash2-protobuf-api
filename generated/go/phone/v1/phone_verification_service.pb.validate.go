@@ -952,3 +952,289 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UnlinkResponseValidationError{}
+
+// Validate checks the field values on LinkForPaymentRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *LinkForPaymentRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LinkForPaymentRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// LinkForPaymentRequestMultiError, or nil if none found.
+func (m *LinkForPaymentRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LinkForPaymentRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPhoneNumber() == nil {
+		err := LinkForPaymentRequestValidationError{
+			field:  "PhoneNumber",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPhoneNumber()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, LinkForPaymentRequestValidationError{
+					field:  "PhoneNumber",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, LinkForPaymentRequestValidationError{
+					field:  "PhoneNumber",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPhoneNumber()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LinkForPaymentRequestValidationError{
+				field:  "PhoneNumber",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := LinkForPaymentRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, LinkForPaymentRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, LinkForPaymentRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LinkForPaymentRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return LinkForPaymentRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// LinkForPaymentRequestMultiError is an error wrapping multiple validation
+// errors returned by LinkForPaymentRequest.ValidateAll() if the designated
+// constraints aren't met.
+type LinkForPaymentRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LinkForPaymentRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LinkForPaymentRequestMultiError) AllErrors() []error { return m }
+
+// LinkForPaymentRequestValidationError is the validation error returned by
+// LinkForPaymentRequest.Validate if the designated constraints aren't met.
+type LinkForPaymentRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LinkForPaymentRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LinkForPaymentRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LinkForPaymentRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LinkForPaymentRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LinkForPaymentRequestValidationError) ErrorName() string {
+	return "LinkForPaymentRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LinkForPaymentRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLinkForPaymentRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LinkForPaymentRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LinkForPaymentRequestValidationError{}
+
+// Validate checks the field values on LinkForPaymentResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *LinkForPaymentResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LinkForPaymentResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// LinkForPaymentResponseMultiError, or nil if none found.
+func (m *LinkForPaymentResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LinkForPaymentResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(errors) > 0 {
+		return LinkForPaymentResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// LinkForPaymentResponseMultiError is an error wrapping multiple validation
+// errors returned by LinkForPaymentResponse.ValidateAll() if the designated
+// constraints aren't met.
+type LinkForPaymentResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LinkForPaymentResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LinkForPaymentResponseMultiError) AllErrors() []error { return m }
+
+// LinkForPaymentResponseValidationError is the validation error returned by
+// LinkForPaymentResponse.Validate if the designated constraints aren't met.
+type LinkForPaymentResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LinkForPaymentResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LinkForPaymentResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LinkForPaymentResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LinkForPaymentResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LinkForPaymentResponseValidationError) ErrorName() string {
+	return "LinkForPaymentResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LinkForPaymentResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLinkForPaymentResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LinkForPaymentResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LinkForPaymentResponseValidationError{}

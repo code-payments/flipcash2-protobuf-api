@@ -387,3 +387,111 @@ proto3.util.setEnumType(UnlinkResponse_Result, "flipcash.phone.v1.UnlinkResponse
   { no: 1, name: "DENIED" },
 ]);
 
+/**
+ * @generated from message flipcash.phone.v1.LinkForPaymentRequest
+ */
+export class LinkForPaymentRequest extends Message<LinkForPaymentRequest> {
+  /**
+   * The phone number to link for payment
+   *
+   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 1;
+   */
+  phoneNumber?: PhoneNumber;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 2;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<LinkForPaymentRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.phone.v1.LinkForPaymentRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "phone_number", kind: "message", T: PhoneNumber },
+    { no: 2, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkForPaymentRequest {
+    return new LinkForPaymentRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LinkForPaymentRequest {
+    return new LinkForPaymentRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LinkForPaymentRequest {
+    return new LinkForPaymentRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LinkForPaymentRequest | PlainMessage<LinkForPaymentRequest> | undefined, b: LinkForPaymentRequest | PlainMessage<LinkForPaymentRequest> | undefined): boolean {
+    return proto3.util.equals(LinkForPaymentRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.phone.v1.LinkForPaymentResponse
+ */
+export class LinkForPaymentResponse extends Message<LinkForPaymentResponse> {
+  /**
+   * @generated from field: flipcash.phone.v1.LinkForPaymentResponse.Result result = 1;
+   */
+  result = LinkForPaymentResponse_Result.OK;
+
+  constructor(data?: PartialMessage<LinkForPaymentResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.phone.v1.LinkForPaymentResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(LinkForPaymentResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LinkForPaymentResponse {
+    return new LinkForPaymentResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LinkForPaymentResponse {
+    return new LinkForPaymentResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LinkForPaymentResponse {
+    return new LinkForPaymentResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LinkForPaymentResponse | PlainMessage<LinkForPaymentResponse> | undefined, b: LinkForPaymentResponse | PlainMessage<LinkForPaymentResponse> | undefined): boolean {
+    return proto3.util.equals(LinkForPaymentResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.phone.v1.LinkForPaymentResponse.Result
+ */
+export enum LinkForPaymentResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_ASSOCIATED = 2;
+   */
+  NOT_ASSOCIATED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(LinkForPaymentResponse_Result)
+proto3.util.setEnumType(LinkForPaymentResponse_Result, "flipcash.phone.v1.LinkForPaymentResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_ASSOCIATED" },
+]);
+
