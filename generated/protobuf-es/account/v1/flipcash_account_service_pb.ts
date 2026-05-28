@@ -552,6 +552,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   enablePhoneNumberSend = false;
 
+  /**
+   * USDF amount, in quarks, that a user must hold to be counted as a holder on the leaderboard
+   *
+   * @generated from field: uint64 minimum_holder_value = 13;
+   */
+  minimumHolderValue = protoInt64.zero;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -572,6 +579,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 10, name: "withdrawal_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 11, name: "preferred_on_ramp_usdc_liquidity_pool", kind: "enum", T: proto3.getEnumType(UserFlags_UsdcLiquidityPool) },
     { no: 12, name: "enable_phone_number_send", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 13, name: "minimum_holder_value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {
