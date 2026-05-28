@@ -22,6 +22,7 @@ const (
 	PhoneVerification_SendVerificationCode_FullMethodName  = "/flipcash.phone.v1.PhoneVerification/SendVerificationCode"
 	PhoneVerification_CheckVerificationCode_FullMethodName = "/flipcash.phone.v1.PhoneVerification/CheckVerificationCode"
 	PhoneVerification_Unlink_FullMethodName                = "/flipcash.phone.v1.PhoneVerification/Unlink"
+	PhoneVerification_LinkForPayment_FullMethodName        = "/flipcash.phone.v1.PhoneVerification/LinkForPayment"
 )
 
 // PhoneVerificationClient is the client API for PhoneVerification service.
@@ -37,6 +38,8 @@ type PhoneVerificationClient interface {
 	CheckVerificationCode(ctx context.Context, in *CheckVerificationCodeRequest, opts ...grpc.CallOption) (*CheckVerificationCodeResponse, error)
 	// Unlink removes the link of a phone number from a user.
 	Unlink(ctx context.Context, in *UnlinkRequest, opts ...grpc.CallOption) (*UnlinkResponse, error)
+	// LinkForPayment links the verified phone number for the requesting user for payment.
+	LinkForPayment(ctx context.Context, in *LinkForPaymentRequest, opts ...grpc.CallOption) (*LinkForPaymentResponse, error)
 }
 
 type phoneVerificationClient struct {
@@ -77,6 +80,16 @@ func (c *phoneVerificationClient) Unlink(ctx context.Context, in *UnlinkRequest,
 	return out, nil
 }
 
+func (c *phoneVerificationClient) LinkForPayment(ctx context.Context, in *LinkForPaymentRequest, opts ...grpc.CallOption) (*LinkForPaymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LinkForPaymentResponse)
+	err := c.cc.Invoke(ctx, PhoneVerification_LinkForPayment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PhoneVerificationServer is the server API for PhoneVerification service.
 // All implementations must embed UnimplementedPhoneVerificationServer
 // for forward compatibility.
@@ -90,6 +103,8 @@ type PhoneVerificationServer interface {
 	CheckVerificationCode(context.Context, *CheckVerificationCodeRequest) (*CheckVerificationCodeResponse, error)
 	// Unlink removes the link of a phone number from a user.
 	Unlink(context.Context, *UnlinkRequest) (*UnlinkResponse, error)
+	// LinkForPayment links the verified phone number for the requesting user for payment.
+	LinkForPayment(context.Context, *LinkForPaymentRequest) (*LinkForPaymentResponse, error)
 	mustEmbedUnimplementedPhoneVerificationServer()
 }
 
@@ -108,6 +123,9 @@ func (UnimplementedPhoneVerificationServer) CheckVerificationCode(context.Contex
 }
 func (UnimplementedPhoneVerificationServer) Unlink(context.Context, *UnlinkRequest) (*UnlinkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Unlink not implemented")
+}
+func (UnimplementedPhoneVerificationServer) LinkForPayment(context.Context, *LinkForPaymentRequest) (*LinkForPaymentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LinkForPayment not implemented")
 }
 func (UnimplementedPhoneVerificationServer) mustEmbedUnimplementedPhoneVerificationServer() {}
 func (UnimplementedPhoneVerificationServer) testEmbeddedByValue()                           {}
@@ -184,6 +202,24 @@ func _PhoneVerification_Unlink_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PhoneVerification_LinkForPayment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LinkForPaymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PhoneVerificationServer).LinkForPayment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PhoneVerification_LinkForPayment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PhoneVerificationServer).LinkForPayment(ctx, req.(*LinkForPaymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PhoneVerification_ServiceDesc is the grpc.ServiceDesc for PhoneVerification service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +238,10 @@ var PhoneVerification_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Unlink",
 			Handler:    _PhoneVerification_Unlink_Handler,
+		},
+		{
+			MethodName: "LinkForPayment",
+			Handler:    _PhoneVerification_LinkForPayment_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
