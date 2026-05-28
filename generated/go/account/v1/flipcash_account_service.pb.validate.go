@@ -1331,6 +1331,8 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for EnablePhoneNumberSend
 
+	// no validation rules for MinimumHolderValue
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
