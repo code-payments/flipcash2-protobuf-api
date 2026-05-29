@@ -6,6 +6,8 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { UserId } from "../../common/v1/common_pb";
+import { ChatId, MetadataUpdate } from "../../chat/v1/model_pb";
+import { IsTypingNotificationBatch, MessageBatch, PointerBatch } from "../../messaging/v1/model_pb";
 
 /**
  * @generated from message flipcash.event.v1.EventId
@@ -69,6 +71,12 @@ export class Event extends Message<Event> {
      */
     value: TestEvent;
     case: "test";
+  } | {
+    /**
+     * @generated from field: flipcash.event.v1.ChatUpdate chat_update = 4;
+     */
+    value: ChatUpdate;
+    case: "chatUpdate";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Event>) {
@@ -82,6 +90,7 @@ export class Event extends Message<Event> {
     { no: 1, name: "id", kind: "message", T: EventId },
     { no: 2, name: "ts", kind: "message", T: Timestamp },
     { no: 3, name: "test", kind: "message", T: TestEvent, oneof: "type" },
+    { no: 4, name: "chat_update", kind: "message", T: ChatUpdate, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Event {
@@ -346,6 +355,77 @@ export class ClientPong extends Message<ClientPong> {
 
   static equals(a: ClientPong | PlainMessage<ClientPong> | undefined, b: ClientPong | PlainMessage<ClientPong> | undefined): boolean {
     return proto3.util.equals(ClientPong, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.event.v1.ChatUpdate
+ */
+export class ChatUpdate extends Message<ChatUpdate> {
+  /**
+   * The chat that this update is for
+   *
+   * @generated from field: flipcash.chat.v1.ChatId chat = 1;
+   */
+  chat?: ChatId;
+
+  /**
+   * If present, new real-time messages sent on the chat
+   *
+   * @generated from field: flipcash.messaging.v1.MessageBatch new_messages = 2;
+   */
+  newMessages?: MessageBatch;
+
+  /**
+   * If present, message pointer updates for members in the chat
+   *
+   * @generated from field: flipcash.messaging.v1.PointerBatch pointer_updates = 3;
+   */
+  pointerUpdates?: PointerBatch;
+
+  /**
+   * If present, message typing notification state changes for members in the chat
+   *
+   * @generated from field: flipcash.messaging.v1.IsTypingNotificationBatch is_typing_notifications = 4;
+   */
+  isTypingNotifications?: IsTypingNotificationBatch;
+
+  /**
+   * If present, updates to the chat metadata
+   *
+   * @generated from field: repeated flipcash.chat.v1.MetadataUpdate metadata_updates = 5;
+   */
+  metadataUpdates: MetadataUpdate[] = [];
+
+  constructor(data?: PartialMessage<ChatUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.ChatUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat", kind: "message", T: ChatId },
+    { no: 2, name: "new_messages", kind: "message", T: MessageBatch },
+    { no: 3, name: "pointer_updates", kind: "message", T: PointerBatch },
+    { no: 4, name: "is_typing_notifications", kind: "message", T: IsTypingNotificationBatch },
+    { no: 5, name: "metadata_updates", kind: "message", T: MetadataUpdate, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUpdate {
+    return new ChatUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatUpdate {
+    return new ChatUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatUpdate {
+    return new ChatUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatUpdate | PlainMessage<ChatUpdate> | undefined, b: ChatUpdate | PlainMessage<ChatUpdate> | undefined): boolean {
+    return proto3.util.equals(ChatUpdate, a, b);
   }
 }
 
