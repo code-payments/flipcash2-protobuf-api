@@ -19,7 +19,7 @@ service Chat {
 }
 
 message GetChatRequest {
-    ChatId chat_id = 1;
+    common.v1.ChatId chat_id = 1;
 
     common.v1.Auth auth = 10;
 }

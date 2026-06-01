@@ -5,53 +5,16 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { ChatId, UserId } from "../../common/v1/common_pb";
 import { Message as Message$1, Pointer } from "../../messaging/v1/model_pb";
-import { UserId } from "../../common/v1/common_pb";
 import { UserProfile } from "../../profile/v1/model_pb";
-
-/**
- * @generated from message flipcash.chat.v1.ChatId
- */
-export class ChatId extends Message<ChatId> {
-  /**
-   * @generated from field: bytes value = 1;
-   */
-  value = new Uint8Array(0);
-
-  constructor(data?: PartialMessage<ChatId>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.ChatId";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatId {
-    return new ChatId().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatId {
-    return new ChatId().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatId {
-    return new ChatId().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ChatId | PlainMessage<ChatId> | undefined, b: ChatId | PlainMessage<ChatId> | undefined): boolean {
-    return proto3.util.equals(ChatId, a, b);
-  }
-}
 
 /**
  * @generated from message flipcash.chat.v1.Metadata
  */
 export class Metadata extends Message<Metadata> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 

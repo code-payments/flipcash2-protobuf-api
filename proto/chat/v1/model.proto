@@ -12,15 +12,8 @@ import "messaging/v1/model.proto";
 import "validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
-message ChatId {
-    bytes value = 1 [(validate.rules).bytes = {
-        min_len: 32
-        max_len: 32
-    }];
-}
-
 message Metadata {
-    ChatId chat_id = 1 [(validate.rules).message.required = true];
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
     // The type of chat
     ChatType type = 2 [(validate.rules).enum = {

@@ -279,6 +279,43 @@ export class UserId extends Message<UserId> {
 }
 
 /**
+ * @generated from message flipcash.common.v1.ChatId
+ */
+export class ChatId extends Message<ChatId> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<ChatId>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.ChatId";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatId {
+    return new ChatId().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatId {
+    return new ChatId().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatId {
+    return new ChatId().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatId | PlainMessage<ChatId> | undefined, b: ChatId | PlainMessage<ChatId> | undefined): boolean {
+    return proto3.util.equals(ChatId, a, b);
+  }
+}
+
+/**
  * AppInstallId is a unque ID tied to a client app installation. It does not
  * identify a device. Value should remain private and not be shared across
  * installs.

@@ -5,9 +5,9 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { UserId } from "../../common/v1/common_pb";
-import { ChatId, MetadataUpdate } from "../../chat/v1/model_pb";
+import { ChatId, UserId } from "../../common/v1/common_pb";
 import { IsTypingNotificationBatch, MessageBatch, PointerBatch } from "../../messaging/v1/model_pb";
+import { MetadataUpdate } from "../../chat/v1/model_pb";
 
 /**
  * @generated from message flipcash.event.v1.EventId
@@ -365,7 +365,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
   /**
    * The chat that this update is for
    *
-   * @generated from field: flipcash.chat.v1.ChatId chat = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat = 1;
    */
   chat?: ChatId;
 

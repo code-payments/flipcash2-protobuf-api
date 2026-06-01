@@ -5,16 +5,15 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ChatId } from "../../chat/v1/model_pb";
+import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
 import { ClientMessageId, Content, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type } from "./model_pb";
-import { Auth, QueryOptions } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.GetMessageRequest
  */
 export class GetMessageRequest extends Message<GetMessageRequest> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 
@@ -132,7 +131,7 @@ proto3.util.setEnumType(GetMessageResponse_Result, "flipcash.messaging.v1.GetMes
  */
 export class GetMessagesRequest extends Message<GetMessagesRequest> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 
@@ -263,7 +262,7 @@ proto3.util.setEnumType(GetMessagesResponse_Result, "flipcash.messaging.v1.GetMe
  */
 export class SendMessageRequest extends Message<SendMessageRequest> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 
@@ -391,7 +390,7 @@ proto3.util.setEnumType(SendMessageResponse_Result, "flipcash.messaging.v1.SendM
  */
 export class AdvancePointerRequest extends Message<AdvancePointerRequest> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 
@@ -509,7 +508,7 @@ proto3.util.setEnumType(AdvancePointerResponse_Result, "flipcash.messaging.v1.Ad
  */
 export class NotifyIsTypingRequest extends Message<NotifyIsTypingRequest> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 

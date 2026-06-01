@@ -77,7 +77,7 @@ message ClientPong {
 
 message ChatUpdate {
     // The chat that this update is for
-    chat.v1.ChatId chat = 1 [(validate.rules).message.required = true];
+    common.v1.ChatId chat = 1 [(validate.rules).message.required = true];
 
     // If present, new real-time messages sent on the chat
     messaging.v1.MessageBatch new_messages = 2;

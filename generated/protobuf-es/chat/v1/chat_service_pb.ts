@@ -5,15 +5,15 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ChatId, Metadata } from "./model_pb";
-import { Auth, QueryOptions } from "../../common/v1/common_pb";
+import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
+import { Metadata } from "./model_pb";
 
 /**
  * @generated from message flipcash.chat.v1.GetChatRequest
  */
 export class GetChatRequest extends Message<GetChatRequest> {
   /**
-   * @generated from field: flipcash.chat.v1.ChatId chat_id = 1;
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
 
