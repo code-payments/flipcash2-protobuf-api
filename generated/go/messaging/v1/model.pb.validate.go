@@ -962,10 +962,10 @@ func (m *MessageIdBatch) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetMessageIds()); l < 1 || l > 1000 {
+	if l := len(m.GetMessageIds()); l < 1 || l > 100 {
 		err := MessageIdBatchValidationError{
 			field:  "MessageIds",
-			reason: "value must contain between 1 and 1000 items, inclusive",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
@@ -1107,10 +1107,10 @@ func (m *MessageBatch) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetMessages()); l < 1 || l > 1000 {
+	if l := len(m.GetMessages()); l < 1 || l > 100 {
 		err := MessageBatchValidationError{
 			field:  "Messages",
-			reason: "value must contain between 1 and 1000 items, inclusive",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
@@ -1251,10 +1251,10 @@ func (m *PointerBatch) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetPointers()); l < 1 || l > 1000 {
+	if l := len(m.GetPointers()); l < 1 || l > 100 {
 		err := PointerBatchValidationError{
 			field:  "Pointers",
-			reason: "value must contain between 1 and 1000 items, inclusive",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
@@ -1539,10 +1539,10 @@ func (m *IsTypingNotificationBatch) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetIsTypingNotifications()); l < 1 || l > 1024 {
+	if l := len(m.GetIsTypingNotifications()); l < 1 || l > 100 {
 		err := IsTypingNotificationBatchValidationError{
 			field:  "IsTypingNotifications",
-			reason: "value must contain between 1 and 1024 items, inclusive",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
