@@ -1,6 +1,8 @@
 export * as Settings from './settings/v1';
 export * as Contact from './contact/v1';
 export * as Contact from './contact/v1';
+export * as Chat from './chat/v1';
+export * as Chat from './chat/v1';
 export * as Activity from './activity/v1';
 export * as Activity from './activity/v1';
 export * as Push from './push/v1';
@@ -12,6 +14,8 @@ export * as Profile from './profile/v1';
 export * as Phone from './phone/v1';
 export * as Phone from './phone/v1';
 export * as Account from './account/v1';
+export * as Messaging from './messaging/v1';
+export * as Messaging from './messaging/v1';
 export * as Event from './event/v1';
 export * as Event from './event/v1';
 export * as Thirdparty from './thirdparty/v1';
