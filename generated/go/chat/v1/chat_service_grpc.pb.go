@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Chat_GetChat_FullMethodName  = "/flipcash.chat.v1.Chat/GetChat"
-	Chat_GetChats_FullMethodName = "/flipcash.chat.v1.Chat/GetChats"
+	Chat_GetChat_FullMethodName       = "/flipcash.chat.v1.Chat/GetChat"
+	Chat_GetDmChatFeed_FullMethodName = "/flipcash.chat.v1.Chat/GetDmChatFeed"
 )
 
 // ChatClient is the client API for Chat service.
@@ -29,8 +29,29 @@ const (
 type ChatClient interface {
 	// GetChat returns the metadata for a specific chat
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*GetChatResponse, error)
-	// GetChats gets the set of chats for an owner account using a paged API.
-	GetChats(ctx context.Context, in *GetChatsRequest, opts ...grpc.CallOption) (*GetChatsResponse, error)
+	// GetDmChatFeed gets the set of DM chats for an owner account using
+	// a paged API, ordered by last activity with the most recent first.
+	//
+	// Chats are ordered by a mutable key (last_activity), so pagination alone
+	// cannot guarantee a complete read: a chat can receive new activity and
+	// move into a region the client has already paged past. To get the full
+	// list, the client MUST combine this RPC with the event stream:
+	//
+	//  1. Open the event stream to receive ChatUpdate and begin buffering updates
+	//     BEFORE the first GetDmChatFeed call. This ordering is the contract that
+	//     closes the gap; subscribing after pagination starts can drop chats.
+	//  2. Page through GetDmChatFeed to exhaustion (until has_more is false),
+	//     always echoing back the paging token returned by the prior response.
+	//     All pages are served against a single snapshot pinned by that token,
+	//     so the set is read consistently.
+	//  3. Merge the buffered and ongoing stream updates onto the paginated
+	//     set. Any chat whose activity changed after the snapshot watermark
+	//     is delivered via the stream rather than via pagination.
+	//
+	// Read together, pagination guarantees the set (every chat exactly once)
+	// and the stream guarantees freshness and ordering. The local last_activity
+	// sort is maintained by the client from the stream after the initial read.
+	GetDmChatFeed(ctx context.Context, in *GetDmChatFeedRequest, opts ...grpc.CallOption) (*GetDmChatFeedResponse, error)
 }
 
 type chatClient struct {
@@ -51,10 +72,10 @@ func (c *chatClient) GetChat(ctx context.Context, in *GetChatRequest, opts ...gr
 	return out, nil
 }
 
-func (c *chatClient) GetChats(ctx context.Context, in *GetChatsRequest, opts ...grpc.CallOption) (*GetChatsResponse, error) {
+func (c *chatClient) GetDmChatFeed(ctx context.Context, in *GetDmChatFeedRequest, opts ...grpc.CallOption) (*GetDmChatFeedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetChatsResponse)
-	err := c.cc.Invoke(ctx, Chat_GetChats_FullMethodName, in, out, cOpts...)
+	out := new(GetDmChatFeedResponse)
+	err := c.cc.Invoke(ctx, Chat_GetDmChatFeed_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +88,29 @@ func (c *chatClient) GetChats(ctx context.Context, in *GetChatsRequest, opts ...
 type ChatServer interface {
 	// GetChat returns the metadata for a specific chat
 	GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error)
-	// GetChats gets the set of chats for an owner account using a paged API.
-	GetChats(context.Context, *GetChatsRequest) (*GetChatsResponse, error)
+	// GetDmChatFeed gets the set of DM chats for an owner account using
+	// a paged API, ordered by last activity with the most recent first.
+	//
+	// Chats are ordered by a mutable key (last_activity), so pagination alone
+	// cannot guarantee a complete read: a chat can receive new activity and
+	// move into a region the client has already paged past. To get the full
+	// list, the client MUST combine this RPC with the event stream:
+	//
+	//  1. Open the event stream to receive ChatUpdate and begin buffering updates
+	//     BEFORE the first GetDmChatFeed call. This ordering is the contract that
+	//     closes the gap; subscribing after pagination starts can drop chats.
+	//  2. Page through GetDmChatFeed to exhaustion (until has_more is false),
+	//     always echoing back the paging token returned by the prior response.
+	//     All pages are served against a single snapshot pinned by that token,
+	//     so the set is read consistently.
+	//  3. Merge the buffered and ongoing stream updates onto the paginated
+	//     set. Any chat whose activity changed after the snapshot watermark
+	//     is delivered via the stream rather than via pagination.
+	//
+	// Read together, pagination guarantees the set (every chat exactly once)
+	// and the stream guarantees freshness and ordering. The local last_activity
+	// sort is maintained by the client from the stream after the initial read.
+	GetDmChatFeed(context.Context, *GetDmChatFeedRequest) (*GetDmChatFeedResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -82,8 +124,8 @@ type UnimplementedChatServer struct{}
 func (UnimplementedChatServer) GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChat not implemented")
 }
-func (UnimplementedChatServer) GetChats(context.Context, *GetChatsRequest) (*GetChatsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChats not implemented")
+func (UnimplementedChatServer) GetDmChatFeed(context.Context, *GetDmChatFeedRequest) (*GetDmChatFeedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDmChatFeed not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -124,20 +166,20 @@ func _Chat_GetChat_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Chat_GetChats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetChatsRequest)
+func _Chat_GetDmChatFeed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDmChatFeedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChatServer).GetChats(ctx, in)
+		return srv.(ChatServer).GetDmChatFeed(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Chat_GetChats_FullMethodName,
+		FullMethod: Chat_GetDmChatFeed_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatServer).GetChats(ctx, req.(*GetChatsRequest))
+		return srv.(ChatServer).GetDmChatFeed(ctx, req.(*GetDmChatFeedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -154,8 +196,8 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Chat_GetChat_Handler,
 		},
 		{
-			MethodName: "GetChats",
-			Handler:    _Chat_GetChats_Handler,
+			MethodName: "GetDmChatFeed",
+			Handler:    _Chat_GetDmChatFeed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

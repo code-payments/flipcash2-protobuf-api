@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetChatRequest, GetChatResponse, GetChatsRequest, GetChatsResponse } from "./chat_service_pb";
+import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -24,14 +24,35 @@ export const Chat = {
       kind: MethodKind.Unary,
     },
     /**
-     * GetChats gets the set of chats for an owner account using a paged API.
+     * GetDmChatFeed gets the set of DM chats for an owner account using
+     * a paged API, ordered by last activity with the most recent first.
      *
-     * @generated from rpc flipcash.chat.v1.Chat.GetChats
+     * Chats are ordered by a mutable key (last_activity), so pagination alone
+     * cannot guarantee a complete read: a chat can receive new activity and
+     * move into a region the client has already paged past. To get the full
+     * list, the client MUST combine this RPC with the event stream:
+     *
+     *   1. Open the event stream to receive ChatUpdate and begin buffering updates
+     *      BEFORE the first GetDmChatFeed call. This ordering is the contract that
+     *      closes the gap; subscribing after pagination starts can drop chats.
+     *   2. Page through GetDmChatFeed to exhaustion (until has_more is false),
+     *      always echoing back the paging token returned by the prior response.
+     *      All pages are served against a single snapshot pinned by that token,
+     *      so the set is read consistently.
+     *   3. Merge the buffered and ongoing stream updates onto the paginated
+     *      set. Any chat whose activity changed after the snapshot watermark
+     *      is delivered via the stream rather than via pagination.
+     *
+     * Read together, pagination guarantees the set (every chat exactly once)
+     * and the stream guarantees freshness and ordering. The local last_activity
+     * sort is maintained by the client from the stream after the initial read.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetDmChatFeed
      */
-    getChats: {
-      name: "GetChats",
-      I: GetChatsRequest,
-      O: GetChatsResponse,
+    getDmChatFeed: {
+      name: "GetDmChatFeed",
+      I: GetDmChatFeedRequest,
+      O: GetDmChatFeedResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
+import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
 import { Metadata } from "./model_pb";
 
 /**
@@ -121,10 +121,19 @@ proto3.util.setEnumType(GetChatResponse_Result, "flipcash.chat.v1.GetChatRespons
 ]);
 
 /**
- * @generated from message flipcash.chat.v1.GetChatsRequest
+ * @generated from message flipcash.chat.v1.GetDmChatFeedRequest
  */
-export class GetChatsRequest extends Message<GetChatsRequest> {
+export class GetDmChatFeedRequest extends Message<GetDmChatFeedRequest> {
   /**
+   * QueryOptions controls page_size. Ordering is fixed to most-recent
+   * activity first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request: the server
+   * mints a token that pins a new snapshot and returns it in the response. On
+   * every subsequent request, set query_options.paging_token to the
+   * paging_token from the most recent response to advance within the same
+   * snapshot. The token is opaque and server-generated; do not construct it.
+   *
    * @generated from field: flipcash.common.v1.QueryOptions query_options = 1;
    */
   queryOptions?: QueryOptions;
@@ -134,82 +143,106 @@ export class GetChatsRequest extends Message<GetChatsRequest> {
    */
   auth?: Auth;
 
-  constructor(data?: PartialMessage<GetChatsRequest>) {
+  constructor(data?: PartialMessage<GetDmChatFeedRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.GetChatsRequest";
+  static readonly typeName = "flipcash.chat.v1.GetDmChatFeedRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "query_options", kind: "message", T: QueryOptions },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChatsRequest {
-    return new GetChatsRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetDmChatFeedRequest {
+    return new GetDmChatFeedRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChatsRequest {
-    return new GetChatsRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetDmChatFeedRequest {
+    return new GetDmChatFeedRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChatsRequest {
-    return new GetChatsRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetDmChatFeedRequest {
+    return new GetDmChatFeedRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetChatsRequest | PlainMessage<GetChatsRequest> | undefined, b: GetChatsRequest | PlainMessage<GetChatsRequest> | undefined): boolean {
-    return proto3.util.equals(GetChatsRequest, a, b);
+  static equals(a: GetDmChatFeedRequest | PlainMessage<GetDmChatFeedRequest> | undefined, b: GetDmChatFeedRequest | PlainMessage<GetDmChatFeedRequest> | undefined): boolean {
+    return proto3.util.equals(GetDmChatFeedRequest, a, b);
   }
 }
 
 /**
- * @generated from message flipcash.chat.v1.GetChatsResponse
+ * @generated from message flipcash.chat.v1.GetDmChatFeedResponse
  */
-export class GetChatsResponse extends Message<GetChatsResponse> {
+export class GetDmChatFeedResponse extends Message<GetDmChatFeedResponse> {
   /**
-   * @generated from field: flipcash.chat.v1.GetChatsResponse.Result result = 1;
+   * @generated from field: flipcash.chat.v1.GetDmChatFeedResponse.Result result = 1;
    */
-  result = GetChatsResponse_Result.OK;
+  result = GetDmChatFeedResponse_Result.OK;
 
   /**
    * @generated from field: repeated flipcash.chat.v1.Metadata chats = 2;
    */
   chats: Metadata[] = [];
 
-  constructor(data?: PartialMessage<GetChatsResponse>) {
+  /**
+   * PagingToken is the server-generated token for this paginated read. On the
+   * first response it pins a new snapshot; on later responses it carries the
+   * advanced cursor over (last_activity, chat_id). The client MUST send the
+   * most recent value back in query_options.paging_token on the next
+   * GetDmChatFeedRequest. Set when result is OK.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain in this snapshot. When
+   * false, the paginated set has been fully read; the complete chat list is
+   * this set reconciled with the event stream (see GetDmChatFeed). When true, the
+   * client should issue another GetDmChatFeedRequest with the returned
+   * paging_token.
+   *
+   * @generated from field: bool has_more = 4;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetDmChatFeedResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.GetChatsResponse";
+  static readonly typeName = "flipcash.chat.v1.GetDmChatFeedResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetChatsResponse_Result) },
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetDmChatFeedResponse_Result) },
     { no: 2, name: "chats", kind: "message", T: Metadata, repeated: true },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChatsResponse {
-    return new GetChatsResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetDmChatFeedResponse {
+    return new GetDmChatFeedResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChatsResponse {
-    return new GetChatsResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetDmChatFeedResponse {
+    return new GetDmChatFeedResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChatsResponse {
-    return new GetChatsResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetDmChatFeedResponse {
+    return new GetDmChatFeedResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetChatsResponse | PlainMessage<GetChatsResponse> | undefined, b: GetChatsResponse | PlainMessage<GetChatsResponse> | undefined): boolean {
-    return proto3.util.equals(GetChatsResponse, a, b);
+  static equals(a: GetDmChatFeedResponse | PlainMessage<GetDmChatFeedResponse> | undefined, b: GetDmChatFeedResponse | PlainMessage<GetDmChatFeedResponse> | undefined): boolean {
+    return proto3.util.equals(GetDmChatFeedResponse, a, b);
   }
 }
 
 /**
- * @generated from enum flipcash.chat.v1.GetChatsResponse.Result
+ * @generated from enum flipcash.chat.v1.GetDmChatFeedResponse.Result
  */
-export enum GetChatsResponse_Result {
+export enum GetDmChatFeedResponse_Result {
   /**
    * @generated from enum value: OK = 0;
    */
@@ -225,8 +258,8 @@ export enum GetChatsResponse_Result {
    */
   NOT_FOUND = 2,
 }
-// Retrieve enum metadata with: proto3.getEnumType(GetChatsResponse_Result)
-proto3.util.setEnumType(GetChatsResponse_Result, "flipcash.chat.v1.GetChatsResponse.Result", [
+// Retrieve enum metadata with: proto3.getEnumType(GetDmChatFeedResponse_Result)
+proto3.util.setEnumType(GetDmChatFeedResponse_Result, "flipcash.chat.v1.GetDmChatFeedResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

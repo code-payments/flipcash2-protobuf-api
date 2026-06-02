@@ -324,22 +324,22 @@ var _ interface {
 	ErrorName() string
 } = GetChatResponseValidationError{}
 
-// Validate checks the field values on GetChatsRequest with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *GetChatsRequest) Validate() error {
+// Validate checks the field values on GetDmChatFeedRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetDmChatFeedRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetChatsRequest with the rules
+// ValidateAll checks the field values on GetDmChatFeedRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetChatsRequestMultiError, or nil if none found.
-func (m *GetChatsRequest) ValidateAll() error {
+// GetDmChatFeedRequestMultiError, or nil if none found.
+func (m *GetDmChatFeedRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetChatsRequest) validate(all bool) error {
+func (m *GetDmChatFeedRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -350,7 +350,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetQueryOptions()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetChatsRequestValidationError{
+				errors = append(errors, GetDmChatFeedRequestValidationError{
 					field:  "QueryOptions",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -358,7 +358,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetChatsRequestValidationError{
+				errors = append(errors, GetDmChatFeedRequestValidationError{
 					field:  "QueryOptions",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -367,7 +367,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetQueryOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetChatsRequestValidationError{
+			return GetDmChatFeedRequestValidationError{
 				field:  "QueryOptions",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -376,7 +376,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 	}
 
 	if m.GetAuth() == nil {
-		err := GetChatsRequestValidationError{
+		err := GetDmChatFeedRequestValidationError{
 			field:  "Auth",
 			reason: "value is required",
 		}
@@ -390,7 +390,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetChatsRequestValidationError{
+				errors = append(errors, GetDmChatFeedRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -398,7 +398,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetChatsRequestValidationError{
+				errors = append(errors, GetDmChatFeedRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -407,7 +407,7 @@ func (m *GetChatsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetChatsRequestValidationError{
+			return GetDmChatFeedRequestValidationError{
 				field:  "Auth",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -416,19 +416,19 @@ func (m *GetChatsRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetChatsRequestMultiError(errors)
+		return GetDmChatFeedRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetChatsRequestMultiError is an error wrapping multiple validation errors
-// returned by GetChatsRequest.ValidateAll() if the designated constraints
-// aren't met.
-type GetChatsRequestMultiError []error
+// GetDmChatFeedRequestMultiError is an error wrapping multiple validation
+// errors returned by GetDmChatFeedRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetDmChatFeedRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetChatsRequestMultiError) Error() string {
+func (m GetDmChatFeedRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -437,11 +437,11 @@ func (m GetChatsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetChatsRequestMultiError) AllErrors() []error { return m }
+func (m GetDmChatFeedRequestMultiError) AllErrors() []error { return m }
 
-// GetChatsRequestValidationError is the validation error returned by
-// GetChatsRequest.Validate if the designated constraints aren't met.
-type GetChatsRequestValidationError struct {
+// GetDmChatFeedRequestValidationError is the validation error returned by
+// GetDmChatFeedRequest.Validate if the designated constraints aren't met.
+type GetDmChatFeedRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -449,22 +449,24 @@ type GetChatsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetChatsRequestValidationError) Field() string { return e.field }
+func (e GetDmChatFeedRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetChatsRequestValidationError) Reason() string { return e.reason }
+func (e GetDmChatFeedRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetChatsRequestValidationError) Cause() error { return e.cause }
+func (e GetDmChatFeedRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetChatsRequestValidationError) Key() bool { return e.key }
+func (e GetDmChatFeedRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetChatsRequestValidationError) ErrorName() string { return "GetChatsRequestValidationError" }
+func (e GetDmChatFeedRequestValidationError) ErrorName() string {
+	return "GetDmChatFeedRequestValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e GetChatsRequestValidationError) Error() string {
+func (e GetDmChatFeedRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -476,14 +478,14 @@ func (e GetChatsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetChatsRequest.%s: %s%s",
+		"invalid %sGetDmChatFeedRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetChatsRequestValidationError{}
+var _ error = GetDmChatFeedRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -491,24 +493,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetChatsRequestValidationError{}
+} = GetDmChatFeedRequestValidationError{}
 
-// Validate checks the field values on GetChatsResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *GetChatsResponse) Validate() error {
+// Validate checks the field values on GetDmChatFeedResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetDmChatFeedResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetChatsResponse with the rules
+// ValidateAll checks the field values on GetDmChatFeedResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetChatsResponseMultiError, or nil if none found.
-func (m *GetChatsResponse) ValidateAll() error {
+// GetDmChatFeedResponseMultiError, or nil if none found.
+func (m *GetDmChatFeedResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetChatsResponse) validate(all bool) error {
+func (m *GetDmChatFeedResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -518,7 +520,7 @@ func (m *GetChatsResponse) validate(all bool) error {
 	// no validation rules for Result
 
 	if len(m.GetChats()) > 100 {
-		err := GetChatsResponseValidationError{
+		err := GetDmChatFeedResponseValidationError{
 			field:  "Chats",
 			reason: "value must contain no more than 100 item(s)",
 		}
@@ -535,7 +537,7 @@ func (m *GetChatsResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, GetChatsResponseValidationError{
+					errors = append(errors, GetDmChatFeedResponseValidationError{
 						field:  fmt.Sprintf("Chats[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -543,7 +545,7 @@ func (m *GetChatsResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, GetChatsResponseValidationError{
+					errors = append(errors, GetDmChatFeedResponseValidationError{
 						field:  fmt.Sprintf("Chats[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -552,7 +554,7 @@ func (m *GetChatsResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return GetChatsResponseValidationError{
+				return GetDmChatFeedResponseValidationError{
 					field:  fmt.Sprintf("Chats[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -562,20 +564,51 @@ func (m *GetChatsResponse) validate(all bool) error {
 
 	}
 
+	if all {
+		switch v := interface{}(m.GetPagingToken()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetDmChatFeedResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetDmChatFeedResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagingToken()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetDmChatFeedResponseValidationError{
+				field:  "PagingToken",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for HasMore
+
 	if len(errors) > 0 {
-		return GetChatsResponseMultiError(errors)
+		return GetDmChatFeedResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetChatsResponseMultiError is an error wrapping multiple validation errors
-// returned by GetChatsResponse.ValidateAll() if the designated constraints
-// aren't met.
-type GetChatsResponseMultiError []error
+// GetDmChatFeedResponseMultiError is an error wrapping multiple validation
+// errors returned by GetDmChatFeedResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetDmChatFeedResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetChatsResponseMultiError) Error() string {
+func (m GetDmChatFeedResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -584,11 +617,11 @@ func (m GetChatsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetChatsResponseMultiError) AllErrors() []error { return m }
+func (m GetDmChatFeedResponseMultiError) AllErrors() []error { return m }
 
-// GetChatsResponseValidationError is the validation error returned by
-// GetChatsResponse.Validate if the designated constraints aren't met.
-type GetChatsResponseValidationError struct {
+// GetDmChatFeedResponseValidationError is the validation error returned by
+// GetDmChatFeedResponse.Validate if the designated constraints aren't met.
+type GetDmChatFeedResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -596,22 +629,24 @@ type GetChatsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetChatsResponseValidationError) Field() string { return e.field }
+func (e GetDmChatFeedResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetChatsResponseValidationError) Reason() string { return e.reason }
+func (e GetDmChatFeedResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetChatsResponseValidationError) Cause() error { return e.cause }
+func (e GetDmChatFeedResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetChatsResponseValidationError) Key() bool { return e.key }
+func (e GetDmChatFeedResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetChatsResponseValidationError) ErrorName() string { return "GetChatsResponseValidationError" }
+func (e GetDmChatFeedResponseValidationError) ErrorName() string {
+	return "GetDmChatFeedResponseValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e GetChatsResponseValidationError) Error() string {
+func (e GetDmChatFeedResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -623,14 +658,14 @@ func (e GetChatsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetChatsResponse.%s: %s%s",
+		"invalid %sGetDmChatFeedResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetChatsResponseValidationError{}
+var _ error = GetDmChatFeedResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -638,4 +673,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetChatsResponseValidationError{}
+} = GetDmChatFeedResponseValidationError{}
