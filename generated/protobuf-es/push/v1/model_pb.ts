@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { PublicKey } from "../../common/v1/common_pb";
+import { ChatId, PublicKey } from "../../common/v1/common_pb";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
@@ -173,6 +173,14 @@ export class Navigation extends Message<Navigation> {
      */
     value: PublicKey;
     case: "currencyInfo";
+  } | {
+    /**
+     * Chat for the provided ID
+     *
+     * @generated from field: flipcash.common.v1.ChatId chat_id = 2;
+     */
+    value: ChatId;
+    case: "chatId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Navigation>) {
@@ -184,6 +192,7 @@ export class Navigation extends Message<Navigation> {
   static readonly typeName = "flipcash.push.v1.Navigation";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "currency_info", kind: "message", T: PublicKey, oneof: "type" },
+    { no: 2, name: "chat_id", kind: "message", T: ChatId, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Navigation {
