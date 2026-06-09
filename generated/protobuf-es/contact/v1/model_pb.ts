@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
+import { ChatId } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.contact.v1.FlipcashContact
@@ -16,6 +17,14 @@ export class FlipcashContact extends Message<FlipcashContact> {
    */
   phone?: PhoneNumber;
 
+  /**
+   * The DM chat ID for the Flipcash contact. If the chat doesn't exist, it needs
+   * to be initiated with a cash send to initialize it
+   *
+   * @generated from field: flipcash.common.v1.ChatId dm_chat_id = 2;
+   */
+  dmChatId?: ChatId;
+
   constructor(data?: PartialMessage<FlipcashContact>) {
     super();
     proto3.util.initPartial(data, this);
@@ -25,6 +34,7 @@ export class FlipcashContact extends Message<FlipcashContact> {
   static readonly typeName = "flipcash.contact.v1.FlipcashContact";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber },
+    { no: 2, name: "dm_chat_id", kind: "message", T: ChatId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FlipcashContact {
