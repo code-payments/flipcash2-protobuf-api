@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message as Message$1, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { UserId } from "../../common/v1/common_pb";
+import { CryptoPaymentAmount, IntentId, UserId } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.MessageId
@@ -193,6 +193,12 @@ export class Content extends Message$1<Content> {
      */
     value: TextContent;
     case: "text";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.CashContent cash = 2;
+     */
+    value: CashContent;
+    case: "cash";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -204,6 +210,7 @@ export class Content extends Message$1<Content> {
   static readonly typeName = "flipcash.messaging.v1.Content";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "text", kind: "message", T: TextContent, oneof: "type" },
+    { no: 2, name: "cash", kind: "message", T: CashContent, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -259,6 +266,53 @@ export class TextContent extends Message$1<TextContent> {
 
   static equals(a: TextContent | PlainMessage<TextContent> | undefined, b: TextContent | PlainMessage<TextContent> | undefined): boolean {
     return proto3.util.equals(TextContent, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.CashContent
+ */
+export class CashContent extends Message$1<CashContent> {
+  /**
+   * Intent ID identifying the cash transaction at the OCP layer
+   *
+   * @generated from field: flipcash.common.v1.IntentId intent_id = 1;
+   */
+  intentId?: IntentId;
+
+  /**
+   * The amount of cash that was sent
+   *
+   * @generated from field: flipcash.common.v1.CryptoPaymentAmount amount = 2;
+   */
+  amount?: CryptoPaymentAmount;
+
+  constructor(data?: PartialMessage<CashContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.CashContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "intent_id", kind: "message", T: IntentId },
+    { no: 2, name: "amount", kind: "message", T: CryptoPaymentAmount },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent {
+    return new CashContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CashContent {
+    return new CashContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CashContent {
+    return new CashContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CashContent | PlainMessage<CashContent> | undefined, b: CashContent | PlainMessage<CashContent> | undefined): boolean {
+    return proto3.util.equals(CashContent, a, b);
   }
 }
 

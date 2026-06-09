@@ -546,6 +546,48 @@ func (m *Content) validate(all bool) error {
 			}
 		}
 
+	case *Content_Cash:
+		if v == nil {
+			err := ContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetCash()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Cash",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Cash",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetCash()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ContentValidationError{
+					field:  "Cash",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -746,6 +788,185 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TextContentValidationError{}
+
+// Validate checks the field values on CashContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *CashContent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CashContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in CashContentMultiError, or
+// nil if none found.
+func (m *CashContent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CashContent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetIntentId() == nil {
+		err := CashContentValidationError{
+			field:  "IntentId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetIntentId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CashContentValidationError{
+					field:  "IntentId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CashContentValidationError{
+					field:  "IntentId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetIntentId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CashContentValidationError{
+				field:  "IntentId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAmount() == nil {
+		err := CashContentValidationError{
+			field:  "Amount",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAmount()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CashContentValidationError{
+					field:  "Amount",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CashContentValidationError{
+					field:  "Amount",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAmount()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CashContentValidationError{
+				field:  "Amount",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CashContentMultiError(errors)
+	}
+
+	return nil
+}
+
+// CashContentMultiError is an error wrapping multiple validation errors
+// returned by CashContent.ValidateAll() if the designated constraints aren't met.
+type CashContentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CashContentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CashContentMultiError) AllErrors() []error { return m }
+
+// CashContentValidationError is the validation error returned by
+// CashContent.Validate if the designated constraints aren't met.
+type CashContentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CashContentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CashContentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CashContentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CashContentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CashContentValidationError) ErrorName() string { return "CashContentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e CashContentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCashContent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CashContentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CashContentValidationError{}
 
 // Validate checks the field values on Pointer with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
