@@ -51,13 +51,23 @@ The API is organized into logical service domains:
 
 - **Account** - User registration, login, and account flags
 - **Activity** - Activity feed for user actions
+- **Chat** - Chat metadata and DM chat feed (paged, ordered by last activity; must be combined with the event stream for a complete view)
+- **Common** - Shared message types used across domains (Auth, UserId, PublicKey, ChatId, IntentId, payment amounts, QueryOptions, etc.)
+- **Contact** - Contact list syncing (full/delta uploads) and Flipcash contact discovery
 - **Email** - Email verification and management
-- **Event** - Server-sent event streaming for real-time updates
+- **Event** - Bidirectional event streaming for real-time updates, plus server-to-server event forwarding
 - **IAP** - In-app purchase processing
+- **Intent** - Models only (no service): app metadata attached to payment intents (e.g. chat payments)
+- **Messaging** - Sending/fetching chat messages, pointer advancement (read state), and typing notifications
+- **Moderation** - Text and image content moderation with attestations
 - **Phone** - Phone number verification
 - **Profile** - User profile management
 - **Push** - Push notification services
+- **Resolver** - Maps real-world identifiers (e.g. phone numbers) to payment destination addresses
+- **Settings** - User settings management
 - **Third Party** - Third-party integrations
+
+Some domains (e.g. Intent) only define models and have no service; their messages are embedded in other services' requests.
 
 ### Common Patterns
 
@@ -97,9 +107,13 @@ The Protobuf-ES code generator:
 
 1. Create `proto/{domain}/v1/{service}_service.proto` with service definition
 2. Create `proto/{domain}/v1/model.proto` if you need domain-specific message types
-3. Use imports from `common/v1/common.proto` for shared types (Auth, UserId, PublicKey, etc.)
-4. Add validation rules using `validate/validate.proto` annotations
-5. Run `make` to generate code for all languages
+3. Set the standard file options used by every proto in this repo:
+   - `go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/{domain}/v1;{domain}pb"`
+   - `java_package = "com.codeinc.flipcash.gen.{domain}.v1"`
+   - `objc_class_prefix = "FPB{Domain}V1"`
+4. Use imports from `common/v1/common.proto` for shared types (Auth, UserId, PublicKey, etc.)
+5. Add validation rules using `validate/validate.proto` annotations
+6. Run `make` to generate code for all languages
 
 ### Modifying Existing Protos
 
@@ -110,6 +124,7 @@ The Protobuf-ES code generator:
 
 ### Proto Style Guidelines
 
+- Package names follow `flipcash.{domain}.v1`
 - Use `snake_case` for field names
 - Use `PascalCase` for message and enum names
 - Use `SCREAMING_SNAKE_CASE` for enum values
