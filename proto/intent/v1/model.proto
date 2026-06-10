@@ -30,7 +30,10 @@ message ChatMetadata {
 
     // For sending a payment to a contact in a DM
     message ContactDmPayment {
-        // The contact that is being paid
-        phone.v1.PhoneNumber contact = 1 [(validate.rules).message.required = true];
+        // Source phone number that is paying. This is validated to be linked to the sender.
+        phone.v1.PhoneNumber source = 1 [(validate.rules).message.required = true];
+
+        // Destination phone number that is being paid. This is validated to be linked to the receiver.
+        phone.v1.PhoneNumber destination = 2 [(validate.rules).message.required = true];
     }
 }
