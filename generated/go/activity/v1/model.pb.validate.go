@@ -271,7 +271,7 @@ func (m *Notification) validate(all bool) error {
 	}
 
 	switch v := m.AdditionalMetadata.(type) {
-	case *Notification_GaveCrypto:
+	case *Notification_DirectlySentCrypto:
 		if v == nil {
 			err := NotificationValidationError{
 				field:  "AdditionalMetadata",
@@ -284,11 +284,11 @@ func (m *Notification) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGaveCrypto()).(type) {
+			switch v := interface{}(m.GetDirectlySentCrypto()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, NotificationValidationError{
-						field:  "GaveCrypto",
+						field:  "DirectlySentCrypto",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -296,16 +296,16 @@ func (m *Notification) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, NotificationValidationError{
-						field:  "GaveCrypto",
+						field:  "DirectlySentCrypto",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGaveCrypto()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetDirectlySentCrypto()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return NotificationValidationError{
-					field:  "GaveCrypto",
+					field:  "DirectlySentCrypto",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -394,7 +394,7 @@ func (m *Notification) validate(all bool) error {
 			}
 		}
 
-	case *Notification_SentCrypto:
+	case *Notification_IndirectlySentCrypto:
 		if v == nil {
 			err := NotificationValidationError{
 				field:  "AdditionalMetadata",
@@ -407,11 +407,11 @@ func (m *Notification) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetSentCrypto()).(type) {
+			switch v := interface{}(m.GetIndirectlySentCrypto()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, NotificationValidationError{
-						field:  "SentCrypto",
+						field:  "IndirectlySentCrypto",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -419,16 +419,16 @@ func (m *Notification) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, NotificationValidationError{
-						field:  "SentCrypto",
+						field:  "IndirectlySentCrypto",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetSentCrypto()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetIndirectlySentCrypto()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return NotificationValidationError{
-					field:  "SentCrypto",
+					field:  "IndirectlySentCrypto",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -643,42 +643,91 @@ var _Notification_State_NotInLookup = map[NotificationState]struct{}{
 	0: {},
 }
 
-// Validate checks the field values on GaveCryptoNotificationMetadata with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GaveCryptoNotificationMetadata) Validate() error {
+// Validate checks the field values on DirectlySentCryptoNotificationMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *DirectlySentCryptoNotificationMetadata) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GaveCryptoNotificationMetadata with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// GaveCryptoNotificationMetadataMultiError, or nil if none found.
-func (m *GaveCryptoNotificationMetadata) ValidateAll() error {
+// ValidateAll checks the field values on
+// DirectlySentCryptoNotificationMetadata with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// DirectlySentCryptoNotificationMetadataMultiError, or nil if none found.
+func (m *DirectlySentCryptoNotificationMetadata) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GaveCryptoNotificationMetadata) validate(all bool) error {
+func (m *DirectlySentCryptoNotificationMetadata) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
+	switch v := m.DestinationIdentifier.(type) {
+	case *DirectlySentCryptoNotificationMetadata_Phone:
+		if v == nil {
+			err := DirectlySentCryptoNotificationMetadataValidationError{
+				field:  "DestinationIdentifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPhone()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "Phone",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "Phone",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPhone()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "Phone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
 	if len(errors) > 0 {
-		return GaveCryptoNotificationMetadataMultiError(errors)
+		return DirectlySentCryptoNotificationMetadataMultiError(errors)
 	}
 
 	return nil
 }
 
-// GaveCryptoNotificationMetadataMultiError is an error wrapping multiple
-// validation errors returned by GaveCryptoNotificationMetadata.ValidateAll()
-// if the designated constraints aren't met.
-type GaveCryptoNotificationMetadataMultiError []error
+// DirectlySentCryptoNotificationMetadataMultiError is an error wrapping
+// multiple validation errors returned by
+// DirectlySentCryptoNotificationMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type DirectlySentCryptoNotificationMetadataMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GaveCryptoNotificationMetadataMultiError) Error() string {
+func (m DirectlySentCryptoNotificationMetadataMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -687,12 +736,12 @@ func (m GaveCryptoNotificationMetadataMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GaveCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
+func (m DirectlySentCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
 
-// GaveCryptoNotificationMetadataValidationError is the validation error
-// returned by GaveCryptoNotificationMetadata.Validate if the designated
-// constraints aren't met.
-type GaveCryptoNotificationMetadataValidationError struct {
+// DirectlySentCryptoNotificationMetadataValidationError is the validation
+// error returned by DirectlySentCryptoNotificationMetadata.Validate if the
+// designated constraints aren't met.
+type DirectlySentCryptoNotificationMetadataValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -700,24 +749,24 @@ type GaveCryptoNotificationMetadataValidationError struct {
 }
 
 // Field function returns field value.
-func (e GaveCryptoNotificationMetadataValidationError) Field() string { return e.field }
+func (e DirectlySentCryptoNotificationMetadataValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GaveCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
+func (e DirectlySentCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GaveCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
+func (e DirectlySentCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GaveCryptoNotificationMetadataValidationError) Key() bool { return e.key }
+func (e DirectlySentCryptoNotificationMetadataValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GaveCryptoNotificationMetadataValidationError) ErrorName() string {
-	return "GaveCryptoNotificationMetadataValidationError"
+func (e DirectlySentCryptoNotificationMetadataValidationError) ErrorName() string {
+	return "DirectlySentCryptoNotificationMetadataValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GaveCryptoNotificationMetadataValidationError) Error() string {
+func (e DirectlySentCryptoNotificationMetadataValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -729,14 +778,14 @@ func (e GaveCryptoNotificationMetadataValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGaveCryptoNotificationMetadata.%s: %s%s",
+		"invalid %sDirectlySentCryptoNotificationMetadata.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GaveCryptoNotificationMetadataValidationError{}
+var _ error = DirectlySentCryptoNotificationMetadataValidationError{}
 
 var _ interface {
 	Field() string
@@ -744,7 +793,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GaveCryptoNotificationMetadataValidationError{}
+} = DirectlySentCryptoNotificationMetadataValidationError{}
 
 // Validate checks the field values on ReceivedCryptoNotificationMetadata with
 // the rules defined in the proto definition for this message. If any rules
@@ -768,6 +817,52 @@ func (m *ReceivedCryptoNotificationMetadata) validate(all bool) error {
 	}
 
 	var errors []error
+
+	switch v := m.SourceIdentifier.(type) {
+	case *ReceivedCryptoNotificationMetadata_Phone:
+		if v == nil {
+			err := ReceivedCryptoNotificationMetadataValidationError{
+				field:  "SourceIdentifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPhone()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "Phone",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "Phone",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPhone()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReceivedCryptoNotificationMetadataValidationError{
+					field:  "Phone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
 
 	if len(errors) > 0 {
 		return ReceivedCryptoNotificationMetadataMultiError(errors)
@@ -971,22 +1066,24 @@ var _WithdrewCryptoNotificationMetadata_SwapState_NotInLookup = map[SwapState]st
 	0: {},
 }
 
-// Validate checks the field values on SentCryptoNotificationMetadata with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SentCryptoNotificationMetadata) Validate() error {
+// Validate checks the field values on IndirectlySentCryptoNotificationMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *IndirectlySentCryptoNotificationMetadata) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on SentCryptoNotificationMetadata with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// SentCryptoNotificationMetadataMultiError, or nil if none found.
-func (m *SentCryptoNotificationMetadata) ValidateAll() error {
+// ValidateAll checks the field values on
+// IndirectlySentCryptoNotificationMetadata with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// IndirectlySentCryptoNotificationMetadataMultiError, or nil if none found.
+func (m *IndirectlySentCryptoNotificationMetadata) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *SentCryptoNotificationMetadata) validate(all bool) error {
+func (m *IndirectlySentCryptoNotificationMetadata) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -994,7 +1091,7 @@ func (m *SentCryptoNotificationMetadata) validate(all bool) error {
 	var errors []error
 
 	if m.GetVault() == nil {
-		err := SentCryptoNotificationMetadataValidationError{
+		err := IndirectlySentCryptoNotificationMetadataValidationError{
 			field:  "Vault",
 			reason: "value is required",
 		}
@@ -1008,7 +1105,7 @@ func (m *SentCryptoNotificationMetadata) validate(all bool) error {
 		switch v := interface{}(m.GetVault()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SentCryptoNotificationMetadataValidationError{
+				errors = append(errors, IndirectlySentCryptoNotificationMetadataValidationError{
 					field:  "Vault",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1016,7 +1113,7 @@ func (m *SentCryptoNotificationMetadata) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, SentCryptoNotificationMetadataValidationError{
+				errors = append(errors, IndirectlySentCryptoNotificationMetadataValidationError{
 					field:  "Vault",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1025,7 +1122,7 @@ func (m *SentCryptoNotificationMetadata) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetVault()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return SentCryptoNotificationMetadataValidationError{
+			return IndirectlySentCryptoNotificationMetadataValidationError{
 				field:  "Vault",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1036,19 +1133,20 @@ func (m *SentCryptoNotificationMetadata) validate(all bool) error {
 	// no validation rules for CanInitiateCancelAction
 
 	if len(errors) > 0 {
-		return SentCryptoNotificationMetadataMultiError(errors)
+		return IndirectlySentCryptoNotificationMetadataMultiError(errors)
 	}
 
 	return nil
 }
 
-// SentCryptoNotificationMetadataMultiError is an error wrapping multiple
-// validation errors returned by SentCryptoNotificationMetadata.ValidateAll()
-// if the designated constraints aren't met.
-type SentCryptoNotificationMetadataMultiError []error
+// IndirectlySentCryptoNotificationMetadataMultiError is an error wrapping
+// multiple validation errors returned by
+// IndirectlySentCryptoNotificationMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type IndirectlySentCryptoNotificationMetadataMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SentCryptoNotificationMetadataMultiError) Error() string {
+func (m IndirectlySentCryptoNotificationMetadataMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1057,12 +1155,12 @@ func (m SentCryptoNotificationMetadataMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SentCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
+func (m IndirectlySentCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
 
-// SentCryptoNotificationMetadataValidationError is the validation error
-// returned by SentCryptoNotificationMetadata.Validate if the designated
-// constraints aren't met.
-type SentCryptoNotificationMetadataValidationError struct {
+// IndirectlySentCryptoNotificationMetadataValidationError is the validation
+// error returned by IndirectlySentCryptoNotificationMetadata.Validate if the
+// designated constraints aren't met.
+type IndirectlySentCryptoNotificationMetadataValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1070,24 +1168,24 @@ type SentCryptoNotificationMetadataValidationError struct {
 }
 
 // Field function returns field value.
-func (e SentCryptoNotificationMetadataValidationError) Field() string { return e.field }
+func (e IndirectlySentCryptoNotificationMetadataValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e SentCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
+func (e IndirectlySentCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e SentCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
+func (e IndirectlySentCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e SentCryptoNotificationMetadataValidationError) Key() bool { return e.key }
+func (e IndirectlySentCryptoNotificationMetadataValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e SentCryptoNotificationMetadataValidationError) ErrorName() string {
-	return "SentCryptoNotificationMetadataValidationError"
+func (e IndirectlySentCryptoNotificationMetadataValidationError) ErrorName() string {
+	return "IndirectlySentCryptoNotificationMetadataValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e SentCryptoNotificationMetadataValidationError) Error() string {
+func (e IndirectlySentCryptoNotificationMetadataValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1099,14 +1197,14 @@ func (e SentCryptoNotificationMetadataValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSentCryptoNotificationMetadata.%s: %s%s",
+		"invalid %sIndirectlySentCryptoNotificationMetadata.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SentCryptoNotificationMetadataValidationError{}
+var _ error = IndirectlySentCryptoNotificationMetadataValidationError{}
 
 var _ interface {
 	Field() string
@@ -1114,7 +1212,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SentCryptoNotificationMetadataValidationError{}
+} = IndirectlySentCryptoNotificationMetadataValidationError{}
 
 // Validate checks the field values on DepositedCryptoNotificationMetadata with
 // the rules defined in the proto definition for this message. If any rules
