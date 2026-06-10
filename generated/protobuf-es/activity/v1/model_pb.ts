@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { CryptoPaymentAmount, PublicKey } from "../../common/v1/common_pb";
+import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
  * ActivityFeedType enables multiple activity feeds, where notifications may be
@@ -190,10 +191,10 @@ export class Notification extends Message<Notification> {
    */
   additionalMetadata: {
     /**
-     * @generated from field: flipcash.activity.v1.GaveCryptoNotificationMetadata gave_crypto = 7;
+     * @generated from field: flipcash.activity.v1.DirectlySentCryptoNotificationMetadata directly_sent_crypto = 7;
      */
-    value: GaveCryptoNotificationMetadata;
-    case: "gaveCrypto";
+    value: DirectlySentCryptoNotificationMetadata;
+    case: "directlySentCrypto";
   } | {
     /**
      * @generated from field: flipcash.activity.v1.ReceivedCryptoNotificationMetadata received_crypto = 8;
@@ -208,10 +209,10 @@ export class Notification extends Message<Notification> {
     case: "withdrewCrypto";
   } | {
     /**
-     * @generated from field: flipcash.activity.v1.SentCryptoNotificationMetadata sent_crypto = 10;
+     * @generated from field: flipcash.activity.v1.IndirectlySentCryptoNotificationMetadata indirectly_sent_crypto = 10;
      */
-    value: SentCryptoNotificationMetadata;
-    case: "sentCrypto";
+    value: IndirectlySentCryptoNotificationMetadata;
+    case: "indirectlySentCrypto";
   } | {
     /**
      * @generated from field: flipcash.activity.v1.DepositedCryptoNotificationMetadata deposited_crypto = 11;
@@ -245,10 +246,10 @@ export class Notification extends Message<Notification> {
     { no: 3, name: "payment_amount", kind: "message", T: CryptoPaymentAmount },
     { no: 4, name: "ts", kind: "message", T: Timestamp },
     { no: 5, name: "state", kind: "enum", T: proto3.getEnumType(NotificationState) },
-    { no: 7, name: "gave_crypto", kind: "message", T: GaveCryptoNotificationMetadata, oneof: "additional_metadata" },
+    { no: 7, name: "directly_sent_crypto", kind: "message", T: DirectlySentCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 8, name: "received_crypto", kind: "message", T: ReceivedCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 9, name: "withdrew_crypto", kind: "message", T: WithdrewCryptoNotificationMetadata, oneof: "additional_metadata" },
-    { no: 10, name: "sent_crypto", kind: "message", T: SentCryptoNotificationMetadata, oneof: "additional_metadata" },
+    { no: 10, name: "indirectly_sent_crypto", kind: "message", T: IndirectlySentCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 11, name: "deposited_crypto", kind: "message", T: DepositedCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 12, name: "bought_crypto", kind: "message", T: BoughtCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 13, name: "sold_crypto", kind: "message", T: SoldCryptoNotificationMetadata, oneof: "additional_metadata" },
@@ -272,33 +273,45 @@ export class Notification extends Message<Notification> {
 }
 
 /**
- * @generated from message flipcash.activity.v1.GaveCryptoNotificationMetadata
+ * @generated from message flipcash.activity.v1.DirectlySentCryptoNotificationMetadata
  */
-export class GaveCryptoNotificationMetadata extends Message<GaveCryptoNotificationMetadata> {
-  constructor(data?: PartialMessage<GaveCryptoNotificationMetadata>) {
+export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySentCryptoNotificationMetadata> {
+  /**
+   * @generated from oneof flipcash.activity.v1.DirectlySentCryptoNotificationMetadata.destination_identifier
+   */
+  destinationIdentifier: {
+    /**
+     * @generated from field: flipcash.phone.v1.PhoneNumber phone = 1;
+     */
+    value: PhoneNumber;
+    case: "phone";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<DirectlySentCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.activity.v1.GaveCryptoNotificationMetadata";
+  static readonly typeName = "flipcash.activity.v1.DirectlySentCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "destination_identifier" },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GaveCryptoNotificationMetadata {
-    return new GaveCryptoNotificationMetadata().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DirectlySentCryptoNotificationMetadata {
+    return new DirectlySentCryptoNotificationMetadata().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GaveCryptoNotificationMetadata {
-    return new GaveCryptoNotificationMetadata().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DirectlySentCryptoNotificationMetadata {
+    return new DirectlySentCryptoNotificationMetadata().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GaveCryptoNotificationMetadata {
-    return new GaveCryptoNotificationMetadata().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DirectlySentCryptoNotificationMetadata {
+    return new DirectlySentCryptoNotificationMetadata().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GaveCryptoNotificationMetadata | PlainMessage<GaveCryptoNotificationMetadata> | undefined, b: GaveCryptoNotificationMetadata | PlainMessage<GaveCryptoNotificationMetadata> | undefined): boolean {
-    return proto3.util.equals(GaveCryptoNotificationMetadata, a, b);
+  static equals(a: DirectlySentCryptoNotificationMetadata | PlainMessage<DirectlySentCryptoNotificationMetadata> | undefined, b: DirectlySentCryptoNotificationMetadata | PlainMessage<DirectlySentCryptoNotificationMetadata> | undefined): boolean {
+    return proto3.util.equals(DirectlySentCryptoNotificationMetadata, a, b);
   }
 }
 
@@ -306,6 +319,17 @@ export class GaveCryptoNotificationMetadata extends Message<GaveCryptoNotificati
  * @generated from message flipcash.activity.v1.ReceivedCryptoNotificationMetadata
  */
 export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNotificationMetadata> {
+  /**
+   * @generated from oneof flipcash.activity.v1.ReceivedCryptoNotificationMetadata.source_identifier
+   */
+  sourceIdentifier: {
+    /**
+     * @generated from field: flipcash.phone.v1.PhoneNumber phone = 1;
+     */
+    value: PhoneNumber;
+    case: "phone";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
   constructor(data?: PartialMessage<ReceivedCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -314,6 +338,7 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.activity.v1.ReceivedCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "source_identifier" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReceivedCryptoNotificationMetadata {
@@ -371,9 +396,9 @@ export class WithdrewCryptoNotificationMetadata extends Message<WithdrewCryptoNo
 }
 
 /**
- * @generated from message flipcash.activity.v1.SentCryptoNotificationMetadata
+ * @generated from message flipcash.activity.v1.IndirectlySentCryptoNotificationMetadata
  */
-export class SentCryptoNotificationMetadata extends Message<SentCryptoNotificationMetadata> {
+export class IndirectlySentCryptoNotificationMetadata extends Message<IndirectlySentCryptoNotificationMetadata> {
   /**
    * The vault of the gift card account that was created for the cash link
    *
@@ -388,32 +413,32 @@ export class SentCryptoNotificationMetadata extends Message<SentCryptoNotificati
    */
   canInitiateCancelAction = false;
 
-  constructor(data?: PartialMessage<SentCryptoNotificationMetadata>) {
+  constructor(data?: PartialMessage<IndirectlySentCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.activity.v1.SentCryptoNotificationMetadata";
+  static readonly typeName = "flipcash.activity.v1.IndirectlySentCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "vault", kind: "message", T: PublicKey },
     { no: 2, name: "can_initiate_cancel_action", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SentCryptoNotificationMetadata {
-    return new SentCryptoNotificationMetadata().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndirectlySentCryptoNotificationMetadata {
+    return new IndirectlySentCryptoNotificationMetadata().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SentCryptoNotificationMetadata {
-    return new SentCryptoNotificationMetadata().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IndirectlySentCryptoNotificationMetadata {
+    return new IndirectlySentCryptoNotificationMetadata().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SentCryptoNotificationMetadata {
-    return new SentCryptoNotificationMetadata().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IndirectlySentCryptoNotificationMetadata {
+    return new IndirectlySentCryptoNotificationMetadata().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SentCryptoNotificationMetadata | PlainMessage<SentCryptoNotificationMetadata> | undefined, b: SentCryptoNotificationMetadata | PlainMessage<SentCryptoNotificationMetadata> | undefined): boolean {
-    return proto3.util.equals(SentCryptoNotificationMetadata, a, b);
+  static equals(a: IndirectlySentCryptoNotificationMetadata | PlainMessage<IndirectlySentCryptoNotificationMetadata> | undefined, b: IndirectlySentCryptoNotificationMetadata | PlainMessage<IndirectlySentCryptoNotificationMetadata> | undefined): boolean {
+    return proto3.util.equals(IndirectlySentCryptoNotificationMetadata, a, b);
   }
 }
 
