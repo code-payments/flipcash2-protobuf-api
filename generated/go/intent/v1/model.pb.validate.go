@@ -411,9 +411,9 @@ func (m *ChatMetadata_ContactDmPayment) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetContact() == nil {
+	if m.GetSource() == nil {
 		err := ChatMetadata_ContactDmPaymentValidationError{
-			field:  "Contact",
+			field:  "Source",
 			reason: "value is required",
 		}
 		if !all {
@@ -423,11 +423,11 @@ func (m *ChatMetadata_ContactDmPayment) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetContact()).(type) {
+		switch v := interface{}(m.GetSource()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, ChatMetadata_ContactDmPaymentValidationError{
-					field:  "Contact",
+					field:  "Source",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -435,16 +435,56 @@ func (m *ChatMetadata_ContactDmPayment) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, ChatMetadata_ContactDmPaymentValidationError{
-					field:  "Contact",
+					field:  "Source",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetContact()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetSource()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return ChatMetadata_ContactDmPaymentValidationError{
-				field:  "Contact",
+				field:  "Source",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetDestination() == nil {
+		err := ChatMetadata_ContactDmPaymentValidationError{
+			field:  "Destination",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetDestination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatMetadata_ContactDmPaymentValidationError{
+					field:  "Destination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatMetadata_ContactDmPaymentValidationError{
+					field:  "Destination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDestination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatMetadata_ContactDmPaymentValidationError{
+				field:  "Destination",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

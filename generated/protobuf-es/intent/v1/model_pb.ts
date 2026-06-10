@@ -109,11 +109,18 @@ export class ChatMetadata extends Message<ChatMetadata> {
  */
 export class ChatMetadata_ContactDmPayment extends Message<ChatMetadata_ContactDmPayment> {
   /**
-   * The contact that is being paid
+   * Source phone number that is paying. This is validated to be linked to the sender.
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber contact = 1;
+   * @generated from field: flipcash.phone.v1.PhoneNumber source = 1;
    */
-  contact?: PhoneNumber;
+  source?: PhoneNumber;
+
+  /**
+   * Destination phone number that is being paid. This is validated to be linked to the receiver.
+   *
+   * @generated from field: flipcash.phone.v1.PhoneNumber destination = 2;
+   */
+  destination?: PhoneNumber;
 
   constructor(data?: PartialMessage<ChatMetadata_ContactDmPayment>) {
     super();
@@ -123,7 +130,8 @@ export class ChatMetadata_ContactDmPayment extends Message<ChatMetadata_ContactD
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.intent.v1.ChatMetadata.ContactDmPayment";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "contact", kind: "message", T: PhoneNumber },
+    { no: 1, name: "source", kind: "message", T: PhoneNumber },
+    { no: 2, name: "destination", kind: "message", T: PhoneNumber },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_ContactDmPayment {
