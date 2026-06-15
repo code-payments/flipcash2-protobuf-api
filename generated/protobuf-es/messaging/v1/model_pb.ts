@@ -347,6 +347,13 @@ export class Pointer extends Message$1<Pointer> {
    */
   value?: MessageId;
 
+  /**
+   * Timestamp the pointer was last advanced at
+   *
+   * @generated from field: google.protobuf.Timestamp ts = 4;
+   */
+  ts?: Timestamp;
+
   constructor(data?: PartialMessage<Pointer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -358,6 +365,7 @@ export class Pointer extends Message$1<Pointer> {
     { no: 1, name: "type", kind: "enum", T: proto3.getEnumType(Pointer_Type) },
     { no: 2, name: "user_id", kind: "message", T: UserId },
     { no: 3, name: "value", kind: "message", T: MessageId },
+    { no: 4, name: "ts", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Pointer {
