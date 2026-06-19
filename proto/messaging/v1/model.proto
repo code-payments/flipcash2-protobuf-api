@@ -62,6 +62,26 @@ message Message {
     // client as the difference between the latest message's unread_seq and the
     // unread_seq of the message at their READ pointer.
     uint64 unread_seq = 5;
+
+    // If set, the timestamp this message was last edited at. Absent on messages
+    // that have never been edited. The content above always reflects the
+    // current (materialized) state, so clients render it directly; this field
+    // only drives an "edited" affordance. Deletions are represented in content
+    // via DeletedContent, not here.
+    google.protobuf.Timestamp last_edited_ts = 6;
+
+    // The event-log sequence at which this message reached its current state:
+    // the point of the most recent mutation (send, edit, or delete) affecting
+    // it. A per-message VERSION stamp — distinct from message_id (fixed
+    // identity/order) and unread_seq (unread accounting) — that advances on
+    // every edit/delete while message_id stays fixed.
+    //
+    // It makes a Message self-locating regardless of how it was obtained (event
+    // stream, GetMessages, SendMessage echo, last_message, push). Clients apply
+    // last-writer-wins by this value: ignore a copy whose event_sequence is <=
+    // the version already held, otherwise insert/replace. Cross-message gap
+    // detection still relies on Event.sequence/count.
+    uint64 event_sequence = 7 [(validate.rules).uint64.gte = 1];
 }
 
 // Content for a chat message
@@ -69,11 +89,12 @@ message Content {
     oneof type {
         option (validate.required) = true;
 
-        TextContent   text   = 1;
-        CashContent   cash   = 2;
-        ReplyContent  reply  = 3;
-        MediaContent  media  = 4;
-        SystemContent system = 5;
+        TextContent    text    = 1;
+        CashContent    cash    = 2;
+        ReplyContent   reply   = 3;
+        MediaContent   media   = 4;
+        SystemContent  system  = 5;
+        DeletedContent deleted = 6;
     }
 }
 
@@ -168,6 +189,10 @@ message SystemContent {
     // todo: How should we structure this?
 }
 
+// Deleted message content
+message DeletedContent {
+}
+
 // Pointer in a chat indicating a user's message history state in a chat.
 message Pointer {
     // The type of pointer indicates which user's message history state can be
@@ -211,6 +236,72 @@ message MessageBatch {
 
 message PointerBatch {
     repeated Pointer pointers = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+// Event is a contiguous run of one or more durable mutations to a chat, delivered
+// atomically — the unit of the chat's event log. Newly sent messages, edits,
+// and deletions are all mutations within an event.
+//
+// Only content-bearing, non-idempotent mutations live in the log, because that is
+// what gap detection protects: missing one means missing data. Convergent state
+// such as pointer advances (last-writer-wins, monotonic) and transient signals
+// such as typing notifications are delivered out-of-band and fetched as current
+// state, NOT replayed through this log.
+//
+// Clients apply events in ascending sequence order and use the sequence/count
+// pair to detect gaps; on a gap they catch up via GetChatEvents.
+message Event {
+    // Per-chat event sequence valued AFTER this event applies: the END of the
+    // half-open range (sequence - count, sequence] this event occupies. This is
+    // a SEPARATE sequence from MessageId — edits and deletions advance it
+    // without minting a new MessageId.
+    uint64 sequence = 1 [(validate.rules).uint64.gte = 1];
+
+    // The number of points this event consumes, equal to the number of
+    // mutations it carries — each mutation is one point. The mutation at index
+    // i sits at point (sequence - count + 1 + i). Clients gap-detect with
+    // local + count == sequence, so a server that begins emitting count > 1
+    // (e.g. a bulk delete) needs no client change.
+    uint32 count = 2 [(validate.rules).uint32.gte = 1];
+
+    // Timestamp this event occurred at.
+    google.protobuf.Timestamp ts = 3 [(validate.rules).timestamp.required = true];
+
+    // The mutations in this event, ascending by point. Length must equal count.
+    repeated Mutation mutations = 4 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+// Mutation is a single point in the event log: one message sent, edited, or
+// deleted. Each carries the full materialized state of the affected message, so
+// clients apply it by inserting or replacing their cached copy without a
+// refetch.
+message Mutation {
+    oneof type {
+        option (validate.required) = true;
+
+        // A newly sent message. Inserts a new message_id at the tail of the
+        // chat. This is the only mutation that advances the MessageId sequence.
+        Message message_sent = 1;
+
+        // An edit to an existing message (same message_id, updated content,
+        // last_edited_ts set).
+        Message message_edited = 2;
+
+        // A deletion of an existing message (same message_id, content replaced
+        // with DeletedContent). The message_id is retained as a tombstone, so
+        // the MessageId sequence stays gapless.
+        Message message_deleted = 3;
+    }
+}
+
+message EventBatch {
+    repeated Event events = 1 [(validate.rules).repeated = {
         min_items: 1
         max_items: 100
     }];

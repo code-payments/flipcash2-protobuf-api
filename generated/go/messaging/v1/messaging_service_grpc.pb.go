@@ -21,7 +21,10 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Messaging_GetMessage_FullMethodName     = "/flipcash.messaging.v1.Messaging/GetMessage"
 	Messaging_GetMessages_FullMethodName    = "/flipcash.messaging.v1.Messaging/GetMessages"
+	Messaging_GetEvents_FullMethodName      = "/flipcash.messaging.v1.Messaging/GetEvents"
 	Messaging_SendMessage_FullMethodName    = "/flipcash.messaging.v1.Messaging/SendMessage"
+	Messaging_EditMessage_FullMethodName    = "/flipcash.messaging.v1.Messaging/EditMessage"
+	Messaging_DeleteMessage_FullMethodName  = "/flipcash.messaging.v1.Messaging/DeleteMessage"
 	Messaging_AdvancePointer_FullMethodName = "/flipcash.messaging.v1.Messaging/AdvancePointer"
 	Messaging_NotifyIsTyping_FullMethodName = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
 )
@@ -34,8 +37,29 @@ type MessagingClient interface {
 	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*GetMessageResponse, error)
 	// GetMessages gets the set of messages for a chat using a paged and batched APIs
 	GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
+	// GetEvents returns, for cold-boot and reconnect catch-up, the current
+	// state of every message changed since the client's cursor, plus the chat's
+	// latest event sequence. It is a state delta, not a contiguous replay: the
+	// client applies the returned messages last-writer-wins and advances its
+	// cursor straight to latest_sequence. Transient signals (typing) and
+	// convergent state (pointers) are fetched separately, not returned here.
+	//
+	// This is a BOUNDED server stream: the server emits one or more batches and
+	// then completes once the delta up to end_sequence (or the head at stream
+	// open) is exhausted. Unlike StreamEvents it does NOT stay open for live
+	// updates. Streaming the delta in batches avoids a per-page round trip; the
+	// server may currently send the whole delta as a single response, so clients
+	// must handle any number of batches and treat stream completion as
+	// "caught up."
+	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetEventsResponse], error)
 	// SendMessage sends a message to a chat.
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	// EditMessage edits the content of a message the caller previously sent.
+	EditMessage(ctx context.Context, in *EditMessageRequest, opts ...grpc.CallOption) (*EditMessageResponse, error)
+	// DeleteMessage deletes a message the caller previously sent. The message is
+	// tombstoned (content replaced with DeletedContent), not removed, so the
+	// per-chat MessageId sequence stays gapless.
+	DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(ctx context.Context, in *AdvancePointerRequest, opts ...grpc.CallOption) (*AdvancePointerResponse, error)
 	// NotifyIsTypingRequest notifies a chat that the sending member is typing.
@@ -72,10 +96,49 @@ func (c *messagingClient) GetMessages(ctx context.Context, in *GetMessagesReques
 	return out, nil
 }
 
+func (c *messagingClient) GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetEventsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Messaging_ServiceDesc.Streams[0], Messaging_GetEvents_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[GetEventsRequest, GetEventsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Messaging_GetEventsClient = grpc.ServerStreamingClient[GetEventsResponse]
+
 func (c *messagingClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendMessageResponse)
 	err := c.cc.Invoke(ctx, Messaging_SendMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messagingClient) EditMessage(ctx context.Context, in *EditMessageRequest, opts ...grpc.CallOption) (*EditMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EditMessageResponse)
+	err := c.cc.Invoke(ctx, Messaging_EditMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messagingClient) DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteMessageResponse)
+	err := c.cc.Invoke(ctx, Messaging_DeleteMessage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +173,29 @@ type MessagingServer interface {
 	GetMessage(context.Context, *GetMessageRequest) (*GetMessageResponse, error)
 	// GetMessages gets the set of messages for a chat using a paged and batched APIs
 	GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
+	// GetEvents returns, for cold-boot and reconnect catch-up, the current
+	// state of every message changed since the client's cursor, plus the chat's
+	// latest event sequence. It is a state delta, not a contiguous replay: the
+	// client applies the returned messages last-writer-wins and advances its
+	// cursor straight to latest_sequence. Transient signals (typing) and
+	// convergent state (pointers) are fetched separately, not returned here.
+	//
+	// This is a BOUNDED server stream: the server emits one or more batches and
+	// then completes once the delta up to end_sequence (or the head at stream
+	// open) is exhausted. Unlike StreamEvents it does NOT stay open for live
+	// updates. Streaming the delta in batches avoids a per-page round trip; the
+	// server may currently send the whole delta as a single response, so clients
+	// must handle any number of batches and treat stream completion as
+	// "caught up."
+	GetEvents(*GetEventsRequest, grpc.ServerStreamingServer[GetEventsResponse]) error
 	// SendMessage sends a message to a chat.
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
+	// EditMessage edits the content of a message the caller previously sent.
+	EditMessage(context.Context, *EditMessageRequest) (*EditMessageResponse, error)
+	// DeleteMessage deletes a message the caller previously sent. The message is
+	// tombstoned (content replaced with DeletedContent), not removed, so the
+	// per-chat MessageId sequence stays gapless.
+	DeleteMessage(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error)
 	// NotifyIsTypingRequest notifies a chat that the sending member is typing.
@@ -134,8 +218,17 @@ func (UnimplementedMessagingServer) GetMessage(context.Context, *GetMessageReque
 func (UnimplementedMessagingServer) GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
 }
+func (UnimplementedMessagingServer) GetEvents(*GetEventsRequest, grpc.ServerStreamingServer[GetEventsResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
+}
 func (UnimplementedMessagingServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedMessagingServer) EditMessage(context.Context, *EditMessageRequest) (*EditMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditMessage not implemented")
+}
+func (UnimplementedMessagingServer) DeleteMessage(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMessage not implemented")
 }
 func (UnimplementedMessagingServer) AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdvancePointer not implemented")
@@ -200,6 +293,17 @@ func _Messaging_GetMessages_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Messaging_GetEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetEventsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MessagingServer).GetEvents(m, &grpc.GenericServerStream[GetEventsRequest, GetEventsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Messaging_GetEventsServer = grpc.ServerStreamingServer[GetEventsResponse]
+
 func _Messaging_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SendMessageRequest)
 	if err := dec(in); err != nil {
@@ -214,6 +318,42 @@ func _Messaging_SendMessage_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MessagingServer).SendMessage(ctx, req.(*SendMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Messaging_EditMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).EditMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_EditMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).EditMessage(ctx, req.(*EditMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Messaging_DeleteMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).DeleteMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_DeleteMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).DeleteMessage(ctx, req.(*DeleteMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -274,6 +414,14 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Messaging_SendMessage_Handler,
 		},
 		{
+			MethodName: "EditMessage",
+			Handler:    _Messaging_EditMessage_Handler,
+		},
+		{
+			MethodName: "DeleteMessage",
+			Handler:    _Messaging_DeleteMessage_Handler,
+		},
+		{
 			MethodName: "AdvancePointer",
 			Handler:    _Messaging_AdvancePointer_Handler,
 		},
@@ -282,6 +430,12 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Messaging_NotifyIsTyping_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetEvents",
+			Handler:       _Messaging_GetEvents_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "messaging/v1/messaging_service.proto",
 }

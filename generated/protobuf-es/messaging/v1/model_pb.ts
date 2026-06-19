@@ -146,6 +146,34 @@ export class Message extends Message$1<Message> {
    */
   unreadSeq = protoInt64.zero;
 
+  /**
+   * If set, the timestamp this message was last edited at. Absent on messages
+   * that have never been edited. The content above always reflects the
+   * current (materialized) state, so clients render it directly; this field
+   * only drives an "edited" affordance. Deletions are represented in content
+   * via DeletedContent, not here.
+   *
+   * @generated from field: google.protobuf.Timestamp last_edited_ts = 6;
+   */
+  lastEditedTs?: Timestamp;
+
+  /**
+   * The event-log sequence at which this message reached its current state:
+   * the point of the most recent mutation (send, edit, or delete) affecting
+   * it. A per-message VERSION stamp — distinct from message_id (fixed
+   * identity/order) and unread_seq (unread accounting) — that advances on
+   * every edit/delete while message_id stays fixed.
+   *
+   * It makes a Message self-locating regardless of how it was obtained (event
+   * stream, GetMessages, SendMessage echo, last_message, push). Clients apply
+   * last-writer-wins by this value: ignore a copy whose event_sequence is <=
+   * the version already held, otherwise insert/replace. Cross-message gap
+   * detection still relies on Event.sequence/count.
+   *
+   * @generated from field: uint64 event_sequence = 7;
+   */
+  eventSequence = protoInt64.zero;
+
   constructor(data?: PartialMessage<Message>) {
     super();
     proto3.util.initPartial(data, this);
@@ -159,6 +187,8 @@ export class Message extends Message$1<Message> {
     { no: 3, name: "content", kind: "message", T: Content, repeated: true },
     { no: 4, name: "ts", kind: "message", T: Timestamp },
     { no: 5, name: "unread_seq", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "last_edited_ts", kind: "message", T: Timestamp },
+    { no: 7, name: "event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Message {
@@ -217,6 +247,12 @@ export class Content extends Message$1<Content> {
      */
     value: SystemContent;
     case: "system";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.DeletedContent deleted = 6;
+     */
+    value: DeletedContent;
+    case: "deleted";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -232,6 +268,7 @@ export class Content extends Message$1<Content> {
     { no: 3, name: "reply", kind: "message", T: ReplyContent, oneof: "type" },
     { no: 4, name: "media", kind: "message", T: MediaContent, oneof: "type" },
     { no: 5, name: "system", kind: "message", T: SystemContent, oneof: "type" },
+    { no: 6, name: "deleted", kind: "message", T: DeletedContent, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -641,6 +678,39 @@ export class SystemContent extends Message$1<SystemContent> {
 }
 
 /**
+ * Deleted message content
+ *
+ * @generated from message flipcash.messaging.v1.DeletedContent
+ */
+export class DeletedContent extends Message$1<DeletedContent> {
+  constructor(data?: PartialMessage<DeletedContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.DeletedContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeletedContent {
+    return new DeletedContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeletedContent {
+    return new DeletedContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeletedContent {
+    return new DeletedContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeletedContent | PlainMessage<DeletedContent> | undefined, b: DeletedContent | PlainMessage<DeletedContent> | undefined): boolean {
+    return proto3.util.equals(DeletedContent, a, b);
+  }
+}
+
+/**
  * Pointer in a chat indicating a user's message history state in a chat.
  *
  * @generated from message flipcash.messaging.v1.Pointer
@@ -851,6 +921,198 @@ export class PointerBatch extends Message$1<PointerBatch> {
 
   static equals(a: PointerBatch | PlainMessage<PointerBatch> | undefined, b: PointerBatch | PlainMessage<PointerBatch> | undefined): boolean {
     return proto3.util.equals(PointerBatch, a, b);
+  }
+}
+
+/**
+ * Event is a contiguous run of one or more durable mutations to a chat, delivered
+ * atomically — the unit of the chat's event log. Newly sent messages, edits,
+ * and deletions are all mutations within an event.
+ *
+ * Only content-bearing, non-idempotent mutations live in the log, because that is
+ * what gap detection protects: missing one means missing data. Convergent state
+ * such as pointer advances (last-writer-wins, monotonic) and transient signals
+ * such as typing notifications are delivered out-of-band and fetched as current
+ * state, NOT replayed through this log.
+ *
+ * Clients apply events in ascending sequence order and use the sequence/count
+ * pair to detect gaps; on a gap they catch up via GetChatEvents.
+ *
+ * @generated from message flipcash.messaging.v1.Event
+ */
+export class Event extends Message$1<Event> {
+  /**
+   * Per-chat event sequence valued AFTER this event applies: the END of the
+   * half-open range (sequence - count, sequence] this event occupies. This is
+   * a SEPARATE sequence from MessageId — edits and deletions advance it
+   * without minting a new MessageId.
+   *
+   * @generated from field: uint64 sequence = 1;
+   */
+  sequence = protoInt64.zero;
+
+  /**
+   * The number of points this event consumes, equal to the number of
+   * mutations it carries — each mutation is one point. The mutation at index
+   * i sits at point (sequence - count + 1 + i). Clients gap-detect with
+   * local + count == sequence, so a server that begins emitting count > 1
+   * (e.g. a bulk delete) needs no client change.
+   *
+   * @generated from field: uint32 count = 2;
+   */
+  count = 0;
+
+  /**
+   * Timestamp this event occurred at.
+   *
+   * @generated from field: google.protobuf.Timestamp ts = 3;
+   */
+  ts?: Timestamp;
+
+  /**
+   * The mutations in this event, ascending by point. Length must equal count.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.Mutation mutations = 4;
+   */
+  mutations: Mutation[] = [];
+
+  constructor(data?: PartialMessage<Event>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Event";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "ts", kind: "message", T: Timestamp },
+    { no: 4, name: "mutations", kind: "message", T: Mutation, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Event {
+    return new Event().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Event {
+    return new Event().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Event {
+    return new Event().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Event | PlainMessage<Event> | undefined, b: Event | PlainMessage<Event> | undefined): boolean {
+    return proto3.util.equals(Event, a, b);
+  }
+}
+
+/**
+ * Mutation is a single point in the event log: one message sent, edited, or
+ * deleted. Each carries the full materialized state of the affected message, so
+ * clients apply it by inserting or replacing their cached copy without a
+ * refetch.
+ *
+ * @generated from message flipcash.messaging.v1.Mutation
+ */
+export class Mutation extends Message$1<Mutation> {
+  /**
+   * @generated from oneof flipcash.messaging.v1.Mutation.type
+   */
+  type: {
+    /**
+     * A newly sent message. Inserts a new message_id at the tail of the
+     * chat. This is the only mutation that advances the MessageId sequence.
+     *
+     * @generated from field: flipcash.messaging.v1.Message message_sent = 1;
+     */
+    value: Message;
+    case: "messageSent";
+  } | {
+    /**
+     * An edit to an existing message (same message_id, updated content,
+     * last_edited_ts set).
+     *
+     * @generated from field: flipcash.messaging.v1.Message message_edited = 2;
+     */
+    value: Message;
+    case: "messageEdited";
+  } | {
+    /**
+     * A deletion of an existing message (same message_id, content replaced
+     * with DeletedContent). The message_id is retained as a tombstone, so
+     * the MessageId sequence stays gapless.
+     *
+     * @generated from field: flipcash.messaging.v1.Message message_deleted = 3;
+     */
+    value: Message;
+    case: "messageDeleted";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Mutation>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Mutation";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_sent", kind: "message", T: Message, oneof: "type" },
+    { no: 2, name: "message_edited", kind: "message", T: Message, oneof: "type" },
+    { no: 3, name: "message_deleted", kind: "message", T: Message, oneof: "type" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Mutation {
+    return new Mutation().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Mutation {
+    return new Mutation().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Mutation {
+    return new Mutation().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Mutation | PlainMessage<Mutation> | undefined, b: Mutation | PlainMessage<Mutation> | undefined): boolean {
+    return proto3.util.equals(Mutation, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.EventBatch
+ */
+export class EventBatch extends Message$1<EventBatch> {
+  /**
+   * @generated from field: repeated flipcash.messaging.v1.Event events = 1;
+   */
+  events: Event[] = [];
+
+  constructor(data?: PartialMessage<EventBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.EventBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "events", kind: "message", T: Event, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EventBatch {
+    return new EventBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EventBatch {
+    return new EventBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EventBatch {
+    return new EventBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EventBatch | PlainMessage<EventBatch> | undefined, b: EventBatch | PlainMessage<EventBatch> | undefined): boolean {
+    return proto3.util.equals(EventBatch, a, b);
   }
 }
 

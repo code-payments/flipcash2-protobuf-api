@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdvancePointerRequest, AdvancePointerResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -35,6 +35,30 @@ export const Messaging = {
       kind: MethodKind.Unary,
     },
     /**
+     * GetEvents returns, for cold-boot and reconnect catch-up, the current
+     * state of every message changed since the client's cursor, plus the chat's
+     * latest event sequence. It is a state delta, not a contiguous replay: the
+     * client applies the returned messages last-writer-wins and advances its
+     * cursor straight to latest_sequence. Transient signals (typing) and
+     * convergent state (pointers) are fetched separately, not returned here.
+     *
+     * This is a BOUNDED server stream: the server emits one or more batches and
+     * then completes once the delta up to end_sequence (or the head at stream
+     * open) is exhausted. Unlike StreamEvents it does NOT stay open for live
+     * updates. Streaming the delta in batches avoids a per-page round trip; the
+     * server may currently send the whole delta as a single response, so clients
+     * must handle any number of batches and treat stream completion as
+     * "caught up."
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetEvents
+     */
+    getEvents: {
+      name: "GetEvents",
+      I: GetEventsRequest,
+      O: GetEventsResponse,
+      kind: MethodKind.ServerStreaming,
+    },
+    /**
      * SendMessage sends a message to a chat.
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.SendMessage
@@ -43,6 +67,30 @@ export const Messaging = {
       name: "SendMessage",
       I: SendMessageRequest,
       O: SendMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * EditMessage edits the content of a message the caller previously sent.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.EditMessage
+     */
+    editMessage: {
+      name: "EditMessage",
+      I: EditMessageRequest,
+      O: EditMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * DeleteMessage deletes a message the caller previously sent. The message is
+     * tombstoned (content replaced with DeletedContent), not removed, so the
+     * per-chat MessageId sequence stays gapless.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.DeleteMessage
+     */
+    deleteMessage: {
+      name: "DeleteMessage",
+      I: DeleteMessageRequest,
+      O: DeleteMessageResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, UserId } from "../../common/v1/common_pb";
-import { IsTypingNotificationBatch, MessageBatch, PointerBatch } from "../../messaging/v1/model_pb";
+import { EventBatch as EventBatch$1, IsTypingNotificationBatch, MessageBatch, PointerBatch } from "../../messaging/v1/model_pb";
 import { MetadataUpdate } from "../../chat/v1/model_pb";
 
 /**
@@ -370,21 +370,29 @@ export class ChatUpdate extends Message<ChatUpdate> {
   chat?: ChatId;
 
   /**
-   * If present, new real-time messages sent on the chat
+   * If present, new real-time messages sent on the chat.
    *
-   * @generated from field: flipcash.messaging.v1.MessageBatch new_messages = 2;
+   * Deprecated: superseded by `events` (Event.message_sent), which is
+   * sequenced and gap-detectable. New messages now arrive as events.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageBatch new_messages = 2 [deprecated = true];
+   * @deprecated
    */
   newMessages?: MessageBatch;
 
   /**
-   * If present, message pointer updates for members in the chat
+   * If present, message pointer updates for members in the chat. Pointers are
+   * convergent (monotonic, last-writer-wins), so they ride the stream as a
+   * best-effort overlay and are reconciled from current state on reconnect —
+   * they are intentionally NOT part of the gap-detected event log.
    *
    * @generated from field: flipcash.messaging.v1.PointerBatch pointer_updates = 3;
    */
   pointerUpdates?: PointerBatch;
 
   /**
-   * If present, message typing notification state changes for members in the chat
+   * If present, message typing notification state changes for members in the
+   * chat. Transient and best-effort — not part of the event log.
    *
    * @generated from field: flipcash.messaging.v1.IsTypingNotificationBatch is_typing_notifications = 4;
    */
@@ -396,6 +404,16 @@ export class ChatUpdate extends Message<ChatUpdate> {
    * @generated from field: repeated flipcash.chat.v1.MetadataUpdate metadata_updates = 5;
    */
   metadataUpdates: MetadataUpdate[] = [];
+
+  /**
+   * If present, durable event-log events for the chat (messages sent, edited,
+   * and deleted). These are contiguous and ordered: clients apply them by
+   * ascending Event.sequence and gap-detect via Event.sequence/count, catching
+   * up with Messaging.GetEvents on a gap. This supersedes new_messages.
+   *
+   * @generated from field: flipcash.messaging.v1.EventBatch events = 6;
+   */
+  events?: EventBatch$1;
 
   constructor(data?: PartialMessage<ChatUpdate>) {
     super();
@@ -410,6 +428,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
     { no: 3, name: "pointer_updates", kind: "message", T: PointerBatch },
     { no: 4, name: "is_typing_notifications", kind: "message", T: IsTypingNotificationBatch },
     { no: 5, name: "metadata_updates", kind: "message", T: MetadataUpdate, repeated: true },
+    { no: 6, name: "events", kind: "message", T: EventBatch$1 },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUpdate {

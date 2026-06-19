@@ -404,6 +404,46 @@ func (m *Message) validate(all bool) error {
 
 	// no validation rules for UnreadSeq
 
+	if all {
+		switch v := interface{}(m.GetLastEditedTs()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MessageValidationError{
+					field:  "LastEditedTs",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MessageValidationError{
+					field:  "LastEditedTs",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastEditedTs()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MessageValidationError{
+				field:  "LastEditedTs",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEventSequence() < 1 {
+		err := MessageValidationError{
+			field:  "EventSequence",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return MessageMultiError(errors)
 	}
@@ -708,6 +748,48 @@ func (m *Content) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ContentValidationError{
 					field:  "System",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Content_Deleted:
+		if v == nil {
+			err := ContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetDeleted()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Deleted",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Deleted",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDeleted()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ContentValidationError{
+					field:  "Deleted",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1967,6 +2049,106 @@ var _ interface {
 	ErrorName() string
 } = SystemContentValidationError{}
 
+// Validate checks the field values on DeletedContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DeletedContent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeletedContent with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DeletedContentMultiError,
+// or nil if none found.
+func (m *DeletedContent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeletedContent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DeletedContentMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeletedContentMultiError is an error wrapping multiple validation errors
+// returned by DeletedContent.ValidateAll() if the designated constraints
+// aren't met.
+type DeletedContentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeletedContentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeletedContentMultiError) AllErrors() []error { return m }
+
+// DeletedContentValidationError is the validation error returned by
+// DeletedContent.Validate if the designated constraints aren't met.
+type DeletedContentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeletedContentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeletedContentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeletedContentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeletedContentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeletedContentValidationError) ErrorName() string { return "DeletedContentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DeletedContentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeletedContent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeletedContentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeletedContentValidationError{}
+
 // Validate checks the field values on Pointer with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -2603,6 +2785,567 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PointerBatchValidationError{}
+
+// Validate checks the field values on Event with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Event) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Event with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in EventMultiError, or nil if none found.
+func (m *Event) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Event) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetSequence() < 1 {
+		err := EventValidationError{
+			field:  "Sequence",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetCount() < 1 {
+		err := EventValidationError{
+			field:  "Count",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetTs() == nil {
+		err := EventValidationError{
+			field:  "Ts",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if l := len(m.GetMutations()); l < 1 || l > 100 {
+		err := EventValidationError{
+			field:  "Mutations",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetMutations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EventValidationError{
+						field:  fmt.Sprintf("Mutations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EventValidationError{
+						field:  fmt.Sprintf("Mutations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EventValidationError{
+					field:  fmt.Sprintf("Mutations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return EventMultiError(errors)
+	}
+
+	return nil
+}
+
+// EventMultiError is an error wrapping multiple validation errors returned by
+// Event.ValidateAll() if the designated constraints aren't met.
+type EventMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EventMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EventMultiError) AllErrors() []error { return m }
+
+// EventValidationError is the validation error returned by Event.Validate if
+// the designated constraints aren't met.
+type EventValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EventValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EventValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EventValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EventValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EventValidationError) ErrorName() string { return "EventValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EventValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEvent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EventValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EventValidationError{}
+
+// Validate checks the field values on Mutation with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Mutation) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Mutation with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in MutationMultiError, or nil
+// if none found.
+func (m *Mutation) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Mutation) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
+	case *Mutation_MessageSent:
+		if v == nil {
+			err := MutationValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetMessageSent()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MutationValidationError{
+						field:  "MessageSent",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MutationValidationError{
+						field:  "MessageSent",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMessageSent()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MutationValidationError{
+					field:  "MessageSent",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Mutation_MessageEdited:
+		if v == nil {
+			err := MutationValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetMessageEdited()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MutationValidationError{
+						field:  "MessageEdited",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MutationValidationError{
+						field:  "MessageEdited",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMessageEdited()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MutationValidationError{
+					field:  "MessageEdited",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Mutation_MessageDeleted:
+		if v == nil {
+			err := MutationValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetMessageDeleted()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MutationValidationError{
+						field:  "MessageDeleted",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MutationValidationError{
+						field:  "MessageDeleted",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMessageDeleted()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MutationValidationError{
+					field:  "MessageDeleted",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
+		err := MutationValidationError{
+			field:  "Type",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return MutationMultiError(errors)
+	}
+
+	return nil
+}
+
+// MutationMultiError is an error wrapping multiple validation errors returned
+// by Mutation.ValidateAll() if the designated constraints aren't met.
+type MutationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MutationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MutationMultiError) AllErrors() []error { return m }
+
+// MutationValidationError is the validation error returned by
+// Mutation.Validate if the designated constraints aren't met.
+type MutationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MutationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MutationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MutationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MutationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MutationValidationError) ErrorName() string { return "MutationValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MutationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMutation.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MutationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MutationValidationError{}
+
+// Validate checks the field values on EventBatch with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EventBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EventBatch with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EventBatchMultiError, or
+// nil if none found.
+func (m *EventBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EventBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetEvents()); l < 1 || l > 100 {
+		err := EventBatchValidationError{
+			field:  "Events",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetEvents() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EventBatchValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EventBatchValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EventBatchValidationError{
+					field:  fmt.Sprintf("Events[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return EventBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// EventBatchMultiError is an error wrapping multiple validation errors
+// returned by EventBatch.ValidateAll() if the designated constraints aren't met.
+type EventBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EventBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EventBatchMultiError) AllErrors() []error { return m }
+
+// EventBatchValidationError is the validation error returned by
+// EventBatch.Validate if the designated constraints aren't met.
+type EventBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EventBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EventBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EventBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EventBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EventBatchValidationError) ErrorName() string { return "EventBatchValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EventBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEventBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EventBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EventBatchValidationError{}
 
 // Validate checks the field values on IsTypingNotification with the rules
 // defined in the proto definition for this message. If any rules are
