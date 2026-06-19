@@ -199,6 +199,24 @@ export class Content extends Message$1<Content> {
      */
     value: CashContent;
     case: "cash";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.ReplyContent reply = 3;
+     */
+    value: ReplyContent;
+    case: "reply";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.MediaContent media = 4;
+     */
+    value: MediaContent;
+    case: "media";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.SystemContent system = 5;
+     */
+    value: SystemContent;
+    case: "system";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -211,6 +229,9 @@ export class Content extends Message$1<Content> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "text", kind: "message", T: TextContent, oneof: "type" },
     { no: 2, name: "cash", kind: "message", T: CashContent, oneof: "type" },
+    { no: 3, name: "reply", kind: "message", T: ReplyContent, oneof: "type" },
+    { no: 4, name: "media", kind: "message", T: MediaContent, oneof: "type" },
+    { no: 5, name: "system", kind: "message", T: SystemContent, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -270,6 +291,8 @@ export class TextContent extends Message$1<TextContent> {
 }
 
 /**
+ * Cash content
+ *
  * @generated from message flipcash.messaging.v1.CashContent
  */
 export class CashContent extends Message$1<CashContent> {
@@ -313,6 +336,307 @@ export class CashContent extends Message$1<CashContent> {
 
   static equals(a: CashContent | PlainMessage<CashContent> | undefined, b: CashContent | PlainMessage<CashContent> | undefined): boolean {
     return proto3.util.equals(CashContent, a, b);
+  }
+}
+
+/**
+ * Reply content
+ *
+ * @generated from message flipcash.messaging.v1.ReplyContent
+ */
+export class ReplyContent extends Message$1<ReplyContent> {
+  /**
+   * ID of the message being replied to
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId replied_message_id = 1;
+   */
+  repliedMessageId?: MessageId;
+
+  /**
+   * Reply message content. Allowed content types are:
+   *  - TextContent
+   *  - ReplyContent
+   *  - MediaContent
+   *
+   * @generated from field: repeated flipcash.messaging.v1.Content content = 2;
+   */
+  content: Content[] = [];
+
+  constructor(data?: PartialMessage<ReplyContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReplyContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "replied_message_id", kind: "message", T: MessageId },
+    { no: 2, name: "content", kind: "message", T: Content, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReplyContent {
+    return new ReplyContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReplyContent {
+    return new ReplyContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReplyContent {
+    return new ReplyContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReplyContent | PlainMessage<ReplyContent> | undefined, b: ReplyContent | PlainMessage<ReplyContent> | undefined): boolean {
+    return proto3.util.equals(ReplyContent, a, b);
+  }
+}
+
+/**
+ * Media content (images, video, etc.)
+ *
+ * @generated from message flipcash.messaging.v1.MediaContent
+ */
+export class MediaContent extends Message$1<MediaContent> {
+  /**
+   * The media items attached to this message
+   *
+   * @generated from field: repeated flipcash.messaging.v1.MediaItem items = 1;
+   */
+  items: MediaItem[] = [];
+
+  /**
+   * Optional caption rendered alongside the media
+   *
+   * @generated from field: flipcash.messaging.v1.TextContent caption = 2;
+   */
+  caption?: TextContent;
+
+  constructor(data?: PartialMessage<MediaContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "items", kind: "message", T: MediaItem, repeated: true },
+    { no: 2, name: "caption", kind: "message", T: TextContent },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaContent {
+    return new MediaContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaContent {
+    return new MediaContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaContent {
+    return new MediaContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaContent | PlainMessage<MediaContent> | undefined, b: MediaContent | PlainMessage<MediaContent> | undefined): boolean {
+    return proto3.util.equals(MediaContent, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.MediaItem
+ */
+export class MediaItem extends Message$1<MediaItem> {
+  /**
+   * Client-provided reference to media already uploaded out-of-band
+   *
+   * @generated from field: flipcash.messaging.v1.MediaId media_id = 1;
+   */
+  mediaId?: MediaId;
+
+  /**
+   * Server-authoritative metadata, resolved from the upload record. It is
+   * omitted on SendMessage and populated on stored/returned messages
+   *
+   * @generated from field: flipcash.messaging.v1.MediaMetadata metadata = 2;
+   */
+  metadata?: MediaMetadata;
+
+  constructor(data?: PartialMessage<MediaItem>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaItem";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "media_id", kind: "message", T: MediaId },
+    { no: 2, name: "metadata", kind: "message", T: MediaMetadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaItem {
+    return new MediaItem().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaItem {
+    return new MediaItem().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaItem {
+    return new MediaItem().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaItem | PlainMessage<MediaItem> | undefined, b: MediaItem | PlainMessage<MediaItem> | undefined): boolean {
+    return proto3.util.equals(MediaItem, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.MediaId
+ */
+export class MediaId extends Message$1<MediaId> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<MediaId>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaId";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaId {
+    return new MediaId().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaId {
+    return new MediaId().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaId {
+    return new MediaId().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaId | PlainMessage<MediaId> | undefined, b: MediaId | PlainMessage<MediaId> | undefined): boolean {
+    return proto3.util.equals(MediaId, a, b);
+  }
+}
+
+/**
+ * Server-authoritative metadata describing an uploaded media item. Never set by
+ * clients; the server derives every field from the uploaded bytes.
+ *
+ * @generated from message flipcash.messaging.v1.MediaMetadata
+ */
+export class MediaMetadata extends Message$1<MediaMetadata> {
+  /**
+   * MIME type (e.g. "image/jpeg", "video/mp4")
+   *
+   * @generated from field: string mime_type = 1;
+   */
+  mimeType = "";
+
+  /**
+   * Total size of the media in bytes.
+   *
+   * @generated from field: uint64 size_bytes = 2;
+   */
+  sizeBytes = protoInt64.zero;
+
+  /**
+   * Pixel dimensions, for reserving layout before the bytes arrive.
+   *
+   * @generated from field: uint32 width = 3;
+   */
+  width = 0;
+
+  /**
+   * @generated from field: uint32 height = 4;
+   */
+  height = 0;
+
+  /**
+   * Compact preview shown while the full media downloads (BlurHash string).
+   *
+   * @generated from field: string blurhash = 5;
+   */
+  blurhash = "";
+
+  /**
+   * Duration in milliseconds for audio/video; 0 for stills.
+   *
+   * @generated from field: uint64 duration_ms = 6;
+   */
+  durationMs = protoInt64.zero;
+
+  constructor(data?: PartialMessage<MediaMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "width", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 4, name: "height", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 5, name: "blurhash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "duration_ms", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaMetadata {
+    return new MediaMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaMetadata {
+    return new MediaMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaMetadata {
+    return new MediaMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaMetadata | PlainMessage<MediaMetadata> | undefined, b: MediaMetadata | PlainMessage<MediaMetadata> | undefined): boolean {
+    return proto3.util.equals(MediaMetadata, a, b);
+  }
+}
+
+/**
+ * System message content
+ *
+ * todo: How should we structure this?
+ *
+ * @generated from message flipcash.messaging.v1.SystemContent
+ */
+export class SystemContent extends Message$1<SystemContent> {
+  constructor(data?: PartialMessage<SystemContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.SystemContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent {
+    return new SystemContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SystemContent {
+    return new SystemContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SystemContent {
+    return new SystemContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SystemContent | PlainMessage<SystemContent> | undefined, b: SystemContent | PlainMessage<SystemContent> | undefined): boolean {
+    return proto3.util.equals(SystemContent, a, b);
   }
 }
 

@@ -588,6 +588,132 @@ func (m *Content) validate(all bool) error {
 			}
 		}
 
+	case *Content_Reply:
+		if v == nil {
+			err := ContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetReply()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Reply",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Reply",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetReply()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ContentValidationError{
+					field:  "Reply",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Content_Media:
+		if v == nil {
+			err := ContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetMedia()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Media",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Media",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMedia()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ContentValidationError{
+					field:  "Media",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *Content_System:
+		if v == nil {
+			err := ContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetSystem()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "System",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "System",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSystem()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ContentValidationError{
+					field:  "System",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -967,6 +1093,879 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CashContentValidationError{}
+
+// Validate checks the field values on ReplyContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ReplyContent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReplyContent with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ReplyContentMultiError, or
+// nil if none found.
+func (m *ReplyContent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReplyContent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetRepliedMessageId() == nil {
+		err := ReplyContentValidationError{
+			field:  "RepliedMessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetRepliedMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReplyContentValidationError{
+					field:  "RepliedMessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReplyContentValidationError{
+					field:  "RepliedMessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRepliedMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReplyContentValidationError{
+				field:  "RepliedMessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(m.GetContent()) != 1 {
+		err := ReplyContentValidationError{
+			field:  "Content",
+			reason: "value must contain exactly 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetContent() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReplyContentValidationError{
+						field:  fmt.Sprintf("Content[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReplyContentValidationError{
+						field:  fmt.Sprintf("Content[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReplyContentValidationError{
+					field:  fmt.Sprintf("Content[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ReplyContentMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReplyContentMultiError is an error wrapping multiple validation errors
+// returned by ReplyContent.ValidateAll() if the designated constraints aren't met.
+type ReplyContentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReplyContentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReplyContentMultiError) AllErrors() []error { return m }
+
+// ReplyContentValidationError is the validation error returned by
+// ReplyContent.Validate if the designated constraints aren't met.
+type ReplyContentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReplyContentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReplyContentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReplyContentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReplyContentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReplyContentValidationError) ErrorName() string { return "ReplyContentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ReplyContentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReplyContent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReplyContentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReplyContentValidationError{}
+
+// Validate checks the field values on MediaContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MediaContent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MediaContent with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in MediaContentMultiError, or
+// nil if none found.
+func (m *MediaContent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MediaContent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetItems()) != 1 {
+		err := MediaContentValidationError{
+			field:  "Items",
+			reason: "value must contain exactly 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetItems() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MediaContentValidationError{
+						field:  fmt.Sprintf("Items[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MediaContentValidationError{
+						field:  fmt.Sprintf("Items[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MediaContentValidationError{
+					field:  fmt.Sprintf("Items[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetCaption()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MediaContentValidationError{
+					field:  "Caption",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MediaContentValidationError{
+					field:  "Caption",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCaption()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MediaContentValidationError{
+				field:  "Caption",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MediaContentMultiError(errors)
+	}
+
+	return nil
+}
+
+// MediaContentMultiError is an error wrapping multiple validation errors
+// returned by MediaContent.ValidateAll() if the designated constraints aren't met.
+type MediaContentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MediaContentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MediaContentMultiError) AllErrors() []error { return m }
+
+// MediaContentValidationError is the validation error returned by
+// MediaContent.Validate if the designated constraints aren't met.
+type MediaContentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MediaContentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MediaContentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MediaContentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MediaContentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MediaContentValidationError) ErrorName() string { return "MediaContentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MediaContentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMediaContent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MediaContentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MediaContentValidationError{}
+
+// Validate checks the field values on MediaItem with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MediaItem) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MediaItem with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in MediaItemMultiError, or nil
+// if none found.
+func (m *MediaItem) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MediaItem) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMediaId() == nil {
+		err := MediaItemValidationError{
+			field:  "MediaId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMediaId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MediaItemValidationError{
+					field:  "MediaId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MediaItemValidationError{
+					field:  "MediaId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMediaId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MediaItemValidationError{
+				field:  "MediaId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MediaItemValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MediaItemValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MediaItemValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MediaItemMultiError(errors)
+	}
+
+	return nil
+}
+
+// MediaItemMultiError is an error wrapping multiple validation errors returned
+// by MediaItem.ValidateAll() if the designated constraints aren't met.
+type MediaItemMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MediaItemMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MediaItemMultiError) AllErrors() []error { return m }
+
+// MediaItemValidationError is the validation error returned by
+// MediaItem.Validate if the designated constraints aren't met.
+type MediaItemValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MediaItemValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MediaItemValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MediaItemValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MediaItemValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MediaItemValidationError) ErrorName() string { return "MediaItemValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MediaItemValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMediaItem.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MediaItemValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MediaItemValidationError{}
+
+// Validate checks the field values on MediaId with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MediaId) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MediaId with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in MediaIdMultiError, or nil if none found.
+func (m *MediaId) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MediaId) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetValue()) != 16 {
+		err := MediaIdValidationError{
+			field:  "Value",
+			reason: "value length must be 16 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return MediaIdMultiError(errors)
+	}
+
+	return nil
+}
+
+// MediaIdMultiError is an error wrapping multiple validation errors returned
+// by MediaId.ValidateAll() if the designated constraints aren't met.
+type MediaIdMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MediaIdMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MediaIdMultiError) AllErrors() []error { return m }
+
+// MediaIdValidationError is the validation error returned by MediaId.Validate
+// if the designated constraints aren't met.
+type MediaIdValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MediaIdValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MediaIdValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MediaIdValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MediaIdValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MediaIdValidationError) ErrorName() string { return "MediaIdValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MediaIdValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMediaId.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MediaIdValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MediaIdValidationError{}
+
+// Validate checks the field values on MediaMetadata with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MediaMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MediaMetadata with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in MediaMetadataMultiError, or
+// nil if none found.
+func (m *MediaMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MediaMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetMimeType()); l < 1 || l > 255 {
+		err := MediaMetadataValidationError{
+			field:  "MimeType",
+			reason: "value length must be between 1 and 255 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetSizeBytes() < 1 {
+		err := MediaMetadataValidationError{
+			field:  "SizeBytes",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Width
+
+	// no validation rules for Height
+
+	if utf8.RuneCountInString(m.GetBlurhash()) > 64 {
+		err := MediaMetadataValidationError{
+			field:  "Blurhash",
+			reason: "value length must be at most 64 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for DurationMs
+
+	if len(errors) > 0 {
+		return MediaMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// MediaMetadataMultiError is an error wrapping multiple validation errors
+// returned by MediaMetadata.ValidateAll() if the designated constraints
+// aren't met.
+type MediaMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MediaMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MediaMetadataMultiError) AllErrors() []error { return m }
+
+// MediaMetadataValidationError is the validation error returned by
+// MediaMetadata.Validate if the designated constraints aren't met.
+type MediaMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MediaMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MediaMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MediaMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MediaMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MediaMetadataValidationError) ErrorName() string { return "MediaMetadataValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MediaMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMediaMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MediaMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MediaMetadataValidationError{}
+
+// Validate checks the field values on SystemContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SystemContent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SystemContent with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SystemContentMultiError, or
+// nil if none found.
+func (m *SystemContent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SystemContent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return SystemContentMultiError(errors)
+	}
+
+	return nil
+}
+
+// SystemContentMultiError is an error wrapping multiple validation errors
+// returned by SystemContent.ValidateAll() if the designated constraints
+// aren't met.
+type SystemContentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SystemContentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SystemContentMultiError) AllErrors() []error { return m }
+
+// SystemContentValidationError is the validation error returned by
+// SystemContent.Validate if the designated constraints aren't met.
+type SystemContentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SystemContentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SystemContentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SystemContentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SystemContentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SystemContentValidationError) ErrorName() string { return "SystemContentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SystemContentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSystemContent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SystemContentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SystemContentValidationError{}
 
 // Validate checks the field values on Pointer with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

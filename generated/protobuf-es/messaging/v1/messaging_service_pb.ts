@@ -269,6 +269,8 @@ export class SendMessageRequest extends Message<SendMessageRequest> {
   /**
    * Allowed content types that can be sent by client:
    *  - TextContent
+   *  - ReplyContent
+   *  - MediaContent
    *
    * @generated from field: repeated flipcash.messaging.v1.Content content = 2;
    */

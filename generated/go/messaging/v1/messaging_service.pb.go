@@ -531,6 +531,8 @@ type SendMessageRequest struct {
 	ChatId *v1.ChatId `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	// Allowed content types that can be sent by client:
 	//   - TextContent
+	//   - ReplyContent
+	//   - MediaContent
 	Content []*Content `protobuf:"bytes,2,rep,name=content,proto3" json:"content,omitempty"`
 	// Client-generated idempotency token for this send. Used to dedup retried
 	// sends and to correlate the optimistic local echo with the server-assigned
