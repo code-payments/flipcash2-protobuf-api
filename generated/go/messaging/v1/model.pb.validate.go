@@ -444,6 +444,35 @@ func (m *Message) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if all {
+		switch v := interface{}(m.GetReactions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MessageValidationError{
+					field:  "Reactions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MessageValidationError{
+					field:  "Reactions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetReactions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MessageValidationError{
+				field:  "Reactions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return MessageMultiError(errors)
 	}
@@ -2148,6 +2177,875 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeletedContentValidationError{}
+
+// Validate checks the field values on Emoji with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Emoji) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Emoji with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in EmojiMultiError, or nil if none found.
+func (m *Emoji) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Emoji) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetValue()); l < 1 || l > 32 {
+		err := EmojiValidationError{
+			field:  "Value",
+			reason: "value length must be between 1 and 32 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetValue()) > 128 {
+		err := EmojiValidationError{
+			field:  "Value",
+			reason: "value length must be at most 128 bytes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EmojiMultiError(errors)
+	}
+
+	return nil
+}
+
+// EmojiMultiError is an error wrapping multiple validation errors returned by
+// Emoji.ValidateAll() if the designated constraints aren't met.
+type EmojiMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EmojiMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EmojiMultiError) AllErrors() []error { return m }
+
+// EmojiValidationError is the validation error returned by Emoji.Validate if
+// the designated constraints aren't met.
+type EmojiValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EmojiValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EmojiValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EmojiValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EmojiValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EmojiValidationError) ErrorName() string { return "EmojiValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EmojiValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEmoji.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EmojiValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EmojiValidationError{}
+
+// Validate checks the field values on ReactionSummary with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ReactionSummary) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReactionSummary with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReactionSummaryMultiError, or nil if none found.
+func (m *ReactionSummary) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReactionSummary) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetReactions()); l < 1 || l > 100 {
+		err := ReactionSummaryValidationError{
+			field:  "Reactions",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetReactions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReactionSummaryValidationError{
+						field:  fmt.Sprintf("Reactions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReactionSummaryValidationError{
+						field:  fmt.Sprintf("Reactions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReactionSummaryValidationError{
+					field:  fmt.Sprintf("Reactions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ReactionSummaryMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReactionSummaryMultiError is an error wrapping multiple validation errors
+// returned by ReactionSummary.ValidateAll() if the designated constraints
+// aren't met.
+type ReactionSummaryMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReactionSummaryMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReactionSummaryMultiError) AllErrors() []error { return m }
+
+// ReactionSummaryValidationError is the validation error returned by
+// ReactionSummary.Validate if the designated constraints aren't met.
+type ReactionSummaryValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReactionSummaryValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReactionSummaryValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReactionSummaryValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReactionSummaryValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReactionSummaryValidationError) ErrorName() string { return "ReactionSummaryValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ReactionSummaryValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReactionSummary.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReactionSummaryValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReactionSummaryValidationError{}
+
+// Validate checks the field values on EmojiReaction with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EmojiReaction) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EmojiReaction with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EmojiReactionMultiError, or
+// nil if none found.
+func (m *EmojiReaction) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EmojiReaction) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetEmoji() == nil {
+		err := EmojiReactionValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EmojiReactionValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EmojiReactionValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EmojiReactionValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetCount() < 1 {
+		err := EmojiReactionValidationError{
+			field:  "Count",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for ReactedBySelf
+
+	if len(m.GetSampleReactors()) > 8 {
+		err := EmojiReactionValidationError{
+			field:  "SampleReactors",
+			reason: "value must contain no more than 8 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetSampleReactors() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EmojiReactionValidationError{
+						field:  fmt.Sprintf("SampleReactors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EmojiReactionValidationError{
+						field:  fmt.Sprintf("SampleReactors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EmojiReactionValidationError{
+					field:  fmt.Sprintf("SampleReactors[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.GetSequence() < 1 {
+		err := EmojiReactionValidationError{
+			field:  "Sequence",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EmojiReactionMultiError(errors)
+	}
+
+	return nil
+}
+
+// EmojiReactionMultiError is an error wrapping multiple validation errors
+// returned by EmojiReaction.ValidateAll() if the designated constraints
+// aren't met.
+type EmojiReactionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EmojiReactionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EmojiReactionMultiError) AllErrors() []error { return m }
+
+// EmojiReactionValidationError is the validation error returned by
+// EmojiReaction.Validate if the designated constraints aren't met.
+type EmojiReactionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EmojiReactionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EmojiReactionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EmojiReactionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EmojiReactionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EmojiReactionValidationError) ErrorName() string { return "EmojiReactionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EmojiReactionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEmojiReaction.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EmojiReactionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EmojiReactionValidationError{}
+
+// Validate checks the field values on ReactionUpdate with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ReactionUpdate) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReactionUpdate with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ReactionUpdateMultiError,
+// or nil if none found.
+func (m *ReactionUpdate) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReactionUpdate) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMessageId() == nil {
+		err := ReactionUpdateValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReactionUpdateValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReactionUpdateValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReactionUpdateValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEmoji() == nil {
+		err := ReactionUpdateValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReactionUpdateValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReactionUpdateValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReactionUpdateValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetActor() == nil {
+		err := ReactionUpdateValidationError{
+			field:  "Actor",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetActor()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReactionUpdateValidationError{
+					field:  "Actor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReactionUpdateValidationError{
+					field:  "Actor",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetActor()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReactionUpdateValidationError{
+				field:  "Actor",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if _, ok := _ReactionUpdate_Action_NotInLookup[m.GetAction()]; ok {
+		err := ReactionUpdateValidationError{
+			field:  "Action",
+			reason: "value must not be in list [UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Count
+
+	if m.GetSequence() < 1 {
+		err := ReactionUpdateValidationError{
+			field:  "Sequence",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ReactionUpdateMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReactionUpdateMultiError is an error wrapping multiple validation errors
+// returned by ReactionUpdate.ValidateAll() if the designated constraints
+// aren't met.
+type ReactionUpdateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReactionUpdateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReactionUpdateMultiError) AllErrors() []error { return m }
+
+// ReactionUpdateValidationError is the validation error returned by
+// ReactionUpdate.Validate if the designated constraints aren't met.
+type ReactionUpdateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReactionUpdateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReactionUpdateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReactionUpdateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReactionUpdateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReactionUpdateValidationError) ErrorName() string { return "ReactionUpdateValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ReactionUpdateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReactionUpdate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReactionUpdateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReactionUpdateValidationError{}
+
+var _ReactionUpdate_Action_NotInLookup = map[ReactionUpdate_Action]struct{}{
+	0: {},
+}
+
+// Validate checks the field values on ReactionUpdateBatch with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ReactionUpdateBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReactionUpdateBatch with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReactionUpdateBatchMultiError, or nil if none found.
+func (m *ReactionUpdateBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReactionUpdateBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetReactionUpdates()); l < 1 || l > 100 {
+		err := ReactionUpdateBatchValidationError{
+			field:  "ReactionUpdates",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetReactionUpdates() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReactionUpdateBatchValidationError{
+						field:  fmt.Sprintf("ReactionUpdates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReactionUpdateBatchValidationError{
+						field:  fmt.Sprintf("ReactionUpdates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReactionUpdateBatchValidationError{
+					field:  fmt.Sprintf("ReactionUpdates[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ReactionUpdateBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReactionUpdateBatchMultiError is an error wrapping multiple validation
+// errors returned by ReactionUpdateBatch.ValidateAll() if the designated
+// constraints aren't met.
+type ReactionUpdateBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReactionUpdateBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReactionUpdateBatchMultiError) AllErrors() []error { return m }
+
+// ReactionUpdateBatchValidationError is the validation error returned by
+// ReactionUpdateBatch.Validate if the designated constraints aren't met.
+type ReactionUpdateBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReactionUpdateBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReactionUpdateBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReactionUpdateBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReactionUpdateBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReactionUpdateBatchValidationError) ErrorName() string {
+	return "ReactionUpdateBatchValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ReactionUpdateBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReactionUpdateBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReactionUpdateBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReactionUpdateBatchValidationError{}
 
 // Validate checks the field values on Pointer with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, UserId } from "../../common/v1/common_pb";
-import { EventBatch as EventBatch$1, IsTypingNotificationBatch, MessageBatch, PointerBatch } from "../../messaging/v1/model_pb";
+import { EventBatch as EventBatch$1, IsTypingNotificationBatch, MessageBatch, PointerBatch, ReactionUpdateBatch } from "../../messaging/v1/model_pb";
 import { MetadataUpdate } from "../../chat/v1/model_pb";
 
 /**
@@ -415,6 +415,17 @@ export class ChatUpdate extends Message<ChatUpdate> {
    */
   events?: EventBatch$1;
 
+  /**
+   * If present, best-effort real-time reaction changes for messages in the
+   * chat. Like pointer_updates, reactions are a convergent overlay — NOT part
+   * of the gap-detected event log; clients apply them last-writer-wins by
+   * ReactionUpdate.sequence and reconcile any misses by refreshing a message's
+   * ReactionSummary on view.
+   *
+   * @generated from field: flipcash.messaging.v1.ReactionUpdateBatch reaction_updates = 7;
+   */
+  reactionUpdates?: ReactionUpdateBatch;
+
   constructor(data?: PartialMessage<ChatUpdate>) {
     super();
     proto3.util.initPartial(data, this);
@@ -429,6 +440,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
     { no: 4, name: "is_typing_notifications", kind: "message", T: IsTypingNotificationBatch },
     { no: 5, name: "metadata_updates", kind: "message", T: MetadataUpdate, repeated: true },
     { no: 6, name: "events", kind: "message", T: EventBatch$1 },
+    { no: 7, name: "reaction_updates", kind: "message", T: ReactionUpdateBatch },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUpdate {

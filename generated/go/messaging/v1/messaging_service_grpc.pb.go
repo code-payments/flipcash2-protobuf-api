@@ -25,6 +25,9 @@ const (
 	Messaging_SendMessage_FullMethodName    = "/flipcash.messaging.v1.Messaging/SendMessage"
 	Messaging_EditMessage_FullMethodName    = "/flipcash.messaging.v1.Messaging/EditMessage"
 	Messaging_DeleteMessage_FullMethodName  = "/flipcash.messaging.v1.Messaging/DeleteMessage"
+	Messaging_AddReaction_FullMethodName    = "/flipcash.messaging.v1.Messaging/AddReaction"
+	Messaging_RemoveReaction_FullMethodName = "/flipcash.messaging.v1.Messaging/RemoveReaction"
+	Messaging_GetReactors_FullMethodName    = "/flipcash.messaging.v1.Messaging/GetReactors"
 	Messaging_AdvancePointer_FullMethodName = "/flipcash.messaging.v1.Messaging/AdvancePointer"
 	Messaging_NotifyIsTyping_FullMethodName = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
 )
@@ -60,6 +63,18 @@ type MessagingClient interface {
 	// tombstoned (content replaced with DeletedContent), not removed, so the
 	// per-chat MessageId sequence stays gapless.
 	DeleteMessage(ctx context.Context, in *DeleteMessageRequest, opts ...grpc.CallOption) (*DeleteMessageResponse, error)
+	// AddReaction adds the caller's reaction with a given emoji to a message.
+	// Idempotent: re-adding the same emoji the caller already reacted with is a
+	// no-op success.
+	AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error)
+	// RemoveReaction removes the caller's reaction with a given emoji from a
+	// message. Idempotent: removing a reaction the caller does not have is a
+	// no-op success.
+	RemoveReaction(ctx context.Context, in *RemoveReactionRequest, opts ...grpc.CallOption) (*RemoveReactionResponse, error)
+	// GetReactors returns the paged list of users who reacted to a message with
+	// a given emoji — the on-demand drill-down behind EmojiReaction.count, which
+	// never inlines the full reactor list.
+	GetReactors(ctx context.Context, in *GetReactorsRequest, opts ...grpc.CallOption) (*GetReactorsResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(ctx context.Context, in *AdvancePointerRequest, opts ...grpc.CallOption) (*AdvancePointerResponse, error)
 	// NotifyIsTypingRequest notifies a chat that the sending member is typing.
@@ -145,6 +160,36 @@ func (c *messagingClient) DeleteMessage(ctx context.Context, in *DeleteMessageRe
 	return out, nil
 }
 
+func (c *messagingClient) AddReaction(ctx context.Context, in *AddReactionRequest, opts ...grpc.CallOption) (*AddReactionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddReactionResponse)
+	err := c.cc.Invoke(ctx, Messaging_AddReaction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messagingClient) RemoveReaction(ctx context.Context, in *RemoveReactionRequest, opts ...grpc.CallOption) (*RemoveReactionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveReactionResponse)
+	err := c.cc.Invoke(ctx, Messaging_RemoveReaction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *messagingClient) GetReactors(ctx context.Context, in *GetReactorsRequest, opts ...grpc.CallOption) (*GetReactorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetReactorsResponse)
+	err := c.cc.Invoke(ctx, Messaging_GetReactors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *messagingClient) AdvancePointer(ctx context.Context, in *AdvancePointerRequest, opts ...grpc.CallOption) (*AdvancePointerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AdvancePointerResponse)
@@ -196,6 +241,18 @@ type MessagingServer interface {
 	// tombstoned (content replaced with DeletedContent), not removed, so the
 	// per-chat MessageId sequence stays gapless.
 	DeleteMessage(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error)
+	// AddReaction adds the caller's reaction with a given emoji to a message.
+	// Idempotent: re-adding the same emoji the caller already reacted with is a
+	// no-op success.
+	AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error)
+	// RemoveReaction removes the caller's reaction with a given emoji from a
+	// message. Idempotent: removing a reaction the caller does not have is a
+	// no-op success.
+	RemoveReaction(context.Context, *RemoveReactionRequest) (*RemoveReactionResponse, error)
+	// GetReactors returns the paged list of users who reacted to a message with
+	// a given emoji — the on-demand drill-down behind EmojiReaction.count, which
+	// never inlines the full reactor list.
+	GetReactors(context.Context, *GetReactorsRequest) (*GetReactorsResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error)
 	// NotifyIsTypingRequest notifies a chat that the sending member is typing.
@@ -229,6 +286,15 @@ func (UnimplementedMessagingServer) EditMessage(context.Context, *EditMessageReq
 }
 func (UnimplementedMessagingServer) DeleteMessage(context.Context, *DeleteMessageRequest) (*DeleteMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMessage not implemented")
+}
+func (UnimplementedMessagingServer) AddReaction(context.Context, *AddReactionRequest) (*AddReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddReaction not implemented")
+}
+func (UnimplementedMessagingServer) RemoveReaction(context.Context, *RemoveReactionRequest) (*RemoveReactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveReaction not implemented")
+}
+func (UnimplementedMessagingServer) GetReactors(context.Context, *GetReactorsRequest) (*GetReactorsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReactors not implemented")
 }
 func (UnimplementedMessagingServer) AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdvancePointer not implemented")
@@ -358,6 +424,60 @@ func _Messaging_DeleteMessage_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Messaging_AddReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).AddReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_AddReaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).AddReaction(ctx, req.(*AddReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Messaging_RemoveReaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveReactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).RemoveReaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_RemoveReaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).RemoveReaction(ctx, req.(*RemoveReactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Messaging_GetReactors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReactorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).GetReactors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_GetReactors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).GetReactors(ctx, req.(*GetReactorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Messaging_AdvancePointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AdvancePointerRequest)
 	if err := dec(in); err != nil {
@@ -420,6 +540,18 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMessage",
 			Handler:    _Messaging_DeleteMessage_Handler,
+		},
+		{
+			MethodName: "AddReaction",
+			Handler:    _Messaging_AddReaction_Handler,
+		},
+		{
+			MethodName: "RemoveReaction",
+			Handler:    _Messaging_RemoveReaction_Handler,
+		},
+		{
+			MethodName: "GetReactors",
+			Handler:    _Messaging_GetReactors_Handler,
 		},
 		{
 			MethodName: "AdvancePointer",

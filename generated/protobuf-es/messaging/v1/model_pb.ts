@@ -174,6 +174,17 @@ export class Message extends Message$1<Message> {
    */
   eventSequence = protoInt64.zero;
 
+  /**
+   * Aggregate reaction state for this message, current as of the time it was
+   * read. This is a convergent overlay, NOT part of the content versioned by
+   * event_sequence: reactions change without advancing event_sequence, so
+   * clients refresh it on view and via live reaction updates rather than
+   * through the event log. Absent when the message has no reactions.
+   *
+   * @generated from field: flipcash.messaging.v1.ReactionSummary reactions = 8;
+   */
+  reactions?: ReactionSummary;
+
   constructor(data?: PartialMessage<Message>) {
     super();
     proto3.util.initPartial(data, this);
@@ -189,6 +200,7 @@ export class Message extends Message$1<Message> {
     { no: 5, name: "unread_seq", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 6, name: "last_edited_ts", kind: "message", T: Timestamp },
     { no: 7, name: "event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 8, name: "reactions", kind: "message", T: ReactionSummary },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Message {
@@ -707,6 +719,337 @@ export class DeletedContent extends Message$1<DeletedContent> {
 
   static equals(a: DeletedContent | PlainMessage<DeletedContent> | undefined, b: DeletedContent | PlainMessage<DeletedContent> | undefined): boolean {
     return proto3.util.equals(DeletedContent, a, b);
+  }
+}
+
+/**
+ * Emoji identifies an emoji used in a reaction. The value is a unicode emoji
+ * sequence — a single grapheme cluster, which may include modifiers such as a
+ * skin-tone selector or ZWJ joins — or a custom emoji identifier where
+ * supported.
+ *
+ * @generated from message flipcash.messaging.v1.Emoji
+ */
+export class Emoji extends Message$1<Emoji> {
+  /**
+   * Structural bounds only — these bound size as defense-in-depth (min_len/
+   * max_len count code points, max_bytes counts bytes; a complex ZWJ or
+   * tag-flag sequence is ~8 code points but ~32 bytes, so both earn their
+   * keep). True emoji validity (a real grapheme, normalization, any supported
+   * set) is enforced in server code, not here.
+   *
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Emoji>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Emoji";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Emoji {
+    return new Emoji().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Emoji {
+    return new Emoji().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Emoji {
+    return new Emoji().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Emoji | PlainMessage<Emoji> | undefined, b: Emoji | PlainMessage<Emoji> | undefined): boolean {
+    return proto3.util.equals(Emoji, a, b);
+  }
+}
+
+/**
+ * ReactionSummary is the aggregate reaction state attached to a message. It is
+ * bounded: the number of distinct reaction types per message is capped, so the
+ * summary stays small no matter how many users reacted. The full reactor list
+ * for any emoji is fetched on demand (paged), never inlined here.
+ *
+ * @generated from message flipcash.messaging.v1.ReactionSummary
+ */
+export class ReactionSummary extends Message$1<ReactionSummary> {
+  /**
+   * One entry per distinct emoji reacted to this message, capped at the
+   * per-message reaction-type limit.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.EmojiReaction reactions = 1;
+   */
+  reactions: EmojiReaction[] = [];
+
+  constructor(data?: PartialMessage<ReactionSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReactionSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "reactions", kind: "message", T: EmojiReaction, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionSummary {
+    return new ReactionSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReactionSummary {
+    return new ReactionSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReactionSummary {
+    return new ReactionSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReactionSummary | PlainMessage<ReactionSummary> | undefined, b: ReactionSummary | PlainMessage<ReactionSummary> | undefined): boolean {
+    return proto3.util.equals(ReactionSummary, a, b);
+  }
+}
+
+/**
+ * EmojiReaction aggregates all reactions of a single emoji on a message.
+ *
+ * @generated from message flipcash.messaging.v1.EmojiReaction
+ */
+export class EmojiReaction extends Message$1<EmojiReaction> {
+  /**
+   * The emoji reacted with.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 1;
+   */
+  emoji?: Emoji;
+
+  /**
+   * Total number of users who reacted with this emoji. Authoritative and may
+   * be arbitrarily large; the individual reactor identities are not all
+   * returned here. An entry exists only while at least one user is reacting,
+   * so this is always >= 1.
+   *
+   * @generated from field: uint64 count = 2;
+   */
+  count = protoInt64.zero;
+
+  /**
+   * Whether the requesting user reacted with this emoji. Per-viewer: count and
+   * sample_reactors are shareable across users, but this bit is computed for
+   * the caller.
+   *
+   * @generated from field: bool reacted_by_self = 3;
+   */
+  reactedBySelf = false;
+
+  /**
+   * A small sample of reactors (e.g. for rendering a few avatars), capped well
+   * below count. The complete, paged reactor list is fetched on demand via a
+   * separate RPC.
+   *
+   * @generated from field: repeated flipcash.common.v1.UserId sample_reactors = 4;
+   */
+  sampleReactors: UserId[] = [];
+
+  /**
+   * Monotonic version of this emoji's aggregate on the message, assigned by
+   * the server and advanced on every change to it. Ordering only: clients
+   * apply reaction updates last-writer-wins by this value per (message, emoji)
+   * — and per actor for reacted_by_self — and treat a loaded summary as stale
+   * when a higher sequence arrives. It is NOT the chat event sequence
+   * (reactions never advance that), and it is NOT gapless: it carries no
+   * gap-detection meaning.
+   *
+   * @generated from field: uint64 sequence = 5;
+   */
+  sequence = protoInt64.zero;
+
+  constructor(data?: PartialMessage<EmojiReaction>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.EmojiReaction";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "emoji", kind: "message", T: Emoji },
+    { no: 2, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "reacted_by_self", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "sample_reactors", kind: "message", T: UserId, repeated: true },
+    { no: 5, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EmojiReaction {
+    return new EmojiReaction().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EmojiReaction {
+    return new EmojiReaction().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EmojiReaction {
+    return new EmojiReaction().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EmojiReaction | PlainMessage<EmojiReaction> | undefined, b: EmojiReaction | PlainMessage<EmojiReaction> | undefined): boolean {
+    return proto3.util.equals(EmojiReaction, a, b);
+  }
+}
+
+/**
+ * ReactionUpdate is a best-effort, real-time reaction change for a single
+ * (message, emoji) cell. Reactions are a convergent overlay, so these ride the
+ * event stream OUTSIDE the gap-detected event log — a missed update is not
+ * caught up via GetEvents but reconciled by refreshing the message's
+ * ReactionSummary on view.
+ *
+ * @generated from message flipcash.messaging.v1.ReactionUpdate
+ */
+export class ReactionUpdate extends Message$1<ReactionUpdate> {
+  /**
+   * The message whose reactions changed.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji that was added or removed.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 2;
+   */
+  emoji?: Emoji;
+
+  /**
+   * The user who added or removed the reaction. A client renders
+   * reacted_by_self by comparing this to itself, so a reaction made on the
+   * user's other device is reflected.
+   *
+   * @generated from field: flipcash.common.v1.UserId actor = 3;
+   */
+  actor?: UserId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.ReactionUpdate.Action action = 4;
+   */
+  action = ReactionUpdate_Action.UNKNOWN;
+
+  /**
+   * The emoji's total reactor count after this change. 0 means no reactors
+   * remain and the client should drop the entry from the summary.
+   *
+   * @generated from field: uint64 count = 5;
+   */
+  count = protoInt64.zero;
+
+  /**
+   * The emoji aggregate's new version after this change. Clients apply
+   * last-writer-wins by this value: ignore the count if sequence <= the
+   * count watermark held, and ignore the actor's reacted_by_self toggle if
+   * sequence <= the per-actor watermark held. Matches EmojiReaction.sequence.
+   *
+   * @generated from field: uint64 sequence = 6;
+   */
+  sequence = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ReactionUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReactionUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+    { no: 2, name: "emoji", kind: "message", T: Emoji },
+    { no: 3, name: "actor", kind: "message", T: UserId },
+    { no: 4, name: "action", kind: "enum", T: proto3.getEnumType(ReactionUpdate_Action) },
+    { no: 5, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionUpdate {
+    return new ReactionUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReactionUpdate {
+    return new ReactionUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReactionUpdate {
+    return new ReactionUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReactionUpdate | PlainMessage<ReactionUpdate> | undefined, b: ReactionUpdate | PlainMessage<ReactionUpdate> | undefined): boolean {
+    return proto3.util.equals(ReactionUpdate, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.ReactionUpdate.Action
+ */
+export enum ReactionUpdate_Action {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: ADDED = 1;
+   */
+  ADDED = 1,
+
+  /**
+   * @generated from enum value: REMOVED = 2;
+   */
+  REMOVED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ReactionUpdate_Action)
+proto3.util.setEnumType(ReactionUpdate_Action, "flipcash.messaging.v1.ReactionUpdate.Action", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "ADDED" },
+  { no: 2, name: "REMOVED" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.ReactionUpdateBatch
+ */
+export class ReactionUpdateBatch extends Message$1<ReactionUpdateBatch> {
+  /**
+   * @generated from field: repeated flipcash.messaging.v1.ReactionUpdate reaction_updates = 1;
+   */
+  reactionUpdates: ReactionUpdate[] = [];
+
+  constructor(data?: PartialMessage<ReactionUpdateBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReactionUpdateBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "reaction_updates", kind: "message", T: ReactionUpdate, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionUpdateBatch {
+    return new ReactionUpdateBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReactionUpdateBatch {
+    return new ReactionUpdateBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReactionUpdateBatch {
+    return new ReactionUpdateBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReactionUpdateBatch | PlainMessage<ReactionUpdateBatch> | undefined, b: ReactionUpdateBatch | PlainMessage<ReactionUpdateBatch> | undefined): boolean {
+    return proto3.util.equals(ReactionUpdateBatch, a, b);
   }
 }
 

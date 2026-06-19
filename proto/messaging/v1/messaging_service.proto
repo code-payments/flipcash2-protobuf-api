@@ -44,6 +44,21 @@ service Messaging {
     // per-chat MessageId sequence stays gapless.
     rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse);
 
+    // AddReaction adds the caller's reaction with a given emoji to a message.
+    // Idempotent: re-adding the same emoji the caller already reacted with is a
+    // no-op success.
+    rpc AddReaction(AddReactionRequest) returns (AddReactionResponse);
+
+    // RemoveReaction removes the caller's reaction with a given emoji from a
+    // message. Idempotent: removing a reaction the caller does not have is a
+    // no-op success.
+    rpc RemoveReaction(RemoveReactionRequest) returns (RemoveReactionResponse);
+
+    // GetReactors returns the paged list of users who reacted to a message with
+    // a given emoji — the on-demand drill-down behind EmojiReaction.count, which
+    // never inlines the full reactor list.
+    rpc GetReactors(GetReactorsRequest) returns (GetReactorsResponse);
+
     // AdvancePointer advances a pointer in message history for a chat member.
     rpc AdvancePointer(AdvancePointerRequest) returns (AdvancePointerResponse);
 
@@ -265,6 +280,92 @@ message DeleteMessageResponse {
     // On OK, the tombstoned materialized message (content replaced with
     // DeletedContent, event_sequence advanced). On CONFLICT, the current state.
     Message message = 2;
+}
+
+message AddReactionRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    MessageId message_id = 2 [(validate.rules).message.required = true];
+
+    // The emoji to react with.
+    Emoji emoji = 3 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message AddReactionResponse {
+    Result result = 1;
+    enum Result {
+        OK                      = 0;
+        DENIED                  = 1;
+        MESSAGE_NOT_FOUND       = 2;
+        CANNOT_REACT            = 3;
+        // Adding this emoji would exceed the per-message distinct reaction-type
+        // cap. Reactions to emojis already present on the message are unaffected.
+        TOO_MANY_REACTION_TYPES = 4;
+    }
+
+    // The affected emoji's aggregate after the add (count, reacted_by_self true).
+    // No reaction summary refresh is implied for other emojis.
+    EmojiReaction reaction = 2;
+}
+
+message RemoveReactionRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    MessageId message_id = 2 [(validate.rules).message.required = true];
+
+    // The emoji whose reaction to remove for the caller.
+    Emoji emoji = 3 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message RemoveReactionResponse {
+    Result result = 1;
+    enum Result {
+        OK                = 0;
+        DENIED            = 1;
+        MESSAGE_NOT_FOUND = 2;
+    }
+
+    // The affected emoji's aggregate after the removal. Omitted when no reactors
+    // remain for the emoji (the client drops the entry locally).
+    EmojiReaction reaction = 2;
+}
+
+message GetReactorsRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    MessageId message_id = 2 [(validate.rules).message.required = true];
+
+    // The emoji whose reactors to list.
+    Emoji emoji = 3 [(validate.rules).message.required = true];
+
+    // Paging over the reactor list (server-ordered, typically most-recent
+    // first).
+    common.v1.QueryOptions options = 4;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetReactorsResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2; // The message does not exist.
+    }
+
+    // A page of users who reacted with the requested emoji. Empty when the
+    // message exists but has no reactors for the emoji.
+    repeated common.v1.UserId reactors = 2 [(validate.rules).repeated = {
+        max_items: 100
+    }];
+
+    // Total number of reactors for this emoji (matches EmojiReaction.count), so
+    // the drill-down can render "N reacted" without summing pages.
+    uint64 total = 3;
 }
 
 message AdvancePointerRequest {

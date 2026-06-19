@@ -82,6 +82,13 @@ message Message {
     // the version already held, otherwise insert/replace. Cross-message gap
     // detection still relies on Event.sequence/count.
     uint64 event_sequence = 7 [(validate.rules).uint64.gte = 1];
+
+    // Aggregate reaction state for this message, current as of the time it was
+    // read. This is a convergent overlay, NOT part of the content versioned by
+    // event_sequence: reactions change without advancing event_sequence, so
+    // clients refresh it on view and via live reaction updates rather than
+    // through the event log. Absent when the message has no reactions.
+    ReactionSummary reactions = 8;
 }
 
 // Content for a chat message
@@ -191,6 +198,113 @@ message SystemContent {
 
 // Deleted message content
 message DeletedContent {
+}
+
+// Emoji identifies an emoji used in a reaction. The value is a unicode emoji
+// sequence — a single grapheme cluster, which may include modifiers such as a
+// skin-tone selector or ZWJ joins — or a custom emoji identifier where
+// supported.
+message Emoji {
+    // Structural bounds only — these bound size as defense-in-depth (min_len/
+    // max_len count code points, max_bytes counts bytes; a complex ZWJ or
+    // tag-flag sequence is ~8 code points but ~32 bytes, so both earn their
+    // keep). True emoji validity (a real grapheme, normalization, any supported
+    // set) is enforced in server code, not here.
+    string value = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 32
+        max_bytes: 128
+    }];
+}
+
+// ReactionSummary is the aggregate reaction state attached to a message. It is
+// bounded: the number of distinct reaction types per message is capped, so the
+// summary stays small no matter how many users reacted. The full reactor list
+// for any emoji is fetched on demand (paged), never inlined here.
+message ReactionSummary {
+    // One entry per distinct emoji reacted to this message, capped at the
+    // per-message reaction-type limit.
+    repeated EmojiReaction reactions = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100 // Per-message distinct reaction-type cap
+    }];
+}
+
+// EmojiReaction aggregates all reactions of a single emoji on a message.
+message EmojiReaction {
+    // The emoji reacted with.
+    Emoji emoji = 1 [(validate.rules).message.required = true];
+
+    // Total number of users who reacted with this emoji. Authoritative and may
+    // be arbitrarily large; the individual reactor identities are not all
+    // returned here. An entry exists only while at least one user is reacting,
+    // so this is always >= 1.
+    uint64 count = 2 [(validate.rules).uint64.gte = 1];
+
+    // Whether the requesting user reacted with this emoji. Per-viewer: count and
+    // sample_reactors are shareable across users, but this bit is computed for
+    // the caller.
+    bool reacted_by_self = 3;
+
+    // A small sample of reactors (e.g. for rendering a few avatars), capped well
+    // below count. The complete, paged reactor list is fetched on demand via a
+    // separate RPC.
+    repeated common.v1.UserId sample_reactors = 4 [(validate.rules).repeated = {
+        max_items: 8 // Sample only; not the full list
+    }];
+
+    // Monotonic version of this emoji's aggregate on the message, assigned by
+    // the server and advanced on every change to it. Ordering only: clients
+    // apply reaction updates last-writer-wins by this value per (message, emoji)
+    // — and per actor for reacted_by_self — and treat a loaded summary as stale
+    // when a higher sequence arrives. It is NOT the chat event sequence
+    // (reactions never advance that), and it is NOT gapless: it carries no
+    // gap-detection meaning.
+    uint64 sequence = 5 [(validate.rules).uint64.gte = 1];
+}
+
+// ReactionUpdate is a best-effort, real-time reaction change for a single
+// (message, emoji) cell. Reactions are a convergent overlay, so these ride the
+// event stream OUTSIDE the gap-detected event log — a missed update is not
+// caught up via GetEvents but reconciled by refreshing the message's
+// ReactionSummary on view.
+message ReactionUpdate {
+    // The message whose reactions changed.
+    MessageId message_id = 1 [(validate.rules).message.required = true];
+
+    // The emoji that was added or removed.
+    Emoji emoji = 2 [(validate.rules).message.required = true];
+
+    // The user who added or removed the reaction. A client renders
+    // reacted_by_self by comparing this to itself, so a reaction made on the
+    // user's other device is reflected.
+    common.v1.UserId actor = 3 [(validate.rules).message.required = true];
+
+    Action action = 4 [(validate.rules).enum = {
+        not_in: [0]
+    }];
+    enum Action {
+        UNKNOWN = 0;
+        ADDED   = 1;
+        REMOVED = 2;
+    }
+
+    // The emoji's total reactor count after this change. 0 means no reactors
+    // remain and the client should drop the entry from the summary.
+    uint64 count = 5;
+
+    // The emoji aggregate's new version after this change. Clients apply
+    // last-writer-wins by this value: ignore the count if sequence <= the
+    // count watermark held, and ignore the actor's reacted_by_self toggle if
+    // sequence <= the per-actor watermark held. Matches EmojiReaction.sequence.
+    uint64 sequence = 6 [(validate.rules).uint64.gte = 1];
+}
+
+message ReactionUpdateBatch {
+    repeated ReactionUpdate reaction_updates = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
 }
 
 // Pointer in a chat indicating a user's message history state in a chat.

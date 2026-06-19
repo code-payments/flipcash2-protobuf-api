@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -91,6 +91,45 @@ export const Messaging = {
       name: "DeleteMessage",
       I: DeleteMessageRequest,
       O: DeleteMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * AddReaction adds the caller's reaction with a given emoji to a message.
+     * Idempotent: re-adding the same emoji the caller already reacted with is a
+     * no-op success.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.AddReaction
+     */
+    addReaction: {
+      name: "AddReaction",
+      I: AddReactionRequest,
+      O: AddReactionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * RemoveReaction removes the caller's reaction with a given emoji from a
+     * message. Idempotent: removing a reaction the caller does not have is a
+     * no-op success.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.RemoveReaction
+     */
+    removeReaction: {
+      name: "RemoveReaction",
+      I: RemoveReactionRequest,
+      O: RemoveReactionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetReactors returns the paged list of users who reacted to a message with
+     * a given emoji — the on-demand drill-down behind EmojiReaction.count, which
+     * never inlines the full reactor list.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetReactors
+     */
+    getReactors: {
+      name: "GetReactors",
+      I: GetReactorsRequest,
+      O: GetReactorsResponse,
       kind: MethodKind.Unary,
     },
     /**

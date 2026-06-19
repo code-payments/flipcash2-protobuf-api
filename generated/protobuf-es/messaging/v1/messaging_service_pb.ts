@@ -5,8 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
-import { ClientMessageId, Content, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type } from "./model_pb";
+import { Auth, ChatId, QueryOptions, UserId } from "../../common/v1/common_pb";
+import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type } from "./model_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.GetMessageRequest
@@ -875,6 +875,428 @@ proto3.util.setEnumType(DeleteMessageResponse_Result, "flipcash.messaging.v1.Del
   { no: 2, name: "MESSAGE_NOT_FOUND" },
   { no: 3, name: "CANNOT_DELETE" },
   { no: 4, name: "CONFLICT" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.AddReactionRequest
+ */
+export class AddReactionRequest extends Message<AddReactionRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji to react with.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 3;
+   */
+  emoji?: Emoji;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<AddReactionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.AddReactionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 3, name: "emoji", kind: "message", T: Emoji },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AddReactionRequest {
+    return new AddReactionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AddReactionRequest {
+    return new AddReactionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AddReactionRequest {
+    return new AddReactionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AddReactionRequest | PlainMessage<AddReactionRequest> | undefined, b: AddReactionRequest | PlainMessage<AddReactionRequest> | undefined): boolean {
+    return proto3.util.equals(AddReactionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.AddReactionResponse
+ */
+export class AddReactionResponse extends Message<AddReactionResponse> {
+  /**
+   * @generated from field: flipcash.messaging.v1.AddReactionResponse.Result result = 1;
+   */
+  result = AddReactionResponse_Result.OK;
+
+  /**
+   * The affected emoji's aggregate after the add (count, reacted_by_self true).
+   * No reaction summary refresh is implied for other emojis.
+   *
+   * @generated from field: flipcash.messaging.v1.EmojiReaction reaction = 2;
+   */
+  reaction?: EmojiReaction;
+
+  constructor(data?: PartialMessage<AddReactionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.AddReactionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(AddReactionResponse_Result) },
+    { no: 2, name: "reaction", kind: "message", T: EmojiReaction },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AddReactionResponse {
+    return new AddReactionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AddReactionResponse {
+    return new AddReactionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AddReactionResponse {
+    return new AddReactionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AddReactionResponse | PlainMessage<AddReactionResponse> | undefined, b: AddReactionResponse | PlainMessage<AddReactionResponse> | undefined): boolean {
+    return proto3.util.equals(AddReactionResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.AddReactionResponse.Result
+ */
+export enum AddReactionResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: MESSAGE_NOT_FOUND = 2;
+   */
+  MESSAGE_NOT_FOUND = 2,
+
+  /**
+   * @generated from enum value: CANNOT_REACT = 3;
+   */
+  CANNOT_REACT = 3,
+
+  /**
+   * Adding this emoji would exceed the per-message distinct reaction-type
+   * cap. Reactions to emojis already present on the message are unaffected.
+   *
+   * @generated from enum value: TOO_MANY_REACTION_TYPES = 4;
+   */
+  TOO_MANY_REACTION_TYPES = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(AddReactionResponse_Result)
+proto3.util.setEnumType(AddReactionResponse_Result, "flipcash.messaging.v1.AddReactionResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "MESSAGE_NOT_FOUND" },
+  { no: 3, name: "CANNOT_REACT" },
+  { no: 4, name: "TOO_MANY_REACTION_TYPES" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.RemoveReactionRequest
+ */
+export class RemoveReactionRequest extends Message<RemoveReactionRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji whose reaction to remove for the caller.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 3;
+   */
+  emoji?: Emoji;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<RemoveReactionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.RemoveReactionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 3, name: "emoji", kind: "message", T: Emoji },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RemoveReactionRequest {
+    return new RemoveReactionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RemoveReactionRequest {
+    return new RemoveReactionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RemoveReactionRequest {
+    return new RemoveReactionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RemoveReactionRequest | PlainMessage<RemoveReactionRequest> | undefined, b: RemoveReactionRequest | PlainMessage<RemoveReactionRequest> | undefined): boolean {
+    return proto3.util.equals(RemoveReactionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.RemoveReactionResponse
+ */
+export class RemoveReactionResponse extends Message<RemoveReactionResponse> {
+  /**
+   * @generated from field: flipcash.messaging.v1.RemoveReactionResponse.Result result = 1;
+   */
+  result = RemoveReactionResponse_Result.OK;
+
+  /**
+   * The affected emoji's aggregate after the removal. Omitted when no reactors
+   * remain for the emoji (the client drops the entry locally).
+   *
+   * @generated from field: flipcash.messaging.v1.EmojiReaction reaction = 2;
+   */
+  reaction?: EmojiReaction;
+
+  constructor(data?: PartialMessage<RemoveReactionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.RemoveReactionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(RemoveReactionResponse_Result) },
+    { no: 2, name: "reaction", kind: "message", T: EmojiReaction },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RemoveReactionResponse {
+    return new RemoveReactionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RemoveReactionResponse {
+    return new RemoveReactionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RemoveReactionResponse {
+    return new RemoveReactionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RemoveReactionResponse | PlainMessage<RemoveReactionResponse> | undefined, b: RemoveReactionResponse | PlainMessage<RemoveReactionResponse> | undefined): boolean {
+    return proto3.util.equals(RemoveReactionResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.RemoveReactionResponse.Result
+ */
+export enum RemoveReactionResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: MESSAGE_NOT_FOUND = 2;
+   */
+  MESSAGE_NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(RemoveReactionResponse_Result)
+proto3.util.setEnumType(RemoveReactionResponse_Result, "flipcash.messaging.v1.RemoveReactionResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "MESSAGE_NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.GetReactorsRequest
+ */
+export class GetReactorsRequest extends Message<GetReactorsRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji whose reactors to list.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 3;
+   */
+  emoji?: Emoji;
+
+  /**
+   * Paging over the reactor list (server-ordered, typically most-recent
+   * first).
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions options = 4;
+   */
+  options?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetReactorsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.GetReactorsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 3, name: "emoji", kind: "message", T: Emoji },
+    { no: 4, name: "options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactorsRequest {
+    return new GetReactorsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetReactorsRequest {
+    return new GetReactorsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetReactorsRequest {
+    return new GetReactorsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetReactorsRequest | PlainMessage<GetReactorsRequest> | undefined, b: GetReactorsRequest | PlainMessage<GetReactorsRequest> | undefined): boolean {
+    return proto3.util.equals(GetReactorsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.GetReactorsResponse
+ */
+export class GetReactorsResponse extends Message<GetReactorsResponse> {
+  /**
+   * @generated from field: flipcash.messaging.v1.GetReactorsResponse.Result result = 1;
+   */
+  result = GetReactorsResponse_Result.OK;
+
+  /**
+   * A page of users who reacted with the requested emoji. Empty when the
+   * message exists but has no reactors for the emoji.
+   *
+   * @generated from field: repeated flipcash.common.v1.UserId reactors = 2;
+   */
+  reactors: UserId[] = [];
+
+  /**
+   * Total number of reactors for this emoji (matches EmojiReaction.count), so
+   * the drill-down can render "N reacted" without summing pages.
+   *
+   * @generated from field: uint64 total = 3;
+   */
+  total = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GetReactorsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.GetReactorsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetReactorsResponse_Result) },
+    { no: 2, name: "reactors", kind: "message", T: UserId, repeated: true },
+    { no: 3, name: "total", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactorsResponse {
+    return new GetReactorsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetReactorsResponse {
+    return new GetReactorsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetReactorsResponse {
+    return new GetReactorsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetReactorsResponse | PlainMessage<GetReactorsResponse> | undefined, b: GetReactorsResponse | PlainMessage<GetReactorsResponse> | undefined): boolean {
+    return proto3.util.equals(GetReactorsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.GetReactorsResponse.Result
+ */
+export enum GetReactorsResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * The message does not exist.
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetReactorsResponse_Result)
+proto3.util.setEnumType(GetReactorsResponse_Result, "flipcash.messaging.v1.GetReactorsResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
 ]);
 
 /**
