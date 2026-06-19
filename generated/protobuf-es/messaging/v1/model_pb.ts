@@ -146,6 +146,45 @@ export class Message extends Message$1<Message> {
    */
   unreadSeq = protoInt64.zero;
 
+  /**
+   * If set, the timestamp this message was last edited at. Absent on messages
+   * that have never been edited. The content above always reflects the
+   * current (materialized) state, so clients render it directly; this field
+   * only drives an "edited" affordance. Deletions are represented in content
+   * via DeletedContent, not here.
+   *
+   * @generated from field: google.protobuf.Timestamp last_edited_ts = 6;
+   */
+  lastEditedTs?: Timestamp;
+
+  /**
+   * The event-log sequence at which this message reached its current state:
+   * the point of the most recent mutation (send, edit, or delete) affecting
+   * it. A per-message VERSION stamp — distinct from message_id (fixed
+   * identity/order) and unread_seq (unread accounting) — that advances on
+   * every edit/delete while message_id stays fixed.
+   *
+   * It makes a Message self-locating regardless of how it was obtained (event
+   * stream, GetMessages, SendMessage echo, last_message, push). Clients apply
+   * last-writer-wins by this value: ignore a copy whose event_sequence is <=
+   * the version already held, otherwise insert/replace. Cross-message gap
+   * detection still relies on Event.sequence/count.
+   *
+   * @generated from field: uint64 event_sequence = 7;
+   */
+  eventSequence = protoInt64.zero;
+
+  /**
+   * Aggregate reaction state for this message, current as of the time it was
+   * read. This is a convergent overlay, NOT part of the content versioned by
+   * event_sequence: reactions change without advancing event_sequence, so
+   * clients refresh it on view and via live reaction updates rather than
+   * through the event log. Absent when the message has no reactions.
+   *
+   * @generated from field: flipcash.messaging.v1.ReactionSummary reactions = 8;
+   */
+  reactions?: ReactionSummary;
+
   constructor(data?: PartialMessage<Message>) {
     super();
     proto3.util.initPartial(data, this);
@@ -159,6 +198,9 @@ export class Message extends Message$1<Message> {
     { no: 3, name: "content", kind: "message", T: Content, repeated: true },
     { no: 4, name: "ts", kind: "message", T: Timestamp },
     { no: 5, name: "unread_seq", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "last_edited_ts", kind: "message", T: Timestamp },
+    { no: 7, name: "event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 8, name: "reactions", kind: "message", T: ReactionSummary },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Message {
@@ -199,6 +241,30 @@ export class Content extends Message$1<Content> {
      */
     value: CashContent;
     case: "cash";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.ReplyContent reply = 3;
+     */
+    value: ReplyContent;
+    case: "reply";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.MediaContent media = 4;
+     */
+    value: MediaContent;
+    case: "media";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.SystemContent system = 5;
+     */
+    value: SystemContent;
+    case: "system";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.DeletedContent deleted = 6;
+     */
+    value: DeletedContent;
+    case: "deleted";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -211,6 +277,10 @@ export class Content extends Message$1<Content> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "text", kind: "message", T: TextContent, oneof: "type" },
     { no: 2, name: "cash", kind: "message", T: CashContent, oneof: "type" },
+    { no: 3, name: "reply", kind: "message", T: ReplyContent, oneof: "type" },
+    { no: 4, name: "media", kind: "message", T: MediaContent, oneof: "type" },
+    { no: 5, name: "system", kind: "message", T: SystemContent, oneof: "type" },
+    { no: 6, name: "deleted", kind: "message", T: DeletedContent, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -270,6 +340,8 @@ export class TextContent extends Message$1<TextContent> {
 }
 
 /**
+ * Cash content
+ *
  * @generated from message flipcash.messaging.v1.CashContent
  */
 export class CashContent extends Message$1<CashContent> {
@@ -313,6 +385,757 @@ export class CashContent extends Message$1<CashContent> {
 
   static equals(a: CashContent | PlainMessage<CashContent> | undefined, b: CashContent | PlainMessage<CashContent> | undefined): boolean {
     return proto3.util.equals(CashContent, a, b);
+  }
+}
+
+/**
+ * Reply content
+ *
+ * @generated from message flipcash.messaging.v1.ReplyContent
+ */
+export class ReplyContent extends Message$1<ReplyContent> {
+  /**
+   * ID of the message being replied to
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId replied_message_id = 1;
+   */
+  repliedMessageId?: MessageId;
+
+  /**
+   * Reply message content. Allowed content types are:
+   *  - TextContent
+   *  - MediaContent
+   *
+   * @generated from field: repeated flipcash.messaging.v1.Content content = 2;
+   */
+  content: Content[] = [];
+
+  constructor(data?: PartialMessage<ReplyContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReplyContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "replied_message_id", kind: "message", T: MessageId },
+    { no: 2, name: "content", kind: "message", T: Content, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReplyContent {
+    return new ReplyContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReplyContent {
+    return new ReplyContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReplyContent {
+    return new ReplyContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReplyContent | PlainMessage<ReplyContent> | undefined, b: ReplyContent | PlainMessage<ReplyContent> | undefined): boolean {
+    return proto3.util.equals(ReplyContent, a, b);
+  }
+}
+
+/**
+ * Media content (images, video, etc.)
+ *
+ * @generated from message flipcash.messaging.v1.MediaContent
+ */
+export class MediaContent extends Message$1<MediaContent> {
+  /**
+   * The media items attached to this message
+   *
+   * @generated from field: repeated flipcash.messaging.v1.MediaItem items = 1;
+   */
+  items: MediaItem[] = [];
+
+  /**
+   * Optional caption rendered alongside the media
+   *
+   * @generated from field: flipcash.messaging.v1.TextContent caption = 2;
+   */
+  caption?: TextContent;
+
+  constructor(data?: PartialMessage<MediaContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "items", kind: "message", T: MediaItem, repeated: true },
+    { no: 2, name: "caption", kind: "message", T: TextContent },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaContent {
+    return new MediaContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaContent {
+    return new MediaContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaContent {
+    return new MediaContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaContent | PlainMessage<MediaContent> | undefined, b: MediaContent | PlainMessage<MediaContent> | undefined): boolean {
+    return proto3.util.equals(MediaContent, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.MediaItem
+ */
+export class MediaItem extends Message$1<MediaItem> {
+  /**
+   * Client-provided reference to media already uploaded out-of-band
+   *
+   * @generated from field: flipcash.messaging.v1.MediaId media_id = 1;
+   */
+  mediaId?: MediaId;
+
+  /**
+   * Server-authoritative metadata, resolved from the upload record. It is
+   * omitted on SendMessage and populated on stored/returned messages
+   *
+   * @generated from field: flipcash.messaging.v1.MediaMetadata metadata = 2;
+   */
+  metadata?: MediaMetadata;
+
+  constructor(data?: PartialMessage<MediaItem>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaItem";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "media_id", kind: "message", T: MediaId },
+    { no: 2, name: "metadata", kind: "message", T: MediaMetadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaItem {
+    return new MediaItem().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaItem {
+    return new MediaItem().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaItem {
+    return new MediaItem().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaItem | PlainMessage<MediaItem> | undefined, b: MediaItem | PlainMessage<MediaItem> | undefined): boolean {
+    return proto3.util.equals(MediaItem, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.MediaId
+ */
+export class MediaId extends Message$1<MediaId> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<MediaId>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaId";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaId {
+    return new MediaId().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaId {
+    return new MediaId().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaId {
+    return new MediaId().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaId | PlainMessage<MediaId> | undefined, b: MediaId | PlainMessage<MediaId> | undefined): boolean {
+    return proto3.util.equals(MediaId, a, b);
+  }
+}
+
+/**
+ * Server-authoritative metadata describing an uploaded media item. Never set by
+ * clients; the server derives every field from the uploaded bytes.
+ *
+ * @generated from message flipcash.messaging.v1.MediaMetadata
+ */
+export class MediaMetadata extends Message$1<MediaMetadata> {
+  /**
+   * MIME type (e.g. "image/jpeg", "video/mp4")
+   *
+   * @generated from field: string mime_type = 1;
+   */
+  mimeType = "";
+
+  /**
+   * Total size of the media in bytes.
+   *
+   * @generated from field: uint64 size_bytes = 2;
+   */
+  sizeBytes = protoInt64.zero;
+
+  /**
+   * Pixel dimensions, for reserving layout before the bytes arrive.
+   *
+   * @generated from field: uint32 width = 3;
+   */
+  width = 0;
+
+  /**
+   * @generated from field: uint32 height = 4;
+   */
+  height = 0;
+
+  /**
+   * Compact preview shown while the full media downloads (BlurHash string).
+   *
+   * @generated from field: string blurhash = 5;
+   */
+  blurhash = "";
+
+  /**
+   * Duration in milliseconds for audio/video; 0 for stills.
+   *
+   * @generated from field: uint64 duration_ms = 6;
+   */
+  durationMs = protoInt64.zero;
+
+  constructor(data?: PartialMessage<MediaMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "width", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 4, name: "height", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 5, name: "blurhash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "duration_ms", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaMetadata {
+    return new MediaMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaMetadata {
+    return new MediaMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaMetadata {
+    return new MediaMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaMetadata | PlainMessage<MediaMetadata> | undefined, b: MediaMetadata | PlainMessage<MediaMetadata> | undefined): boolean {
+    return proto3.util.equals(MediaMetadata, a, b);
+  }
+}
+
+/**
+ * System message content
+ *
+ * @generated from message flipcash.messaging.v1.SystemContent
+ */
+export class SystemContent extends Message$1<SystemContent> {
+  /**
+   * Best-effort, server-rendered text in the user's locale setting. Today this
+   * is the only way to display a system message; once the structured `event`
+   * oneof exists it becomes a fallback, rendered ONLY when the client does not
+   * recognize the variant (old client, new server). It is not localized per
+   * viewer — clients that know a variant render their own localized string.
+   *
+   * @generated from field: string fallback_text = 1;
+   */
+  fallbackText = "";
+
+  constructor(data?: PartialMessage<SystemContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.SystemContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fallback_text", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent {
+    return new SystemContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SystemContent {
+    return new SystemContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SystemContent {
+    return new SystemContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SystemContent | PlainMessage<SystemContent> | undefined, b: SystemContent | PlainMessage<SystemContent> | undefined): boolean {
+    return proto3.util.equals(SystemContent, a, b);
+  }
+}
+
+/**
+ * Deleted message content
+ *
+ * @generated from message flipcash.messaging.v1.DeletedContent
+ */
+export class DeletedContent extends Message$1<DeletedContent> {
+  /**
+   * Timestamp the message was deleted. Set whenever a message is tombstoned;
+   * clients can surface it as a "deleted" affordance. This is the deletion
+   * analog of Message.last_edited_ts, kept here so all deletion state lives in
+   * the content rather than as a separate flag on Message.
+   *
+   * @generated from field: google.protobuf.Timestamp deleted_ts = 1;
+   */
+  deletedTs?: Timestamp;
+
+  constructor(data?: PartialMessage<DeletedContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.DeletedContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "deleted_ts", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeletedContent {
+    return new DeletedContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeletedContent {
+    return new DeletedContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeletedContent {
+    return new DeletedContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeletedContent | PlainMessage<DeletedContent> | undefined, b: DeletedContent | PlainMessage<DeletedContent> | undefined): boolean {
+    return proto3.util.equals(DeletedContent, a, b);
+  }
+}
+
+/**
+ * Emoji identifies an emoji used in a reaction. The value is a unicode emoji
+ * sequence — a single grapheme cluster, which may include modifiers such as a
+ * skin-tone selector or ZWJ joins — or a custom emoji identifier where
+ * supported.
+ *
+ * @generated from message flipcash.messaging.v1.Emoji
+ */
+export class Emoji extends Message$1<Emoji> {
+  /**
+   * Structural bounds only — these bound size as defense-in-depth (min_len/
+   * max_len count code points, max_bytes counts bytes; a complex ZWJ or
+   * tag-flag sequence is ~8 code points but ~32 bytes, so both earn their
+   * keep). True emoji validity (a real grapheme, normalization, any supported
+   * set) is enforced in server code, not here.
+   *
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Emoji>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Emoji";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Emoji {
+    return new Emoji().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Emoji {
+    return new Emoji().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Emoji {
+    return new Emoji().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Emoji | PlainMessage<Emoji> | undefined, b: Emoji | PlainMessage<Emoji> | undefined): boolean {
+    return proto3.util.equals(Emoji, a, b);
+  }
+}
+
+/**
+ * Reactor identifies a user who reacted to a message and when they did so.
+ *
+ * @generated from message flipcash.messaging.v1.Reactor
+ */
+export class Reactor extends Message$1<Reactor> {
+  /**
+   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   */
+  userId?: UserId;
+
+  /**
+   * Timestamp the user added this reaction.
+   *
+   * @generated from field: google.protobuf.Timestamp reacted_ts = 2;
+   */
+  reactedTs?: Timestamp;
+
+  constructor(data?: PartialMessage<Reactor>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Reactor";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "message", T: UserId },
+    { no: 2, name: "reacted_ts", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Reactor {
+    return new Reactor().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Reactor {
+    return new Reactor().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Reactor {
+    return new Reactor().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Reactor | PlainMessage<Reactor> | undefined, b: Reactor | PlainMessage<Reactor> | undefined): boolean {
+    return proto3.util.equals(Reactor, a, b);
+  }
+}
+
+/**
+ * ReactionSummary is the aggregate reaction state attached to a message. It is
+ * bounded: the number of distinct reaction types per message is capped, so the
+ * summary stays small no matter how many users reacted. The full reactor list
+ * for any emoji is fetched on demand (paged), never inlined here.
+ *
+ * @generated from message flipcash.messaging.v1.ReactionSummary
+ */
+export class ReactionSummary extends Message$1<ReactionSummary> {
+  /**
+   * The message these reactions belong to.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  /**
+   * One entry per distinct emoji reacted to this message, capped at the
+   * per-message reaction-type limit.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.EmojiReaction reactions = 2;
+   */
+  reactions: EmojiReaction[] = [];
+
+  constructor(data?: PartialMessage<ReactionSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReactionSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+    { no: 2, name: "reactions", kind: "message", T: EmojiReaction, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionSummary {
+    return new ReactionSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReactionSummary {
+    return new ReactionSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReactionSummary {
+    return new ReactionSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReactionSummary | PlainMessage<ReactionSummary> | undefined, b: ReactionSummary | PlainMessage<ReactionSummary> | undefined): boolean {
+    return proto3.util.equals(ReactionSummary, a, b);
+  }
+}
+
+/**
+ * EmojiReaction aggregates all reactions of a single emoji on a message.
+ *
+ * @generated from message flipcash.messaging.v1.EmojiReaction
+ */
+export class EmojiReaction extends Message$1<EmojiReaction> {
+  /**
+   * The emoji reacted with.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 1;
+   */
+  emoji?: Emoji;
+
+  /**
+   * Total number of users who reacted with this emoji. Authoritative and may
+   * be arbitrarily large; the individual reactor identities are not all
+   * returned here. An entry exists only while at least one user is reacting,
+   * so this is always >= 1.
+   *
+   * @generated from field: uint64 count = 2;
+   */
+  count = protoInt64.zero;
+
+  /**
+   * Whether the requesting user reacted with this emoji. Per-viewer: count and
+   * sample_reactors are shareable across users, but this bit is computed for
+   * the caller.
+   *
+   * @generated from field: bool reacted_by_self = 3;
+   */
+  reactedBySelf = false;
+
+  /**
+   * A small sample of reactors, with their reaction timestamps (e.g. for
+   * rendering a few avatars), capped well below count. The complete, paged
+   * reactor list is fetched on demand via GetReactors.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.Reactor sample_reactors = 4;
+   */
+  sampleReactors: Reactor[] = [];
+
+  /**
+   * Monotonic version of this emoji's aggregate on the message, assigned by
+   * the server and advanced on every change to it. Ordering only: clients
+   * apply reaction updates last-writer-wins by this value per (message, emoji)
+   * — and per actor for reacted_by_self — and treat a loaded summary as stale
+   * when a higher sequence arrives. It is NOT the chat event sequence
+   * (reactions never advance that), and it is NOT gapless: it carries no
+   * gap-detection meaning.
+   *
+   * @generated from field: uint64 sequence = 5;
+   */
+  sequence = protoInt64.zero;
+
+  constructor(data?: PartialMessage<EmojiReaction>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.EmojiReaction";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "emoji", kind: "message", T: Emoji },
+    { no: 2, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "reacted_by_self", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "sample_reactors", kind: "message", T: Reactor, repeated: true },
+    { no: 5, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EmojiReaction {
+    return new EmojiReaction().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EmojiReaction {
+    return new EmojiReaction().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EmojiReaction {
+    return new EmojiReaction().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EmojiReaction | PlainMessage<EmojiReaction> | undefined, b: EmojiReaction | PlainMessage<EmojiReaction> | undefined): boolean {
+    return proto3.util.equals(EmojiReaction, a, b);
+  }
+}
+
+/**
+ * ReactionUpdate is a best-effort, real-time reaction change for a single
+ * (message, emoji) cell. Reactions are a convergent overlay, so these ride the
+ * event stream OUTSIDE the gap-detected event log — a missed update is not
+ * caught up via GetEvents but reconciled by refreshing the message's
+ * ReactionSummary on view.
+ *
+ * @generated from message flipcash.messaging.v1.ReactionUpdate
+ */
+export class ReactionUpdate extends Message$1<ReactionUpdate> {
+  /**
+   * The message whose reactions changed.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji that was added or removed.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 2;
+   */
+  emoji?: Emoji;
+
+  /**
+   * The user who added or removed the reaction. A client renders
+   * reacted_by_self by comparing this to itself, so a reaction made on the
+   * user's other device is reflected.
+   *
+   * @generated from field: flipcash.common.v1.UserId actor = 3;
+   */
+  actor?: UserId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.ReactionUpdate.Action action = 4;
+   */
+  action = ReactionUpdate_Action.UNKNOWN;
+
+  /**
+   * The emoji's total reactor count after this change. 0 means no reactors
+   * remain and the client should drop the entry from the summary.
+   *
+   * @generated from field: uint64 count = 5;
+   */
+  count = protoInt64.zero;
+
+  /**
+   * The emoji aggregate's new version after this change. Clients apply
+   * last-writer-wins by this value: ignore the count if sequence <= the
+   * count watermark held, and ignore the actor's reacted_by_self toggle if
+   * sequence <= the per-actor watermark held. Matches EmojiReaction.sequence.
+   *
+   * @generated from field: uint64 sequence = 6;
+   */
+  sequence = protoInt64.zero;
+
+  /**
+   * When the actor reacted. On ADDED, clients record this as the actor's
+   * Reactor.reacted_ts (e.g. when slotting them into sample_reactors); ignored
+   * for REMOVED. This is a display timestamp, distinct from `sequence`, which
+   * is the ordering key.
+   *
+   * @generated from field: google.protobuf.Timestamp reacted_ts = 7;
+   */
+  reactedTs?: Timestamp;
+
+  constructor(data?: PartialMessage<ReactionUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReactionUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+    { no: 2, name: "emoji", kind: "message", T: Emoji },
+    { no: 3, name: "actor", kind: "message", T: UserId },
+    { no: 4, name: "action", kind: "enum", T: proto3.getEnumType(ReactionUpdate_Action) },
+    { no: 5, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "reacted_ts", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionUpdate {
+    return new ReactionUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReactionUpdate {
+    return new ReactionUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReactionUpdate {
+    return new ReactionUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReactionUpdate | PlainMessage<ReactionUpdate> | undefined, b: ReactionUpdate | PlainMessage<ReactionUpdate> | undefined): boolean {
+    return proto3.util.equals(ReactionUpdate, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.ReactionUpdate.Action
+ */
+export enum ReactionUpdate_Action {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: ADDED = 1;
+   */
+  ADDED = 1,
+
+  /**
+   * @generated from enum value: REMOVED = 2;
+   */
+  REMOVED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ReactionUpdate_Action)
+proto3.util.setEnumType(ReactionUpdate_Action, "flipcash.messaging.v1.ReactionUpdate.Action", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "ADDED" },
+  { no: 2, name: "REMOVED" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.ReactionUpdateBatch
+ */
+export class ReactionUpdateBatch extends Message$1<ReactionUpdateBatch> {
+  /**
+   * @generated from field: repeated flipcash.messaging.v1.ReactionUpdate reaction_updates = 1;
+   */
+  reactionUpdates: ReactionUpdate[] = [];
+
+  constructor(data?: PartialMessage<ReactionUpdateBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ReactionUpdateBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "reaction_updates", kind: "message", T: ReactionUpdate, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionUpdateBatch {
+    return new ReactionUpdateBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReactionUpdateBatch {
+    return new ReactionUpdateBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReactionUpdateBatch {
+    return new ReactionUpdateBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReactionUpdateBatch | PlainMessage<ReactionUpdateBatch> | undefined, b: ReactionUpdateBatch | PlainMessage<ReactionUpdateBatch> | undefined): boolean {
+    return proto3.util.equals(ReactionUpdateBatch, a, b);
   }
 }
 
@@ -527,6 +1350,198 @@ export class PointerBatch extends Message$1<PointerBatch> {
 
   static equals(a: PointerBatch | PlainMessage<PointerBatch> | undefined, b: PointerBatch | PlainMessage<PointerBatch> | undefined): boolean {
     return proto3.util.equals(PointerBatch, a, b);
+  }
+}
+
+/**
+ * Event is a contiguous run of one or more durable mutations to a chat, delivered
+ * atomically — the unit of the chat's event log. Newly sent messages, edits,
+ * and deletions are all mutations within an event.
+ *
+ * Only content-bearing, non-idempotent mutations live in the log, because that is
+ * what gap detection protects: missing one means missing data. Convergent state
+ * such as pointer advances (last-writer-wins, monotonic) and transient signals
+ * such as typing notifications are delivered out-of-band and fetched as current
+ * state, NOT replayed through this log.
+ *
+ * Clients apply events in ascending sequence order and use the sequence/count
+ * pair to detect gaps; on a gap they catch up via GetEvents.
+ *
+ * @generated from message flipcash.messaging.v1.Event
+ */
+export class Event extends Message$1<Event> {
+  /**
+   * Per-chat event sequence valued AFTER this event applies: the END of the
+   * half-open range (sequence - count, sequence] this event occupies. This is
+   * a SEPARATE sequence from MessageId — edits and deletions advance it
+   * without minting a new MessageId.
+   *
+   * @generated from field: uint64 sequence = 1;
+   */
+  sequence = protoInt64.zero;
+
+  /**
+   * The number of points this event consumes, equal to the number of
+   * mutations it carries — each mutation is one point. The mutation at index
+   * i sits at point (sequence - count + 1 + i). Clients gap-detect with
+   * local + count == sequence, so a server that begins emitting count > 1
+   * (e.g. a bulk delete) needs no client change.
+   *
+   * @generated from field: uint32 count = 2;
+   */
+  count = 0;
+
+  /**
+   * Timestamp this event occurred at.
+   *
+   * @generated from field: google.protobuf.Timestamp ts = 3;
+   */
+  ts?: Timestamp;
+
+  /**
+   * The mutations in this event, ascending by point. Length must equal count.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.Mutation mutations = 4;
+   */
+  mutations: Mutation[] = [];
+
+  constructor(data?: PartialMessage<Event>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Event";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "ts", kind: "message", T: Timestamp },
+    { no: 4, name: "mutations", kind: "message", T: Mutation, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Event {
+    return new Event().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Event {
+    return new Event().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Event {
+    return new Event().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Event | PlainMessage<Event> | undefined, b: Event | PlainMessage<Event> | undefined): boolean {
+    return proto3.util.equals(Event, a, b);
+  }
+}
+
+/**
+ * Mutation is a single point in the event log: one message sent, edited, or
+ * deleted. Each carries the full materialized state of the affected message, so
+ * clients apply it by inserting or replacing their cached copy without a
+ * refetch.
+ *
+ * @generated from message flipcash.messaging.v1.Mutation
+ */
+export class Mutation extends Message$1<Mutation> {
+  /**
+   * @generated from oneof flipcash.messaging.v1.Mutation.type
+   */
+  type: {
+    /**
+     * A newly sent message. Inserts a new message_id at the tail of the
+     * chat. This is the only mutation that advances the MessageId sequence.
+     *
+     * @generated from field: flipcash.messaging.v1.Message message_sent = 1;
+     */
+    value: Message;
+    case: "messageSent";
+  } | {
+    /**
+     * An edit to an existing message (same message_id, updated content,
+     * last_edited_ts set).
+     *
+     * @generated from field: flipcash.messaging.v1.Message message_edited = 2;
+     */
+    value: Message;
+    case: "messageEdited";
+  } | {
+    /**
+     * A deletion of an existing message (same message_id, content replaced
+     * with DeletedContent). The message_id is retained as a tombstone, so
+     * the MessageId sequence stays gapless.
+     *
+     * @generated from field: flipcash.messaging.v1.Message message_deleted = 3;
+     */
+    value: Message;
+    case: "messageDeleted";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Mutation>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Mutation";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_sent", kind: "message", T: Message, oneof: "type" },
+    { no: 2, name: "message_edited", kind: "message", T: Message, oneof: "type" },
+    { no: 3, name: "message_deleted", kind: "message", T: Message, oneof: "type" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Mutation {
+    return new Mutation().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Mutation {
+    return new Mutation().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Mutation {
+    return new Mutation().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Mutation | PlainMessage<Mutation> | undefined, b: Mutation | PlainMessage<Mutation> | undefined): boolean {
+    return proto3.util.equals(Mutation, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.EventBatch
+ */
+export class EventBatch extends Message$1<EventBatch> {
+  /**
+   * @generated from field: repeated flipcash.messaging.v1.Event events = 1;
+   */
+  events: Event[] = [];
+
+  constructor(data?: PartialMessage<EventBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.EventBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "events", kind: "message", T: Event, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EventBatch {
+    return new EventBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EventBatch {
+    return new EventBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EventBatch {
+    return new EventBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EventBatch | PlainMessage<EventBatch> | undefined, b: EventBatch | PlainMessage<EventBatch> | undefined): boolean {
+    return proto3.util.equals(EventBatch, a, b);
   }
 }
 

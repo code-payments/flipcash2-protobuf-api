@@ -783,6 +783,327 @@ var _ interface {
 	ErrorName() string
 } = GetMessagesResponseValidationError{}
 
+// Validate checks the field values on GetEventsRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetEventsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventsRequestMultiError, or nil if none found.
+func (m *GetEventsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetEventsRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventsRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventsRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventsRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for AfterSequence
+
+	// no validation rules for EndSequence
+
+	if m.GetAuth() == nil {
+		err := GetEventsRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventsRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetEventsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventsRequestMultiError is an error wrapping multiple validation errors
+// returned by GetEventsRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetEventsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventsRequestMultiError) AllErrors() []error { return m }
+
+// GetEventsRequestValidationError is the validation error returned by
+// GetEventsRequest.Validate if the designated constraints aren't met.
+type GetEventsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventsRequestValidationError) ErrorName() string { return "GetEventsRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GetEventsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventsRequestValidationError{}
+
+// Validate checks the field values on GetEventsResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetEventsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetEventsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetEventsResponseMultiError, or nil if none found.
+func (m *GetEventsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetEventsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetMessages()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetEventsResponseValidationError{
+					field:  "Messages",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetEventsResponseValidationError{
+					field:  "Messages",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessages()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetEventsResponseValidationError{
+				field:  "Messages",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for LatestSequence
+
+	// no validation rules for CheckpointSequence
+
+	if len(errors) > 0 {
+		return GetEventsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetEventsResponseMultiError is an error wrapping multiple validation errors
+// returned by GetEventsResponse.ValidateAll() if the designated constraints
+// aren't met.
+type GetEventsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetEventsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetEventsResponseMultiError) AllErrors() []error { return m }
+
+// GetEventsResponseValidationError is the validation error returned by
+// GetEventsResponse.Validate if the designated constraints aren't met.
+type GetEventsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetEventsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetEventsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetEventsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetEventsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetEventsResponseValidationError) ErrorName() string {
+	return "GetEventsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetEventsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetEventsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetEventsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetEventsResponseValidationError{}
+
 // Validate checks the field values on SendMessageRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1182,6 +1503,2388 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SendMessageResponseValidationError{}
+
+// Validate checks the field values on EditMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditMessageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditMessageRequestMultiError, or nil if none found.
+func (m *EditMessageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditMessageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := EditMessageRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditMessageRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := EditMessageRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditMessageRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(m.GetContent()) != 1 {
+		err := EditMessageRequestValidationError{
+			field:  "Content",
+			reason: "value must contain exactly 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetContent() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, EditMessageRequestValidationError{
+						field:  fmt.Sprintf("Content[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, EditMessageRequestValidationError{
+						field:  fmt.Sprintf("Content[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return EditMessageRequestValidationError{
+					field:  fmt.Sprintf("Content[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.GetExpectedEventSequence() < 1 {
+		err := EditMessageRequestValidationError{
+			field:  "ExpectedEventSequence",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetAuth() == nil {
+		err := EditMessageRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditMessageRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EditMessageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditMessageRequestMultiError is an error wrapping multiple validation errors
+// returned by EditMessageRequest.ValidateAll() if the designated constraints
+// aren't met.
+type EditMessageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditMessageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditMessageRequestMultiError) AllErrors() []error { return m }
+
+// EditMessageRequestValidationError is the validation error returned by
+// EditMessageRequest.Validate if the designated constraints aren't met.
+type EditMessageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditMessageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditMessageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditMessageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditMessageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditMessageRequestValidationError) ErrorName() string {
+	return "EditMessageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditMessageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditMessageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditMessageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditMessageRequestValidationError{}
+
+// Validate checks the field values on EditMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditMessageResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditMessageResponseMultiError, or nil if none found.
+func (m *EditMessageResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditMessageResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetMessage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditMessageResponseValidationError{
+					field:  "Message",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditMessageResponseValidationError{
+					field:  "Message",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditMessageResponseValidationError{
+				field:  "Message",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EditMessageResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditMessageResponseMultiError is an error wrapping multiple validation
+// errors returned by EditMessageResponse.ValidateAll() if the designated
+// constraints aren't met.
+type EditMessageResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditMessageResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditMessageResponseMultiError) AllErrors() []error { return m }
+
+// EditMessageResponseValidationError is the validation error returned by
+// EditMessageResponse.Validate if the designated constraints aren't met.
+type EditMessageResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditMessageResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditMessageResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditMessageResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditMessageResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditMessageResponseValidationError) ErrorName() string {
+	return "EditMessageResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditMessageResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditMessageResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditMessageResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditMessageResponseValidationError{}
+
+// Validate checks the field values on DeleteMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteMessageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteMessageRequestMultiError, or nil if none found.
+func (m *DeleteMessageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteMessageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := DeleteMessageRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeleteMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeleteMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeleteMessageRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := DeleteMessageRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeleteMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeleteMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeleteMessageRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetExpectedEventSequence() < 1 {
+		err := DeleteMessageRequestValidationError{
+			field:  "ExpectedEventSequence",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetAuth() == nil {
+		err := DeleteMessageRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeleteMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeleteMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeleteMessageRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return DeleteMessageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteMessageRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteMessageRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteMessageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteMessageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteMessageRequestMultiError) AllErrors() []error { return m }
+
+// DeleteMessageRequestValidationError is the validation error returned by
+// DeleteMessageRequest.Validate if the designated constraints aren't met.
+type DeleteMessageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteMessageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteMessageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteMessageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteMessageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteMessageRequestValidationError) ErrorName() string {
+	return "DeleteMessageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteMessageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteMessageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteMessageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteMessageRequestValidationError{}
+
+// Validate checks the field values on DeleteMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteMessageResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteMessageResponseMultiError, or nil if none found.
+func (m *DeleteMessageResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteMessageResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetMessage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DeleteMessageResponseValidationError{
+					field:  "Message",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DeleteMessageResponseValidationError{
+					field:  "Message",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DeleteMessageResponseValidationError{
+				field:  "Message",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return DeleteMessageResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteMessageResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteMessageResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteMessageResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteMessageResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteMessageResponseMultiError) AllErrors() []error { return m }
+
+// DeleteMessageResponseValidationError is the validation error returned by
+// DeleteMessageResponse.Validate if the designated constraints aren't met.
+type DeleteMessageResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteMessageResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteMessageResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteMessageResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteMessageResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteMessageResponseValidationError) ErrorName() string {
+	return "DeleteMessageResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteMessageResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteMessageResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteMessageResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteMessageResponseValidationError{}
+
+// Validate checks the field values on AddReactionRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddReactionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddReactionRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddReactionRequestMultiError, or nil if none found.
+func (m *AddReactionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddReactionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := AddReactionRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddReactionRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := AddReactionRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddReactionRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEmoji() == nil {
+		err := AddReactionRequestValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddReactionRequestValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := AddReactionRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddReactionRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddReactionRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AddReactionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddReactionRequestMultiError is an error wrapping multiple validation errors
+// returned by AddReactionRequest.ValidateAll() if the designated constraints
+// aren't met.
+type AddReactionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddReactionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddReactionRequestMultiError) AllErrors() []error { return m }
+
+// AddReactionRequestValidationError is the validation error returned by
+// AddReactionRequest.Validate if the designated constraints aren't met.
+type AddReactionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddReactionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddReactionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddReactionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddReactionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddReactionRequestValidationError) ErrorName() string {
+	return "AddReactionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddReactionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddReactionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddReactionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddReactionRequestValidationError{}
+
+// Validate checks the field values on AddReactionResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddReactionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddReactionResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddReactionResponseMultiError, or nil if none found.
+func (m *AddReactionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddReactionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetReaction()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AddReactionResponseValidationError{
+					field:  "Reaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AddReactionResponseValidationError{
+					field:  "Reaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetReaction()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AddReactionResponseValidationError{
+				field:  "Reaction",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AddReactionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddReactionResponseMultiError is an error wrapping multiple validation
+// errors returned by AddReactionResponse.ValidateAll() if the designated
+// constraints aren't met.
+type AddReactionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddReactionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddReactionResponseMultiError) AllErrors() []error { return m }
+
+// AddReactionResponseValidationError is the validation error returned by
+// AddReactionResponse.Validate if the designated constraints aren't met.
+type AddReactionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddReactionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddReactionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddReactionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddReactionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddReactionResponseValidationError) ErrorName() string {
+	return "AddReactionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddReactionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddReactionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddReactionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddReactionResponseValidationError{}
+
+// Validate checks the field values on RemoveReactionRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RemoveReactionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RemoveReactionRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RemoveReactionRequestMultiError, or nil if none found.
+func (m *RemoveReactionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RemoveReactionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := RemoveReactionRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoveReactionRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := RemoveReactionRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoveReactionRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEmoji() == nil {
+		err := RemoveReactionRequestValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoveReactionRequestValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := RemoveReactionRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RemoveReactionRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoveReactionRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RemoveReactionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RemoveReactionRequestMultiError is an error wrapping multiple validation
+// errors returned by RemoveReactionRequest.ValidateAll() if the designated
+// constraints aren't met.
+type RemoveReactionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RemoveReactionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RemoveReactionRequestMultiError) AllErrors() []error { return m }
+
+// RemoveReactionRequestValidationError is the validation error returned by
+// RemoveReactionRequest.Validate if the designated constraints aren't met.
+type RemoveReactionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemoveReactionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemoveReactionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemoveReactionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemoveReactionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemoveReactionRequestValidationError) ErrorName() string {
+	return "RemoveReactionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemoveReactionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemoveReactionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemoveReactionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemoveReactionRequestValidationError{}
+
+// Validate checks the field values on RemoveReactionResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RemoveReactionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RemoveReactionResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RemoveReactionResponseMultiError, or nil if none found.
+func (m *RemoveReactionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RemoveReactionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetReaction()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RemoveReactionResponseValidationError{
+					field:  "Reaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RemoveReactionResponseValidationError{
+					field:  "Reaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetReaction()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RemoveReactionResponseValidationError{
+				field:  "Reaction",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RemoveReactionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RemoveReactionResponseMultiError is an error wrapping multiple validation
+// errors returned by RemoveReactionResponse.ValidateAll() if the designated
+// constraints aren't met.
+type RemoveReactionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RemoveReactionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RemoveReactionResponseMultiError) AllErrors() []error { return m }
+
+// RemoveReactionResponseValidationError is the validation error returned by
+// RemoveReactionResponse.Validate if the designated constraints aren't met.
+type RemoveReactionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemoveReactionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemoveReactionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemoveReactionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemoveReactionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemoveReactionResponseValidationError) ErrorName() string {
+	return "RemoveReactionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemoveReactionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemoveReactionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemoveReactionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemoveReactionResponseValidationError{}
+
+// Validate checks the field values on GetReactorsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetReactorsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetReactorsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetReactorsRequestMultiError, or nil if none found.
+func (m *GetReactorsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetReactorsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetReactorsRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactorsRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := GetReactorsRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactorsRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEmoji() == nil {
+		err := GetReactorsRequestValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactorsRequestValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactorsRequestValidationError{
+				field:  "Options",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := GetReactorsRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactorsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactorsRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetReactorsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetReactorsRequestMultiError is an error wrapping multiple validation errors
+// returned by GetReactorsRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetReactorsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetReactorsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetReactorsRequestMultiError) AllErrors() []error { return m }
+
+// GetReactorsRequestValidationError is the validation error returned by
+// GetReactorsRequest.Validate if the designated constraints aren't met.
+type GetReactorsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetReactorsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetReactorsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetReactorsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetReactorsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetReactorsRequestValidationError) ErrorName() string {
+	return "GetReactorsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetReactorsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetReactorsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetReactorsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetReactorsRequestValidationError{}
+
+// Validate checks the field values on GetReactorsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetReactorsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetReactorsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetReactorsResponseMultiError, or nil if none found.
+func (m *GetReactorsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetReactorsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetReactors()) > 100 {
+		err := GetReactorsResponseValidationError{
+			field:  "Reactors",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetReactors() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetReactorsResponseValidationError{
+						field:  fmt.Sprintf("Reactors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetReactorsResponseValidationError{
+						field:  fmt.Sprintf("Reactors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetReactorsResponseValidationError{
+					field:  fmt.Sprintf("Reactors[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Total
+
+	if len(errors) > 0 {
+		return GetReactorsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetReactorsResponseMultiError is an error wrapping multiple validation
+// errors returned by GetReactorsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetReactorsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetReactorsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetReactorsResponseMultiError) AllErrors() []error { return m }
+
+// GetReactorsResponseValidationError is the validation error returned by
+// GetReactorsResponse.Validate if the designated constraints aren't met.
+type GetReactorsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetReactorsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetReactorsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetReactorsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetReactorsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetReactorsResponseValidationError) ErrorName() string {
+	return "GetReactorsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetReactorsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetReactorsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetReactorsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetReactorsResponseValidationError{}
+
+// Validate checks the field values on GetReactionSummariesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetReactionSummariesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetReactionSummariesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetReactionSummariesRequestMultiError, or nil if none found.
+func (m *GetReactionSummariesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetReactionSummariesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetReactionSummariesRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactionSummariesRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactionSummariesRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactionSummariesRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageIds() == nil {
+		err := GetReactionSummariesRequestValidationError{
+			field:  "MessageIds",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageIds()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactionSummariesRequestValidationError{
+					field:  "MessageIds",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactionSummariesRequestValidationError{
+					field:  "MessageIds",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageIds()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactionSummariesRequestValidationError{
+				field:  "MessageIds",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := GetReactionSummariesRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetReactionSummariesRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetReactionSummariesRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetReactionSummariesRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetReactionSummariesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetReactionSummariesRequestMultiError is an error wrapping multiple
+// validation errors returned by GetReactionSummariesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetReactionSummariesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetReactionSummariesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetReactionSummariesRequestMultiError) AllErrors() []error { return m }
+
+// GetReactionSummariesRequestValidationError is the validation error returned
+// by GetReactionSummariesRequest.Validate if the designated constraints
+// aren't met.
+type GetReactionSummariesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetReactionSummariesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetReactionSummariesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetReactionSummariesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetReactionSummariesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetReactionSummariesRequestValidationError) ErrorName() string {
+	return "GetReactionSummariesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetReactionSummariesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetReactionSummariesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetReactionSummariesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetReactionSummariesRequestValidationError{}
+
+// Validate checks the field values on GetReactionSummariesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetReactionSummariesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetReactionSummariesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetReactionSummariesResponseMultiError, or nil if none found.
+func (m *GetReactionSummariesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetReactionSummariesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetSummaries()) > 100 {
+		err := GetReactionSummariesResponseValidationError{
+			field:  "Summaries",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetSummaries() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetReactionSummariesResponseValidationError{
+						field:  fmt.Sprintf("Summaries[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetReactionSummariesResponseValidationError{
+						field:  fmt.Sprintf("Summaries[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetReactionSummariesResponseValidationError{
+					field:  fmt.Sprintf("Summaries[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetReactionSummariesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetReactionSummariesResponseMultiError is an error wrapping multiple
+// validation errors returned by GetReactionSummariesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetReactionSummariesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetReactionSummariesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetReactionSummariesResponseMultiError) AllErrors() []error { return m }
+
+// GetReactionSummariesResponseValidationError is the validation error returned
+// by GetReactionSummariesResponse.Validate if the designated constraints
+// aren't met.
+type GetReactionSummariesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetReactionSummariesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetReactionSummariesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetReactionSummariesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetReactionSummariesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetReactionSummariesResponseValidationError) ErrorName() string {
+	return "GetReactionSummariesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetReactionSummariesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetReactionSummariesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetReactionSummariesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetReactionSummariesResponseValidationError{}
 
 // Validate checks the field values on AdvancePointerRequest with the rules
 // defined in the proto definition for this message. If any rules are

@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, UserId } from "../../common/v1/common_pb";
 import { Message as Message$1, Pointer } from "../../messaging/v1/model_pb";
 import { UserProfile } from "../../profile/v1/model_pb";
@@ -46,6 +46,21 @@ export class Metadata extends Message<Metadata> {
    */
   lastActivity?: Timestamp;
 
+  /**
+   * The chat's head event sequence — the value of the most recent event in its
+   * event log. A client compares this against its locally stored cursor for
+   * the chat to decide whether catch-up is needed: if its cursor is behind, it
+   * calls Messaging.GetEvents; if equal, it is current and can skip it.
+   *
+   * This is NOT derivable from last_message: an edit or deletion of an older
+   * message advances the head without changing last_message, so this value can
+   * exceed last_message.event_sequence. It is the same head reported by
+   * GetEventsResponse.latest_sequence.
+   *
+   * @generated from field: uint64 latest_event_sequence = 6;
+   */
+  latestEventSequence = protoInt64.zero;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -59,6 +74,7 @@ export class Metadata extends Message<Metadata> {
     { no: 3, name: "members", kind: "message", T: Member, repeated: true },
     { no: 4, name: "last_message", kind: "message", T: Message$1 },
     { no: 5, name: "last_activity", kind: "message", T: Timestamp },
+    { no: 6, name: "latest_event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {

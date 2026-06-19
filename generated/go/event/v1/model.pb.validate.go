@@ -1387,6 +1387,64 @@ func (m *ChatUpdate) validate(all bool) error {
 
 	}
 
+	if all {
+		switch v := interface{}(m.GetEvents()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatUpdateValidationError{
+					field:  "Events",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatUpdateValidationError{
+					field:  "Events",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEvents()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatUpdateValidationError{
+				field:  "Events",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetReactionUpdates()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatUpdateValidationError{
+					field:  "ReactionUpdates",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatUpdateValidationError{
+					field:  "ReactionUpdates",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetReactionUpdates()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatUpdateValidationError{
+				field:  "ReactionUpdates",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return ChatUpdateMultiError(errors)
 	}

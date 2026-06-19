@@ -182,6 +182,8 @@ func (m *Metadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for LatestEventSequence
+
 	if len(errors) > 0 {
 		return MetadataMultiError(errors)
 	}

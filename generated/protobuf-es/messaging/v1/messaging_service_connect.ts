@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdvancePointerRequest, AdvancePointerResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -35,6 +35,43 @@ export const Messaging = {
       kind: MethodKind.Unary,
     },
     /**
+     * GetEvents returns, for cold-boot and reconnect catch-up, the current
+     * state of every message changed since the client's cursor. It is a state
+     * delta, not a contiguous replay: the client applies the returned messages
+     * last-writer-wins. Transient signals (typing) and convergent state
+     * (pointers) are fetched separately, not returned here.
+     *
+     * On stream completion the client advances its cursor to the highest
+     * checkpoint_sequence it received. For an unbounded catch-up (end_sequence
+     * unset) that final checkpoint equals latest_sequence — the client is now at
+     * the head. For a bounded fill (end_sequence set) it lands on end_sequence,
+     * not the head, since the delta intentionally stops at end and live events
+     * cover everything after it. When the client is already current the server
+     * sends a single response with messages omitted (and checkpoint_sequence
+     * unset), leaving the cursor unchanged; latest_sequence still reports the
+     * head.
+     *
+     * This is a BOUNDED server stream: the server emits one or more batches and
+     * then completes once the delta up to end_sequence (or the head at stream
+     * open) is exhausted. Unlike StreamEvents it does NOT stay open for live
+     * updates. Streaming the delta in batches avoids a per-page round trip; the
+     * server may currently send the whole delta as a single response, so clients
+     * must handle any number of batches and treat stream completion as
+     * "caught up."
+     *
+     * The Result field is meaningful on the first response and is OK for
+     * subsequent data batches; a terminal DENIED or RESET_REQUIRED is delivered
+     * as a single response that ends the stream.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetEvents
+     */
+    getEvents: {
+      name: "GetEvents",
+      I: GetEventsRequest,
+      O: GetEventsResponse,
+      kind: MethodKind.ServerStreaming,
+    },
+    /**
      * SendMessage sends a message to a chat.
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.SendMessage
@@ -43,6 +80,81 @@ export const Messaging = {
       name: "SendMessage",
       I: SendMessageRequest,
       O: SendMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * EditMessage edits the content of a message the caller previously sent.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.EditMessage
+     */
+    editMessage: {
+      name: "EditMessage",
+      I: EditMessageRequest,
+      O: EditMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * DeleteMessage deletes a message the caller previously sent. The message is
+     * tombstoned (content replaced with DeletedContent), not removed, so the
+     * per-chat MessageId sequence stays gapless.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.DeleteMessage
+     */
+    deleteMessage: {
+      name: "DeleteMessage",
+      I: DeleteMessageRequest,
+      O: DeleteMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * AddReaction adds the caller's reaction with a given emoji to a message.
+     * Idempotent: re-adding the same emoji the caller already reacted with is a
+     * no-op success.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.AddReaction
+     */
+    addReaction: {
+      name: "AddReaction",
+      I: AddReactionRequest,
+      O: AddReactionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * RemoveReaction removes the caller's reaction with a given emoji from a
+     * message. Idempotent: removing a reaction the caller does not have is a
+     * no-op success.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.RemoveReaction
+     */
+    removeReaction: {
+      name: "RemoveReaction",
+      I: RemoveReactionRequest,
+      O: RemoveReactionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetReactors returns the paged list of users who reacted to a message with
+     * a given emoji — the on-demand drill-down behind EmojiReaction.count, which
+     * never inlines the full reactor list.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetReactors
+     */
+    getReactors: {
+      name: "GetReactors",
+      I: GetReactorsRequest,
+      O: GetReactorsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetReactionSummaries fetches the current aggregate reaction state for a
+     * batch of messages
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetReactionSummaries
+     */
+    getReactionSummaries: {
+      name: "GetReactionSummaries",
+      I: GetReactionSummariesRequest,
+      O: GetReactionSummariesResponse,
       kind: MethodKind.Unary,
     },
     /**
