@@ -657,11 +657,20 @@ export class MediaMetadata extends Message$1<MediaMetadata> {
 /**
  * System message content
  *
- * todo: How should we structure this?
- *
  * @generated from message flipcash.messaging.v1.SystemContent
  */
 export class SystemContent extends Message$1<SystemContent> {
+  /**
+   * Best-effort, server-rendered text in the user's locale setting. Today this
+   * is the only way to display a system message; once the structured `event`
+   * oneof exists it becomes a fallback, rendered ONLY when the client does not
+   * recognize the variant (old client, new server). It is not localized per
+   * viewer — clients that know a variant render their own localized string.
+   *
+   * @generated from field: string fallback_text = 1;
+   */
+  fallbackText = "";
+
   constructor(data?: PartialMessage<SystemContent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -670,6 +679,7 @@ export class SystemContent extends Message$1<SystemContent> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.messaging.v1.SystemContent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fallback_text", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent {

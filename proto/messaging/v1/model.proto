@@ -193,7 +193,17 @@ message MediaMetadata {
 
 // System message content
 message SystemContent {
-    // todo: How should we structure this?
+    // Best-effort, server-rendered text in the user's locale setting. Today this
+    // is the only way to display a system message; once the structured `event`
+    // oneof exists it becomes a fallback, rendered ONLY when the client does not
+    // recognize the variant (old client, new server). It is not localized per
+    // viewer — clients that know a variant render their own localized string.
+    string fallback_text = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 256
+    }];
+
+    // todo: Define events once we have them
 }
 
 // Deleted message content

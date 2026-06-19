@@ -2000,6 +2000,17 @@ func (m *SystemContent) validate(all bool) error {
 
 	var errors []error
 
+	if l := utf8.RuneCountInString(m.GetFallbackText()); l < 1 || l > 256 {
+		err := SystemContentValidationError{
+			field:  "FallbackText",
+			reason: "value length must be between 1 and 256 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return SystemContentMultiError(errors)
 	}
