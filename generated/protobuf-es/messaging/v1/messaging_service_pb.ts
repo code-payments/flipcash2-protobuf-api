@@ -1289,17 +1289,15 @@ export enum GetReactorsResponse_Result {
   DENIED = 1,
 
   /**
-   * The message does not exist.
-   *
-   * @generated from enum value: NOT_FOUND = 2;
+   * @generated from enum value: MESSAGE_NOT_FOUND = 2;
    */
-  NOT_FOUND = 2,
+  MESSAGE_NOT_FOUND = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetReactorsResponse_Result)
 proto3.util.setEnumType(GetReactorsResponse_Result, "flipcash.messaging.v1.GetReactorsResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
-  { no: 2, name: "NOT_FOUND" },
+  { no: 2, name: "MESSAGE_NOT_FOUND" },
 ]);
 
 /**

@@ -368,9 +368,9 @@ message GetReactorsRequest {
 message GetReactorsResponse {
     Result result = 1;
     enum Result {
-        OK        = 0;
-        DENIED    = 1;
-        NOT_FOUND = 2; // The message does not exist.
+        OK                = 0;
+        DENIED            = 1;
+        MESSAGE_NOT_FOUND = 2;
     }
 
     // A page of users who reacted with the requested emoji, with their reaction
