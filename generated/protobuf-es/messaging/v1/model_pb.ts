@@ -404,7 +404,6 @@ export class ReplyContent extends Message$1<ReplyContent> {
   /**
    * Reply message content. Allowed content types are:
    *  - TextContent
-   *  - ReplyContent
    *  - MediaContent
    *
    * @generated from field: repeated flipcash.messaging.v1.Content content = 2;

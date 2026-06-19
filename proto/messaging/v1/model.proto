@@ -132,7 +132,6 @@ message ReplyContent {
 
     // Reply message content. Allowed content types are:
     //  - TextContent
-    //  - ReplyContent
     //  - MediaContent
     repeated Content content = 2 [(validate.rules).repeated = {
         min_items: 1

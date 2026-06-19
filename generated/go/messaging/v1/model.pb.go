@@ -667,7 +667,6 @@ type ReplyContent struct {
 	RepliedMessageId *MessageId `protobuf:"bytes,1,opt,name=replied_message_id,json=repliedMessageId,proto3" json:"replied_message_id,omitempty"`
 	// Reply message content. Allowed content types are:
 	//   - TextContent
-	//   - ReplyContent
 	//   - MediaContent
 	Content []*Content `protobuf:"bytes,2,rep,name=content,proto3" json:"content,omitempty"`
 }
