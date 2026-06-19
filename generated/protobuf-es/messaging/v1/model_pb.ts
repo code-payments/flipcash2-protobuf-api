@@ -782,6 +782,53 @@ export class Emoji extends Message$1<Emoji> {
 }
 
 /**
+ * Reactor identifies a user who reacted to a message and when they did so.
+ *
+ * @generated from message flipcash.messaging.v1.Reactor
+ */
+export class Reactor extends Message$1<Reactor> {
+  /**
+   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   */
+  userId?: UserId;
+
+  /**
+   * Timestamp the user added this reaction.
+   *
+   * @generated from field: google.protobuf.Timestamp reacted_ts = 2;
+   */
+  reactedTs?: Timestamp;
+
+  constructor(data?: PartialMessage<Reactor>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.Reactor";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "message", T: UserId },
+    { no: 2, name: "reacted_ts", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Reactor {
+    return new Reactor().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Reactor {
+    return new Reactor().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Reactor {
+    return new Reactor().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Reactor | PlainMessage<Reactor> | undefined, b: Reactor | PlainMessage<Reactor> | undefined): boolean {
+    return proto3.util.equals(Reactor, a, b);
+  }
+}
+
+/**
  * ReactionSummary is the aggregate reaction state attached to a message. It is
  * bounded: the number of distinct reaction types per message is capped, so the
  * summary stays small no matter how many users reacted. The full reactor list
@@ -859,13 +906,13 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
   reactedBySelf = false;
 
   /**
-   * A small sample of reactors (e.g. for rendering a few avatars), capped well
-   * below count. The complete, paged reactor list is fetched on demand via a
-   * separate RPC.
+   * A small sample of reactors, with their reaction timestamps (e.g. for
+   * rendering a few avatars), capped well below count. The complete, paged
+   * reactor list is fetched on demand via GetReactors.
    *
-   * @generated from field: repeated flipcash.common.v1.UserId sample_reactors = 4;
+   * @generated from field: repeated flipcash.messaging.v1.Reactor sample_reactors = 4;
    */
-  sampleReactors: UserId[] = [];
+  sampleReactors: Reactor[] = [];
 
   /**
    * Monotonic version of this emoji's aggregate on the message, assigned by
@@ -891,7 +938,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
     { no: 1, name: "emoji", kind: "message", T: Emoji },
     { no: 2, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 3, name: "reacted_by_self", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 4, name: "sample_reactors", kind: "message", T: UserId, repeated: true },
+    { no: 4, name: "sample_reactors", kind: "message", T: Reactor, repeated: true },
     { no: 5, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
@@ -968,6 +1015,16 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
    */
   sequence = protoInt64.zero;
 
+  /**
+   * When the actor reacted. On ADDED, clients record this as the actor's
+   * Reactor.reacted_ts (e.g. when slotting them into sample_reactors); ignored
+   * for REMOVED. This is a display timestamp, distinct from `sequence`, which
+   * is the ordering key.
+   *
+   * @generated from field: google.protobuf.Timestamp reacted_ts = 7;
+   */
+  reactedTs?: Timestamp;
+
   constructor(data?: PartialMessage<ReactionUpdate>) {
     super();
     proto3.util.initPartial(data, this);
@@ -982,6 +1039,7 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
     { no: 4, name: "action", kind: "enum", T: proto3.getEnumType(ReactionUpdate_Action) },
     { no: 5, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 6, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "reacted_ts", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionUpdate {

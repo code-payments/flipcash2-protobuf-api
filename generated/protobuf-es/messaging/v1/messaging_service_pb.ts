@@ -5,8 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Auth, ChatId, QueryOptions, UserId } from "../../common/v1/common_pb";
-import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type } from "./model_pb";
+import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
+import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, Reactor } from "./model_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.GetMessageRequest
@@ -1226,12 +1226,12 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
   result = GetReactorsResponse_Result.OK;
 
   /**
-   * A page of users who reacted with the requested emoji. Empty when the
-   * message exists but has no reactors for the emoji.
+   * A page of users who reacted with the requested emoji, with their reaction
+   * timestamps. Empty when the message exists but has no reactors for the emoji.
    *
-   * @generated from field: repeated flipcash.common.v1.UserId reactors = 2;
+   * @generated from field: repeated flipcash.messaging.v1.Reactor reactors = 2;
    */
-  reactors: UserId[] = [];
+  reactors: Reactor[] = [];
 
   /**
    * Total number of reactors for this emoji (matches EmojiReaction.count), so
@@ -1250,7 +1250,7 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
   static readonly typeName = "flipcash.messaging.v1.GetReactorsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetReactorsResponse_Result) },
-    { no: 2, name: "reactors", kind: "message", T: UserId, repeated: true },
+    { no: 2, name: "reactors", kind: "message", T: Reactor, repeated: true },
     { no: 3, name: "total", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 

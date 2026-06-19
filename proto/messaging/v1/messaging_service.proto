@@ -357,9 +357,9 @@ message GetReactorsResponse {
         NOT_FOUND = 2; // The message does not exist.
     }
 
-    // A page of users who reacted with the requested emoji. Empty when the
-    // message exists but has no reactors for the emoji.
-    repeated common.v1.UserId reactors = 2 [(validate.rules).repeated = {
+    // A page of users who reacted with the requested emoji, with their reaction
+    // timestamps. Empty when the message exists but has no reactors for the emoji.
+    repeated Reactor reactors = 2 [(validate.rules).repeated = {
         max_items: 100
     }];
 
