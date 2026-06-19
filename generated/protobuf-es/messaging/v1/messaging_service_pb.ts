@@ -354,6 +354,17 @@ export class GetEventsResponse extends Message<GetEventsResponse> {
   messages?: MessageBatch;
 
   /**
+   * The chat's latest event sequence (head). Informational while streaming —
+   * it tells the client how far the chat has advanced even if this catch-up is
+   * bounded by end_sequence. Once the stream completes unbounded, the client's
+   * cursor equals this; it does not need contiguous coverage of the
+   * intervening points, only the resulting state.
+   *
+   * @generated from field: uint64 latest_sequence = 3;
+   */
+  latestSequence = protoInt64.zero;
+
+  /**
    * Resume checkpoint: the event_sequence through which the delta is complete
    * as of this batch — the batch's high-water mark, monotonically increasing
    * across the stream. Persist it AFTER fully applying the batch. If the
@@ -367,17 +378,6 @@ export class GetEventsResponse extends Message<GetEventsResponse> {
    */
   checkpointSequence = protoInt64.zero;
 
-  /**
-   * The chat's latest event sequence (head). Informational while streaming —
-   * it tells the client how far the chat has advanced even if this catch-up is
-   * bounded by end_sequence. Once the stream completes unbounded, the client's
-   * cursor equals this; it does not need contiguous coverage of the
-   * intervening points, only the resulting state.
-   *
-   * @generated from field: uint64 latest_sequence = 3;
-   */
-  latestSequence = protoInt64.zero;
-
   constructor(data?: PartialMessage<GetEventsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -388,8 +388,8 @@ export class GetEventsResponse extends Message<GetEventsResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetEventsResponse_Result) },
     { no: 2, name: "messages", kind: "message", T: MessageBatch },
-    { no: 4, name: "checkpoint_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 3, name: "latest_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "checkpoint_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetEventsResponse {

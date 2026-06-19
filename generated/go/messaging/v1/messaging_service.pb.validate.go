@@ -1020,9 +1020,9 @@ func (m *GetEventsResponse) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for CheckpointSequence
-
 	// no validation rules for LatestSequence
+
+	// no validation rules for CheckpointSequence
 
 	if len(errors) > 0 {
 		return GetEventsResponseMultiError(errors)

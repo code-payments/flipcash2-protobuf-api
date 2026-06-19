@@ -171,6 +171,13 @@ message GetEventsResponse {
     // leaving this field unset, never by an empty batch.
     MessageBatch messages = 2;
 
+    // The chat's latest event sequence (head). Informational while streaming —
+    // it tells the client how far the chat has advanced even if this catch-up is
+    // bounded by end_sequence. Once the stream completes unbounded, the client's
+    // cursor equals this; it does not need contiguous coverage of the
+    // intervening points, only the resulting state.
+    uint64 latest_sequence = 3;
+
     // Resume checkpoint: the event_sequence through which the delta is complete
     // as of this batch — the batch's high-water mark, monotonically increasing
     // across the stream. Persist it AFTER fully applying the batch. If the
@@ -180,13 +187,6 @@ message GetEventsResponse {
     // off with no skipped messages (and at worst a harmless last-writer-wins
     // re-apply of the boundary).
     uint64 checkpoint_sequence = 4;
-
-    // The chat's latest event sequence (head). Informational while streaming —
-    // it tells the client how far the chat has advanced even if this catch-up is
-    // bounded by end_sequence. Once the stream completes unbounded, the client's
-    // cursor equals this; it does not need contiguous coverage of the
-    // intervening points, only the resulting state.
-    uint64 latest_sequence = 3;
 }
 
 message SendMessageRequest {
