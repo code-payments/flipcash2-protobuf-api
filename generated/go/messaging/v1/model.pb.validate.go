@@ -1883,9 +1883,27 @@ func (m *MediaMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Width
+	if m.GetWidth() < 1 {
+		err := MediaMetadataValidationError{
+			field:  "Width",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for Height
+	if m.GetHeight() < 1 {
+		err := MediaMetadataValidationError{
+			field:  "Height",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if utf8.RuneCountInString(m.GetBlurhash()) > 64 {
 		err := MediaMetadataValidationError{

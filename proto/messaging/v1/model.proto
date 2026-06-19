@@ -180,8 +180,8 @@ message MediaMetadata {
     uint64 size_bytes = 2 [(validate.rules).uint64.gte = 1];
 
     // Pixel dimensions, for reserving layout before the bytes arrive.
-    uint32 width  = 3;
-    uint32 height = 4;
+    uint32 width  = 3 [(validate.rules).uint32.gte = 1];
+    uint32 height = 4 [(validate.rules).uint32.gte = 1];
 
     // Compact preview shown while the full media downloads (BlurHash string).
     string blurhash = 5 [(validate.rules).string.max_len = 64];
