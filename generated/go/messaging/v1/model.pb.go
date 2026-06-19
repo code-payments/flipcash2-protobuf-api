@@ -1690,7 +1690,7 @@ func (x *PointerBatch) GetPointers() []*Pointer {
 // state, NOT replayed through this log.
 //
 // Clients apply events in ascending sequence order and use the sequence/count
-// pair to detect gaps; on a gap they catch up via GetChatEvents.
+// pair to detect gaps; on a gap they catch up via GetEvents.
 type Event struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

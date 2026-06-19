@@ -385,7 +385,7 @@ message PointerBatch {
 // state, NOT replayed through this log.
 //
 // Clients apply events in ascending sequence order and use the sequence/count
-// pair to detect gaps; on a gap they catch up via GetChatEvents.
+// pair to detect gaps; on a gap they catch up via GetEvents.
 message Event {
     // Per-chat event sequence valued AFTER this event applies: the END of the
     // half-open range (sequence - count, sequence] this event occupies. This is

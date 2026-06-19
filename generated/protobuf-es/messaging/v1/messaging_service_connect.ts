@@ -36,11 +36,20 @@ export const Messaging = {
     },
     /**
      * GetEvents returns, for cold-boot and reconnect catch-up, the current
-     * state of every message changed since the client's cursor, plus the chat's
-     * latest event sequence. It is a state delta, not a contiguous replay: the
-     * client applies the returned messages last-writer-wins and advances its
-     * cursor straight to latest_sequence. Transient signals (typing) and
-     * convergent state (pointers) are fetched separately, not returned here.
+     * state of every message changed since the client's cursor. It is a state
+     * delta, not a contiguous replay: the client applies the returned messages
+     * last-writer-wins. Transient signals (typing) and convergent state
+     * (pointers) are fetched separately, not returned here.
+     *
+     * On stream completion the client advances its cursor to the highest
+     * checkpoint_sequence it received. For an unbounded catch-up (end_sequence
+     * unset) that final checkpoint equals latest_sequence — the client is now at
+     * the head. For a bounded fill (end_sequence set) it lands on end_sequence,
+     * not the head, since the delta intentionally stops at end and live events
+     * cover everything after it. When the client is already current the server
+     * sends a single response with messages omitted (and checkpoint_sequence
+     * unset), leaving the cursor unchanged; latest_sequence still reports the
+     * head.
      *
      * This is a BOUNDED server stream: the server emits one or more batches and
      * then completes once the delta up to end_sequence (or the head at stream
@@ -49,6 +58,10 @@ export const Messaging = {
      * server may currently send the whole delta as a single response, so clients
      * must handle any number of batches and treat stream completion as
      * "caught up."
+     *
+     * The Result field is meaningful on the first response and is OK for
+     * subsequent data batches; a terminal DENIED or RESET_REQUIRED is delivered
+     * as a single response that ends the stream.
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.GetEvents
      */

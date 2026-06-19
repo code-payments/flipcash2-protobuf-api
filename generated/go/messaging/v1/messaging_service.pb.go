@@ -940,8 +940,11 @@ type GetEventsResponse struct {
 	// the current state of every message changed in the requested range; a
 	// message normally appears once in its latest state, but one re-edited
 	// mid-stream may reappear at its new, higher sequence (apply
-	// last-writer-wins). May be empty when the client is already current (the
-	// stream then completes immediately).
+	// last-writer-wins). Omitted (not an empty batch) when there are no changes
+	// to report — e.g. when the client is already current; the server still
+	// sets latest_sequence and the stream then completes. Note MessageBatch
+	// itself requires at least one message, so "no changes" is signaled by
+	// leaving this field unset, never by an empty batch.
 	Messages *MessageBatch `protobuf:"bytes,2,opt,name=messages,proto3" json:"messages,omitempty"`
 	// Resume checkpoint: the event_sequence through which the delta is complete
 	// as of this batch — the batch's high-water mark, monotonically increasing

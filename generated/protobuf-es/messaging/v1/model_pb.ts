@@ -1348,7 +1348,7 @@ export class PointerBatch extends Message$1<PointerBatch> {
  * state, NOT replayed through this log.
  *
  * Clients apply events in ascending sequence order and use the sequence/count
- * pair to detect gaps; on a gap they catch up via GetChatEvents.
+ * pair to detect gaps; on a gap they catch up via GetEvents.
  *
  * @generated from message flipcash.messaging.v1.Event
  */
