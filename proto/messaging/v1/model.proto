@@ -198,6 +198,11 @@ message SystemContent {
 
 // Deleted message content
 message DeletedContent {
+    // Timestamp the message was deleted. Set whenever a message is tombstoned;
+    // clients can surface it as a "deleted" affordance. This is the deletion
+    // analog of Message.last_edited_ts, kept here so all deletion state lives in
+    // the content rather than as a separate flag on Message.
+    google.protobuf.Timestamp deleted_ts = 1 [(validate.rules).timestamp.required = true];
 }
 
 // Emoji identifies an emoji used in a reaction. The value is a unicode emoji

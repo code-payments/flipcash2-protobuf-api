@@ -2100,6 +2100,17 @@ func (m *DeletedContent) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetDeletedTs() == nil {
+		err := DeletedContentValidationError{
+			field:  "DeletedTs",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return DeletedContentMultiError(errors)
 	}

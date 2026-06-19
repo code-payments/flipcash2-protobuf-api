@@ -695,6 +695,16 @@ export class SystemContent extends Message$1<SystemContent> {
  * @generated from message flipcash.messaging.v1.DeletedContent
  */
 export class DeletedContent extends Message$1<DeletedContent> {
+  /**
+   * Timestamp the message was deleted. Set whenever a message is tombstoned;
+   * clients can surface it as a "deleted" affordance. This is the deletion
+   * analog of Message.last_edited_ts, kept here so all deletion state lives in
+   * the content rather than as a separate flag on Message.
+   *
+   * @generated from field: google.protobuf.Timestamp deleted_ts = 1;
+   */
+  deletedTs?: Timestamp;
+
   constructor(data?: PartialMessage<DeletedContent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -703,6 +713,7 @@ export class DeletedContent extends Message$1<DeletedContent> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.messaging.v1.DeletedContent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "deleted_ts", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeletedContent {
