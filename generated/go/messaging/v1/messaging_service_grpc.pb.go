@@ -19,17 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Messaging_GetMessage_FullMethodName     = "/flipcash.messaging.v1.Messaging/GetMessage"
-	Messaging_GetMessages_FullMethodName    = "/flipcash.messaging.v1.Messaging/GetMessages"
-	Messaging_GetEvents_FullMethodName      = "/flipcash.messaging.v1.Messaging/GetEvents"
-	Messaging_SendMessage_FullMethodName    = "/flipcash.messaging.v1.Messaging/SendMessage"
-	Messaging_EditMessage_FullMethodName    = "/flipcash.messaging.v1.Messaging/EditMessage"
-	Messaging_DeleteMessage_FullMethodName  = "/flipcash.messaging.v1.Messaging/DeleteMessage"
-	Messaging_AddReaction_FullMethodName    = "/flipcash.messaging.v1.Messaging/AddReaction"
-	Messaging_RemoveReaction_FullMethodName = "/flipcash.messaging.v1.Messaging/RemoveReaction"
-	Messaging_GetReactors_FullMethodName    = "/flipcash.messaging.v1.Messaging/GetReactors"
-	Messaging_AdvancePointer_FullMethodName = "/flipcash.messaging.v1.Messaging/AdvancePointer"
-	Messaging_NotifyIsTyping_FullMethodName = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
+	Messaging_GetMessage_FullMethodName           = "/flipcash.messaging.v1.Messaging/GetMessage"
+	Messaging_GetMessages_FullMethodName          = "/flipcash.messaging.v1.Messaging/GetMessages"
+	Messaging_GetEvents_FullMethodName            = "/flipcash.messaging.v1.Messaging/GetEvents"
+	Messaging_SendMessage_FullMethodName          = "/flipcash.messaging.v1.Messaging/SendMessage"
+	Messaging_EditMessage_FullMethodName          = "/flipcash.messaging.v1.Messaging/EditMessage"
+	Messaging_DeleteMessage_FullMethodName        = "/flipcash.messaging.v1.Messaging/DeleteMessage"
+	Messaging_AddReaction_FullMethodName          = "/flipcash.messaging.v1.Messaging/AddReaction"
+	Messaging_RemoveReaction_FullMethodName       = "/flipcash.messaging.v1.Messaging/RemoveReaction"
+	Messaging_GetReactors_FullMethodName          = "/flipcash.messaging.v1.Messaging/GetReactors"
+	Messaging_GetReactionSummaries_FullMethodName = "/flipcash.messaging.v1.Messaging/GetReactionSummaries"
+	Messaging_AdvancePointer_FullMethodName       = "/flipcash.messaging.v1.Messaging/AdvancePointer"
+	Messaging_NotifyIsTyping_FullMethodName       = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
 )
 
 // MessagingClient is the client API for Messaging service.
@@ -88,6 +89,9 @@ type MessagingClient interface {
 	// a given emoji — the on-demand drill-down behind EmojiReaction.count, which
 	// never inlines the full reactor list.
 	GetReactors(ctx context.Context, in *GetReactorsRequest, opts ...grpc.CallOption) (*GetReactorsResponse, error)
+	// GetReactionSummaries fetches the current aggregate reaction state for a
+	// batch of messages
+	GetReactionSummaries(ctx context.Context, in *GetReactionSummariesRequest, opts ...grpc.CallOption) (*GetReactionSummariesResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(ctx context.Context, in *AdvancePointerRequest, opts ...grpc.CallOption) (*AdvancePointerResponse, error)
 	// NotifyIsTypingRequest notifies a chat that the sending member is typing.
@@ -203,6 +207,16 @@ func (c *messagingClient) GetReactors(ctx context.Context, in *GetReactorsReques
 	return out, nil
 }
 
+func (c *messagingClient) GetReactionSummaries(ctx context.Context, in *GetReactionSummariesRequest, opts ...grpc.CallOption) (*GetReactionSummariesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetReactionSummariesResponse)
+	err := c.cc.Invoke(ctx, Messaging_GetReactionSummaries_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *messagingClient) AdvancePointer(ctx context.Context, in *AdvancePointerRequest, opts ...grpc.CallOption) (*AdvancePointerResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AdvancePointerResponse)
@@ -279,6 +293,9 @@ type MessagingServer interface {
 	// a given emoji — the on-demand drill-down behind EmojiReaction.count, which
 	// never inlines the full reactor list.
 	GetReactors(context.Context, *GetReactorsRequest) (*GetReactorsResponse, error)
+	// GetReactionSummaries fetches the current aggregate reaction state for a
+	// batch of messages
+	GetReactionSummaries(context.Context, *GetReactionSummariesRequest) (*GetReactionSummariesResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error)
 	// NotifyIsTypingRequest notifies a chat that the sending member is typing.
@@ -321,6 +338,9 @@ func (UnimplementedMessagingServer) RemoveReaction(context.Context, *RemoveReact
 }
 func (UnimplementedMessagingServer) GetReactors(context.Context, *GetReactorsRequest) (*GetReactorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReactors not implemented")
+}
+func (UnimplementedMessagingServer) GetReactionSummaries(context.Context, *GetReactionSummariesRequest) (*GetReactionSummariesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReactionSummaries not implemented")
 }
 func (UnimplementedMessagingServer) AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AdvancePointer not implemented")
@@ -504,6 +524,24 @@ func _Messaging_GetReactors_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Messaging_GetReactionSummaries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReactionSummariesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).GetReactionSummaries(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_GetReactionSummaries_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).GetReactionSummaries(ctx, req.(*GetReactionSummariesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Messaging_AdvancePointer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AdvancePointerRequest)
 	if err := dec(in); err != nil {
@@ -578,6 +616,10 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetReactors",
 			Handler:    _Messaging_GetReactors_Handler,
+		},
+		{
+			MethodName: "GetReactionSummaries",
+			Handler:    _Messaging_GetReactionSummaries_Handler,
 		},
 		{
 			MethodName: "AdvancePointer",

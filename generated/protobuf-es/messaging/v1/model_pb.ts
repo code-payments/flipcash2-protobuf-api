@@ -847,10 +847,17 @@ export class Reactor extends Message$1<Reactor> {
  */
 export class ReactionSummary extends Message$1<ReactionSummary> {
   /**
+   * The message these reactions belong to.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  /**
    * One entry per distinct emoji reacted to this message, capped at the
    * per-message reaction-type limit.
    *
-   * @generated from field: repeated flipcash.messaging.v1.EmojiReaction reactions = 1;
+   * @generated from field: repeated flipcash.messaging.v1.EmojiReaction reactions = 2;
    */
   reactions: EmojiReaction[] = [];
 
@@ -862,7 +869,8 @@ export class ReactionSummary extends Message$1<ReactionSummary> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.messaging.v1.ReactionSummary";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "reactions", kind: "message", T: EmojiReaction, repeated: true },
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+    { no: 2, name: "reactions", kind: "message", T: EmojiReaction, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionSummary {

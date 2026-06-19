@@ -244,9 +244,12 @@ message Reactor {
 // summary stays small no matter how many users reacted. The full reactor list
 // for any emoji is fetched on demand (paged), never inlined here.
 message ReactionSummary {
+    // The message these reactions belong to.
+    MessageId message_id = 1 [(validate.rules).message.required = true];
+
     // One entry per distinct emoji reacted to this message, capped at the
     // per-message reaction-type limit.
-    repeated EmojiReaction reactions = 1 [(validate.rules).repeated = {
+    repeated EmojiReaction reactions = 2 [(validate.rules).repeated = {
         min_items: 1
         max_items: 100 // Per-message distinct reaction-type cap
     }];

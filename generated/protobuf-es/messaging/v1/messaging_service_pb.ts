@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
-import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, Reactor } from "./model_pb";
+import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, ReactionSummary, Reactor } from "./model_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.GetMessageRequest
@@ -1298,6 +1298,128 @@ proto3.util.setEnumType(GetReactorsResponse_Result, "flipcash.messaging.v1.GetRe
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "MESSAGE_NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.GetReactionSummariesRequest
+ */
+export class GetReactionSummariesRequest extends Message<GetReactionSummariesRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The messages whose reaction summaries to fetch.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageIdBatch message_ids = 2;
+   */
+  messageIds?: MessageIdBatch;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetReactionSummariesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.GetReactionSummariesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_ids", kind: "message", T: MessageIdBatch },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactionSummariesRequest {
+    return new GetReactionSummariesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetReactionSummariesRequest {
+    return new GetReactionSummariesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetReactionSummariesRequest {
+    return new GetReactionSummariesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetReactionSummariesRequest | PlainMessage<GetReactionSummariesRequest> | undefined, b: GetReactionSummariesRequest | PlainMessage<GetReactionSummariesRequest> | undefined): boolean {
+    return proto3.util.equals(GetReactionSummariesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.GetReactionSummariesResponse
+ */
+export class GetReactionSummariesResponse extends Message<GetReactionSummariesResponse> {
+  /**
+   * @generated from field: flipcash.messaging.v1.GetReactionSummariesResponse.Result result = 1;
+   */
+  result = GetReactionSummariesResponse_Result.OK;
+
+  /**
+   * One summary per requested message that currently has reactions, keyed by
+   * ReactionSummary.message_id. Requested messages with no reactions (or
+   * unknown) are OMITTED — the client clears any local summary it holds for an
+   * omitted message. reacted_by_self in each summary is computed for the
+   * caller; clients still apply per (message, emoji) by EmojiReaction.sequence,
+   * so a summary that is slightly behind a live update is harmlessly ignored
+   * rather than regressing state.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.ReactionSummary summaries = 2;
+   */
+  summaries: ReactionSummary[] = [];
+
+  constructor(data?: PartialMessage<GetReactionSummariesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.GetReactionSummariesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetReactionSummariesResponse_Result) },
+    { no: 2, name: "summaries", kind: "message", T: ReactionSummary, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactionSummariesResponse {
+    return new GetReactionSummariesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetReactionSummariesResponse {
+    return new GetReactionSummariesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetReactionSummariesResponse {
+    return new GetReactionSummariesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetReactionSummariesResponse | PlainMessage<GetReactionSummariesResponse> | undefined, b: GetReactionSummariesResponse | PlainMessage<GetReactionSummariesResponse> | undefined): boolean {
+    return proto3.util.equals(GetReactionSummariesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.GetReactionSummariesResponse.Result
+ */
+export enum GetReactionSummariesResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetReactionSummariesResponse_Result)
+proto3.util.setEnumType(GetReactionSummariesResponse_Result, "flipcash.messaging.v1.GetReactionSummariesResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
 ]);
 
 /**

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -143,6 +143,18 @@ export const Messaging = {
       name: "GetReactors",
       I: GetReactorsRequest,
       O: GetReactorsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetReactionSummaries fetches the current aggregate reaction state for a
+     * batch of messages
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetReactionSummaries
+     */
+    getReactionSummaries: {
+      name: "GetReactionSummaries",
+      I: GetReactionSummariesRequest,
+      O: GetReactionSummariesResponse,
       kind: MethodKind.Unary,
     },
     /**
