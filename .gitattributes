@@ -1,0 +1,4 @@
+# Auto-generated protobuf output. Collapse these files in GitHub PR diffs,
+# exclude them from language stats, and skip diff generation locally.
+# Regenerate with `make` — never edit by hand.
+generated/** linguist-generated=true -diff
