@@ -2549,10 +2549,10 @@ func (m *ReactionSummary) validate(all bool) error {
 		}
 	}
 
-	if l := len(m.GetReactions()); l < 1 || l > 100 {
+	if len(m.GetReactions()) < 1 {
 		err := ReactionSummaryValidationError{
 			field:  "Reactions",
-			reason: "value must contain between 1 and 100 items, inclusive",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
