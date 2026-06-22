@@ -2549,17 +2549,6 @@ func (m *ReactionSummary) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetReactions()) < 1 {
-		err := ReactionSummaryValidationError{
-			field:  "Reactions",
-			reason: "value must contain at least 1 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	for idx, item := range m.GetReactions() {
 		_, _ = idx, item
 

@@ -179,7 +179,7 @@ export class Message extends Message$1<Message> {
    * read. This is a convergent overlay, NOT part of the content versioned by
    * event_sequence: reactions change without advancing event_sequence, so
    * clients refresh it on view and via live reaction updates rather than
-   * through the event log. Absent when the message has no reactions.
+   * through the event log.
    *
    * @generated from field: flipcash.messaging.v1.ReactionSummary reactions = 8;
    */
@@ -854,8 +854,7 @@ export class ReactionSummary extends Message$1<ReactionSummary> {
   messageId?: MessageId;
 
   /**
-   * One entry per distinct emoji reacted to this message, capped at the
-   * per-message reaction-type limit.
+   * One entry per distinct emoji reacted to this message
    *
    * @generated from field: repeated flipcash.messaging.v1.EmojiReaction reactions = 2;
    */

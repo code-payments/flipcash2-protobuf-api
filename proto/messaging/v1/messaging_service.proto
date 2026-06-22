@@ -353,8 +353,7 @@ message RemoveReactionResponse {
         MESSAGE_NOT_FOUND = 2;
     }
 
-    // The affected emoji's aggregate after the removal. Omitted when no reactors
-    // remain for the emoji (the client drops the entry locally).
+    // The affected emoji's aggregate after the removal
     EmojiReaction reaction = 2;
 }
 
@@ -422,11 +421,10 @@ message GetReactionSummaryResponse {
         MESSAGE_NOT_FOUND = 2;
     }
 
-    // The aggregate reaction state for the message. Omitted when the message
-    // currently has no reactions — the client clears any local summary it holds.
-    // reacted_by_self is computed for the caller; clients still apply per
-    // (message, emoji) by EmojiReaction.sequence, so a summary that is slightly
-    // behind a live update is harmlessly ignored rather than regressing state.
+    // The aggregate reaction state for the message. reacted_by_self is computed
+    // for the caller; clients still apply per (message, emoji) by
+    // EmojiReaction.sequence, so a summary that is slightly behind a live update
+    // is harmlessly ignored rather than regressing state.
     ReactionSummary summary = 2;
 }
 
@@ -450,13 +448,11 @@ message GetReactionSummariesResponse {
         DENIED = 1;
     }
 
-    // One summary per requested message that currently has reactions, keyed by
-    // ReactionSummary.message_id. Requested messages with no reactions (or
-    // unknown) are OMITTED — the client clears any local summary it holds for an
-    // omitted message. reacted_by_self in each summary is computed for the
-    // caller; clients still apply per (message, emoji) by EmojiReaction.sequence,
-    // so a summary that is slightly behind a live update is harmlessly ignored
-    // rather than regressing state.
+    // One summary per requested message, keyed by ReactionSummary.message_id.
+    // reacted_by_self in each summary is computed for the caller; clients still
+    // apply per (message, emoji) by EmojiReaction.sequence,  so a summary that
+    // is slightly behind a live update is harmlessly ignored rather than regressing
+    // state.
     repeated ReactionSummary summaries = 2 [(validate.rules).repeated = {
         max_items: 100
     }];

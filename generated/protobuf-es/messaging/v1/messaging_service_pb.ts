@@ -1091,8 +1091,7 @@ export class RemoveReactionResponse extends Message<RemoveReactionResponse> {
   result = RemoveReactionResponse_Result.OK;
 
   /**
-   * The affected emoji's aggregate after the removal. Omitted when no reactors
-   * remain for the emoji (the client drops the entry locally).
+   * The affected emoji's aggregate after the removal
    *
    * @generated from field: flipcash.messaging.v1.EmojiReaction reaction = 2;
    */
@@ -1383,11 +1382,10 @@ export class GetReactionSummaryResponse extends Message<GetReactionSummaryRespon
   result = GetReactionSummaryResponse_Result.OK;
 
   /**
-   * The aggregate reaction state for the message. Omitted when the message
-   * currently has no reactions — the client clears any local summary it holds.
-   * reacted_by_self is computed for the caller; clients still apply per
-   * (message, emoji) by EmojiReaction.sequence, so a summary that is slightly
-   * behind a live update is harmlessly ignored rather than regressing state.
+   * The aggregate reaction state for the message. reacted_by_self is computed
+   * for the caller; clients still apply per (message, emoji) by
+   * EmojiReaction.sequence, so a summary that is slightly behind a live update
+   * is harmlessly ignored rather than regressing state.
    *
    * @generated from field: flipcash.messaging.v1.ReactionSummary summary = 2;
    */
@@ -1520,13 +1518,11 @@ export class GetReactionSummariesResponse extends Message<GetReactionSummariesRe
   result = GetReactionSummariesResponse_Result.OK;
 
   /**
-   * One summary per requested message that currently has reactions, keyed by
-   * ReactionSummary.message_id. Requested messages with no reactions (or
-   * unknown) are OMITTED — the client clears any local summary it holds for an
-   * omitted message. reacted_by_self in each summary is computed for the
-   * caller; clients still apply per (message, emoji) by EmojiReaction.sequence,
-   * so a summary that is slightly behind a live update is harmlessly ignored
-   * rather than regressing state.
+   * One summary per requested message, keyed by ReactionSummary.message_id.
+   * reacted_by_self in each summary is computed for the caller; clients still
+   * apply per (message, emoji) by EmojiReaction.sequence,  so a summary that
+   * is slightly behind a live update is harmlessly ignored rather than regressing
+   * state.
    *
    * @generated from field: repeated flipcash.messaging.v1.ReactionSummary summaries = 2;
    */
