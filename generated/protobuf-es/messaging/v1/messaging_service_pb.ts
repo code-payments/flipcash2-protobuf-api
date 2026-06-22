@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Auth, ChatId, QueryOptions } from "../../common/v1/common_pb";
+import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
 import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, ReactionSummary, Reactor } from "./model_pb";
 
 /**
@@ -1176,7 +1176,10 @@ export class GetReactorsRequest extends Message<GetReactorsRequest> {
 
   /**
    * Paging over the reactor list (server-ordered, typically most-recent
-   * first).
+   * first). Leave options.paging_token unset on the first request; on every
+   * subsequent request, set it to the paging_token from the most recent
+   * response to advance through the list. The token is opaque and
+   * server-generated; do not construct it.
    *
    * @generated from field: flipcash.common.v1.QueryOptions options = 4;
    */
@@ -1244,6 +1247,25 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
    */
   total = protoInt64.zero;
 
+  /**
+   * The server-generated cursor advanced past this page. The client MUST send
+   * the most recent value back in options.paging_token on the next
+   * GetReactorsRequest to fetch the following page. Set when result is OK and
+   * has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 4;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages of reactors remain. When false,
+   * the reactor list has been fully read. When true, the client should issue
+   * another GetReactorsRequest with the returned paging_token.
+   *
+   * @generated from field: bool has_more = 5;
+   */
+  hasMore = false;
+
   constructor(data?: PartialMessage<GetReactorsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1255,6 +1277,8 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetReactorsResponse_Result) },
     { no: 2, name: "reactors", kind: "message", T: Reactor, repeated: true },
     { no: 3, name: "total", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 5, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactorsResponse {
