@@ -905,8 +905,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
   /**
    * Total number of users who reacted with this emoji. Authoritative and may
    * be arbitrarily large; the individual reactor identities are not all
-   * returned here. An entry exists only while at least one user is reacting,
-   * so this is always >= 1.
+   * returned here.
    *
    * @generated from field: uint64 count = 2;
    */

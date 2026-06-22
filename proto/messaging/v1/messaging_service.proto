@@ -330,7 +330,6 @@ message AddReactionResponse {
     }
 
     // The affected emoji's aggregate after the add (count, reacted_by_self true).
-    // No reaction summary refresh is implied for other emojis.
     EmojiReaction reaction = 2;
 }
 
@@ -389,20 +388,16 @@ message GetReactorsResponse {
         max_items: 100
     }];
 
-    // Total number of reactors for this emoji (matches EmojiReaction.count), so
-    // the drill-down can render "N reacted" without summing pages.
-    uint64 total = 3;
-
     // The server-generated cursor advanced past this page. The client MUST send
     // the most recent value back in options.paging_token on the next
     // GetReactorsRequest to fetch the following page. Set when result is OK and
     // has_more is true.
-    common.v1.PagingToken paging_token = 4;
+    common.v1.PagingToken paging_token = 3;
 
     // HasMore indicates whether further pages of reactors remain. When false,
     // the reactor list has been fully read. When true, the client should issue
     // another GetReactorsRequest with the returned paging_token.
-    bool has_more = 5;
+    bool has_more = 4;
 }
 
 message GetReactionSummaryRequest {

@@ -2723,16 +2723,7 @@ func (m *EmojiReaction) validate(all bool) error {
 		}
 	}
 
-	if m.GetCount() < 1 {
-		err := EmojiReactionValidationError{
-			field:  "Count",
-			reason: "value must be greater than or equal to 1",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Count
 
 	// no validation rules for ReactedBySelf
 

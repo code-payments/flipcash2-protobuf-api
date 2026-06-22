@@ -3431,8 +3431,6 @@ func (m *GetReactorsResponse) validate(all bool) error {
 
 	}
 
-	// no validation rules for Total
-
 	if all {
 		switch v := interface{}(m.GetPagingToken()).(type) {
 		case interface{ ValidateAll() error }:

@@ -948,7 +948,6 @@ export class AddReactionResponse extends Message<AddReactionResponse> {
 
   /**
    * The affected emoji's aggregate after the add (count, reacted_by_self true).
-   * No reaction summary refresh is implied for other emojis.
    *
    * @generated from field: flipcash.messaging.v1.EmojiReaction reaction = 2;
    */
@@ -1239,20 +1238,12 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
   reactors: Reactor[] = [];
 
   /**
-   * Total number of reactors for this emoji (matches EmojiReaction.count), so
-   * the drill-down can render "N reacted" without summing pages.
-   *
-   * @generated from field: uint64 total = 3;
-   */
-  total = protoInt64.zero;
-
-  /**
    * The server-generated cursor advanced past this page. The client MUST send
    * the most recent value back in options.paging_token on the next
    * GetReactorsRequest to fetch the following page. Set when result is OK and
    * has_more is true.
    *
-   * @generated from field: flipcash.common.v1.PagingToken paging_token = 4;
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
    */
   pagingToken?: PagingToken;
 
@@ -1261,7 +1252,7 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
    * the reactor list has been fully read. When true, the client should issue
    * another GetReactorsRequest with the returned paging_token.
    *
-   * @generated from field: bool has_more = 5;
+   * @generated from field: bool has_more = 4;
    */
   hasMore = false;
 
@@ -1275,9 +1266,8 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetReactorsResponse_Result) },
     { no: 2, name: "reactors", kind: "message", T: Reactor, repeated: true },
-    { no: 3, name: "total", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 4, name: "paging_token", kind: "message", T: PagingToken },
-    { no: 5, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactorsResponse {
