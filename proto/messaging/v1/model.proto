@@ -258,9 +258,8 @@ message EmojiReaction {
 
     // Total number of users who reacted with this emoji. Authoritative and may
     // be arbitrarily large; the individual reactor identities are not all
-    // returned here. An entry exists only while at least one user is reacting,
-    // so this is always >= 1.
-    uint64 count = 2 [(validate.rules).uint64.gte = 1];
+    // returned here.
+    uint64 count = 2;
 
     // Whether the requesting user reacted with this emoji. Per-viewer: count and
     // sample_reactors are shareable across users, but this bit is computed for
