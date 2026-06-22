@@ -1720,8 +1720,7 @@ type RemoveReactionResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Result RemoveReactionResponse_Result `protobuf:"varint,1,opt,name=result,proto3,enum=flipcash.messaging.v1.RemoveReactionResponse_Result" json:"result,omitempty"`
-	// The affected emoji's aggregate after the removal. Omitted when no reactors
-	// remain for the emoji (the client drops the entry locally).
+	// The affected emoji's aggregate after the removal
 	Reaction *EmojiReaction `protobuf:"bytes,2,opt,name=reaction,proto3" json:"reaction,omitempty"`
 }
 
@@ -2007,11 +2006,10 @@ type GetReactionSummaryResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Result GetReactionSummaryResponse_Result `protobuf:"varint,1,opt,name=result,proto3,enum=flipcash.messaging.v1.GetReactionSummaryResponse_Result" json:"result,omitempty"`
-	// The aggregate reaction state for the message. Omitted when the message
-	// currently has no reactions — the client clears any local summary it holds.
-	// reacted_by_self is computed for the caller; clients still apply per
-	// (message, emoji) by EmojiReaction.sequence, so a summary that is slightly
-	// behind a live update is harmlessly ignored rather than regressing state.
+	// The aggregate reaction state for the message. reacted_by_self is computed
+	// for the caller; clients still apply per (message, emoji) by
+	// EmojiReaction.sequence, so a summary that is slightly behind a live update
+	// is harmlessly ignored rather than regressing state.
 	Summary *ReactionSummary `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
 }
 
@@ -2160,13 +2158,11 @@ type GetReactionSummariesResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Result GetReactionSummariesResponse_Result `protobuf:"varint,1,opt,name=result,proto3,enum=flipcash.messaging.v1.GetReactionSummariesResponse_Result" json:"result,omitempty"`
-	// One summary per requested message that currently has reactions, keyed by
-	// ReactionSummary.message_id. Requested messages with no reactions (or
-	// unknown) are OMITTED — the client clears any local summary it holds for an
-	// omitted message. reacted_by_self in each summary is computed for the
-	// caller; clients still apply per (message, emoji) by EmojiReaction.sequence,
-	// so a summary that is slightly behind a live update is harmlessly ignored
-	// rather than regressing state.
+	// One summary per requested message, keyed by ReactionSummary.message_id.
+	// reacted_by_self in each summary is computed for the caller; clients still
+	// apply per (message, emoji) by EmojiReaction.sequence,  so a summary that
+	// is slightly behind a live update is harmlessly ignored rather than regressing
+	// state.
 	Summaries []*ReactionSummary `protobuf:"bytes,2,rep,name=summaries,proto3" json:"summaries,omitempty"`
 }
 
