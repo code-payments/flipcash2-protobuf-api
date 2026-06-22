@@ -28,6 +28,7 @@ const (
 	Messaging_AddReaction_FullMethodName          = "/flipcash.messaging.v1.Messaging/AddReaction"
 	Messaging_RemoveReaction_FullMethodName       = "/flipcash.messaging.v1.Messaging/RemoveReaction"
 	Messaging_GetReactors_FullMethodName          = "/flipcash.messaging.v1.Messaging/GetReactors"
+	Messaging_GetReactionSummary_FullMethodName   = "/flipcash.messaging.v1.Messaging/GetReactionSummary"
 	Messaging_GetReactionSummaries_FullMethodName = "/flipcash.messaging.v1.Messaging/GetReactionSummaries"
 	Messaging_AdvancePointer_FullMethodName       = "/flipcash.messaging.v1.Messaging/AdvancePointer"
 	Messaging_NotifyIsTyping_FullMethodName       = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
@@ -39,7 +40,7 @@ const (
 type MessagingClient interface {
 	// GetMessage gets a single message in a chat
 	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*GetMessageResponse, error)
-	// GetMessages gets the set of messages for a chat using a paged and batched APIs
+	// GetMessages gets the set of messages for a chat using paged and batched APIs
 	GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
 	// GetEvents returns, for cold-boot and reconnect catch-up, the current
 	// state of every message changed since the client's cursor. It is a state
@@ -89,8 +90,11 @@ type MessagingClient interface {
 	// a given emoji — the on-demand drill-down behind EmojiReaction.count, which
 	// never inlines the full reactor list.
 	GetReactors(ctx context.Context, in *GetReactorsRequest, opts ...grpc.CallOption) (*GetReactorsResponse, error)
-	// GetReactionSummaries fetches the current aggregate reaction state for a
-	// batch of messages
+	// GetReactionSummary fetches the current aggregate reaction state for a
+	// single message.
+	GetReactionSummary(ctx context.Context, in *GetReactionSummaryRequest, opts ...grpc.CallOption) (*GetReactionSummaryResponse, error)
+	// GetReactionSummaries fetches the current aggregate reaction state using
+	// paged and batched APIs
 	GetReactionSummaries(ctx context.Context, in *GetReactionSummariesRequest, opts ...grpc.CallOption) (*GetReactionSummariesResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(ctx context.Context, in *AdvancePointerRequest, opts ...grpc.CallOption) (*AdvancePointerResponse, error)
@@ -207,6 +211,16 @@ func (c *messagingClient) GetReactors(ctx context.Context, in *GetReactorsReques
 	return out, nil
 }
 
+func (c *messagingClient) GetReactionSummary(ctx context.Context, in *GetReactionSummaryRequest, opts ...grpc.CallOption) (*GetReactionSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetReactionSummaryResponse)
+	err := c.cc.Invoke(ctx, Messaging_GetReactionSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *messagingClient) GetReactionSummaries(ctx context.Context, in *GetReactionSummariesRequest, opts ...grpc.CallOption) (*GetReactionSummariesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetReactionSummariesResponse)
@@ -243,7 +257,7 @@ func (c *messagingClient) NotifyIsTyping(ctx context.Context, in *NotifyIsTyping
 type MessagingServer interface {
 	// GetMessage gets a single message in a chat
 	GetMessage(context.Context, *GetMessageRequest) (*GetMessageResponse, error)
-	// GetMessages gets the set of messages for a chat using a paged and batched APIs
+	// GetMessages gets the set of messages for a chat using paged and batched APIs
 	GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
 	// GetEvents returns, for cold-boot and reconnect catch-up, the current
 	// state of every message changed since the client's cursor. It is a state
@@ -293,8 +307,11 @@ type MessagingServer interface {
 	// a given emoji — the on-demand drill-down behind EmojiReaction.count, which
 	// never inlines the full reactor list.
 	GetReactors(context.Context, *GetReactorsRequest) (*GetReactorsResponse, error)
-	// GetReactionSummaries fetches the current aggregate reaction state for a
-	// batch of messages
+	// GetReactionSummary fetches the current aggregate reaction state for a
+	// single message.
+	GetReactionSummary(context.Context, *GetReactionSummaryRequest) (*GetReactionSummaryResponse, error)
+	// GetReactionSummaries fetches the current aggregate reaction state using
+	// paged and batched APIs
 	GetReactionSummaries(context.Context, *GetReactionSummariesRequest) (*GetReactionSummariesResponse, error)
 	// AdvancePointer advances a pointer in message history for a chat member.
 	AdvancePointer(context.Context, *AdvancePointerRequest) (*AdvancePointerResponse, error)
@@ -338,6 +355,9 @@ func (UnimplementedMessagingServer) RemoveReaction(context.Context, *RemoveReact
 }
 func (UnimplementedMessagingServer) GetReactors(context.Context, *GetReactorsRequest) (*GetReactorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReactors not implemented")
+}
+func (UnimplementedMessagingServer) GetReactionSummary(context.Context, *GetReactionSummaryRequest) (*GetReactionSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReactionSummary not implemented")
 }
 func (UnimplementedMessagingServer) GetReactionSummaries(context.Context, *GetReactionSummariesRequest) (*GetReactionSummariesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReactionSummaries not implemented")
@@ -524,6 +544,24 @@ func _Messaging_GetReactors_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Messaging_GetReactionSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReactionSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).GetReactionSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_GetReactionSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).GetReactionSummary(ctx, req.(*GetReactionSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Messaging_GetReactionSummaries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetReactionSummariesRequest)
 	if err := dec(in); err != nil {
@@ -616,6 +654,10 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetReactors",
 			Handler:    _Messaging_GetReactors_Handler,
+		},
+		{
+			MethodName: "GetReactionSummary",
+			Handler:    _Messaging_GetReactionSummary_Handler,
 		},
 		{
 			MethodName: "GetReactionSummaries",

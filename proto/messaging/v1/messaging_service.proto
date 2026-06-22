@@ -14,7 +14,7 @@ service Messaging {
     // GetMessage gets a single message in a chat
     rpc GetMessage(GetMessageRequest) returns (GetMessageResponse);
 
-    // GetMessages gets the set of messages for a chat using a paged and batched APIs
+    // GetMessages gets the set of messages for a chat using paged and batched APIs
     rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
 
     // GetEvents returns, for cold-boot and reconnect catch-up, the current
@@ -72,8 +72,12 @@ service Messaging {
     // never inlines the full reactor list.
     rpc GetReactors(GetReactorsRequest) returns (GetReactorsResponse);
 
-    // GetReactionSummaries fetches the current aggregate reaction state for a
-    // batch of messages
+    // GetReactionSummary fetches the current aggregate reaction state for a
+    // single message.
+    rpc GetReactionSummary(GetReactionSummaryRequest) returns (GetReactionSummaryResponse);
+
+    // GetReactionSummaries fetches the current aggregate reaction state using
+    // paged and batched APIs
     rpc GetReactionSummaries(GetReactionSummariesRequest) returns (GetReactionSummariesResponse);
 
     // AdvancePointer advances a pointer in message history for a chat member.
@@ -388,11 +392,39 @@ message GetReactorsResponse {
     uint64 total = 3;
 }
 
+message GetReactionSummaryRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    MessageId message_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetReactionSummaryResponse {
+    Result result = 1;
+    enum Result {
+        OK                = 0;
+        DENIED            = 1;
+        MESSAGE_NOT_FOUND = 2;
+    }
+
+    // The aggregate reaction state for the message. Omitted when the message
+    // currently has no reactions — the client clears any local summary it holds.
+    // reacted_by_self is computed for the caller; clients still apply per
+    // (message, emoji) by EmojiReaction.sequence, so a summary that is slightly
+    // behind a live update is harmlessly ignored rather than regressing state.
+    ReactionSummary summary = 2;
+}
+
 message GetReactionSummariesRequest {
     common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
-    // The messages whose reaction summaries to fetch.
-    MessageIdBatch message_ids = 2 [(validate.rules).message.required = true];
+    oneof query {
+        option (validate.required) = true;
+
+        common.v1.QueryOptions options      = 2;
+        MessageIdBatch         message_ids  = 3;
+    }
 
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactionSummaryRequest, GetReactionSummaryResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -24,7 +24,7 @@ export const Messaging = {
       kind: MethodKind.Unary,
     },
     /**
-     * GetMessages gets the set of messages for a chat using a paged and batched APIs
+     * GetMessages gets the set of messages for a chat using paged and batched APIs
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.GetMessages
      */
@@ -146,8 +146,20 @@ export const Messaging = {
       kind: MethodKind.Unary,
     },
     /**
-     * GetReactionSummaries fetches the current aggregate reaction state for a
-     * batch of messages
+     * GetReactionSummary fetches the current aggregate reaction state for a
+     * single message.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetReactionSummary
+     */
+    getReactionSummary: {
+      name: "GetReactionSummary",
+      I: GetReactionSummaryRequest,
+      O: GetReactionSummaryResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetReactionSummaries fetches the current aggregate reaction state using
+     * paged and batched APIs
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.GetReactionSummaries
      */
