@@ -409,7 +409,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
    * If present, durable event-log events for the chat (messages sent, edited,
    * and deleted). These are contiguous and ordered: clients apply them by
    * ascending Event.sequence and gap-detect via Event.sequence/count, catching
-   * up with Messaging.GetEvents on a gap. This supersedes new_messages.
+   * up with Messaging.GetDelta on a gap. This supersedes new_messages.
    *
    * @generated from field: flipcash.messaging.v1.EventBatch events = 6;
    */

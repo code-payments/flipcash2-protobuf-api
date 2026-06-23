@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetEventsRequest, GetEventsResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactionSummaryRequest, GetReactionSummaryResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetDeltaRequest, GetDeltaResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactionSummaryRequest, GetReactionSummaryResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -35,40 +35,44 @@ export const Messaging = {
       kind: MethodKind.Unary,
     },
     /**
-     * GetEvents returns, for cold-boot and reconnect catch-up, the current
-     * state of every message changed since the client's cursor. It is a state
-     * delta, not a contiguous replay: the client applies the returned messages
+     * GetDelta returns, for cold-boot and reconnect catch-up, the current state
+     * of every message changed since the client's cursor, up to the chat's
+     * current head. It is a state delta, not a contiguous replay: each changed
+     * message appears once in its latest state and the client applies it
      * last-writer-wins. Transient signals (typing) and convergent state
-     * (pointers) are fetched separately, not returned here.
+     * (pointers, reactions) are fetched separately, not returned here.
+     *
+     * GetDelta always catches up to the head; there is no caller-specified
+     * upper bound. An online client that detects a gap while already receiving
+     * live updates does NOT bound the fetch: it calls GetDelta to the head and
+     * lets last-writer-wins (Message.event_sequence) absorb the overlap with
+     * live events buffered during the call — a message delivered by both paths
+     * is applied once, newest wins. A client may also wait briefly for an
+     * out-of-order live update to close a small gap before calling at all.
      *
      * On stream completion the client advances its cursor to the highest
-     * checkpoint_sequence it received. For an unbounded catch-up (end_sequence
-     * unset) that final checkpoint equals latest_sequence — the client is now at
-     * the head. For a bounded fill (end_sequence set) it lands on end_sequence,
-     * not the head, since the delta intentionally stops at end and live events
-     * cover everything after it. When the client is already current the server
-     * sends a single response with messages omitted (and checkpoint_sequence
-     * unset), leaving the cursor unchanged; latest_sequence still reports the
-     * head.
+     * checkpoint_sequence it received, which equals latest_sequence — the client
+     * is now at the head. When the client is already current the server sends a
+     * single response with messages omitted (and checkpoint_sequence unset),
+     * leaving the cursor unchanged; latest_sequence still reports the head.
      *
      * This is a BOUNDED server stream: the server emits one or more batches and
-     * then completes once the delta up to end_sequence (or the head at stream
-     * open) is exhausted. Unlike StreamEvents it does NOT stay open for live
-     * updates. Streaming the delta in batches avoids a per-page round trip; the
-     * server may currently send the whole delta as a single response, so clients
-     * must handle any number of batches and treat stream completion as
-     * "caught up."
+     * then completes once the delta up to the head (as of stream open) is
+     * exhausted. Unlike StreamEvents it does NOT stay open for live updates.
+     * Streaming the delta in batches avoids a per-page round trip; the server may
+     * currently send the whole delta as a single response, so clients must handle
+     * any number of batches and treat stream completion as "caught up."
      *
      * The Result field is meaningful on the first response and is OK for
      * subsequent data batches; a terminal DENIED or RESET_REQUIRED is delivered
      * as a single response that ends the stream.
      *
-     * @generated from rpc flipcash.messaging.v1.Messaging.GetEvents
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetDelta
      */
-    getEvents: {
-      name: "GetEvents",
-      I: GetEventsRequest,
-      O: GetEventsResponse,
+    getDelta: {
+      name: "GetDelta",
+      I: GetDeltaRequest,
+      O: GetDeltaResponse,
       kind: MethodKind.ServerStreaming,
     },
     /**

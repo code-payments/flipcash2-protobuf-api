@@ -80,7 +80,8 @@ message Message {
     // stream, GetMessages, SendMessage echo, last_message, push). Clients apply
     // last-writer-wins by this value: ignore a copy whose event_sequence is <=
     // the version already held, otherwise insert/replace. Cross-message gap
-    // detection still relies on Event.sequence/count.
+    // detection is separate, via the live event log's Event.sequence/count and
+    // GetDelta catch-up.
     uint64 event_sequence = 7 [(validate.rules).uint64.gte = 1];
 
     // Aggregate reaction state for this message, current as of the time it was
@@ -286,7 +287,7 @@ message EmojiReaction {
 // ReactionUpdate is a best-effort, real-time reaction change for a single
 // (message, emoji) cell. Reactions are a convergent overlay, so these ride the
 // event stream OUTSIDE the gap-detected event log — a missed update is not
-// caught up via GetEvents but reconciled by refreshing the message's
+// caught up via GetDelta but reconciled by refreshing the message's
 // ReactionSummary on view.
 message ReactionUpdate {
     // The message whose reactions changed.
@@ -392,7 +393,7 @@ message PointerBatch {
 // state, NOT replayed through this log.
 //
 // Clients apply events in ascending sequence order and use the sequence/count
-// pair to detect gaps; on a gap they catch up via GetEvents.
+// pair to detect gaps; on a gap they catch up via GetDelta.
 message Event {
     // Per-chat event sequence valued AFTER this event applies: the END of the
     // half-open range (sequence - count, sequence] this event occupies. This is

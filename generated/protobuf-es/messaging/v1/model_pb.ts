@@ -168,7 +168,8 @@ export class Message extends Message$1<Message> {
    * stream, GetMessages, SendMessage echo, last_message, push). Clients apply
    * last-writer-wins by this value: ignore a copy whose event_sequence is <=
    * the version already held, otherwise insert/replace. Cross-message gap
-   * detection still relies on Event.sequence/count.
+   * detection is separate, via the live event log's Event.sequence/count and
+   * GetDelta catch-up.
    *
    * @generated from field: uint64 event_sequence = 7;
    */
@@ -978,7 +979,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
  * ReactionUpdate is a best-effort, real-time reaction change for a single
  * (message, emoji) cell. Reactions are a convergent overlay, so these ride the
  * event stream OUTSIDE the gap-detected event log — a missed update is not
- * caught up via GetEvents but reconciled by refreshing the message's
+ * caught up via GetDelta but reconciled by refreshing the message's
  * ReactionSummary on view.
  *
  * @generated from message flipcash.messaging.v1.ReactionUpdate
@@ -1363,7 +1364,7 @@ export class PointerBatch extends Message$1<PointerBatch> {
  * state, NOT replayed through this log.
  *
  * Clients apply events in ascending sequence order and use the sequence/count
- * pair to detect gaps; on a gap they catch up via GetEvents.
+ * pair to detect gaps; on a gap they catch up via GetDelta.
  *
  * @generated from message flipcash.messaging.v1.Event
  */

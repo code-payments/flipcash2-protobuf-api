@@ -783,22 +783,22 @@ var _ interface {
 	ErrorName() string
 } = GetMessagesResponseValidationError{}
 
-// Validate checks the field values on GetEventsRequest with the rules defined
+// Validate checks the field values on GetDeltaRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
-func (m *GetEventsRequest) Validate() error {
+func (m *GetDeltaRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetEventsRequest with the rules
+// ValidateAll checks the field values on GetDeltaRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetEventsRequestMultiError, or nil if none found.
-func (m *GetEventsRequest) ValidateAll() error {
+// GetDeltaRequestMultiError, or nil if none found.
+func (m *GetDeltaRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetEventsRequest) validate(all bool) error {
+func (m *GetDeltaRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -806,7 +806,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 	var errors []error
 
 	if m.GetChatId() == nil {
-		err := GetEventsRequestValidationError{
+		err := GetDeltaRequestValidationError{
 			field:  "ChatId",
 			reason: "value is required",
 		}
@@ -820,7 +820,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetChatId()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetEventsRequestValidationError{
+				errors = append(errors, GetDeltaRequestValidationError{
 					field:  "ChatId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -828,7 +828,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetEventsRequestValidationError{
+				errors = append(errors, GetDeltaRequestValidationError{
 					field:  "ChatId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -837,7 +837,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetEventsRequestValidationError{
+			return GetDeltaRequestValidationError{
 				field:  "ChatId",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -847,10 +847,8 @@ func (m *GetEventsRequest) validate(all bool) error {
 
 	// no validation rules for AfterSequence
 
-	// no validation rules for EndSequence
-
 	if m.GetAuth() == nil {
-		err := GetEventsRequestValidationError{
+		err := GetDeltaRequestValidationError{
 			field:  "Auth",
 			reason: "value is required",
 		}
@@ -864,7 +862,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetEventsRequestValidationError{
+				errors = append(errors, GetDeltaRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -872,7 +870,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetEventsRequestValidationError{
+				errors = append(errors, GetDeltaRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -881,7 +879,7 @@ func (m *GetEventsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetEventsRequestValidationError{
+			return GetDeltaRequestValidationError{
 				field:  "Auth",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -890,19 +888,19 @@ func (m *GetEventsRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetEventsRequestMultiError(errors)
+		return GetDeltaRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetEventsRequestMultiError is an error wrapping multiple validation errors
-// returned by GetEventsRequest.ValidateAll() if the designated constraints
+// GetDeltaRequestMultiError is an error wrapping multiple validation errors
+// returned by GetDeltaRequest.ValidateAll() if the designated constraints
 // aren't met.
-type GetEventsRequestMultiError []error
+type GetDeltaRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetEventsRequestMultiError) Error() string {
+func (m GetDeltaRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -911,11 +909,11 @@ func (m GetEventsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetEventsRequestMultiError) AllErrors() []error { return m }
+func (m GetDeltaRequestMultiError) AllErrors() []error { return m }
 
-// GetEventsRequestValidationError is the validation error returned by
-// GetEventsRequest.Validate if the designated constraints aren't met.
-type GetEventsRequestValidationError struct {
+// GetDeltaRequestValidationError is the validation error returned by
+// GetDeltaRequest.Validate if the designated constraints aren't met.
+type GetDeltaRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -923,22 +921,22 @@ type GetEventsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetEventsRequestValidationError) Field() string { return e.field }
+func (e GetDeltaRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetEventsRequestValidationError) Reason() string { return e.reason }
+func (e GetDeltaRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetEventsRequestValidationError) Cause() error { return e.cause }
+func (e GetDeltaRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetEventsRequestValidationError) Key() bool { return e.key }
+func (e GetDeltaRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetEventsRequestValidationError) ErrorName() string { return "GetEventsRequestValidationError" }
+func (e GetDeltaRequestValidationError) ErrorName() string { return "GetDeltaRequestValidationError" }
 
 // Error satisfies the builtin error interface
-func (e GetEventsRequestValidationError) Error() string {
+func (e GetDeltaRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -950,14 +948,14 @@ func (e GetEventsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetEventsRequest.%s: %s%s",
+		"invalid %sGetDeltaRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetEventsRequestValidationError{}
+var _ error = GetDeltaRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -965,24 +963,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetEventsRequestValidationError{}
+} = GetDeltaRequestValidationError{}
 
-// Validate checks the field values on GetEventsResponse with the rules defined
+// Validate checks the field values on GetDeltaResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
-func (m *GetEventsResponse) Validate() error {
+func (m *GetDeltaResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetEventsResponse with the rules
+// ValidateAll checks the field values on GetDeltaResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetEventsResponseMultiError, or nil if none found.
-func (m *GetEventsResponse) ValidateAll() error {
+// GetDeltaResponseMultiError, or nil if none found.
+func (m *GetDeltaResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetEventsResponse) validate(all bool) error {
+func (m *GetDeltaResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -995,7 +993,7 @@ func (m *GetEventsResponse) validate(all bool) error {
 		switch v := interface{}(m.GetMessages()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetEventsResponseValidationError{
+				errors = append(errors, GetDeltaResponseValidationError{
 					field:  "Messages",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1003,7 +1001,7 @@ func (m *GetEventsResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetEventsResponseValidationError{
+				errors = append(errors, GetDeltaResponseValidationError{
 					field:  "Messages",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1012,7 +1010,7 @@ func (m *GetEventsResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMessages()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetEventsResponseValidationError{
+			return GetDeltaResponseValidationError{
 				field:  "Messages",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1025,19 +1023,19 @@ func (m *GetEventsResponse) validate(all bool) error {
 	// no validation rules for CheckpointSequence
 
 	if len(errors) > 0 {
-		return GetEventsResponseMultiError(errors)
+		return GetDeltaResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetEventsResponseMultiError is an error wrapping multiple validation errors
-// returned by GetEventsResponse.ValidateAll() if the designated constraints
+// GetDeltaResponseMultiError is an error wrapping multiple validation errors
+// returned by GetDeltaResponse.ValidateAll() if the designated constraints
 // aren't met.
-type GetEventsResponseMultiError []error
+type GetDeltaResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetEventsResponseMultiError) Error() string {
+func (m GetDeltaResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1046,11 +1044,11 @@ func (m GetEventsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetEventsResponseMultiError) AllErrors() []error { return m }
+func (m GetDeltaResponseMultiError) AllErrors() []error { return m }
 
-// GetEventsResponseValidationError is the validation error returned by
-// GetEventsResponse.Validate if the designated constraints aren't met.
-type GetEventsResponseValidationError struct {
+// GetDeltaResponseValidationError is the validation error returned by
+// GetDeltaResponse.Validate if the designated constraints aren't met.
+type GetDeltaResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1058,24 +1056,22 @@ type GetEventsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetEventsResponseValidationError) Field() string { return e.field }
+func (e GetDeltaResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetEventsResponseValidationError) Reason() string { return e.reason }
+func (e GetDeltaResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetEventsResponseValidationError) Cause() error { return e.cause }
+func (e GetDeltaResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetEventsResponseValidationError) Key() bool { return e.key }
+func (e GetDeltaResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetEventsResponseValidationError) ErrorName() string {
-	return "GetEventsResponseValidationError"
-}
+func (e GetDeltaResponseValidationError) ErrorName() string { return "GetDeltaResponseValidationError" }
 
 // Error satisfies the builtin error interface
-func (e GetEventsResponseValidationError) Error() string {
+func (e GetDeltaResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1087,14 +1083,14 @@ func (e GetEventsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetEventsResponse.%s: %s%s",
+		"invalid %sGetDeltaResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetEventsResponseValidationError{}
+var _ error = GetDeltaResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1102,7 +1098,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetEventsResponseValidationError{}
+} = GetDeltaResponseValidationError{}
 
 // Validate checks the field values on SendMessageRequest with the rules
 // defined in the proto definition for this message. If any rules are

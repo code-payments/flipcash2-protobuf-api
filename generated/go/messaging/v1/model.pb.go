@@ -323,7 +323,8 @@ type Message struct {
 	// stream, GetMessages, SendMessage echo, last_message, push). Clients apply
 	// last-writer-wins by this value: ignore a copy whose event_sequence is <=
 	// the version already held, otherwise insert/replace. Cross-message gap
-	// detection still relies on Event.sequence/count.
+	// detection is separate, via the live event log's Event.sequence/count and
+	// GetDelta catch-up.
 	EventSequence uint64 `protobuf:"varint,7,opt,name=event_sequence,json=eventSequence,proto3" json:"event_sequence,omitempty"`
 	// Aggregate reaction state for this message, current as of the time it was
 	// read. This is a convergent overlay, NOT part of the content versioned by
@@ -1331,7 +1332,7 @@ func (x *EmojiReaction) GetSequence() uint64 {
 // ReactionUpdate is a best-effort, real-time reaction change for a single
 // (message, emoji) cell. Reactions are a convergent overlay, so these ride the
 // event stream OUTSIDE the gap-detected event log — a missed update is not
-// caught up via GetEvents but reconciled by refreshing the message's
+// caught up via GetDelta but reconciled by refreshing the message's
 // ReactionSummary on view.
 type ReactionUpdate struct {
 	state         protoimpl.MessageState
@@ -1710,7 +1711,7 @@ func (x *PointerBatch) GetPointers() []*Pointer {
 // state, NOT replayed through this log.
 //
 // Clients apply events in ascending sequence order and use the sequence/count
-// pair to detect gaps; on a gap they catch up via GetEvents.
+// pair to detect gaps; on a gap they catch up via GetDelta.
 type Event struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
