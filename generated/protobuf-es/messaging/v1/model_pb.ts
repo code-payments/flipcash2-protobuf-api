@@ -715,6 +715,14 @@ export class DeletedContent extends Message$1<DeletedContent> {
    */
   deletedTs?: Timestamp;
 
+  /**
+   * When present, the user that deleted the message. If not present, a it is
+   * a system-level deletion (eg. moderation check).
+   *
+   * @generated from field: flipcash.common.v1.UserId deleted_by = 2;
+   */
+  deletedBy?: UserId;
+
   constructor(data?: PartialMessage<DeletedContent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -724,6 +732,7 @@ export class DeletedContent extends Message$1<DeletedContent> {
   static readonly typeName = "flipcash.messaging.v1.DeletedContent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "deleted_ts", kind: "message", T: Timestamp },
+    { no: 2, name: "deleted_by", kind: "message", T: UserId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeletedContent {
