@@ -50,12 +50,12 @@ export class Metadata extends Message<Metadata> {
    * The chat's head event sequence — the value of the most recent event in its
    * event log. A client compares this against its locally stored cursor for
    * the chat to decide whether catch-up is needed: if its cursor is behind, it
-   * calls Messaging.GetEvents; if equal, it is current and can skip it.
+   * calls Messaging.GetDelta; if equal, it is current and can skip it.
    *
    * This is NOT derivable from last_message: an edit or deletion of an older
    * message advances the head without changing last_message, so this value can
    * exceed last_message.event_sequence. It is the same head reported by
-   * GetEventsResponse.latest_sequence.
+   * GetDeltaResponse.latest_sequence.
    *
    * @generated from field: uint64 latest_event_sequence = 6;
    */

@@ -493,7 +493,7 @@ type ChatUpdate struct {
 	// If present, durable event-log events for the chat (messages sent, edited,
 	// and deleted). These are contiguous and ordered: clients apply them by
 	// ascending Event.sequence and gap-detect via Event.sequence/count, catching
-	// up with Messaging.GetEvents on a gap. This supersedes new_messages.
+	// up with Messaging.GetDelta on a gap. This supersedes new_messages.
 	Events *v11.EventBatch `protobuf:"bytes,6,opt,name=events,proto3" json:"events,omitempty"`
 	// If present, best-effort real-time reaction changes for messages in the
 	// chat. Like pointer_updates, reactions are a convergent overlay — NOT part

@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Messaging_GetMessage_FullMethodName           = "/flipcash.messaging.v1.Messaging/GetMessage"
 	Messaging_GetMessages_FullMethodName          = "/flipcash.messaging.v1.Messaging/GetMessages"
-	Messaging_GetEvents_FullMethodName            = "/flipcash.messaging.v1.Messaging/GetEvents"
+	Messaging_GetDelta_FullMethodName             = "/flipcash.messaging.v1.Messaging/GetDelta"
 	Messaging_SendMessage_FullMethodName          = "/flipcash.messaging.v1.Messaging/SendMessage"
 	Messaging_EditMessage_FullMethodName          = "/flipcash.messaging.v1.Messaging/EditMessage"
 	Messaging_DeleteMessage_FullMethodName        = "/flipcash.messaging.v1.Messaging/DeleteMessage"
@@ -42,34 +42,38 @@ type MessagingClient interface {
 	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*GetMessageResponse, error)
 	// GetMessages gets the set of messages for a chat using paged and batched APIs
 	GetMessages(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (*GetMessagesResponse, error)
-	// GetEvents returns, for cold-boot and reconnect catch-up, the current
-	// state of every message changed since the client's cursor. It is a state
-	// delta, not a contiguous replay: the client applies the returned messages
+	// GetDelta returns, for cold-boot and reconnect catch-up, the current state
+	// of every message changed since the client's cursor, up to the chat's
+	// current head. It is a state delta, not a contiguous replay: each changed
+	// message appears once in its latest state and the client applies it
 	// last-writer-wins. Transient signals (typing) and convergent state
-	// (pointers) are fetched separately, not returned here.
+	// (pointers, reactions) are fetched separately, not returned here.
+	//
+	// GetDelta always catches up to the head; there is no caller-specified
+	// upper bound. An online client that detects a gap while already receiving
+	// live updates does NOT bound the fetch: it calls GetDelta to the head and
+	// lets last-writer-wins (Message.event_sequence) absorb the overlap with
+	// live events buffered during the call — a message delivered by both paths
+	// is applied once, newest wins. A client may also wait briefly for an
+	// out-of-order live update to close a small gap before calling at all.
 	//
 	// On stream completion the client advances its cursor to the highest
-	// checkpoint_sequence it received. For an unbounded catch-up (end_sequence
-	// unset) that final checkpoint equals latest_sequence — the client is now at
-	// the head. For a bounded fill (end_sequence set) it lands on end_sequence,
-	// not the head, since the delta intentionally stops at end and live events
-	// cover everything after it. When the client is already current the server
-	// sends a single response with messages omitted (and checkpoint_sequence
-	// unset), leaving the cursor unchanged; latest_sequence still reports the
-	// head.
+	// checkpoint_sequence it received, which equals latest_sequence — the client
+	// is now at the head. When the client is already current the server sends a
+	// single response with messages omitted (and checkpoint_sequence unset),
+	// leaving the cursor unchanged; latest_sequence still reports the head.
 	//
 	// This is a BOUNDED server stream: the server emits one or more batches and
-	// then completes once the delta up to end_sequence (or the head at stream
-	// open) is exhausted. Unlike StreamEvents it does NOT stay open for live
-	// updates. Streaming the delta in batches avoids a per-page round trip; the
-	// server may currently send the whole delta as a single response, so clients
-	// must handle any number of batches and treat stream completion as
-	// "caught up."
+	// then completes once the delta up to the head (as of stream open) is
+	// exhausted. Unlike StreamEvents it does NOT stay open for live updates.
+	// Streaming the delta in batches avoids a per-page round trip; the server may
+	// currently send the whole delta as a single response, so clients must handle
+	// any number of batches and treat stream completion as "caught up."
 	//
 	// The Result field is meaningful on the first response and is OK for
 	// subsequent data batches; a terminal DENIED or RESET_REQUIRED is delivered
 	// as a single response that ends the stream.
-	GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetEventsResponse], error)
+	GetDelta(ctx context.Context, in *GetDeltaRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetDeltaResponse], error)
 	// SendMessage sends a message to a chat.
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	// EditMessage edits the content of a message the caller previously sent.
@@ -132,13 +136,13 @@ func (c *messagingClient) GetMessages(ctx context.Context, in *GetMessagesReques
 	return out, nil
 }
 
-func (c *messagingClient) GetEvents(ctx context.Context, in *GetEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetEventsResponse], error) {
+func (c *messagingClient) GetDelta(ctx context.Context, in *GetDeltaRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[GetDeltaResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Messaging_ServiceDesc.Streams[0], Messaging_GetEvents_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Messaging_ServiceDesc.Streams[0], Messaging_GetDelta_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[GetEventsRequest, GetEventsResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[GetDeltaRequest, GetDeltaResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -149,7 +153,7 @@ func (c *messagingClient) GetEvents(ctx context.Context, in *GetEventsRequest, o
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Messaging_GetEventsClient = grpc.ServerStreamingClient[GetEventsResponse]
+type Messaging_GetDeltaClient = grpc.ServerStreamingClient[GetDeltaResponse]
 
 func (c *messagingClient) SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -259,34 +263,38 @@ type MessagingServer interface {
 	GetMessage(context.Context, *GetMessageRequest) (*GetMessageResponse, error)
 	// GetMessages gets the set of messages for a chat using paged and batched APIs
 	GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error)
-	// GetEvents returns, for cold-boot and reconnect catch-up, the current
-	// state of every message changed since the client's cursor. It is a state
-	// delta, not a contiguous replay: the client applies the returned messages
+	// GetDelta returns, for cold-boot and reconnect catch-up, the current state
+	// of every message changed since the client's cursor, up to the chat's
+	// current head. It is a state delta, not a contiguous replay: each changed
+	// message appears once in its latest state and the client applies it
 	// last-writer-wins. Transient signals (typing) and convergent state
-	// (pointers) are fetched separately, not returned here.
+	// (pointers, reactions) are fetched separately, not returned here.
+	//
+	// GetDelta always catches up to the head; there is no caller-specified
+	// upper bound. An online client that detects a gap while already receiving
+	// live updates does NOT bound the fetch: it calls GetDelta to the head and
+	// lets last-writer-wins (Message.event_sequence) absorb the overlap with
+	// live events buffered during the call — a message delivered by both paths
+	// is applied once, newest wins. A client may also wait briefly for an
+	// out-of-order live update to close a small gap before calling at all.
 	//
 	// On stream completion the client advances its cursor to the highest
-	// checkpoint_sequence it received. For an unbounded catch-up (end_sequence
-	// unset) that final checkpoint equals latest_sequence — the client is now at
-	// the head. For a bounded fill (end_sequence set) it lands on end_sequence,
-	// not the head, since the delta intentionally stops at end and live events
-	// cover everything after it. When the client is already current the server
-	// sends a single response with messages omitted (and checkpoint_sequence
-	// unset), leaving the cursor unchanged; latest_sequence still reports the
-	// head.
+	// checkpoint_sequence it received, which equals latest_sequence — the client
+	// is now at the head. When the client is already current the server sends a
+	// single response with messages omitted (and checkpoint_sequence unset),
+	// leaving the cursor unchanged; latest_sequence still reports the head.
 	//
 	// This is a BOUNDED server stream: the server emits one or more batches and
-	// then completes once the delta up to end_sequence (or the head at stream
-	// open) is exhausted. Unlike StreamEvents it does NOT stay open for live
-	// updates. Streaming the delta in batches avoids a per-page round trip; the
-	// server may currently send the whole delta as a single response, so clients
-	// must handle any number of batches and treat stream completion as
-	// "caught up."
+	// then completes once the delta up to the head (as of stream open) is
+	// exhausted. Unlike StreamEvents it does NOT stay open for live updates.
+	// Streaming the delta in batches avoids a per-page round trip; the server may
+	// currently send the whole delta as a single response, so clients must handle
+	// any number of batches and treat stream completion as "caught up."
 	//
 	// The Result field is meaningful on the first response and is OK for
 	// subsequent data batches; a terminal DENIED or RESET_REQUIRED is delivered
 	// as a single response that ends the stream.
-	GetEvents(*GetEventsRequest, grpc.ServerStreamingServer[GetEventsResponse]) error
+	GetDelta(*GetDeltaRequest, grpc.ServerStreamingServer[GetDeltaResponse]) error
 	// SendMessage sends a message to a chat.
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	// EditMessage edits the content of a message the caller previously sent.
@@ -335,8 +343,8 @@ func (UnimplementedMessagingServer) GetMessage(context.Context, *GetMessageReque
 func (UnimplementedMessagingServer) GetMessages(context.Context, *GetMessagesRequest) (*GetMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMessages not implemented")
 }
-func (UnimplementedMessagingServer) GetEvents(*GetEventsRequest, grpc.ServerStreamingServer[GetEventsResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method GetEvents not implemented")
+func (UnimplementedMessagingServer) GetDelta(*GetDeltaRequest, grpc.ServerStreamingServer[GetDeltaResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method GetDelta not implemented")
 }
 func (UnimplementedMessagingServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
@@ -425,16 +433,16 @@ func _Messaging_GetMessages_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Messaging_GetEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GetEventsRequest)
+func _Messaging_GetDelta_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetDeltaRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(MessagingServer).GetEvents(m, &grpc.GenericServerStream[GetEventsRequest, GetEventsResponse]{ServerStream: stream})
+	return srv.(MessagingServer).GetDelta(m, &grpc.GenericServerStream[GetDeltaRequest, GetDeltaResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Messaging_GetEventsServer = grpc.ServerStreamingServer[GetEventsResponse]
+type Messaging_GetDeltaServer = grpc.ServerStreamingServer[GetDeltaResponse]
 
 func _Messaging_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SendMessageRequest)
@@ -674,8 +682,8 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GetEvents",
-			Handler:       _Messaging_GetEvents_Handler,
+			StreamName:    "GetDelta",
+			Handler:       _Messaging_GetDelta_Handler,
 			ServerStreams: true,
 		},
 	},

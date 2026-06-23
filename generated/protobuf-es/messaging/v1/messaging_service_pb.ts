@@ -258,9 +258,9 @@ proto3.util.setEnumType(GetMessagesResponse_Result, "flipcash.messaging.v1.GetMe
 ]);
 
 /**
- * @generated from message flipcash.messaging.v1.GetEventsRequest
+ * @generated from message flipcash.messaging.v1.GetDeltaRequest
  */
-export class GetEventsRequest extends Message<GetEventsRequest> {
+export class GetDeltaRequest extends Message<GetDeltaRequest> {
   /**
    * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
@@ -268,81 +268,65 @@ export class GetEventsRequest extends Message<GetEventsRequest> {
 
   /**
    * The latest event sequence the client has already applied. The server
-   * returns the current state of messages whose event_sequence is greater
-   * than this value. Use 0 to fetch from the beginning of the retained log.
+   * returns the current state of messages whose event_sequence is greater than
+   * this value, up to the current head. Use 0 to fetch from the beginning of
+   * the retained log.
    *
    * @generated from field: uint64 after_sequence = 2;
    */
   afterSequence = protoInt64.zero;
 
   /**
-   * Optional inclusive upper bound on event_sequence. When set, the server
-   * returns only the current state of messages with
-   * after_sequence < event_sequence <= end_sequence, letting an online client
-   * fill a known gap (local, end] and rely on the live stream for everything
-   * after end. Leave unset (0) to catch up to the current head — the correct
-   * choice for cold boot, where no end is known yet.
-   *
-   * Note: the bound is on CURRENT event_sequence, so a message re-edited past
-   * end is delivered via the live stream, not here. Only use end_sequence
-   * while concurrently buffering live events with sequence > end.
-   *
-   * @generated from field: uint64 end_sequence = 3;
-   */
-  endSequence = protoInt64.zero;
-
-  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
 
-  constructor(data?: PartialMessage<GetEventsRequest>) {
+  constructor(data?: PartialMessage<GetDeltaRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.messaging.v1.GetEventsRequest";
+  static readonly typeName = "flipcash.messaging.v1.GetDeltaRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "after_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 3, name: "end_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetEventsRequest {
-    return new GetEventsRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetDeltaRequest {
+    return new GetDeltaRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetEventsRequest {
-    return new GetEventsRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetDeltaRequest {
+    return new GetDeltaRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetEventsRequest {
-    return new GetEventsRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetDeltaRequest {
+    return new GetDeltaRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetEventsRequest | PlainMessage<GetEventsRequest> | undefined, b: GetEventsRequest | PlainMessage<GetEventsRequest> | undefined): boolean {
-    return proto3.util.equals(GetEventsRequest, a, b);
+  static equals(a: GetDeltaRequest | PlainMessage<GetDeltaRequest> | undefined, b: GetDeltaRequest | PlainMessage<GetDeltaRequest> | undefined): boolean {
+    return proto3.util.equals(GetDeltaRequest, a, b);
   }
 }
 
 /**
- * @generated from message flipcash.messaging.v1.GetEventsResponse
+ * @generated from message flipcash.messaging.v1.GetDeltaResponse
  */
-export class GetEventsResponse extends Message<GetEventsResponse> {
+export class GetDeltaResponse extends Message<GetDeltaResponse> {
   /**
-   * @generated from field: flipcash.messaging.v1.GetEventsResponse.Result result = 1;
+   * @generated from field: flipcash.messaging.v1.GetDeltaResponse.Result result = 1;
    */
-  result = GetEventsResponse_Result.OK;
+  result = GetDeltaResponse_Result.OK;
 
   /**
    * A batch of changed messages in STRICTLY ASCENDING event_sequence order,
    * continuing in order across batches (every sequence in a batch is higher
    * than every sequence in the prior batch). Across the whole stream this is
-   * the current state of every message changed in the requested range; a
-   * message normally appears once in its latest state, but one re-edited
-   * mid-stream may reappear at its new, higher sequence (apply
+   * the current state of every message changed since after_sequence, up to the
+   * head; a message normally appears once in its latest state, but one
+   * re-edited mid-stream may reappear at its new, higher sequence (apply
    * last-writer-wins). Omitted (not an empty batch) when there are no changes
    * to report — e.g. when the client is already current; the server still
    * sets latest_sequence and the stream then completes. Note MessageBatch
@@ -354,11 +338,11 @@ export class GetEventsResponse extends Message<GetEventsResponse> {
   messages?: MessageBatch;
 
   /**
-   * The chat's latest event sequence (head). Informational while streaming —
-   * it tells the client how far the chat has advanced even if this catch-up is
-   * bounded by end_sequence. Once the stream completes unbounded, the client's
-   * cursor equals this; it does not need contiguous coverage of the
-   * intervening points, only the resulting state.
+   * The chat's latest event sequence (head) as of stream open — the target this
+   * catch-up converges to. Informational while streaming: it tells the client
+   * how far the chat has advanced before the final batch arrives. Once the
+   * stream completes, the client's cursor equals this; it does not need
+   * contiguous coverage of the intervening points, only the resulting state.
    *
    * @generated from field: uint64 latest_sequence = 3;
    */
@@ -367,52 +351,52 @@ export class GetEventsResponse extends Message<GetEventsResponse> {
   /**
    * Resume checkpoint: the event_sequence through which the delta is complete
    * as of this batch — the batch's high-water mark, monotonically increasing
-   * across the stream. Persist it AFTER fully applying the batch. If the
-   * stream drops mid-catch-up, resume by calling GetEvents again with
-   * after_sequence set to the last checkpoint_sequence received. Because
-   * event_sequence only ever increases, this resumes exactly where you left
-   * off with no skipped messages (and at worst a harmless last-writer-wins
+   * across the stream toward latest_sequence. Persist it AFTER fully applying
+   * the batch. If the stream drops mid-catch-up, resume by calling GetDelta
+   * again with after_sequence set to the last checkpoint_sequence received.
+   * Because event_sequence only ever increases, this resumes exactly where you
+   * left off with no skipped messages (and at worst a harmless last-writer-wins
    * re-apply of the boundary).
    *
    * @generated from field: uint64 checkpoint_sequence = 4;
    */
   checkpointSequence = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GetEventsResponse>) {
+  constructor(data?: PartialMessage<GetDeltaResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.messaging.v1.GetEventsResponse";
+  static readonly typeName = "flipcash.messaging.v1.GetDeltaResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetEventsResponse_Result) },
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetDeltaResponse_Result) },
     { no: 2, name: "messages", kind: "message", T: MessageBatch },
     { no: 3, name: "latest_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 4, name: "checkpoint_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetEventsResponse {
-    return new GetEventsResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetDeltaResponse {
+    return new GetDeltaResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetEventsResponse {
-    return new GetEventsResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetDeltaResponse {
+    return new GetDeltaResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetEventsResponse {
-    return new GetEventsResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetDeltaResponse {
+    return new GetDeltaResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetEventsResponse | PlainMessage<GetEventsResponse> | undefined, b: GetEventsResponse | PlainMessage<GetEventsResponse> | undefined): boolean {
-    return proto3.util.equals(GetEventsResponse, a, b);
+  static equals(a: GetDeltaResponse | PlainMessage<GetDeltaResponse> | undefined, b: GetDeltaResponse | PlainMessage<GetDeltaResponse> | undefined): boolean {
+    return proto3.util.equals(GetDeltaResponse, a, b);
   }
 }
 
 /**
- * @generated from enum flipcash.messaging.v1.GetEventsResponse.Result
+ * @generated from enum flipcash.messaging.v1.GetDeltaResponse.Result
  */
-export enum GetEventsResponse_Result {
+export enum GetDeltaResponse_Result {
   /**
    * @generated from enum value: OK = 0;
    */
@@ -432,8 +416,8 @@ export enum GetEventsResponse_Result {
    */
   RESET_REQUIRED = 2,
 }
-// Retrieve enum metadata with: proto3.getEnumType(GetEventsResponse_Result)
-proto3.util.setEnumType(GetEventsResponse_Result, "flipcash.messaging.v1.GetEventsResponse.Result", [
+// Retrieve enum metadata with: proto3.getEnumType(GetDeltaResponse_Result)
+proto3.util.setEnumType(GetDeltaResponse_Result, "flipcash.messaging.v1.GetDeltaResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "RESET_REQUIRED" },
