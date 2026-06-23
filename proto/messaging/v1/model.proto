@@ -213,6 +213,10 @@ message DeletedContent {
     // analog of Message.last_edited_ts, kept here so all deletion state lives in
     // the content rather than as a separate flag on Message.
     google.protobuf.Timestamp deleted_ts = 1 [(validate.rules).timestamp.required = true];
+
+    // When present, the user that deleted the message. If not present, a it is
+    // a system-level deletion (eg. moderation check).
+    common.v1.UserId deleted_by = 2;
 }
 
 // Emoji identifies an emoji used in a reaction. The value is a unicode emoji
