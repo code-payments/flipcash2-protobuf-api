@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.messaging.v1";
 option objc_class_prefix = "FPBMessagingV1";
 
+import "blob/v1/model.proto";
 import "common/v1/common.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
@@ -153,42 +154,15 @@ message MediaContent {
 }
 
 message MediaItem {
-    // Client-provided reference to media already uploaded out-of-band
-    MediaId media_id = 1 [(validate.rules).message.required = true];
+    // Client-provided handle to the blob holding the media bytes, already
+    // uploaded out-of-band via the blob service.
+    blob.v1.BlobId blob_id = 1 [(validate.rules).message.required = true];
 
-    // Server-authoritative metadata, resolved from the upload record. It is
-    // omitted on SendMessage and populated on stored/returned messages
-    MediaMetadata metadata = 2;
-}
-
-message MediaId {
-    bytes value = 1 [(validate.rules).bytes = {
-        min_len: 16
-        max_len: 16
-    }];
-}
-
-// Server-authoritative metadata describing an uploaded media item. Never set by
-// clients; the server derives every field from the uploaded bytes.
-message MediaMetadata {
-    // MIME type (e.g. "image/jpeg", "video/mp4")
-    string mime_type = 1 [(validate.rules).string = {
-        min_len: 1
-        max_len: 255
-    }];
-
-    // Total size of the media in bytes.
-    uint64 size_bytes = 2 [(validate.rules).uint64.gte = 1];
-
-    // Pixel dimensions, for reserving layout before the bytes arrive.
-    uint32 width  = 3 [(validate.rules).uint32.gte = 1];
-    uint32 height = 4 [(validate.rules).uint32.gte = 1];
-
-    // Compact preview shown while the full media downloads (BlurHash string).
-    string blurhash = 5 [(validate.rules).string.max_len = 64];
-
-    // Duration in milliseconds for audio/video; 0 for stills.
-    uint64 duration_ms = 6;
+    // Server-authoritative blob metadata (mime type, size, download URL, and
+    // the kind-specific descriptors such as image dimensions/preview), resolved
+    // from the blob record. Omitted on SendMessage and populated on
+    // stored/returned messages.
+    blob.v1.BlobMetadata blob = 2;
 }
 
 // System message content

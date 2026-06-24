@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message as Message$1, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { CryptoPaymentAmount, IntentId, UserId } from "../../common/v1/common_pb";
+import { BlobId, BlobMetadata } from "../../blob/v1/model_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.MessageId
@@ -494,19 +495,22 @@ export class MediaContent extends Message$1<MediaContent> {
  */
 export class MediaItem extends Message$1<MediaItem> {
   /**
-   * Client-provided reference to media already uploaded out-of-band
+   * Client-provided handle to the blob holding the media bytes, already
+   * uploaded out-of-band via the blob service.
    *
-   * @generated from field: flipcash.messaging.v1.MediaId media_id = 1;
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
    */
-  mediaId?: MediaId;
+  blobId?: BlobId;
 
   /**
-   * Server-authoritative metadata, resolved from the upload record. It is
-   * omitted on SendMessage and populated on stored/returned messages
+   * Server-authoritative blob metadata (mime type, size, download URL, and
+   * the kind-specific descriptors such as image dimensions/preview), resolved
+   * from the blob record. Omitted on SendMessage and populated on
+   * stored/returned messages.
    *
-   * @generated from field: flipcash.messaging.v1.MediaMetadata metadata = 2;
+   * @generated from field: flipcash.blob.v1.BlobMetadata blob = 2;
    */
-  metadata?: MediaMetadata;
+  blob?: BlobMetadata;
 
   constructor(data?: PartialMessage<MediaItem>) {
     super();
@@ -516,8 +520,8 @@ export class MediaItem extends Message$1<MediaItem> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.messaging.v1.MediaItem";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "media_id", kind: "message", T: MediaId },
-    { no: 2, name: "metadata", kind: "message", T: MediaMetadata },
+    { no: 1, name: "blob_id", kind: "message", T: BlobId },
+    { no: 2, name: "blob", kind: "message", T: BlobMetadata },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaItem {
@@ -534,123 +538,6 @@ export class MediaItem extends Message$1<MediaItem> {
 
   static equals(a: MediaItem | PlainMessage<MediaItem> | undefined, b: MediaItem | PlainMessage<MediaItem> | undefined): boolean {
     return proto3.util.equals(MediaItem, a, b);
-  }
-}
-
-/**
- * @generated from message flipcash.messaging.v1.MediaId
- */
-export class MediaId extends Message$1<MediaId> {
-  /**
-   * @generated from field: bytes value = 1;
-   */
-  value = new Uint8Array(0);
-
-  constructor(data?: PartialMessage<MediaId>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.messaging.v1.MediaId";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaId {
-    return new MediaId().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaId {
-    return new MediaId().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaId {
-    return new MediaId().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: MediaId | PlainMessage<MediaId> | undefined, b: MediaId | PlainMessage<MediaId> | undefined): boolean {
-    return proto3.util.equals(MediaId, a, b);
-  }
-}
-
-/**
- * Server-authoritative metadata describing an uploaded media item. Never set by
- * clients; the server derives every field from the uploaded bytes.
- *
- * @generated from message flipcash.messaging.v1.MediaMetadata
- */
-export class MediaMetadata extends Message$1<MediaMetadata> {
-  /**
-   * MIME type (e.g. "image/jpeg", "video/mp4")
-   *
-   * @generated from field: string mime_type = 1;
-   */
-  mimeType = "";
-
-  /**
-   * Total size of the media in bytes.
-   *
-   * @generated from field: uint64 size_bytes = 2;
-   */
-  sizeBytes = protoInt64.zero;
-
-  /**
-   * Pixel dimensions, for reserving layout before the bytes arrive.
-   *
-   * @generated from field: uint32 width = 3;
-   */
-  width = 0;
-
-  /**
-   * @generated from field: uint32 height = 4;
-   */
-  height = 0;
-
-  /**
-   * Compact preview shown while the full media downloads (BlurHash string).
-   *
-   * @generated from field: string blurhash = 5;
-   */
-  blurhash = "";
-
-  /**
-   * Duration in milliseconds for audio/video; 0 for stills.
-   *
-   * @generated from field: uint64 duration_ms = 6;
-   */
-  durationMs = protoInt64.zero;
-
-  constructor(data?: PartialMessage<MediaMetadata>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.messaging.v1.MediaMetadata";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 3, name: "width", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 4, name: "height", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 5, name: "blurhash", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "duration_ms", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaMetadata {
-    return new MediaMetadata().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaMetadata {
-    return new MediaMetadata().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaMetadata {
-    return new MediaMetadata().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: MediaMetadata | PlainMessage<MediaMetadata> | undefined, b: MediaMetadata | PlainMessage<MediaMetadata> | undefined): boolean {
-    return proto3.util.equals(MediaMetadata, a, b);
   }
 }
 
