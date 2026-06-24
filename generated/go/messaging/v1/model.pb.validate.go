@@ -1584,9 +1584,9 @@ func (m *MediaItem) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetMediaId() == nil {
+	if m.GetBlobId() == nil {
 		err := MediaItemValidationError{
-			field:  "MediaId",
+			field:  "BlobId",
 			reason: "value is required",
 		}
 		if !all {
@@ -1596,11 +1596,11 @@ func (m *MediaItem) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetMediaId()).(type) {
+		switch v := interface{}(m.GetBlobId()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, MediaItemValidationError{
-					field:  "MediaId",
+					field:  "BlobId",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -1608,16 +1608,16 @@ func (m *MediaItem) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, MediaItemValidationError{
-					field:  "MediaId",
+					field:  "BlobId",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetMediaId()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return MediaItemValidationError{
-				field:  "MediaId",
+				field:  "BlobId",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -1625,11 +1625,11 @@ func (m *MediaItem) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetMetadata()).(type) {
+		switch v := interface{}(m.GetBlob()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, MediaItemValidationError{
-					field:  "Metadata",
+					field:  "Blob",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -1637,16 +1637,16 @@ func (m *MediaItem) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, MediaItemValidationError{
-					field:  "Metadata",
+					field:  "Blob",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetBlob()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return MediaItemValidationError{
-				field:  "Metadata",
+				field:  "Blob",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -1729,272 +1729,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MediaItemValidationError{}
-
-// Validate checks the field values on MediaId with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *MediaId) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on MediaId with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in MediaIdMultiError, or nil if none found.
-func (m *MediaId) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *MediaId) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(m.GetValue()) != 16 {
-		err := MediaIdValidationError{
-			field:  "Value",
-			reason: "value length must be 16 bytes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if len(errors) > 0 {
-		return MediaIdMultiError(errors)
-	}
-
-	return nil
-}
-
-// MediaIdMultiError is an error wrapping multiple validation errors returned
-// by MediaId.ValidateAll() if the designated constraints aren't met.
-type MediaIdMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m MediaIdMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m MediaIdMultiError) AllErrors() []error { return m }
-
-// MediaIdValidationError is the validation error returned by MediaId.Validate
-// if the designated constraints aren't met.
-type MediaIdValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e MediaIdValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e MediaIdValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e MediaIdValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e MediaIdValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e MediaIdValidationError) ErrorName() string { return "MediaIdValidationError" }
-
-// Error satisfies the builtin error interface
-func (e MediaIdValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sMediaId.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = MediaIdValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = MediaIdValidationError{}
-
-// Validate checks the field values on MediaMetadata with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *MediaMetadata) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on MediaMetadata with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in MediaMetadataMultiError, or
-// nil if none found.
-func (m *MediaMetadata) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *MediaMetadata) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if l := utf8.RuneCountInString(m.GetMimeType()); l < 1 || l > 255 {
-		err := MediaMetadataValidationError{
-			field:  "MimeType",
-			reason: "value length must be between 1 and 255 runes, inclusive",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if m.GetSizeBytes() < 1 {
-		err := MediaMetadataValidationError{
-			field:  "SizeBytes",
-			reason: "value must be greater than or equal to 1",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if m.GetWidth() < 1 {
-		err := MediaMetadataValidationError{
-			field:  "Width",
-			reason: "value must be greater than or equal to 1",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if m.GetHeight() < 1 {
-		err := MediaMetadataValidationError{
-			field:  "Height",
-			reason: "value must be greater than or equal to 1",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetBlurhash()) > 64 {
-		err := MediaMetadataValidationError{
-			field:  "Blurhash",
-			reason: "value length must be at most 64 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	// no validation rules for DurationMs
-
-	if len(errors) > 0 {
-		return MediaMetadataMultiError(errors)
-	}
-
-	return nil
-}
-
-// MediaMetadataMultiError is an error wrapping multiple validation errors
-// returned by MediaMetadata.ValidateAll() if the designated constraints
-// aren't met.
-type MediaMetadataMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m MediaMetadataMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m MediaMetadataMultiError) AllErrors() []error { return m }
-
-// MediaMetadataValidationError is the validation error returned by
-// MediaMetadata.Validate if the designated constraints aren't met.
-type MediaMetadataValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e MediaMetadataValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e MediaMetadataValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e MediaMetadataValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e MediaMetadataValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e MediaMetadataValidationError) ErrorName() string { return "MediaMetadataValidationError" }
-
-// Error satisfies the builtin error interface
-func (e MediaMetadataValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sMediaMetadata.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = MediaMetadataValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = MediaMetadataValidationError{}
 
 // Validate checks the field values on SystemContent with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
