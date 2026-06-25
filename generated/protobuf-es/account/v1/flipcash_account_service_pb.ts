@@ -559,6 +559,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   minimumHolderValue = protoInt64.zero;
 
+  /**
+   * Whether email verification is required for Coinbase purchase flows
+   *
+   * @generated from field: bool require_coinbase_email_verification = 14;
+   */
+  requireCoinbaseEmailVerification = false;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -580,6 +587,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 11, name: "preferred_on_ramp_usdc_liquidity_pool", kind: "enum", T: proto3.getEnumType(UserFlags_UsdcLiquidityPool) },
     { no: 12, name: "enable_phone_number_send", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 13, name: "minimum_holder_value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 14, name: "require_coinbase_email_verification", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {

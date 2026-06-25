@@ -1333,6 +1333,8 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for MinimumHolderValue
 
+	// no validation rules for RequireCoinbaseEmailVerification
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
