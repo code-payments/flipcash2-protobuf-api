@@ -442,13 +442,16 @@ export class ReplyContent extends Message$1<ReplyContent> {
 }
 
 /**
- * Media content (images, video, etc.)
+ * Media content from blobs the user has already uploaded. The following media
+ * types are supported:
+ *  - Images
  *
  * @generated from message flipcash.messaging.v1.MediaContent
  */
 export class MediaContent extends Message$1<MediaContent> {
   /**
-   * The media items attached to this message
+   * The media items attached to this message. A single item today; raising
+   * this cap later enables albums (each item self-describes its kind).
    *
    * @generated from field: repeated flipcash.messaging.v1.MediaItem items = 1;
    */
@@ -491,26 +494,20 @@ export class MediaContent extends Message$1<MediaContent> {
 }
 
 /**
+ * One logical media item, carried as its set of renditions (quality/size variants).
+ *
  * @generated from message flipcash.messaging.v1.MediaItem
  */
 export class MediaItem extends Message$1<MediaItem> {
   /**
-   * Client-provided handle to the blob holding the media bytes, already
-   * uploaded out-of-band via the blob service.
+   * The renditions of this media, each an independently-stored blob. On
+   * SendMessage the client supplies exactly one ORIGINAL rendition (its
+   * blob_id); the server fills metadata and appends any derived renditions
+   * (e.g. a downscaled DISPLAY and a THUMBNAIL).
    *
-   * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
+   * @generated from field: repeated flipcash.messaging.v1.MediaItemRendition renditions = 1;
    */
-  blobId?: BlobId;
-
-  /**
-   * Server-authoritative blob metadata (mime type, size, download URL, and
-   * the kind-specific descriptors such as image dimensions/preview), resolved
-   * from the blob record. Omitted on SendMessage and populated on
-   * stored/returned messages.
-   *
-   * @generated from field: flipcash.blob.v1.BlobMetadata blob = 2;
-   */
-  blob?: BlobMetadata;
+  renditions: MediaItemRendition[] = [];
 
   constructor(data?: PartialMessage<MediaItem>) {
     super();
@@ -520,8 +517,7 @@ export class MediaItem extends Message$1<MediaItem> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.messaging.v1.MediaItem";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "blob_id", kind: "message", T: BlobId },
-    { no: 2, name: "blob", kind: "message", T: BlobMetadata },
+    { no: 1, name: "renditions", kind: "message", T: MediaItemRendition, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaItem {
@@ -540,6 +536,104 @@ export class MediaItem extends Message$1<MediaItem> {
     return proto3.util.equals(MediaItem, a, b);
   }
 }
+
+/**
+ * A single stored variant of a MediaItem
+ *
+ * @generated from message flipcash.messaging.v1.MediaItemRendition
+ */
+export class MediaItemRendition extends Message$1<MediaItemRendition> {
+  /**
+   * The intended use of this rendition within the item.
+   *
+   * @generated from field: flipcash.messaging.v1.MediaItemRendition.Role role = 1;
+   */
+  role = MediaItemRendition_Role.UNKNOWN;
+
+  /**
+   * Handle to the blob holding this rendition's bytes. Client-set on the
+   * ORIGINAL at send time; server-set for derived renditions.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 2;
+   */
+  blobId?: BlobId;
+
+  /**
+   * Server-authoritative blob metadata (mime type, size, download URL, and
+   * the image dimensions/preview), resolved from the blob record. Omitted on
+   * SendMessage and populated on stored/returned messages.
+   *
+   * @generated from field: flipcash.blob.v1.BlobMetadata blob = 3;
+   */
+  blob?: BlobMetadata;
+
+  constructor(data?: PartialMessage<MediaItemRendition>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.MediaItemRendition";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "role", kind: "enum", T: proto3.getEnumType(MediaItemRendition_Role) },
+    { no: 2, name: "blob_id", kind: "message", T: BlobId },
+    { no: 3, name: "blob", kind: "message", T: BlobMetadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MediaItemRendition {
+    return new MediaItemRendition().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MediaItemRendition {
+    return new MediaItemRendition().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MediaItemRendition {
+    return new MediaItemRendition().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MediaItemRendition | PlainMessage<MediaItemRendition> | undefined, b: MediaItemRendition | PlainMessage<MediaItemRendition> | undefined): boolean {
+    return proto3.util.equals(MediaItemRendition, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.MediaItemRendition.Role
+ */
+export enum MediaItemRendition_Role {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * full-quality source the client uploaded
+   *
+   * @generated from enum value: ORIGINAL = 1;
+   */
+  ORIGINAL = 1,
+
+  /**
+   * downscaled/compressed for inline display
+   *
+   * @generated from enum value: DISPLAY = 2;
+   */
+  DISPLAY = 2,
+
+  /**
+   * tiny grid preview
+   *
+   * @generated from enum value: THUMBNAIL = 3;
+   */
+  THUMBNAIL = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(MediaItemRendition_Role)
+proto3.util.setEnumType(MediaItemRendition_Role, "flipcash.messaging.v1.MediaItemRendition.Role", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "ORIGINAL" },
+  { no: 2, name: "DISPLAY" },
+  { no: 3, name: "THUMBNAIL" },
+]);
 
 /**
  * System message content
