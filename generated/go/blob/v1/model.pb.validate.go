@@ -144,6 +144,463 @@ var _ interface {
 	ErrorName() string
 } = BlobIdValidationError{}
 
+// Validate checks the field values on BlobIdBatch with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *BlobIdBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BlobIdBatch with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in BlobIdBatchMultiError, or
+// nil if none found.
+func (m *BlobIdBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BlobIdBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetBlobIds()); l < 1 || l > 100 {
+		err := BlobIdBatchValidationError{
+			field:  "BlobIds",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBlobIds() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BlobIdBatchValidationError{
+						field:  fmt.Sprintf("BlobIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BlobIdBatchValidationError{
+						field:  fmt.Sprintf("BlobIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BlobIdBatchValidationError{
+					field:  fmt.Sprintf("BlobIds[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return BlobIdBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// BlobIdBatchMultiError is an error wrapping multiple validation errors
+// returned by BlobIdBatch.ValidateAll() if the designated constraints aren't met.
+type BlobIdBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BlobIdBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BlobIdBatchMultiError) AllErrors() []error { return m }
+
+// BlobIdBatchValidationError is the validation error returned by
+// BlobIdBatch.Validate if the designated constraints aren't met.
+type BlobIdBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BlobIdBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BlobIdBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BlobIdBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BlobIdBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BlobIdBatchValidationError) ErrorName() string { return "BlobIdBatchValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BlobIdBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBlobIdBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BlobIdBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BlobIdBatchValidationError{}
+
+// Validate checks the field values on Blob with the rules defined in the proto
+// definition for this message. If any rules are violated, the first error
+// encountered is returned, or nil if there are no violations.
+func (m *Blob) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Blob with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in BlobMultiError, or nil if none found.
+func (m *Blob) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Blob) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetId() == nil {
+		err := BlobValidationError{
+			field:  "Id",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BlobValidationError{
+					field:  "Id",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BlobValidationError{
+					field:  "Id",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BlobValidationError{
+				field:  "Id",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Status
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BlobValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BlobValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BlobValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return BlobMultiError(errors)
+	}
+
+	return nil
+}
+
+// BlobMultiError is an error wrapping multiple validation errors returned by
+// Blob.ValidateAll() if the designated constraints aren't met.
+type BlobMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BlobMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BlobMultiError) AllErrors() []error { return m }
+
+// BlobValidationError is the validation error returned by Blob.Validate if the
+// designated constraints aren't met.
+type BlobValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BlobValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BlobValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BlobValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BlobValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BlobValidationError) ErrorName() string { return "BlobValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BlobValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBlob.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BlobValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BlobValidationError{}
+
+// Validate checks the field values on BlobBatch with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *BlobBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BlobBatch with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in BlobBatchMultiError, or nil
+// if none found.
+func (m *BlobBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BlobBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetBlobs()); l < 1 || l > 100 {
+		err := BlobBatchValidationError{
+			field:  "Blobs",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBlobs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BlobBatchValidationError{
+						field:  fmt.Sprintf("Blobs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BlobBatchValidationError{
+						field:  fmt.Sprintf("Blobs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BlobBatchValidationError{
+					field:  fmt.Sprintf("Blobs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return BlobBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// BlobBatchMultiError is an error wrapping multiple validation errors returned
+// by BlobBatch.ValidateAll() if the designated constraints aren't met.
+type BlobBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BlobBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BlobBatchMultiError) AllErrors() []error { return m }
+
+// BlobBatchValidationError is the validation error returned by
+// BlobBatch.Validate if the designated constraints aren't met.
+type BlobBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BlobBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BlobBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BlobBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BlobBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BlobBatchValidationError) ErrorName() string { return "BlobBatchValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BlobBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBlobBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BlobBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BlobBatchValidationError{}
+
 // Validate checks the field values on BlobMetadata with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -475,3 +932,164 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ImageMetadataValidationError{}
+
+// Validate checks the field values on UploadTarget with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *UploadTarget) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UploadTarget with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in UploadTargetMultiError, or
+// nil if none found.
+func (m *UploadTarget) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UploadTarget) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := _UploadTarget_Method_NotInLookup[m.GetMethod()]; ok {
+		err := UploadTargetValidationError{
+			field:  "Method",
+			reason: "value must not be in list [UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetUrl()) > 2048 {
+		err := UploadTargetValidationError{
+			field:  "Url",
+			reason: "value length must be at most 2048 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if uri, err := url.Parse(m.GetUrl()); err != nil {
+		err = UploadTargetValidationError{
+			field:  "Url",
+			reason: "value must be a valid URI",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	} else if !uri.IsAbs() {
+		err := UploadTargetValidationError{
+			field:  "Url",
+			reason: "value must be absolute",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Headers
+
+	// no validation rules for FormFields
+
+	if m.GetExpiresAt() == nil {
+		err := UploadTargetValidationError{
+			field:  "ExpiresAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return UploadTargetMultiError(errors)
+	}
+
+	return nil
+}
+
+// UploadTargetMultiError is an error wrapping multiple validation errors
+// returned by UploadTarget.ValidateAll() if the designated constraints aren't met.
+type UploadTargetMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UploadTargetMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UploadTargetMultiError) AllErrors() []error { return m }
+
+// UploadTargetValidationError is the validation error returned by
+// UploadTarget.Validate if the designated constraints aren't met.
+type UploadTargetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UploadTargetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UploadTargetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UploadTargetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UploadTargetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UploadTargetValidationError) ErrorName() string { return "UploadTargetValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UploadTargetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUploadTarget.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UploadTargetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UploadTargetValidationError{}
+
+var _UploadTarget_Method_NotInLookup = map[UploadTarget_Method]struct{}{
+	0: {},
+}

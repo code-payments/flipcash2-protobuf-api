@@ -8,6 +8,7 @@ import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/prot
 import { ChatId, UserId } from "../../common/v1/common_pb";
 import { EventBatch as EventBatch$1, IsTypingNotificationBatch, MessageBatch, PointerBatch, ReactionUpdateBatch } from "../../messaging/v1/model_pb";
 import { MetadataUpdate } from "../../chat/v1/model_pb";
+import { BlobBatch } from "../../blob/v1/model_pb";
 
 /**
  * @generated from message flipcash.event.v1.EventId
@@ -77,6 +78,12 @@ export class Event extends Message<Event> {
      */
     value: ChatUpdate;
     case: "chatUpdate";
+  } | {
+    /**
+     * @generated from field: flipcash.event.v1.BlobUpdate blob_update = 5;
+     */
+    value: BlobUpdate;
+    case: "blobUpdate";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Event>) {
@@ -91,6 +98,7 @@ export class Event extends Message<Event> {
     { no: 2, name: "ts", kind: "message", T: Timestamp },
     { no: 3, name: "test", kind: "message", T: TestEvent, oneof: "type" },
     { no: 4, name: "chat_update", kind: "message", T: ChatUpdate, oneof: "type" },
+    { no: 5, name: "blob_update", kind: "message", T: BlobUpdate, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Event {
@@ -457,6 +465,56 @@ export class ChatUpdate extends Message<ChatUpdate> {
 
   static equals(a: ChatUpdate | PlainMessage<ChatUpdate> | undefined, b: ChatUpdate | PlainMessage<ChatUpdate> | undefined): boolean {
     return proto3.util.equals(ChatUpdate, a, b);
+  }
+}
+
+/**
+ * BlobUpdate notifies the recipient in real time that blobs they uploaded have
+ * transitioned to a new lifecycle state — e.g. PROCESSING → READY once the
+ * server finishes validating, transcoding, and moderating, or → REJECTED on
+ * failure. It lets clients react to upload completion via the event stream
+ * instead of polling BlobStorage.GetBlobs.
+ *
+ * Best-effort: a client that misses an update reconciles by calling
+ * BlobStorage.GetBlobs. The BlobId is the durable handle; any download_url
+ * carried here is ephemeral and may be re-minted via GetBlobs.
+ *
+ * @generated from message flipcash.event.v1.BlobUpdate
+ */
+export class BlobUpdate extends Message<BlobUpdate> {
+  /**
+   * The blobs that transitioned, each carrying its new status and, when READY,
+   * its resolved metadata (including a freshly minted download_url).
+   *
+   * @generated from field: flipcash.blob.v1.BlobBatch blobs = 1;
+   */
+  blobs?: BlobBatch;
+
+  constructor(data?: PartialMessage<BlobUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.BlobUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blobs", kind: "message", T: BlobBatch },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlobUpdate {
+    return new BlobUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlobUpdate {
+    return new BlobUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlobUpdate {
+    return new BlobUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BlobUpdate | PlainMessage<BlobUpdate> | undefined, b: BlobUpdate | PlainMessage<BlobUpdate> | undefined): boolean {
+    return proto3.util.equals(BlobUpdate, a, b);
   }
 }
 

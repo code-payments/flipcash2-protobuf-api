@@ -16,6 +16,7 @@ export * as Phone from './phone/v1';
 export * as Phone from './phone/v1';
 export * as Account from './account/v1';
 export * as Blob from './blob/v1';
+export * as Blob from './blob/v1';
 export * as Messaging from './messaging/v1';
 export * as Messaging from './messaging/v1';
 export * as Event from './event/v1';

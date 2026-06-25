@@ -4,7 +4,55 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+
+/**
+ * Lifecycle state of a blob.
+ *
+ * @generated from enum flipcash.blob.v1.BlobStatus
+ */
+export enum BlobStatus {
+  /**
+   * @generated from enum value: BLOB_STATUS_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * reserved; awaiting the client's upload
+   *
+   * @generated from enum value: BLOB_STATUS_PENDING = 1;
+   */
+  PENDING = 1,
+
+  /**
+   * bytes present; deriving metadata / transcoding / moderating
+   *
+   * @generated from enum value: BLOB_STATUS_PROCESSING = 2;
+   */
+  PROCESSING = 2,
+
+  /**
+   * available; metadata populated and moderation passed
+   *
+   * @generated from enum value: BLOB_STATUS_READY = 3;
+   */
+  READY = 3,
+
+  /**
+   * failed validation or moderation; not servable
+   *
+   * @generated from enum value: BLOB_STATUS_REJECTED = 4;
+   */
+  REJECTED = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(BlobStatus)
+proto3.util.setEnumType(BlobStatus, "flipcash.blob.v1.BlobStatus", [
+  { no: 0, name: "BLOB_STATUS_UNKNOWN" },
+  { no: 1, name: "BLOB_STATUS_PENDING" },
+  { no: 2, name: "BLOB_STATUS_PROCESSING" },
+  { no: 3, name: "BLOB_STATUS_READY" },
+  { no: 4, name: "BLOB_STATUS_REJECTED" },
+]);
 
 /**
  * Opaque, client-held handle to a stored blob. This is the durable identity for
@@ -43,6 +91,138 @@ export class BlobId extends Message<BlobId> {
 
   static equals(a: BlobId | PlainMessage<BlobId> | undefined, b: BlobId | PlainMessage<BlobId> | undefined): boolean {
     return proto3.util.equals(BlobId, a, b);
+  }
+}
+
+/**
+ * A batch of BlobIds
+ *
+ * @generated from message flipcash.blob.v1.BlobIdBatch
+ */
+export class BlobIdBatch extends Message<BlobIdBatch> {
+  /**
+   * @generated from field: repeated flipcash.blob.v1.BlobId blob_ids = 1;
+   */
+  blobIds: BlobId[] = [];
+
+  constructor(data?: PartialMessage<BlobIdBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.BlobIdBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blob_ids", kind: "message", T: BlobId, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlobIdBatch {
+    return new BlobIdBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlobIdBatch {
+    return new BlobIdBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlobIdBatch {
+    return new BlobIdBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BlobIdBatch | PlainMessage<BlobIdBatch> | undefined, b: BlobIdBatch | PlainMessage<BlobIdBatch> | undefined): boolean {
+    return proto3.util.equals(BlobIdBatch, a, b);
+  }
+}
+
+/**
+ * A blob's current status, plus its metadata once READY.
+ *
+ * @generated from message flipcash.blob.v1.Blob
+ */
+export class Blob extends Message<Blob> {
+  /**
+   * @generated from field: flipcash.blob.v1.BlobId id = 1;
+   */
+  id?: BlobId;
+
+  /**
+   * @generated from field: flipcash.blob.v1.BlobStatus status = 2;
+   */
+  status = BlobStatus.UNKNOWN;
+
+  /**
+   * Server-authoritative metadata, including a freshly minted download_url.
+   * Set only when status == READY.
+   *
+   * @generated from field: flipcash.blob.v1.BlobMetadata metadata = 3;
+   */
+  metadata?: BlobMetadata;
+
+  constructor(data?: PartialMessage<Blob>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.Blob";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "message", T: BlobId },
+    { no: 2, name: "status", kind: "enum", T: proto3.getEnumType(BlobStatus) },
+    { no: 3, name: "metadata", kind: "message", T: BlobMetadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Blob {
+    return new Blob().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Blob {
+    return new Blob().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Blob {
+    return new Blob().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Blob | PlainMessage<Blob> | undefined, b: Blob | PlainMessage<Blob> | undefined): boolean {
+    return proto3.util.equals(Blob, a, b);
+  }
+}
+
+/**
+ * A batch of Blobs.
+ *
+ * @generated from message flipcash.blob.v1.BlobBatch
+ */
+export class BlobBatch extends Message<BlobBatch> {
+  /**
+   * @generated from field: repeated flipcash.blob.v1.Blob blobs = 1;
+   */
+  blobs: Blob[] = [];
+
+  constructor(data?: PartialMessage<BlobBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.BlobBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blobs", kind: "message", T: Blob, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlobBatch {
+    return new BlobBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BlobBatch {
+    return new BlobBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BlobBatch {
+    return new BlobBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BlobBatch | PlainMessage<BlobBatch> | undefined, b: BlobBatch | PlainMessage<BlobBatch> | undefined): boolean {
+    return proto3.util.equals(BlobBatch, a, b);
   }
 }
 
@@ -180,4 +360,120 @@ export class ImageMetadata extends Message<ImageMetadata> {
     return proto3.util.equals(ImageMetadata, a, b);
   }
 }
+
+/**
+ * A short-lived, presigned target for a direct-to-storage upload. Bearer
+ * credential: anyone holding it can upload to the reserved key until it expires
+ * — the client must not share or persist it.
+ *
+ * Provider-agnostic by design: it describes the HTTP request the client must
+ * make, with all signed material opaque to the client. Today the server mints
+ * S3 POST policies (method POST with form_fields); the same shape also
+ * expresses presigned PUT (S3/GCS) and Azure SAS without a contract change.
+ *
+ * @generated from message flipcash.blob.v1.UploadTarget
+ */
+export class UploadTarget extends Message<UploadTarget> {
+  /**
+   * How the client issues the upload request.
+   *
+   * @generated from field: flipcash.blob.v1.UploadTarget.Method method = 1;
+   */
+  method = UploadTarget_Method.UNKNOWN;
+
+  /**
+   * Signed URL to send the request to. For PUT-style uploads this often
+   * already carries the signature in its query string (presigned PUT, SAS).
+   *
+   * @generated from field: string url = 2;
+   */
+  url = "";
+
+  /**
+   * Headers the client MUST send verbatim (e.g. Content-Type, x-ms-blob-type,
+   * and any signed headers the presign requires).
+   *
+   * @generated from field: map<string, string> headers = 3;
+   */
+  headers: { [key: string]: string } = {};
+
+  /**
+   * For method == POST: multipart/form-data fields sent before the file part,
+   * carrying the server-chosen key and the SIGNED policy that storage enforces
+   * (Content-Type, content-length-range, key prefix, ...). The client cannot
+   * alter them without invalidating the signature. Empty for PUT uploads.
+   *
+   * @generated from field: map<string, string> form_fields = 4;
+   */
+  formFields: { [key: string]: string } = {};
+
+  /**
+   * When the target expires; after this the client must call InitiateUpload
+   * again for a fresh one.
+   *
+   * @generated from field: google.protobuf.Timestamp expires_at = 5;
+   */
+  expiresAt?: Timestamp;
+
+  constructor(data?: PartialMessage<UploadTarget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.UploadTarget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "method", kind: "enum", T: proto3.getEnumType(UploadTarget_Method) },
+    { no: 2, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "headers", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 4, name: "form_fields", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 5, name: "expires_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UploadTarget {
+    return new UploadTarget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UploadTarget {
+    return new UploadTarget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UploadTarget {
+    return new UploadTarget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UploadTarget | PlainMessage<UploadTarget> | undefined, b: UploadTarget | PlainMessage<UploadTarget> | undefined): boolean {
+    return proto3.util.equals(UploadTarget, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.blob.v1.UploadTarget.Method
+ */
+export enum UploadTarget_Method {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * raw-body upload
+   *
+   * @generated from enum value: PUT = 1;
+   */
+  PUT = 1,
+
+  /**
+   * multipart/form-data carrying form_fields
+   *
+   * @generated from enum value: POST = 2;
+   */
+  POST = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UploadTarget_Method)
+proto3.util.setEnumType(UploadTarget_Method, "flipcash.blob.v1.UploadTarget.Method", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "PUT" },
+  { no: 2, name: "POST" },
+]);
 

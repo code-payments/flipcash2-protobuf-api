@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.blob.v1";
 option objc_class_prefix = "FPBBlobV1";
 
+import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
 // Opaque, client-held handle to a stored blob. This is the durable identity for
@@ -14,6 +15,42 @@ message BlobId {
     bytes value = 1 [(validate.rules).bytes = {
         min_len: 16
         max_len: 16
+    }];
+}
+
+// A batch of BlobIds
+message BlobIdBatch {
+    repeated BlobId blob_ids = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+// Lifecycle state of a blob.
+enum BlobStatus {
+    BLOB_STATUS_UNKNOWN    = 0;
+    BLOB_STATUS_PENDING    = 1; // reserved; awaiting the client's upload
+    BLOB_STATUS_PROCESSING = 2; // bytes present; deriving metadata / transcoding / moderating
+    BLOB_STATUS_READY      = 3; // available; metadata populated and moderation passed
+    BLOB_STATUS_REJECTED   = 4; // failed validation or moderation; not servable
+}
+
+// A blob's current status, plus its metadata once READY.
+message Blob {
+    BlobId id = 1 [(validate.rules).message.required = true];
+
+    BlobStatus status = 2;
+
+    // Server-authoritative metadata, including a freshly minted download_url.
+    // Set only when status == READY.
+    BlobMetadata metadata = 3;
+}
+
+// A batch of Blobs.
+message BlobBatch {
+    repeated Blob blobs = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
     }];
 }
 
@@ -57,4 +94,45 @@ message ImageMetadata {
 
     // Compact preview shown while the full image downloads (BlurHash string).
     string blurhash = 3 [(validate.rules).string.max_len = 64];
+}
+
+// A short-lived, presigned target for a direct-to-storage upload. Bearer
+// credential: anyone holding it can upload to the reserved key until it expires
+// — the client must not share or persist it.
+//
+// Provider-agnostic by design: it describes the HTTP request the client must
+// make, with all signed material opaque to the client. Today the server mints
+// S3 POST policies (method POST with form_fields); the same shape also
+// expresses presigned PUT (S3/GCS) and Azure SAS without a contract change.
+message UploadTarget {
+    // How the client issues the upload request.
+    Method method = 1 [(validate.rules).enum = {
+        not_in: [0]
+    }];
+    enum Method {
+        UNKNOWN = 0;
+        PUT     = 1; // raw-body upload
+        POST    = 2; // multipart/form-data carrying form_fields
+    }
+
+    // Signed URL to send the request to. For PUT-style uploads this often
+    // already carries the signature in its query string (presigned PUT, SAS).
+    string url = 2 [(validate.rules).string = {
+        uri: true
+        max_len: 2048
+    }];
+
+    // Headers the client MUST send verbatim (e.g. Content-Type, x-ms-blob-type,
+    // and any signed headers the presign requires).
+    map<string, string> headers = 3;
+
+    // For method == POST: multipart/form-data fields sent before the file part,
+    // carrying the server-chosen key and the SIGNED policy that storage enforces
+    // (Content-Type, content-length-range, key prefix, ...). The client cannot
+    // alter them without invalidating the signature. Empty for PUT uploads.
+    map<string, string> form_fields = 4;
+
+    // When the target expires; after this the client must call InitiateUpload
+    // again for a fresh one.
+    google.protobuf.Timestamp expires_at = 5 [(validate.rules).timestamp.required = true];
 }
