@@ -1584,10 +1584,10 @@ func (m *MediaItem) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetBlobId() == nil {
+	if len(m.GetRenditions()) < 1 {
 		err := MediaItemValidationError{
-			field:  "BlobId",
-			reason: "value is required",
+			field:  "Renditions",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
@@ -1595,62 +1595,38 @@ func (m *MediaItem) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if all {
-		switch v := interface{}(m.GetBlobId()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MediaItemValidationError{
-					field:  "BlobId",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, MediaItemValidationError{
-					field:  "BlobId",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MediaItemValidationError{
-				field:  "BlobId",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	for idx, item := range m.GetRenditions() {
+		_, _ = idx, item
 
-	if all {
-		switch v := interface{}(m.GetBlob()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MediaItemValidationError{
-					field:  "Blob",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MediaItemValidationError{
+						field:  fmt.Sprintf("Renditions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MediaItemValidationError{
+						field:  fmt.Sprintf("Renditions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, MediaItemValidationError{
-					field:  "Blob",
+				return MediaItemValidationError{
+					field:  fmt.Sprintf("Renditions[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetBlob()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MediaItemValidationError{
-				field:  "Blob",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	if len(errors) > 0 {
@@ -1729,6 +1705,192 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MediaItemValidationError{}
+
+// Validate checks the field values on MediaItemRendition with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MediaItemRendition) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MediaItemRendition with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MediaItemRenditionMultiError, or nil if none found.
+func (m *MediaItemRendition) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MediaItemRendition) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := _MediaItemRendition_Role_NotInLookup[m.GetRole()]; ok {
+		err := MediaItemRenditionValidationError{
+			field:  "Role",
+			reason: "value must not be in list [UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetBlobId() == nil {
+		err := MediaItemRenditionValidationError{
+			field:  "BlobId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlobId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MediaItemRenditionValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MediaItemRenditionValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MediaItemRenditionValidationError{
+				field:  "BlobId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlob()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MediaItemRenditionValidationError{
+					field:  "Blob",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MediaItemRenditionValidationError{
+					field:  "Blob",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlob()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MediaItemRenditionValidationError{
+				field:  "Blob",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MediaItemRenditionMultiError(errors)
+	}
+
+	return nil
+}
+
+// MediaItemRenditionMultiError is an error wrapping multiple validation errors
+// returned by MediaItemRendition.ValidateAll() if the designated constraints
+// aren't met.
+type MediaItemRenditionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MediaItemRenditionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MediaItemRenditionMultiError) AllErrors() []error { return m }
+
+// MediaItemRenditionValidationError is the validation error returned by
+// MediaItemRendition.Validate if the designated constraints aren't met.
+type MediaItemRenditionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MediaItemRenditionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MediaItemRenditionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MediaItemRenditionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MediaItemRenditionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MediaItemRenditionValidationError) ErrorName() string {
+	return "MediaItemRenditionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MediaItemRenditionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMediaItemRendition.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MediaItemRenditionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MediaItemRenditionValidationError{}
+
+var _MediaItemRendition_Role_NotInLookup = map[MediaItemRendition_Role]struct{}{
+	0: {},
+}
 
 // Validate checks the field values on SystemContent with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
