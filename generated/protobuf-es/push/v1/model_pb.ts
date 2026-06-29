@@ -181,6 +181,14 @@ export class Navigation extends Message<Navigation> {
      */
     value: ChatId;
     case: "chatId";
+  } | {
+    /**
+     * Chat for a contact with the provided phone number
+     *
+     * @generated from field: flipcash.phone.v1.PhoneNumber chat_contact_phone_number = 3;
+     */
+    value: PhoneNumber;
+    case: "chatContactPhoneNumber";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Navigation>) {
@@ -193,6 +201,7 @@ export class Navigation extends Message<Navigation> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "currency_info", kind: "message", T: PublicKey, oneof: "type" },
     { no: 2, name: "chat_id", kind: "message", T: ChatId, oneof: "type" },
+    { no: 3, name: "chat_contact_phone_number", kind: "message", T: PhoneNumber, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Navigation {
