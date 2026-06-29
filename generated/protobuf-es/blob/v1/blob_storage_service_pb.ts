@@ -241,32 +241,38 @@ export enum InitiateExternalUploadResponse_Result {
   OK = 0,
 
   /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
    * MIME type not accepted
    *
-   * @generated from enum value: UNSUPPORTED_TYPE = 1;
+   * @generated from enum value: UNSUPPORTED_TYPE = 2;
    */
-  UNSUPPORTED_TYPE = 1,
+  UNSUPPORTED_TYPE = 2,
 
   /**
    * declared size over the per-type ceiling
    *
-   * @generated from enum value: TOO_LARGE = 2;
+   * @generated from enum value: TOO_LARGE = 3;
    */
-  TOO_LARGE = 2,
+  TOO_LARGE = 3,
 
   /**
    * caller is over their storage/upload quota
    *
-   * @generated from enum value: QUOTA_EXCEEDED = 3;
+   * @generated from enum value: QUOTA_EXCEEDED = 4;
    */
-  QUOTA_EXCEEDED = 3,
+  QUOTA_EXCEEDED = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(InitiateExternalUploadResponse_Result)
 proto3.util.setEnumType(InitiateExternalUploadResponse_Result, "flipcash.blob.v1.InitiateExternalUploadResponse.Result", [
   { no: 0, name: "OK" },
-  { no: 1, name: "UNSUPPORTED_TYPE" },
-  { no: 2, name: "TOO_LARGE" },
-  { no: 3, name: "QUOTA_EXCEEDED" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "UNSUPPORTED_TYPE" },
+  { no: 3, name: "TOO_LARGE" },
+  { no: 4, name: "QUOTA_EXCEEDED" },
 ]);
 
 /**
