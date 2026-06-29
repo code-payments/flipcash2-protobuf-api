@@ -645,10 +645,10 @@ func (m *BlobMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetDownloadUrl()) > 2048 {
+	if m.GetDownloadUrl() == nil {
 		err := BlobMetadataValidationError{
 			field:  "DownloadUrl",
-			reason: "value length must be at most 2048 runes",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -656,25 +656,33 @@ func (m *BlobMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if uri, err := url.Parse(m.GetDownloadUrl()); err != nil {
-		err = BlobMetadataValidationError{
-			field:  "DownloadUrl",
-			reason: "value must be a valid URI",
-			cause:  err,
+	if all {
+		switch v := interface{}(m.GetDownloadUrl()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BlobMetadataValidationError{
+					field:  "DownloadUrl",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BlobMetadataValidationError{
+					field:  "DownloadUrl",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetDownloadUrl()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BlobMetadataValidationError{
+				field:  "DownloadUrl",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
-	} else if !uri.IsAbs() {
-		err := BlobMetadataValidationError{
-			field:  "DownloadUrl",
-			reason: "value must be absolute",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	switch v := m.Kind.(type) {
@@ -932,6 +940,148 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ImageMetadataValidationError{}
+
+// Validate checks the field values on DownloadUrl with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DownloadUrl) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DownloadUrl with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DownloadUrlMultiError, or
+// nil if none found.
+func (m *DownloadUrl) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DownloadUrl) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetUrl()) > 2048 {
+		err := DownloadUrlValidationError{
+			field:  "Url",
+			reason: "value length must be at most 2048 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if uri, err := url.Parse(m.GetUrl()); err != nil {
+		err = DownloadUrlValidationError{
+			field:  "Url",
+			reason: "value must be a valid URI",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	} else if !uri.IsAbs() {
+		err := DownloadUrlValidationError{
+			field:  "Url",
+			reason: "value must be absolute",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetExpiresAt() == nil {
+		err := DownloadUrlValidationError{
+			field:  "ExpiresAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return DownloadUrlMultiError(errors)
+	}
+
+	return nil
+}
+
+// DownloadUrlMultiError is an error wrapping multiple validation errors
+// returned by DownloadUrl.ValidateAll() if the designated constraints aren't met.
+type DownloadUrlMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DownloadUrlMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DownloadUrlMultiError) AllErrors() []error { return m }
+
+// DownloadUrlValidationError is the validation error returned by
+// DownloadUrl.Validate if the designated constraints aren't met.
+type DownloadUrlValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DownloadUrlValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DownloadUrlValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DownloadUrlValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DownloadUrlValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DownloadUrlValidationError) ErrorName() string { return "DownloadUrlValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DownloadUrlValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDownloadUrl.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DownloadUrlValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DownloadUrlValidationError{}
 
 // Validate checks the field values on UploadTarget with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
