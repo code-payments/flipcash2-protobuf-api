@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	BlobStorage_GetUploadPolicy_FullMethodName        = "/flipcash.blob.v1.BlobStorage/GetUploadPolicy"
 	BlobStorage_InitiateExternalUpload_FullMethodName = "/flipcash.blob.v1.BlobStorage/InitiateExternalUpload"
 	BlobStorage_CompleteExternalUpload_FullMethodName = "/flipcash.blob.v1.BlobStorage/CompleteExternalUpload"
 	BlobStorage_GetBlobs_FullMethodName               = "/flipcash.blob.v1.BlobStorage/GetBlobs"
@@ -33,6 +34,12 @@ const (
 // straight to object storage via a presigned target — the server never proxies
 // them — and all blob metadata is server-derived from the stored bytes.
 type BlobStorageClient interface {
+	// GetUploadPolicy returns the current upload constraints — which MIME types
+	// are accepted and the per-type ceilings the server enforces — so the client
+	// can validate (and resize/transcode) BEFORE reserving an upload. The policy
+	// is advisory and cacheable; InitiateExternalUpload remains authoritative and
+	// may still deny. Clients re-fetch when version changes or ttl lapses.
+	GetUploadPolicy(ctx context.Context, in *GetUploadPolicyRequest, opts ...grpc.CallOption) (*GetUploadPolicyResponse, error)
 	// InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
 	// target the client uploads the bytes to directly. Clients only ever upload
 	// ORIGINALs; the server derives any additional renditions itself.
@@ -56,6 +63,16 @@ type blobStorageClient struct {
 
 func NewBlobStorageClient(cc grpc.ClientConnInterface) BlobStorageClient {
 	return &blobStorageClient{cc}
+}
+
+func (c *blobStorageClient) GetUploadPolicy(ctx context.Context, in *GetUploadPolicyRequest, opts ...grpc.CallOption) (*GetUploadPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUploadPolicyResponse)
+	err := c.cc.Invoke(ctx, BlobStorage_GetUploadPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *blobStorageClient) InitiateExternalUpload(ctx context.Context, in *InitiateExternalUploadRequest, opts ...grpc.CallOption) (*InitiateExternalUploadResponse, error) {
@@ -97,6 +114,12 @@ func (c *blobStorageClient) GetBlobs(ctx context.Context, in *GetBlobsRequest, o
 // straight to object storage via a presigned target — the server never proxies
 // them — and all blob metadata is server-derived from the stored bytes.
 type BlobStorageServer interface {
+	// GetUploadPolicy returns the current upload constraints — which MIME types
+	// are accepted and the per-type ceilings the server enforces — so the client
+	// can validate (and resize/transcode) BEFORE reserving an upload. The policy
+	// is advisory and cacheable; InitiateExternalUpload remains authoritative and
+	// may still deny. Clients re-fetch when version changes or ttl lapses.
+	GetUploadPolicy(context.Context, *GetUploadPolicyRequest) (*GetUploadPolicyResponse, error)
 	// InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
 	// target the client uploads the bytes to directly. Clients only ever upload
 	// ORIGINALs; the server derives any additional renditions itself.
@@ -122,6 +145,9 @@ type BlobStorageServer interface {
 // pointer dereference when methods are called.
 type UnimplementedBlobStorageServer struct{}
 
+func (UnimplementedBlobStorageServer) GetUploadPolicy(context.Context, *GetUploadPolicyRequest) (*GetUploadPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUploadPolicy not implemented")
+}
 func (UnimplementedBlobStorageServer) InitiateExternalUpload(context.Context, *InitiateExternalUploadRequest) (*InitiateExternalUploadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InitiateExternalUpload not implemented")
 }
@@ -150,6 +176,24 @@ func RegisterBlobStorageServer(s grpc.ServiceRegistrar, srv BlobStorageServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&BlobStorage_ServiceDesc, srv)
+}
+
+func _BlobStorage_GetUploadPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUploadPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlobStorageServer).GetUploadPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BlobStorage_GetUploadPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlobStorageServer).GetUploadPolicy(ctx, req.(*GetUploadPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _BlobStorage_InitiateExternalUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -213,6 +257,10 @@ var BlobStorage_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "flipcash.blob.v1.BlobStorage",
 	HandlerType: (*BlobStorageServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetUploadPolicy",
+			Handler:    _BlobStorage_GetUploadPolicy_Handler,
+		},
 		{
 			MethodName: "InitiateExternalUpload",
 			Handler:    _BlobStorage_InitiateExternalUpload_Handler,

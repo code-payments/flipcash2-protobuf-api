@@ -35,6 +35,281 @@ var (
 	_ = sort.Sort
 )
 
+// Validate checks the field values on GetUploadPolicyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetUploadPolicyRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetUploadPolicyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetUploadPolicyRequestMultiError, or nil if none found.
+func (m *GetUploadPolicyRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetUploadPolicyRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetAuth() == nil {
+		err := GetUploadPolicyRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetUploadPolicyRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetUploadPolicyRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetUploadPolicyRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetUploadPolicyRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetUploadPolicyRequestMultiError is an error wrapping multiple validation
+// errors returned by GetUploadPolicyRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetUploadPolicyRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetUploadPolicyRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetUploadPolicyRequestMultiError) AllErrors() []error { return m }
+
+// GetUploadPolicyRequestValidationError is the validation error returned by
+// GetUploadPolicyRequest.Validate if the designated constraints aren't met.
+type GetUploadPolicyRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetUploadPolicyRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetUploadPolicyRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetUploadPolicyRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetUploadPolicyRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetUploadPolicyRequestValidationError) ErrorName() string {
+	return "GetUploadPolicyRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetUploadPolicyRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetUploadPolicyRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetUploadPolicyRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetUploadPolicyRequestValidationError{}
+
+// Validate checks the field values on GetUploadPolicyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetUploadPolicyResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetUploadPolicyResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetUploadPolicyResponseMultiError, or nil if none found.
+func (m *GetUploadPolicyResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetUploadPolicyResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetPolicy()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetUploadPolicyResponseValidationError{
+					field:  "Policy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetUploadPolicyResponseValidationError{
+					field:  "Policy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPolicy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetUploadPolicyResponseValidationError{
+				field:  "Policy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetUploadPolicyResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetUploadPolicyResponseMultiError is an error wrapping multiple validation
+// errors returned by GetUploadPolicyResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetUploadPolicyResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetUploadPolicyResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetUploadPolicyResponseMultiError) AllErrors() []error { return m }
+
+// GetUploadPolicyResponseValidationError is the validation error returned by
+// GetUploadPolicyResponse.Validate if the designated constraints aren't met.
+type GetUploadPolicyResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetUploadPolicyResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetUploadPolicyResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetUploadPolicyResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetUploadPolicyResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetUploadPolicyResponseValidationError) ErrorName() string {
+	return "GetUploadPolicyResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetUploadPolicyResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetUploadPolicyResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetUploadPolicyResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetUploadPolicyResponseValidationError{}
+
 // Validate checks the field values on InitiateExternalUploadRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -276,6 +551,35 @@ func (m *InitiateExternalUploadResponse) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return InitiateExternalUploadResponseValidationError{
 				field:  "UploadTarget",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPolicyVersion()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InitiateExternalUploadResponseValidationError{
+					field:  "PolicyVersion",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InitiateExternalUploadResponseValidationError{
+					field:  "PolicyVersion",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPolicyVersion()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InitiateExternalUploadResponseValidationError{
+				field:  "PolicyVersion",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

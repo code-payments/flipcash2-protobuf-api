@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CompleteExternalUploadRequest, CompleteExternalUploadResponse, GetBlobsRequest, GetBlobsResponse, InitiateExternalUploadRequest, InitiateExternalUploadResponse } from "./blob_storage_service_pb";
+import { CompleteExternalUploadRequest, CompleteExternalUploadResponse, GetBlobsRequest, GetBlobsResponse, GetUploadPolicyRequest, GetUploadPolicyResponse, InitiateExternalUploadRequest, InitiateExternalUploadResponse } from "./blob_storage_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -17,6 +17,21 @@ import { MethodKind } from "@bufbuild/protobuf";
 export const BlobStorage = {
   typeName: "flipcash.blob.v1.BlobStorage",
   methods: {
+    /**
+     * GetUploadPolicy returns the current upload constraints — which MIME types
+     * are accepted and the per-type ceilings the server enforces — so the client
+     * can validate (and resize/transcode) BEFORE reserving an upload. The policy
+     * is advisory and cacheable; InitiateExternalUpload remains authoritative and
+     * may still deny. Clients re-fetch when version changes or ttl lapses.
+     *
+     * @generated from rpc flipcash.blob.v1.BlobStorage.GetUploadPolicy
+     */
+    getUploadPolicy: {
+      name: "GetUploadPolicy",
+      I: GetUploadPolicyRequest,
+      O: GetUploadPolicyResponse,
+      kind: MethodKind.Unary,
+    },
     /**
      * InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
      * target the client uploads the bytes to directly. Clients only ever upload
