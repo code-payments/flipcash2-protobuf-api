@@ -941,63 +941,31 @@ var _ interface {
 	ErrorName() string
 } = ImageMetadataValidationError{}
 
-// Validate checks the field values on DownloadUrl with the rules defined in
+// Validate checks the field values on UploadPolicy with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *DownloadUrl) Validate() error {
+func (m *UploadPolicy) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on DownloadUrl with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in DownloadUrlMultiError, or
+// ValidateAll checks the field values on UploadPolicy with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in UploadPolicyMultiError, or
 // nil if none found.
-func (m *DownloadUrl) ValidateAll() error {
+func (m *UploadPolicy) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *DownloadUrl) validate(all bool) error {
+func (m *UploadPolicy) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetUrl()) > 2048 {
-		err := DownloadUrlValidationError{
-			field:  "Url",
-			reason: "value length must be at most 2048 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if uri, err := url.Parse(m.GetUrl()); err != nil {
-		err = DownloadUrlValidationError{
-			field:  "Url",
-			reason: "value must be a valid URI",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	} else if !uri.IsAbs() {
-		err := DownloadUrlValidationError{
-			field:  "Url",
-			reason: "value must be absolute",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if m.GetExpiresAt() == nil {
-		err := DownloadUrlValidationError{
-			field:  "ExpiresAt",
+	if m.GetVersion() == nil {
+		err := UploadPolicyValidationError{
+			field:  "Version",
 			reason: "value is required",
 		}
 		if !all {
@@ -1006,19 +974,104 @@ func (m *DownloadUrl) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if all {
+		switch v := interface{}(m.GetVersion()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UploadPolicyValidationError{
+					field:  "Version",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UploadPolicyValidationError{
+					field:  "Version",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetVersion()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UploadPolicyValidationError{
+				field:  "Version",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetTtl() == nil {
+		err := UploadPolicyValidationError{
+			field:  "Ttl",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if l := len(m.GetMimeTypeConstraints()); l < 1 || l > 1024 {
+		err := UploadPolicyValidationError{
+			field:  "MimeTypeConstraints",
+			reason: "value must contain between 1 and 1024 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetMimeTypeConstraints() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UploadPolicyValidationError{
+						field:  fmt.Sprintf("MimeTypeConstraints[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UploadPolicyValidationError{
+						field:  fmt.Sprintf("MimeTypeConstraints[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UploadPolicyValidationError{
+					field:  fmt.Sprintf("MimeTypeConstraints[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
-		return DownloadUrlMultiError(errors)
+		return UploadPolicyMultiError(errors)
 	}
 
 	return nil
 }
 
-// DownloadUrlMultiError is an error wrapping multiple validation errors
-// returned by DownloadUrl.ValidateAll() if the designated constraints aren't met.
-type DownloadUrlMultiError []error
+// UploadPolicyMultiError is an error wrapping multiple validation errors
+// returned by UploadPolicy.ValidateAll() if the designated constraints aren't met.
+type UploadPolicyMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m DownloadUrlMultiError) Error() string {
+func (m UploadPolicyMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1027,11 +1080,11 @@ func (m DownloadUrlMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m DownloadUrlMultiError) AllErrors() []error { return m }
+func (m UploadPolicyMultiError) AllErrors() []error { return m }
 
-// DownloadUrlValidationError is the validation error returned by
-// DownloadUrl.Validate if the designated constraints aren't met.
-type DownloadUrlValidationError struct {
+// UploadPolicyValidationError is the validation error returned by
+// UploadPolicy.Validate if the designated constraints aren't met.
+type UploadPolicyValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1039,22 +1092,22 @@ type DownloadUrlValidationError struct {
 }
 
 // Field function returns field value.
-func (e DownloadUrlValidationError) Field() string { return e.field }
+func (e UploadPolicyValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DownloadUrlValidationError) Reason() string { return e.reason }
+func (e UploadPolicyValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DownloadUrlValidationError) Cause() error { return e.cause }
+func (e UploadPolicyValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DownloadUrlValidationError) Key() bool { return e.key }
+func (e UploadPolicyValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DownloadUrlValidationError) ErrorName() string { return "DownloadUrlValidationError" }
+func (e UploadPolicyValidationError) ErrorName() string { return "UploadPolicyValidationError" }
 
 // Error satisfies the builtin error interface
-func (e DownloadUrlValidationError) Error() string {
+func (e UploadPolicyValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1066,14 +1119,14 @@ func (e DownloadUrlValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDownloadUrl.%s: %s%s",
+		"invalid %sUploadPolicy.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DownloadUrlValidationError{}
+var _ error = UploadPolicyValidationError{}
 
 var _ interface {
 	Field() string
@@ -1081,7 +1134,421 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DownloadUrlValidationError{}
+} = UploadPolicyValidationError{}
+
+// Validate checks the field values on PolicyVersion with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PolicyVersion) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PolicyVersion with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PolicyVersionMultiError, or
+// nil if none found.
+func (m *PolicyVersion) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PolicyVersion) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetValue()); l < 1 || l > 256 {
+		err := PolicyVersionValidationError{
+			field:  "Value",
+			reason: "value length must be between 1 and 256 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PolicyVersionMultiError(errors)
+	}
+
+	return nil
+}
+
+// PolicyVersionMultiError is an error wrapping multiple validation errors
+// returned by PolicyVersion.ValidateAll() if the designated constraints
+// aren't met.
+type PolicyVersionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PolicyVersionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PolicyVersionMultiError) AllErrors() []error { return m }
+
+// PolicyVersionValidationError is the validation error returned by
+// PolicyVersion.Validate if the designated constraints aren't met.
+type PolicyVersionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PolicyVersionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PolicyVersionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PolicyVersionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PolicyVersionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PolicyVersionValidationError) ErrorName() string { return "PolicyVersionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PolicyVersionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPolicyVersion.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PolicyVersionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PolicyVersionValidationError{}
+
+// Validate checks the field values on MimeTypeConstraints with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MimeTypeConstraints) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MimeTypeConstraints with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MimeTypeConstraintsMultiError, or nil if none found.
+func (m *MimeTypeConstraints) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MimeTypeConstraints) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetMimeTypePattern()); l < 3 || l > 255 {
+		err := MimeTypeConstraintsValidationError{
+			field:  "MimeTypePattern",
+			reason: "value length must be between 3 and 255 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetMaxSizeBytes() < 1 {
+		err := MimeTypeConstraintsValidationError{
+			field:  "MaxSizeBytes",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	switch v := m.Kind.(type) {
+	case *MimeTypeConstraints_Image:
+		if v == nil {
+			err := MimeTypeConstraintsValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetImage()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MimeTypeConstraintsValidationError{
+						field:  "Image",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MimeTypeConstraintsValidationError{
+						field:  "Image",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetImage()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MimeTypeConstraintsValidationError{
+					field:  "Image",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return MimeTypeConstraintsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MimeTypeConstraintsMultiError is an error wrapping multiple validation
+// errors returned by MimeTypeConstraints.ValidateAll() if the designated
+// constraints aren't met.
+type MimeTypeConstraintsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MimeTypeConstraintsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MimeTypeConstraintsMultiError) AllErrors() []error { return m }
+
+// MimeTypeConstraintsValidationError is the validation error returned by
+// MimeTypeConstraints.Validate if the designated constraints aren't met.
+type MimeTypeConstraintsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MimeTypeConstraintsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MimeTypeConstraintsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MimeTypeConstraintsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MimeTypeConstraintsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MimeTypeConstraintsValidationError) ErrorName() string {
+	return "MimeTypeConstraintsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MimeTypeConstraintsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMimeTypeConstraints.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MimeTypeConstraintsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MimeTypeConstraintsValidationError{}
+
+// Validate checks the field values on ImageConstraints with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ImageConstraints) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ImageConstraints with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ImageConstraintsMultiError, or nil if none found.
+func (m *ImageConstraints) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ImageConstraints) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMaxWidth() < 1 {
+		err := ImageConstraintsValidationError{
+			field:  "MaxWidth",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetMaxHeight() < 1 {
+		err := ImageConstraintsValidationError{
+			field:  "MaxHeight",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetMaxPixels() < 1 {
+		err := ImageConstraintsValidationError{
+			field:  "MaxPixels",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ImageConstraintsMultiError(errors)
+	}
+
+	return nil
+}
+
+// ImageConstraintsMultiError is an error wrapping multiple validation errors
+// returned by ImageConstraints.ValidateAll() if the designated constraints
+// aren't met.
+type ImageConstraintsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ImageConstraintsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ImageConstraintsMultiError) AllErrors() []error { return m }
+
+// ImageConstraintsValidationError is the validation error returned by
+// ImageConstraints.Validate if the designated constraints aren't met.
+type ImageConstraintsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ImageConstraintsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ImageConstraintsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ImageConstraintsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ImageConstraintsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ImageConstraintsValidationError) ErrorName() string { return "ImageConstraintsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ImageConstraintsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sImageConstraints.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ImageConstraintsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ImageConstraintsValidationError{}
 
 // Validate checks the field values on UploadTarget with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -1243,3 +1710,145 @@ var _ interface {
 var _UploadTarget_Method_NotInLookup = map[UploadTarget_Method]struct{}{
 	0: {},
 }
+
+// Validate checks the field values on DownloadUrl with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DownloadUrl) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DownloadUrl with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DownloadUrlMultiError, or
+// nil if none found.
+func (m *DownloadUrl) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DownloadUrl) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetUrl()) > 2048 {
+		err := DownloadUrlValidationError{
+			field:  "Url",
+			reason: "value length must be at most 2048 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if uri, err := url.Parse(m.GetUrl()); err != nil {
+		err = DownloadUrlValidationError{
+			field:  "Url",
+			reason: "value must be a valid URI",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	} else if !uri.IsAbs() {
+		err := DownloadUrlValidationError{
+			field:  "Url",
+			reason: "value must be absolute",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetExpiresAt() == nil {
+		err := DownloadUrlValidationError{
+			field:  "ExpiresAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return DownloadUrlMultiError(errors)
+	}
+
+	return nil
+}
+
+// DownloadUrlMultiError is an error wrapping multiple validation errors
+// returned by DownloadUrl.ValidateAll() if the designated constraints aren't met.
+type DownloadUrlMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DownloadUrlMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DownloadUrlMultiError) AllErrors() []error { return m }
+
+// DownloadUrlValidationError is the validation error returned by
+// DownloadUrl.Validate if the designated constraints aren't met.
+type DownloadUrlValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DownloadUrlValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DownloadUrlValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DownloadUrlValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DownloadUrlValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DownloadUrlValidationError) ErrorName() string { return "DownloadUrlValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DownloadUrlValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDownloadUrl.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DownloadUrlValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DownloadUrlValidationError{}

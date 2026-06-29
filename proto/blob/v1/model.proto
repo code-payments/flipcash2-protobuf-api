@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.blob.v1";
 option objc_class_prefix = "FPBBlobV1";
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
@@ -90,22 +91,68 @@ message ImageMetadata {
     string blurhash = 3 [(validate.rules).string.max_len = 64];
 }
 
-// An ephemeral, server-minted URL for fetching the blob bytes, paired with the
-// instant it expires. Unlike the intrinsic blob metadata, the URL is NOT a
-// property of the bytes: it is re-issued on every fetch, expires (signed URL
-// with a short TTL), and is authorized at mint time, not at fetch time. Clients
-// MUST NOT persist or cache it across fetches; treat the BlobId as the durable
-// handle and this as disposable.
-message DownloadUrl {
-    // Signed URL for fetching the blob bytes.
-    string url = 1 [(validate.rules).string = {
-        uri: true
-        max_len: 2048
+// The constraints the server enforces on uploads, surfaced so clients can
+// validate and resize/transcode before reserving an upload. Advisory and
+// cacheable; InitiateExternalUpload remains authoritative. Constraints can
+// depend on the caller (quota, tier), so this is fetched per-user, not static.
+message UploadPolicy {
+    // Opaque generation token for this policy. Clients cache the policy under it
+    // and re-fetch when they observe a different version — including one echoed
+    // on a denied upload.
+    PolicyVersion version = 1 [(validate.rules).message.required = true];
+
+    // How long the client may rely on this policy before re-fetching. The client
+    // should also refresh on any version mismatch, whichever comes first.
+    google.protobuf.Duration ttl = 2 [(validate.rules).duration.required = true];
+
+    // Per-MIME-type constraints, ordered MOST SPECIFIC FIRST. The client picks
+    // the FIRST entry whose mime_type_pattern matches the bytes' declared MIME
+    // type; later entries (e.g. "image/*", then "*/*") act as fallbacks. An
+    // upload whose type matches no entry is not accepted.
+    repeated MimeTypeConstraints mime_type_constraints = 3 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 1024
+    }];
+}
+
+// Opaque generation token identifying a snapshot of an UploadPolicy. Compared
+// by equality, never parsed; clients cache the policy under it and re-fetch when
+// they observe a different value (including one echoed on a denied upload).
+message PolicyVersion {
+    string value = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 256
+    }];
+}
+
+// Upload constraints for one MIME-type matcher.
+message MimeTypeConstraints {
+    // The MIME type(s) this entry governs: an exact type ("image/jpeg"), a
+    // subtype wildcard ("image/*"), or the catch-all "*/*".
+    string mime_type_pattern = 1 [(validate.rules).string = {
+        min_len: 3
+        max_len: 255
     }];
 
-    // When the URL expires; after this the client must call GetBlobs again to
-    // mint a fresh one.
-    google.protobuf.Timestamp expires_at = 2 [(validate.rules).timestamp.required = true];
+    // Hard ceiling on a matching blob's byte size.
+    uint64 max_size_bytes = 2 [(validate.rules).uint64.gte = 1];
+
+    // Kind-specific bounds, mirroring BlobMetadata.kind. Set the variant for the
+    // pattern's media kind; left unset for opaque blobs.
+    oneof kind {
+        ImageConstraints image = 3;
+    }
+}
+
+// Bounds on a still image, mirroring ImageMetadata.
+message ImageConstraints {
+    // Max pixel dimensions the server will accept (or downscale to).
+    uint32 max_width  = 1 [(validate.rules).uint32.gte = 1];
+    uint32 max_height = 2 [(validate.rules).uint32.gte = 1];
+
+    // Max total pixel count (width * height), guarding against decompression
+    // bombs that slip under the per-axis caps.
+    uint64 max_pixels = 3 [(validate.rules).uint64.gte = 1];
 }
 
 // A short-lived, presigned target for a direct-to-storage upload. Bearer
@@ -147,4 +194,22 @@ message UploadTarget {
     // When the target expires; after this the client must call InitiateUpload
     // again for a fresh one.
     google.protobuf.Timestamp expires_at = 5 [(validate.rules).timestamp.required = true];
+}
+
+// An ephemeral, server-minted URL for fetching the blob bytes, paired with the
+// instant it expires. Unlike the intrinsic blob metadata, the URL is NOT a
+// property of the bytes: it is re-issued on every fetch, expires (signed URL
+// with a short TTL), and is authorized at mint time, not at fetch time. Clients
+// MUST NOT persist or cache it across fetches; treat the BlobId as the durable
+// handle and this as disposable.
+message DownloadUrl {
+    // Signed URL for fetching the blob bytes.
+    string url = 1 [(validate.rules).string = {
+        uri: true
+        max_len: 2048
+    }];
+
+    // When the URL expires; after this the client must call GetBlobs again to
+    // mint a fresh one.
+    google.protobuf.Timestamp expires_at = 2 [(validate.rules).timestamp.required = true];
 }

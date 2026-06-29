@@ -6,7 +6,109 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Auth } from "../../common/v1/common_pb";
-import { BlobBatch, BlobId, BlobIdBatch, BlobStatus, UploadTarget } from "./model_pb";
+import { BlobBatch, BlobId, BlobIdBatch, BlobStatus, PolicyVersion, UploadPolicy, UploadTarget } from "./model_pb";
+
+/**
+ * @generated from message flipcash.blob.v1.GetUploadPolicyRequest
+ */
+export class GetUploadPolicyRequest extends Message<GetUploadPolicyRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 1;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetUploadPolicyRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.GetUploadPolicyRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetUploadPolicyRequest {
+    return new GetUploadPolicyRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetUploadPolicyRequest {
+    return new GetUploadPolicyRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetUploadPolicyRequest {
+    return new GetUploadPolicyRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetUploadPolicyRequest | PlainMessage<GetUploadPolicyRequest> | undefined, b: GetUploadPolicyRequest | PlainMessage<GetUploadPolicyRequest> | undefined): boolean {
+    return proto3.util.equals(GetUploadPolicyRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.blob.v1.GetUploadPolicyResponse
+ */
+export class GetUploadPolicyResponse extends Message<GetUploadPolicyResponse> {
+  /**
+   * @generated from field: flipcash.blob.v1.GetUploadPolicyResponse.Result result = 1;
+   */
+  result = GetUploadPolicyResponse_Result.OK;
+
+  /**
+   * The constraints in force for the caller. Set when result == OK.
+   *
+   * @generated from field: flipcash.blob.v1.UploadPolicy policy = 2;
+   */
+  policy?: UploadPolicy;
+
+  constructor(data?: PartialMessage<GetUploadPolicyResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.GetUploadPolicyResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetUploadPolicyResponse_Result) },
+    { no: 2, name: "policy", kind: "message", T: UploadPolicy },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetUploadPolicyResponse {
+    return new GetUploadPolicyResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetUploadPolicyResponse {
+    return new GetUploadPolicyResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetUploadPolicyResponse {
+    return new GetUploadPolicyResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetUploadPolicyResponse | PlainMessage<GetUploadPolicyResponse> | undefined, b: GetUploadPolicyResponse | PlainMessage<GetUploadPolicyResponse> | undefined): boolean {
+    return proto3.util.equals(GetUploadPolicyResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.blob.v1.GetUploadPolicyResponse.Result
+ */
+export enum GetUploadPolicyResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetUploadPolicyResponse_Result)
+proto3.util.setEnumType(GetUploadPolicyResponse_Result, "flipcash.blob.v1.GetUploadPolicyResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+]);
 
 /**
  * @generated from message flipcash.blob.v1.InitiateExternalUploadRequest
@@ -89,6 +191,15 @@ export class InitiateExternalUploadResponse extends Message<InitiateExternalUplo
    */
   uploadTarget?: UploadTarget;
 
+  /**
+   * On a policy-driven denial (UNSUPPORTED_TYPE / TOO_LARGE), the UploadPolicy
+   * version in force, so the client can detect a stale cached policy and
+   * re-fetch. Unset otherwise.
+   *
+   * @generated from field: flipcash.blob.v1.PolicyVersion policy_version = 4;
+   */
+  policyVersion?: PolicyVersion;
+
   constructor(data?: PartialMessage<InitiateExternalUploadResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -100,6 +211,7 @@ export class InitiateExternalUploadResponse extends Message<InitiateExternalUplo
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(InitiateExternalUploadResponse_Result) },
     { no: 2, name: "blob_id", kind: "message", T: BlobId },
     { no: 3, name: "upload_target", kind: "message", T: UploadTarget },
+    { no: 4, name: "policy_version", kind: "message", T: PolicyVersion },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InitiateExternalUploadResponse {
@@ -129,16 +241,32 @@ export enum InitiateExternalUploadResponse_Result {
   OK = 0,
 
   /**
-   * unsupported type, over size limit, quota, etc.
+   * MIME type not accepted
    *
-   * @generated from enum value: DENIED = 1;
+   * @generated from enum value: UNSUPPORTED_TYPE = 1;
    */
-  DENIED = 1,
+  UNSUPPORTED_TYPE = 1,
+
+  /**
+   * declared size over the per-type ceiling
+   *
+   * @generated from enum value: TOO_LARGE = 2;
+   */
+  TOO_LARGE = 2,
+
+  /**
+   * caller is over their storage/upload quota
+   *
+   * @generated from enum value: QUOTA_EXCEEDED = 3;
+   */
+  QUOTA_EXCEEDED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(InitiateExternalUploadResponse_Result)
 proto3.util.setEnumType(InitiateExternalUploadResponse_Result, "flipcash.blob.v1.InitiateExternalUploadResponse.Result", [
   { no: 0, name: "OK" },
-  { no: 1, name: "DENIED" },
+  { no: 1, name: "UNSUPPORTED_TYPE" },
+  { no: 2, name: "TOO_LARGE" },
+  { no: 3, name: "QUOTA_EXCEEDED" },
 ]);
 
 /**

@@ -15,6 +15,13 @@ import "validate/validate.proto";
 // straight to object storage via a presigned target — the server never proxies
 // them — and all blob metadata is server-derived from the stored bytes.
 service BlobStorage {
+    // GetUploadPolicy returns the current upload constraints — which MIME types
+    // are accepted and the per-type ceilings the server enforces — so the client
+    // can validate (and resize/transcode) BEFORE reserving an upload. The policy
+    // is advisory and cacheable; InitiateExternalUpload remains authoritative and
+    // may still deny. Clients re-fetch when version changes or ttl lapses.
+    rpc GetUploadPolicy(GetUploadPolicyRequest) returns (GetUploadPolicyResponse);
+
     // InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
     // target the client uploads the bytes to directly. Clients only ever upload
     // ORIGINALs; the server derives any additional renditions itself.
@@ -32,6 +39,21 @@ service BlobStorage {
     // call it to reissue a URL that has expired — the BlobId is the durable
     // handle; the URL is disposable.
     rpc GetBlobs(GetBlobsRequest) returns (GetBlobsResponse);
+}
+
+message GetUploadPolicyRequest {
+    common.v1.Auth auth = 1 [(validate.rules).message.required = true];
+}
+
+message GetUploadPolicyResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        DENIED = 1;
+    }
+
+    // The constraints in force for the caller. Set when result == OK.
+    UploadPolicy policy = 2;
 }
 
 message InitiateExternalUploadRequest {
@@ -54,8 +76,10 @@ message InitiateExternalUploadRequest {
 message InitiateExternalUploadResponse {
     Result result = 1;
     enum Result {
-        OK     = 0;
-        DENIED = 1; // unsupported type, over size limit, quota, etc.
+        OK               = 0;
+        UNSUPPORTED_TYPE = 1; // MIME type not accepted
+        TOO_LARGE        = 2; // declared size over the per-type ceiling
+        QUOTA_EXCEEDED   = 3; // caller is over their storage/upload quota
     }
 
     // Server-assigned handle. On OK the client references this as the ORIGINAL
@@ -64,6 +88,11 @@ message InitiateExternalUploadResponse {
 
     // Where and how to upload the bytes. Set only when result == OK.
     UploadTarget upload_target = 3;
+
+    // On a policy-driven denial (UNSUPPORTED_TYPE / TOO_LARGE), the UploadPolicy
+    // version in force, so the client can detect a stale cached policy and
+    // re-fetch. Unset otherwise.
+    PolicyVersion policy_version = 4;
 }
 
 message CompleteExternalUploadRequest {

@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * Lifecycle state of a blob.
@@ -359,57 +359,230 @@ export class ImageMetadata extends Message<ImageMetadata> {
 }
 
 /**
- * An ephemeral, server-minted URL for fetching the blob bytes, paired with the
- * instant it expires. Unlike the intrinsic blob metadata, the URL is NOT a
- * property of the bytes: it is re-issued on every fetch, expires (signed URL
- * with a short TTL), and is authorized at mint time, not at fetch time. Clients
- * MUST NOT persist or cache it across fetches; treat the BlobId as the durable
- * handle and this as disposable.
+ * The constraints the server enforces on uploads, surfaced so clients can
+ * validate and resize/transcode before reserving an upload. Advisory and
+ * cacheable; InitiateExternalUpload remains authoritative. Constraints can
+ * depend on the caller (quota, tier), so this is fetched per-user, not static.
  *
- * @generated from message flipcash.blob.v1.DownloadUrl
+ * @generated from message flipcash.blob.v1.UploadPolicy
  */
-export class DownloadUrl extends Message<DownloadUrl> {
+export class UploadPolicy extends Message<UploadPolicy> {
   /**
-   * Signed URL for fetching the blob bytes.
+   * Opaque generation token for this policy. Clients cache the policy under it
+   * and re-fetch when they observe a different version — including one echoed
+   * on a denied upload.
    *
-   * @generated from field: string url = 1;
+   * @generated from field: flipcash.blob.v1.PolicyVersion version = 1;
    */
-  url = "";
+  version?: PolicyVersion;
 
   /**
-   * When the URL expires; after this the client must call GetBlobs again to
-   * mint a fresh one.
+   * How long the client may rely on this policy before re-fetching. The client
+   * should also refresh on any version mismatch, whichever comes first.
    *
-   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   * @generated from field: google.protobuf.Duration ttl = 2;
    */
-  expiresAt?: Timestamp;
+  ttl?: Duration;
 
-  constructor(data?: PartialMessage<DownloadUrl>) {
+  /**
+   * Per-MIME-type constraints, ordered MOST SPECIFIC FIRST. The client picks
+   * the FIRST entry whose mime_type_pattern matches the bytes' declared MIME
+   * type; later entries (e.g. "image/*", then "*\/*") act as fallbacks. An
+   * upload whose type matches no entry is not accepted.
+   *
+   * @generated from field: repeated flipcash.blob.v1.MimeTypeConstraints mime_type_constraints = 3;
+   */
+  mimeTypeConstraints: MimeTypeConstraints[] = [];
+
+  constructor(data?: PartialMessage<UploadPolicy>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.blob.v1.DownloadUrl";
+  static readonly typeName = "flipcash.blob.v1.UploadPolicy";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "expires_at", kind: "message", T: Timestamp },
+    { no: 1, name: "version", kind: "message", T: PolicyVersion },
+    { no: 2, name: "ttl", kind: "message", T: Duration },
+    { no: 3, name: "mime_type_constraints", kind: "message", T: MimeTypeConstraints, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DownloadUrl {
-    return new DownloadUrl().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UploadPolicy {
+    return new UploadPolicy().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DownloadUrl {
-    return new DownloadUrl().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UploadPolicy {
+    return new UploadPolicy().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DownloadUrl {
-    return new DownloadUrl().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UploadPolicy {
+    return new UploadPolicy().fromJsonString(jsonString, options);
   }
 
-  static equals(a: DownloadUrl | PlainMessage<DownloadUrl> | undefined, b: DownloadUrl | PlainMessage<DownloadUrl> | undefined): boolean {
-    return proto3.util.equals(DownloadUrl, a, b);
+  static equals(a: UploadPolicy | PlainMessage<UploadPolicy> | undefined, b: UploadPolicy | PlainMessage<UploadPolicy> | undefined): boolean {
+    return proto3.util.equals(UploadPolicy, a, b);
+  }
+}
+
+/**
+ * Opaque generation token identifying a snapshot of an UploadPolicy. Compared
+ * by equality, never parsed; clients cache the policy under it and re-fetch when
+ * they observe a different value (including one echoed on a denied upload).
+ *
+ * @generated from message flipcash.blob.v1.PolicyVersion
+ */
+export class PolicyVersion extends Message<PolicyVersion> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<PolicyVersion>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.PolicyVersion";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PolicyVersion {
+    return new PolicyVersion().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PolicyVersion {
+    return new PolicyVersion().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PolicyVersion {
+    return new PolicyVersion().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PolicyVersion | PlainMessage<PolicyVersion> | undefined, b: PolicyVersion | PlainMessage<PolicyVersion> | undefined): boolean {
+    return proto3.util.equals(PolicyVersion, a, b);
+  }
+}
+
+/**
+ * Upload constraints for one MIME-type matcher.
+ *
+ * @generated from message flipcash.blob.v1.MimeTypeConstraints
+ */
+export class MimeTypeConstraints extends Message<MimeTypeConstraints> {
+  /**
+   * The MIME type(s) this entry governs: an exact type ("image/jpeg"), a
+   * subtype wildcard ("image/*"), or the catch-all "*\/*".
+   *
+   * @generated from field: string mime_type_pattern = 1;
+   */
+  mimeTypePattern = "";
+
+  /**
+   * Hard ceiling on a matching blob's byte size.
+   *
+   * @generated from field: uint64 max_size_bytes = 2;
+   */
+  maxSizeBytes = protoInt64.zero;
+
+  /**
+   * Kind-specific bounds, mirroring BlobMetadata.kind. Set the variant for the
+   * pattern's media kind; left unset for opaque blobs.
+   *
+   * @generated from oneof flipcash.blob.v1.MimeTypeConstraints.kind
+   */
+  kind: {
+    /**
+     * @generated from field: flipcash.blob.v1.ImageConstraints image = 3;
+     */
+    value: ImageConstraints;
+    case: "image";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<MimeTypeConstraints>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.MimeTypeConstraints";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mime_type_pattern", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "max_size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "image", kind: "message", T: ImageConstraints, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MimeTypeConstraints {
+    return new MimeTypeConstraints().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MimeTypeConstraints {
+    return new MimeTypeConstraints().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MimeTypeConstraints {
+    return new MimeTypeConstraints().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MimeTypeConstraints | PlainMessage<MimeTypeConstraints> | undefined, b: MimeTypeConstraints | PlainMessage<MimeTypeConstraints> | undefined): boolean {
+    return proto3.util.equals(MimeTypeConstraints, a, b);
+  }
+}
+
+/**
+ * Bounds on a still image, mirroring ImageMetadata.
+ *
+ * @generated from message flipcash.blob.v1.ImageConstraints
+ */
+export class ImageConstraints extends Message<ImageConstraints> {
+  /**
+   * Max pixel dimensions the server will accept (or downscale to).
+   *
+   * @generated from field: uint32 max_width = 1;
+   */
+  maxWidth = 0;
+
+  /**
+   * @generated from field: uint32 max_height = 2;
+   */
+  maxHeight = 0;
+
+  /**
+   * Max total pixel count (width * height), guarding against decompression
+   * bombs that slip under the per-axis caps.
+   *
+   * @generated from field: uint64 max_pixels = 3;
+   */
+  maxPixels = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ImageConstraints>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.ImageConstraints";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "max_width", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 2, name: "max_height", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "max_pixels", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ImageConstraints {
+    return new ImageConstraints().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ImageConstraints {
+    return new ImageConstraints().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ImageConstraints {
+    return new ImageConstraints().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ImageConstraints | PlainMessage<ImageConstraints> | undefined, b: ImageConstraints | PlainMessage<ImageConstraints> | undefined): boolean {
+    return proto3.util.equals(ImageConstraints, a, b);
   }
 }
 
@@ -528,4 +701,59 @@ proto3.util.setEnumType(UploadTarget_Method, "flipcash.blob.v1.UploadTarget.Meth
   { no: 1, name: "PUT" },
   { no: 2, name: "POST" },
 ]);
+
+/**
+ * An ephemeral, server-minted URL for fetching the blob bytes, paired with the
+ * instant it expires. Unlike the intrinsic blob metadata, the URL is NOT a
+ * property of the bytes: it is re-issued on every fetch, expires (signed URL
+ * with a short TTL), and is authorized at mint time, not at fetch time. Clients
+ * MUST NOT persist or cache it across fetches; treat the BlobId as the durable
+ * handle and this as disposable.
+ *
+ * @generated from message flipcash.blob.v1.DownloadUrl
+ */
+export class DownloadUrl extends Message<DownloadUrl> {
+  /**
+   * Signed URL for fetching the blob bytes.
+   *
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  /**
+   * When the URL expires; after this the client must call GetBlobs again to
+   * mint a fresh one.
+   *
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: Timestamp;
+
+  constructor(data?: PartialMessage<DownloadUrl>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.DownloadUrl";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "expires_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DownloadUrl {
+    return new DownloadUrl().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DownloadUrl {
+    return new DownloadUrl().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DownloadUrl {
+    return new DownloadUrl().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DownloadUrl | PlainMessage<DownloadUrl> | undefined, b: DownloadUrl | PlainMessage<DownloadUrl> | undefined): boolean {
+    return proto3.util.equals(DownloadUrl, a, b);
+  }
+}
 
