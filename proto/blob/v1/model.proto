@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.blob.v1";
 option objc_class_prefix = "FPBBlobV1";
 
+import "moderation/v1/model.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
@@ -36,7 +37,8 @@ enum BlobStatus {
     BLOB_STATUS_REJECTED   = 4; // failed validation or moderation; not servable
 }
 
-// A blob's current status, plus its metadata once READY.
+// A blob's current status, plus its metadata once READY — or, once REJECTED,
+// the reason it was rejected.
 message Blob {
     BlobId id = 1 [(validate.rules).message.required = true];
 
@@ -45,6 +47,9 @@ message Blob {
     // Server-authoritative metadata, including a freshly minted download_url.
     // Set only when status == READY.
     BlobMetadata metadata = 3;
+
+    // Why the blob was rejected. Set only when status == REJECTED.
+    RejectionMetadata rejection = 4;
 }
 
 // A batch of Blobs.
@@ -212,4 +217,33 @@ message DownloadUrl {
     // When the URL expires; after this the client must call GetBlobs again to
     // mint a fresh one.
     google.protobuf.Timestamp expires_at = 2 [(validate.rules).timestamp.required = true];
+}
+
+// Explains why a blob was rejected during finalization. Set on a Blob only when
+// status == REJECTED. Rejection is TERMINAL: the bytes behind a BlobId are
+// immutable, so this id will never become READY — to try again the client must
+// reserve a fresh upload via InitiateExternalUpload.
+message RejectionMetadata {
+    // The top-level reason finalization failed.
+    RejectionReason reason = 1 [(validate.rules).enum = {
+        not_in: [0]
+    }];
+
+    // The best-fit category that tripped moderation, mirroring the Moderation
+    // service's vocabulary. Set only when reason == REJECTION_REASON_MODERATION;
+    // NONE otherwise.
+    moderation.v1.FlaggedCategory flagged_category = 2;
+}
+
+// Why a blob failed finalization, after its bytes were uploaded. Distinct from
+// the pre-upload denials in InitiateExternalUploadResponse.Result, which reject
+// before any bytes are stored.
+enum RejectionReason {
+    REJECTION_REASON_UNKNOWN          = 0;
+    REJECTION_REASON_MODERATION       = 1; // tripped content moderation; see flagged_category
+    REJECTION_REASON_UNSUPPORTED_TYPE = 2; // MIME type derived from the bytes is not accepted
+    REJECTION_REASON_MISMATCHED_TYPE  = 3; // derived type didn't match the declared mime_type
+    REJECTION_REASON_TOO_LARGE        = 4; // stored bytes exceeded the per-type ceiling
+    REJECTION_REASON_CORRUPT          = 5; // bytes unreadable; failed to decode or transcode
+    REJECTION_REASON_INTERNAL         = 6; // server-side processing error
 }
