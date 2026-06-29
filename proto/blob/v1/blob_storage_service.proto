@@ -77,9 +77,10 @@ message InitiateExternalUploadResponse {
     Result result = 1;
     enum Result {
         OK               = 0;
-        UNSUPPORTED_TYPE = 1; // MIME type not accepted
-        TOO_LARGE        = 2; // declared size over the per-type ceiling
-        QUOTA_EXCEEDED   = 3; // caller is over their storage/upload quota
+        DENIED           = 1;
+        UNSUPPORTED_TYPE = 2; // MIME type not accepted
+        TOO_LARGE        = 3; // declared size over the per-type ceiling
+        QUOTA_EXCEEDED   = 4; // caller is over their storage/upload quota
     }
 
     // Server-assigned handle. On OK the client references this as the ORIGINAL
