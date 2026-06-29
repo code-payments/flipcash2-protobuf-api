@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Auth } from "../../common/v1/common_pb";
-import { BlobBatch, BlobId, BlobIdBatch, BlobStatus, PolicyVersion, UploadPolicy, UploadTarget } from "./model_pb";
+import { BlobBatch, BlobId, BlobIdBatch, BlobStatus, PolicyVersion, RejectionMetadata, UploadPolicy, UploadTarget } from "./model_pb";
 
 /**
  * @generated from message flipcash.blob.v1.GetUploadPolicyRequest
@@ -336,6 +336,13 @@ export class CompleteExternalUploadResponse extends Message<CompleteExternalUplo
    */
   status = BlobStatus.UNKNOWN;
 
+  /**
+   * Why the blob was rejected. Set only when status == REJECTED.
+   *
+   * @generated from field: flipcash.blob.v1.RejectionMetadata rejection_metadata = 3;
+   */
+  rejectionMetadata?: RejectionMetadata;
+
   constructor(data?: PartialMessage<CompleteExternalUploadResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -346,6 +353,7 @@ export class CompleteExternalUploadResponse extends Message<CompleteExternalUplo
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(CompleteExternalUploadResponse_Result) },
     { no: 2, name: "status", kind: "enum", T: proto3.getEnumType(BlobStatus) },
+    { no: 3, name: "rejection_metadata", kind: "message", T: RejectionMetadata },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CompleteExternalUploadResponse {
