@@ -5,6 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
 /**
  * Lifecycle state of a blob.
@@ -52,6 +53,72 @@ proto3.util.setEnumType(BlobStatus, "flipcash.blob.v1.BlobStatus", [
   { no: 2, name: "BLOB_STATUS_PROCESSING" },
   { no: 3, name: "BLOB_STATUS_READY" },
   { no: 4, name: "BLOB_STATUS_REJECTED" },
+]);
+
+/**
+ * Why a blob failed finalization, after its bytes were uploaded. Distinct from
+ * the pre-upload denials in InitiateExternalUploadResponse.Result, which reject
+ * before any bytes are stored.
+ *
+ * @generated from enum flipcash.blob.v1.RejectionReason
+ */
+export enum RejectionReason {
+  /**
+   * @generated from enum value: REJECTION_REASON_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * tripped content moderation; see flagged_category
+   *
+   * @generated from enum value: REJECTION_REASON_MODERATION = 1;
+   */
+  MODERATION = 1,
+
+  /**
+   * MIME type derived from the bytes is not accepted
+   *
+   * @generated from enum value: REJECTION_REASON_UNSUPPORTED_TYPE = 2;
+   */
+  UNSUPPORTED_TYPE = 2,
+
+  /**
+   * derived type didn't match the declared mime_type
+   *
+   * @generated from enum value: REJECTION_REASON_MISMATCHED_TYPE = 3;
+   */
+  MISMATCHED_TYPE = 3,
+
+  /**
+   * stored bytes exceeded the per-type ceiling
+   *
+   * @generated from enum value: REJECTION_REASON_TOO_LARGE = 4;
+   */
+  TOO_LARGE = 4,
+
+  /**
+   * bytes unreadable; failed to decode or transcode
+   *
+   * @generated from enum value: REJECTION_REASON_CORRUPT = 5;
+   */
+  CORRUPT = 5,
+
+  /**
+   * server-side processing error
+   *
+   * @generated from enum value: REJECTION_REASON_INTERNAL = 6;
+   */
+  INTERNAL = 6,
+}
+// Retrieve enum metadata with: proto3.getEnumType(RejectionReason)
+proto3.util.setEnumType(RejectionReason, "flipcash.blob.v1.RejectionReason", [
+  { no: 0, name: "REJECTION_REASON_UNKNOWN" },
+  { no: 1, name: "REJECTION_REASON_MODERATION" },
+  { no: 2, name: "REJECTION_REASON_UNSUPPORTED_TYPE" },
+  { no: 3, name: "REJECTION_REASON_MISMATCHED_TYPE" },
+  { no: 4, name: "REJECTION_REASON_TOO_LARGE" },
+  { no: 5, name: "REJECTION_REASON_CORRUPT" },
+  { no: 6, name: "REJECTION_REASON_INTERNAL" },
 ]);
 
 /**
@@ -134,7 +201,8 @@ export class BlobIdBatch extends Message<BlobIdBatch> {
 }
 
 /**
- * A blob's current status, plus its metadata once READY.
+ * A blob's current status, plus its metadata once READY — or, once REJECTED,
+ * the reason it was rejected.
  *
  * @generated from message flipcash.blob.v1.Blob
  */
@@ -157,6 +225,13 @@ export class Blob extends Message<Blob> {
    */
   metadata?: BlobMetadata;
 
+  /**
+   * Why the blob was rejected. Set only when status == REJECTED.
+   *
+   * @generated from field: flipcash.blob.v1.RejectionMetadata rejection = 4;
+   */
+  rejection?: RejectionMetadata;
+
   constructor(data?: PartialMessage<Blob>) {
     super();
     proto3.util.initPartial(data, this);
@@ -168,6 +243,7 @@ export class Blob extends Message<Blob> {
     { no: 1, name: "id", kind: "message", T: BlobId },
     { no: 2, name: "status", kind: "enum", T: proto3.getEnumType(BlobStatus) },
     { no: 3, name: "metadata", kind: "message", T: BlobMetadata },
+    { no: 4, name: "rejection", kind: "message", T: RejectionMetadata },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Blob {
@@ -754,6 +830,60 @@ export class DownloadUrl extends Message<DownloadUrl> {
 
   static equals(a: DownloadUrl | PlainMessage<DownloadUrl> | undefined, b: DownloadUrl | PlainMessage<DownloadUrl> | undefined): boolean {
     return proto3.util.equals(DownloadUrl, a, b);
+  }
+}
+
+/**
+ * Explains why a blob was rejected during finalization. Set on a Blob only when
+ * status == REJECTED. Rejection is TERMINAL: the bytes behind a BlobId are
+ * immutable, so this id will never become READY — to try again the client must
+ * reserve a fresh upload via InitiateExternalUpload.
+ *
+ * @generated from message flipcash.blob.v1.RejectionMetadata
+ */
+export class RejectionMetadata extends Message<RejectionMetadata> {
+  /**
+   * The top-level reason finalization failed.
+   *
+   * @generated from field: flipcash.blob.v1.RejectionReason reason = 1;
+   */
+  reason = RejectionReason.UNKNOWN;
+
+  /**
+   * The best-fit category that tripped moderation, mirroring the Moderation
+   * service's vocabulary. Set only when reason == REJECTION_REASON_MODERATION;
+   * NONE otherwise.
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 2;
+   */
+  flaggedCategory = FlaggedCategory.NONE;
+
+  constructor(data?: PartialMessage<RejectionMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.RejectionMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "reason", kind: "enum", T: proto3.getEnumType(RejectionReason) },
+    { no: 2, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RejectionMetadata {
+    return new RejectionMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RejectionMetadata {
+    return new RejectionMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RejectionMetadata {
+    return new RejectionMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RejectionMetadata | PlainMessage<RejectionMetadata> | undefined, b: RejectionMetadata | PlainMessage<RejectionMetadata> | undefined): boolean {
+    return proto3.util.equals(RejectionMetadata, a, b);
   }
 }
 

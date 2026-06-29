@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	moderationpb "github.com/code-payments/flipcash2-protobuf-api/generated/go/moderation/v1"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = moderationpb.FlaggedCategory(0)
 )
 
 // Validate checks the field values on BlobId with the rules defined in the
@@ -374,6 +378,35 @@ func (m *Blob) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return BlobValidationError{
 				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetRejection()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BlobValidationError{
+					field:  "Rejection",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BlobValidationError{
+					field:  "Rejection",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRejection()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BlobValidationError{
+				field:  "Rejection",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -1852,3 +1885,122 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DownloadUrlValidationError{}
+
+// Validate checks the field values on RejectionMetadata with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RejectionMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RejectionMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RejectionMetadataMultiError, or nil if none found.
+func (m *RejectionMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RejectionMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := _RejectionMetadata_Reason_NotInLookup[m.GetReason()]; ok {
+		err := RejectionMetadataValidationError{
+			field:  "Reason",
+			reason: "value must not be in list [REJECTION_REASON_UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for FlaggedCategory
+
+	if len(errors) > 0 {
+		return RejectionMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// RejectionMetadataMultiError is an error wrapping multiple validation errors
+// returned by RejectionMetadata.ValidateAll() if the designated constraints
+// aren't met.
+type RejectionMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RejectionMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RejectionMetadataMultiError) AllErrors() []error { return m }
+
+// RejectionMetadataValidationError is the validation error returned by
+// RejectionMetadata.Validate if the designated constraints aren't met.
+type RejectionMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RejectionMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RejectionMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RejectionMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RejectionMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RejectionMetadataValidationError) ErrorName() string {
+	return "RejectionMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RejectionMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRejectionMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RejectionMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RejectionMetadataValidationError{}
+
+var _RejectionMetadata_Reason_NotInLookup = map[RejectionReason]struct{}{
+	0: {},
+}

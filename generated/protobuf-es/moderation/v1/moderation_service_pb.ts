@@ -4,54 +4,9 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { Auth, PublicKey, Signature, UserId } from "../../common/v1/common_pb";
-
-/**
- * @generated from enum flipcash.moderation.v1.FlaggedCategory
- */
-export enum FlaggedCategory {
-  /**
-   * @generated from enum value: NONE = 0;
-   */
-  NONE = 0,
-
-  /**
-   * Fallback category when flagged content does not fit into a well-defined FlaggedCategory
-   *
-   * @generated from enum value: OTHER = 1;
-   */
-  OTHER = 1,
-
-  /**
-   * @generated from enum value: NSFW = 2;
-   */
-  NSFW = 2,
-
-  /**
-   * @generated from enum value: IMPERSONATION = 3;
-   */
-  IMPERSONATION = 3,
-
-  /**
-   * @generated from enum value: MISLEADING = 4;
-   */
-  MISLEADING = 4,
-
-  /**
-   * @generated from enum value: SPAM = 5;
-   */
-  SPAM = 5,
-}
-// Retrieve enum metadata with: proto3.getEnumType(FlaggedCategory)
-proto3.util.setEnumType(FlaggedCategory, "flipcash.moderation.v1.FlaggedCategory", [
-  { no: 0, name: "NONE" },
-  { no: 1, name: "OTHER" },
-  { no: 2, name: "NSFW" },
-  { no: 3, name: "IMPERSONATION" },
-  { no: 4, name: "MISLEADING" },
-  { no: 5, name: "SPAM" },
-]);
+import { Message, proto3 } from "@bufbuild/protobuf";
+import { Auth } from "../../common/v1/common_pb";
+import { FlaggedCategory, ModerationAttestation } from "./model_pb";
 
 /**
  * @generated from message flipcash.moderation.v1.ModerateTextRequest
@@ -316,78 +271,4 @@ proto3.util.setEnumType(ModerateImageResponse_Result, "flipcash.moderation.v1.Mo
   { no: 1, name: "DENIED" },
   { no: 2, name: "UNSUPPORTED_FORMAT" },
 ]);
-
-/**
- * ModerationAttestation is a signed proof of the moderation result.
- * The signature is computed over this message without the signature field set.
- *
- * @generated from message flipcash.moderation.v1.ModerationAttestation
- */
-export class ModerationAttestation extends Message<ModerationAttestation> {
-  /**
-   * SHA-256 hash of the moderated content to be allowed
-   *
-   * @generated from field: bytes content_hash = 1;
-   */
-  contentHash = new Uint8Array(0);
-
-  /**
-   * Timestamp of the moderation
-   *
-   * @generated from field: google.protobuf.Timestamp timestamp = 2;
-   */
-  timestamp?: Timestamp;
-
-  /**
-   * The user who submitted the content
-   *
-   * @generated from field: flipcash.common.v1.UserId user_id = 3;
-   */
-  userId?: UserId;
-
-  /**
-   * Public key of the attestor that signed this message
-   *
-   * @generated from field: flipcash.common.v1.PublicKey attestor = 4;
-   */
-  attestor?: PublicKey;
-
-  /**
-   * Attestor signature over this message
-   *
-   * @generated from field: flipcash.common.v1.Signature signature = 5;
-   */
-  signature?: Signature;
-
-  constructor(data?: PartialMessage<ModerationAttestation>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.moderation.v1.ModerationAttestation";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "content_hash", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
-    { no: 2, name: "timestamp", kind: "message", T: Timestamp },
-    { no: 3, name: "user_id", kind: "message", T: UserId },
-    { no: 4, name: "attestor", kind: "message", T: PublicKey },
-    { no: 5, name: "signature", kind: "message", T: Signature },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModerationAttestation {
-    return new ModerationAttestation().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ModerationAttestation {
-    return new ModerationAttestation().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ModerationAttestation {
-    return new ModerationAttestation().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ModerationAttestation | PlainMessage<ModerationAttestation> | undefined, b: ModerationAttestation | PlainMessage<ModerationAttestation> | undefined): boolean {
-    return proto3.util.equals(ModerationAttestation, a, b);
-  }
-}
 
