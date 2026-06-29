@@ -249,15 +249,12 @@ export class BlobMetadata extends Message<BlobMetadata> {
   sizeBytes = protoInt64.zero;
 
   /**
-   * Ephemeral, server-minted URL for fetching the blob bytes. Unlike the
-   * other fields it is NOT intrinsic to the blob: it is re-issued on every
-   * fetch, may expire (signed URL with a short TTL), and is authorized at
-   * mint time, not at fetch time. Clients MUST NOT persist or cache it across
-   * fetches; treat the BlobId as the durable handle and this as disposable.
+   * Ephemeral, server-minted URL for fetching the blob bytes, together with
+   * the instant it expires. Re-issued on every fetch — see DownloadUrl.
    *
-   * @generated from field: string download_url = 3;
+   * @generated from field: flipcash.blob.v1.DownloadUrl download_url = 3;
    */
-  downloadUrl = "";
+  downloadUrl?: DownloadUrl;
 
   /**
    * Kind-specific metadata the server derived from the bytes. Exactly one
@@ -285,7 +282,7 @@ export class BlobMetadata extends Message<BlobMetadata> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 3, name: "download_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "download_url", kind: "message", T: DownloadUrl },
     { no: 4, name: "image", kind: "message", T: ImageMetadata, oneof: "kind" },
   ]);
 
@@ -358,6 +355,61 @@ export class ImageMetadata extends Message<ImageMetadata> {
 
   static equals(a: ImageMetadata | PlainMessage<ImageMetadata> | undefined, b: ImageMetadata | PlainMessage<ImageMetadata> | undefined): boolean {
     return proto3.util.equals(ImageMetadata, a, b);
+  }
+}
+
+/**
+ * An ephemeral, server-minted URL for fetching the blob bytes, paired with the
+ * instant it expires. Unlike the intrinsic blob metadata, the URL is NOT a
+ * property of the bytes: it is re-issued on every fetch, expires (signed URL
+ * with a short TTL), and is authorized at mint time, not at fetch time. Clients
+ * MUST NOT persist or cache it across fetches; treat the BlobId as the durable
+ * handle and this as disposable.
+ *
+ * @generated from message flipcash.blob.v1.DownloadUrl
+ */
+export class DownloadUrl extends Message<DownloadUrl> {
+  /**
+   * Signed URL for fetching the blob bytes.
+   *
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  /**
+   * When the URL expires; after this the client must call GetBlobs again to
+   * mint a fresh one.
+   *
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: Timestamp;
+
+  constructor(data?: PartialMessage<DownloadUrl>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.DownloadUrl";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "expires_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DownloadUrl {
+    return new DownloadUrl().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DownloadUrl {
+    return new DownloadUrl().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DownloadUrl {
+    return new DownloadUrl().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DownloadUrl | PlainMessage<DownloadUrl> | undefined, b: DownloadUrl | PlainMessage<DownloadUrl> | undefined): boolean {
+    return proto3.util.equals(DownloadUrl, a, b);
   }
 }
 
