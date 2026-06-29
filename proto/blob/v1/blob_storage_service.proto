@@ -113,6 +113,9 @@ message CompleteExternalUploadResponse {
 
     // Blob state after this call (often still PROCESSING).
     BlobStatus status = 2;
+
+    // Why the blob was rejected. Set only when status == REJECTED.
+    RejectionMetadata rejection_metadata = 3;
 }
 
 message GetBlobsRequest {
