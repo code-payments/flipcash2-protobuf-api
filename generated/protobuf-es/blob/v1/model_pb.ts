@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
+import { ChatId } from "../../common/v1/common_pb";
 
 /**
  * Lifecycle state of a blob.
@@ -884,6 +885,65 @@ export class RejectionMetadata extends Message<RejectionMetadata> {
 
   static equals(a: RejectionMetadata | PlainMessage<RejectionMetadata> | undefined, b: RejectionMetadata | PlainMessage<RejectionMetadata> | undefined): boolean {
     return proto3.util.equals(RejectionMetadata, a, b);
+  }
+}
+
+/**
+ * AccessContext names the surface a caller is accessing blobs THROUGH on a
+ * request — the "place" the read is happening from. It is the extension point
+ * for blob authorization contexts: each scope maps to a server-side membership
+ * check (e.g. a chat scope authorizes the caller iff they belong to that chat
+ * AND the blob was shared into it).
+ *
+ * It is a hint that can only ever NARROW a read, never widen it: the server
+ * still independently verifies both that the blob is granted to the named scope
+ * and that the caller belongs to it. A caller never needs a context to read
+ * blobs it OWNS, but does need one for any blob it does not own. New surfaces (a
+ * feed, a profile, a public link) are added as new arms of `scope` without
+ * changing any request plumbing.
+ *
+ * @generated from message flipcash.blob.v1.AccessContext
+ */
+export class AccessContext extends Message<AccessContext> {
+  /**
+   * @generated from oneof flipcash.blob.v1.AccessContext.scope
+   */
+  scope: {
+    /**
+     * The caller is accessing these blobs from within this chat. Authorized
+     * iff the caller is a member of the chat and the blob was shared into it.
+     *
+     * @generated from field: flipcash.common.v1.ChatId chat = 1;
+     */
+    value: ChatId;
+    case: "chat";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<AccessContext>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.AccessContext";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat", kind: "message", T: ChatId, oneof: "scope" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccessContext {
+    return new AccessContext().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AccessContext {
+    return new AccessContext().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AccessContext {
+    return new AccessContext().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AccessContext | PlainMessage<AccessContext> | undefined, b: AccessContext | PlainMessage<AccessContext> | undefined): boolean {
+    return proto3.util.equals(AccessContext, a, b);
   }
 }
 

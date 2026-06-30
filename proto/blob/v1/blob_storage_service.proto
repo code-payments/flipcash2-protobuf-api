@@ -37,7 +37,9 @@ service BlobStorage {
     // GetBlobs resolves known BlobIds to their current status and metadata,
     // minting a FRESH, short-lived download_url for each READY blob. Clients
     // call it to reissue a URL that has expired — the BlobId is the durable
-    // handle; the URL is disposable.
+    // handle; the URL is disposable. A caller must set GetBlobsRequest.context
+    // to the surface it is reading from (e.g. a chat) to authorize blobs it
+    // does not own.
     rpc GetBlobs(GetBlobsRequest) returns (GetBlobsResponse);
 }
 
@@ -123,6 +125,18 @@ message GetBlobsRequest {
 
     // The blobs to resolve.
     BlobIdBatch blob_ids = 2 [(validate.rules).message.required = true];
+
+    // The surface the caller is accessing these blobs from. When set, the
+    // server authorizes the entire batch through this single context, turning
+    // the read into a direct membership check instead of a search across the
+    // blob's grants.
+    //
+    // OPTIONAL on the wire, but REQUIRED in practice for any blob the caller
+    // does not OWN: blobs the caller owns resolve without a context, while a
+    // non-owned id is treated as unauthorized (and omitted from the response)
+    // unless a context that authorizes it is supplied. A caller reading only
+    // its own blobs may omit it, so existing owner-only clients are unaffected.
+    AccessContext context = 3;
 }
 
 message GetBlobsResponse {
