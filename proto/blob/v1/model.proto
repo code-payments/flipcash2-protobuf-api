@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.blob.v1";
 option objc_class_prefix = "FPBBlobV1";
 
+import "common/v1/common.proto";
 import "moderation/v1/model.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
@@ -246,4 +247,26 @@ enum RejectionReason {
     REJECTION_REASON_TOO_LARGE        = 4; // stored bytes exceeded the per-type ceiling
     REJECTION_REASON_CORRUPT          = 5; // bytes unreadable; failed to decode or transcode
     REJECTION_REASON_INTERNAL         = 6; // server-side processing error
+}
+
+// AccessContext names the surface a caller is accessing blobs THROUGH on a
+// request — the "place" the read is happening from. It is the extension point
+// for blob authorization contexts: each scope maps to a server-side membership
+// check (e.g. a chat scope authorizes the caller iff they belong to that chat
+// AND the blob was shared into it).
+//
+// It is a hint that can only ever NARROW a read, never widen it: the server
+// still independently verifies both that the blob is granted to the named scope
+// and that the caller belongs to it. A caller never needs a context to read
+// blobs it OWNS, but does need one for any blob it does not own. New surfaces (a
+// feed, a profile, a public link) are added as new arms of `scope` without
+// changing any request plumbing.
+message AccessContext {
+    oneof scope {
+        option (validate.required) = true;
+
+        // The caller is accessing these blobs from within this chat. Authorized
+        // iff the caller is a member of the chat and the blob was shared into it.
+        common.v1.ChatId chat = 1 [(validate.rules).message.required = true];
+    }
 }

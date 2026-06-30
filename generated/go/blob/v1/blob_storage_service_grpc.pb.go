@@ -53,7 +53,9 @@ type BlobStorageClient interface {
 	// GetBlobs resolves known BlobIds to their current status and metadata,
 	// minting a FRESH, short-lived download_url for each READY blob. Clients
 	// call it to reissue a URL that has expired — the BlobId is the durable
-	// handle; the URL is disposable.
+	// handle; the URL is disposable. A caller must set GetBlobsRequest.context
+	// to the surface it is reading from (e.g. a chat) to authorize blobs it
+	// does not own.
 	GetBlobs(ctx context.Context, in *GetBlobsRequest, opts ...grpc.CallOption) (*GetBlobsResponse, error)
 }
 
@@ -133,7 +135,9 @@ type BlobStorageServer interface {
 	// GetBlobs resolves known BlobIds to their current status and metadata,
 	// minting a FRESH, short-lived download_url for each READY blob. Clients
 	// call it to reissue a URL that has expired — the BlobId is the durable
-	// handle; the URL is disposable.
+	// handle; the URL is disposable. A caller must set GetBlobsRequest.context
+	// to the surface it is reading from (e.g. a chat) to authorize blobs it
+	// does not own.
 	GetBlobs(context.Context, *GetBlobsRequest) (*GetBlobsResponse, error)
 	mustEmbedUnimplementedBlobStorageServer()
 }

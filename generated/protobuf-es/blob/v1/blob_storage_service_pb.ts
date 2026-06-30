@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Auth } from "../../common/v1/common_pb";
-import { BlobBatch, BlobId, BlobIdBatch, BlobStatus, PolicyVersion, RejectionMetadata, UploadPolicy, UploadTarget } from "./model_pb";
+import { AccessContext, BlobBatch, BlobId, BlobIdBatch, BlobStatus, PolicyVersion, RejectionMetadata, UploadPolicy, UploadTarget } from "./model_pb";
 
 /**
  * @generated from message flipcash.blob.v1.GetUploadPolicyRequest
@@ -419,6 +419,22 @@ export class GetBlobsRequest extends Message<GetBlobsRequest> {
    */
   blobIds?: BlobIdBatch;
 
+  /**
+   * The surface the caller is accessing these blobs from. When set, the
+   * server authorizes the entire batch through this single context, turning
+   * the read into a direct membership check instead of a search across the
+   * blob's grants.
+   *
+   * OPTIONAL on the wire, but REQUIRED in practice for any blob the caller
+   * does not OWN: blobs the caller owns resolve without a context, while a
+   * non-owned id is treated as unauthorized (and omitted from the response)
+   * unless a context that authorizes it is supplied. A caller reading only
+   * its own blobs may omit it, so existing owner-only clients are unaffected.
+   *
+   * @generated from field: flipcash.blob.v1.AccessContext context = 3;
+   */
+  context?: AccessContext;
+
   constructor(data?: PartialMessage<GetBlobsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -429,6 +445,7 @@ export class GetBlobsRequest extends Message<GetBlobsRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "blob_ids", kind: "message", T: BlobIdBatch },
+    { no: 3, name: "context", kind: "message", T: AccessContext },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetBlobsRequest {
