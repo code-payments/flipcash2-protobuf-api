@@ -187,6 +187,9 @@ message MediaItemRendition {
     // Server-authoritative blob metadata (mime type, size, download URL, and
     // the image dimensions/preview), resolved from the blob record. Omitted on
     // SendMessage and populated on stored/returned messages.
+    //
+    // If unavailable at time of message retrieval, client can use the blob
+    // service to query for the blob metadata.
     blob.v1.BlobMetadata blob = 3;
 }
 

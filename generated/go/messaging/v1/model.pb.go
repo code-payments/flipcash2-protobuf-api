@@ -892,6 +892,9 @@ type MediaItemRendition struct {
 	// Server-authoritative blob metadata (mime type, size, download URL, and
 	// the image dimensions/preview), resolved from the blob record. Omitted on
 	// SendMessage and populated on stored/returned messages.
+	//
+	// If unavailable at time of message retrieval, client can use the blob
+	// service to query for the blob metadata.
 	Blob *v11.BlobMetadata `protobuf:"bytes,3,opt,name=blob,proto3" json:"blob,omitempty"`
 }
 

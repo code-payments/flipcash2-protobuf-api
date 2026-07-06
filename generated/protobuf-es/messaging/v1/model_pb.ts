@@ -563,6 +563,9 @@ export class MediaItemRendition extends Message$1<MediaItemRendition> {
    * the image dimensions/preview), resolved from the blob record. Omitted on
    * SendMessage and populated on stored/returned messages.
    *
+   * If unavailable at time of message retrieval, client can use the blob
+   * service to query for the blob metadata.
+   *
    * @generated from field: flipcash.blob.v1.BlobMetadata blob = 3;
    */
   blob?: BlobMetadata;
