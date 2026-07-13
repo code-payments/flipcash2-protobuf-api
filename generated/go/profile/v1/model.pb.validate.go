@@ -171,6 +171,35 @@ func (m *UserProfile) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetProfilePicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UserProfileValidationError{
+					field:  "ProfilePicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UserProfileValidationError{
+					field:  "ProfilePicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetProfilePicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UserProfileValidationError{
+				field:  "ProfilePicture",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return UserProfileMultiError(errors)
 	}

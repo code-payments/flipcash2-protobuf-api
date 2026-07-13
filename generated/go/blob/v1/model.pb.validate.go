@@ -974,6 +974,332 @@ var _ interface {
 	ErrorName() string
 } = ImageMetadataValidationError{}
 
+// Validate checks the field values on Media with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Media) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Media with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in MediaMultiError, or nil if none found.
+func (m *Media) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Media) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetRenditions()) < 1 {
+		err := MediaValidationError{
+			field:  "Renditions",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetRenditions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MediaValidationError{
+						field:  fmt.Sprintf("Renditions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MediaValidationError{
+						field:  fmt.Sprintf("Renditions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MediaValidationError{
+					field:  fmt.Sprintf("Renditions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return MediaMultiError(errors)
+	}
+
+	return nil
+}
+
+// MediaMultiError is an error wrapping multiple validation errors returned by
+// Media.ValidateAll() if the designated constraints aren't met.
+type MediaMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MediaMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MediaMultiError) AllErrors() []error { return m }
+
+// MediaValidationError is the validation error returned by Media.Validate if
+// the designated constraints aren't met.
+type MediaValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MediaValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MediaValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MediaValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MediaValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MediaValidationError) ErrorName() string { return "MediaValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MediaValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMedia.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MediaValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MediaValidationError{}
+
+// Validate checks the field values on Rendition with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Rendition) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Rendition with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RenditionMultiError, or nil
+// if none found.
+func (m *Rendition) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Rendition) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := _Rendition_Role_NotInLookup[m.GetRole()]; ok {
+		err := RenditionValidationError{
+			field:  "Role",
+			reason: "value must not be in list [UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetBlobId() == nil {
+		err := RenditionValidationError{
+			field:  "BlobId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlobId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RenditionValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RenditionValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RenditionValidationError{
+				field:  "BlobId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlob()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RenditionValidationError{
+					field:  "Blob",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RenditionValidationError{
+					field:  "Blob",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlob()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RenditionValidationError{
+				field:  "Blob",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RenditionMultiError(errors)
+	}
+
+	return nil
+}
+
+// RenditionMultiError is an error wrapping multiple validation errors returned
+// by Rendition.ValidateAll() if the designated constraints aren't met.
+type RenditionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RenditionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RenditionMultiError) AllErrors() []error { return m }
+
+// RenditionValidationError is the validation error returned by
+// Rendition.Validate if the designated constraints aren't met.
+type RenditionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RenditionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RenditionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RenditionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RenditionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RenditionValidationError) ErrorName() string { return "RenditionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RenditionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRendition.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RenditionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RenditionValidationError{}
+
+var _Rendition_Role_NotInLookup = map[Rendition_Role]struct{}{
+	0: {},
+}
+
 // Validate checks the field values on UploadPolicy with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -2076,6 +2402,59 @@ func (m *AccessContext) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return AccessContextValidationError{
 					field:  "Chat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *AccessContext_Profile:
+		if v == nil {
+			err := AccessContextValidationError{
+				field:  "Scope",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofScopePresent = true
+
+		if m.GetProfile() == nil {
+			err := AccessContextValidationError{
+				field:  "Profile",
+				reason: "value is required",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetProfile()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AccessContextValidationError{
+						field:  "Profile",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AccessContextValidationError{
+						field:  "Profile",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetProfile()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AccessContextValidationError{
+					field:  "Profile",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

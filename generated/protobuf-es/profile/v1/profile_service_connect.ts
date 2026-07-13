@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse } from "./profile_service_pb";
+import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetProfilePictureRequest, SetProfilePictureResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse } from "./profile_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -28,6 +28,23 @@ export const Profile = {
       name: "SetDisplayName",
       I: SetDisplayNameRequest,
       O: SetDisplayNameResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetProfilePicture sets the caller's profile picture to a blob they have
+     * already uploaded via BlobStorage, replacing any picture already set.
+     *
+     * The client uploads only the ORIGINAL — InitiateExternalUpload, PUT/POST
+     * the bytes, then (optionally) CompleteExternalUpload — and passes the
+     * resulting BlobId here once the blob is READY. The server derives the
+     * DISPLAY and THUMBNAIL renditions itself and returns the full set.
+     *
+     * @generated from rpc flipcash.profile.v1.Profile.SetProfilePicture
+     */
+    setProfilePicture: {
+      name: "SetProfilePicture",
+      I: SetProfilePictureRequest,
+      O: SetProfilePictureResponse,
       kind: MethodKind.Unary,
     },
     /**
