@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 import { EmailAddress } from "../../email/v1/model_pb";
+import { Media } from "../../blob/v1/model_pb";
 
 /**
  * @generated from message flipcash.profile.v1.UserProfile
@@ -42,6 +43,21 @@ export class UserProfile extends Message<UserProfile> {
    */
   emailAddress?: EmailAddress;
 
+  /**
+   * The user's profile picture, as the set of renditions it is stored as —
+   * typically a DISPLAY for the profile view and a THUMBNAIL for avatars in
+   * member rows and chat lists.
+   *
+   * Unset when the user has not set a picture. Set it with SetProfilePicture.
+   *
+   * To fetch the bytes of ANOTHER user's picture, the caller does not own
+   * these blobs, so a GetBlobs call must carry a blob.v1.AccessContext whose
+   * `profile` scope names this user. A caller reading its own needs none.
+   *
+   * @generated from field: flipcash.blob.v1.Media profile_picture = 5;
+   */
+  profilePicture?: Media;
+
   constructor(data?: PartialMessage<UserProfile>) {
     super();
     proto3.util.initPartial(data, this);
@@ -54,6 +70,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 2, name: "social_profiles", kind: "message", T: SocialProfile, repeated: true },
     { no: 3, name: "phone_number", kind: "message", T: PhoneNumber },
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
+    { no: 5, name: "profile_picture", kind: "message", T: Media },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserProfile {

@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, UserId } from "../../common/v1/common_pb";
 import { SocialProfile, UserProfile } from "./model_pb";
+import { BlobId, Media } from "../../blob/v1/model_pb";
 
 /**
  * @generated from message flipcash.profile.v1.GetProfileRequest
@@ -227,6 +228,151 @@ proto3.util.setEnumType(SetDisplayNameResponse_Result, "flipcash.profile.v1.SetD
   { no: 0, name: "OK" },
   { no: 1, name: "INVALID_DISPLAY_NAME" },
   { no: 2, name: "DENIED" },
+]);
+
+/**
+ * @generated from message flipcash.profile.v1.SetProfilePictureRequest
+ */
+export class SetProfilePictureRequest extends Message<SetProfilePictureRequest> {
+  /**
+   * The blob holding the ORIGINAL image the caller uploaded. It must be owned
+   * by the caller and READY; the server derives the remaining renditions from
+   * it. A blob may back at most one profile picture — reuse is not implied.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
+   */
+  blobId?: BlobId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetProfilePictureRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetProfilePictureRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blob_id", kind: "message", T: BlobId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetProfilePictureRequest {
+    return new SetProfilePictureRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetProfilePictureRequest {
+    return new SetProfilePictureRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetProfilePictureRequest {
+    return new SetProfilePictureRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetProfilePictureRequest | PlainMessage<SetProfilePictureRequest> | undefined, b: SetProfilePictureRequest | PlainMessage<SetProfilePictureRequest> | undefined): boolean {
+    return proto3.util.equals(SetProfilePictureRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.SetProfilePictureResponse
+ */
+export class SetProfilePictureResponse extends Message<SetProfilePictureResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.SetProfilePictureResponse.Result result = 1;
+   */
+  result = SetProfilePictureResponse_Result.OK;
+
+  /**
+   * The caller's new profile picture, including the renditions the server
+   * derived. Set only when result == OK.
+   *
+   * @generated from field: flipcash.blob.v1.Media profile_picture = 2;
+   */
+  profilePicture?: Media;
+
+  constructor(data?: PartialMessage<SetProfilePictureResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetProfilePictureResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetProfilePictureResponse_Result) },
+    { no: 2, name: "profile_picture", kind: "message", T: Media },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetProfilePictureResponse {
+    return new SetProfilePictureResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetProfilePictureResponse {
+    return new SetProfilePictureResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetProfilePictureResponse {
+    return new SetProfilePictureResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetProfilePictureResponse | PlainMessage<SetProfilePictureResponse> | undefined, b: SetProfilePictureResponse | PlainMessage<SetProfilePictureResponse> | undefined): boolean {
+    return proto3.util.equals(SetProfilePictureResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.SetProfilePictureResponse.Result
+ */
+export enum SetProfilePictureResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * no such blob, or it is not owned by the caller
+   *
+   * @generated from enum value: BLOB_NOT_FOUND = 2;
+   */
+  BLOB_NOT_FOUND = 2,
+
+  /**
+   * blob is still PENDING/PROCESSING; retry once READY
+   *
+   * @generated from enum value: BLOB_NOT_READY = 3;
+   */
+  BLOB_NOT_READY = 3,
+
+  /**
+   * blob failed validation or moderation; terminal for this id, so the client must upload again
+   *
+   * @generated from enum value: BLOB_REJECTED = 4;
+   */
+  BLOB_REJECTED = 4,
+
+  /**
+   * blob is READY but unusable as a picture (e.g. not an image)
+   *
+   * @generated from enum value: INVALID_BLOB = 5;
+   */
+  INVALID_BLOB = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetProfilePictureResponse_Result)
+proto3.util.setEnumType(SetProfilePictureResponse_Result, "flipcash.profile.v1.SetProfilePictureResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "BLOB_NOT_FOUND" },
+  { no: 3, name: "BLOB_NOT_READY" },
+  { no: 4, name: "BLOB_REJECTED" },
+  { no: 5, name: "INVALID_BLOB" },
 ]);
 
 /**

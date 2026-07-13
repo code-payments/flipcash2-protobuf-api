@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
-import { ChatId } from "../../common/v1/common_pb";
+import { ChatId, UserId } from "../../common/v1/common_pb";
 
 /**
  * Lifecycle state of a blob.
@@ -434,6 +434,158 @@ export class ImageMetadata extends Message<ImageMetadata> {
     return proto3.util.equals(ImageMetadata, a, b);
   }
 }
+
+/**
+ * One logical piece of media — a chat image, a profile picture — carried as the
+ * set of renditions it is stored as. Distinct from Blob: a Blob is ONE stored
+ * object, while a Media is the several stored objects that together represent
+ * the same content at different qualities/sizes.
+ *
+ * Wherever a surface attaches media, it embeds this type: the client uploads a
+ * single ORIGINAL and the server derives the rest, identically everywhere.
+ *
+ * @generated from message flipcash.blob.v1.Media
+ */
+export class Media extends Message<Media> {
+  /**
+   * The renditions of this media, each an independently-stored blob. When a
+   * client attaches media (e.g. SendMessage, SetProfilePicture) it supplies
+   * exactly one ORIGINAL rendition (its blob_id); the server fills that
+   * rendition's metadata and appends any derived renditions (e.g. a
+   * downscaled DISPLAY and a THUMBNAIL).
+   *
+   * @generated from field: repeated flipcash.blob.v1.Rendition renditions = 1;
+   */
+  renditions: Rendition[] = [];
+
+  constructor(data?: PartialMessage<Media>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.Media";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "renditions", kind: "message", T: Rendition, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Media {
+    return new Media().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Media {
+    return new Media().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Media {
+    return new Media().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Media | PlainMessage<Media> | undefined, b: Media | PlainMessage<Media> | undefined): boolean {
+    return proto3.util.equals(Media, a, b);
+  }
+}
+
+/**
+ * A single stored variant of a Media.
+ *
+ * @generated from message flipcash.blob.v1.Rendition
+ */
+export class Rendition extends Message<Rendition> {
+  /**
+   * The intended use of this rendition within the media.
+   *
+   * @generated from field: flipcash.blob.v1.Rendition.Role role = 1;
+   */
+  role = Rendition_Role.UNKNOWN;
+
+  /**
+   * Handle to the blob holding this rendition's bytes. Client-set on the
+   * ORIGINAL when attaching the media; server-set for derived renditions.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 2;
+   */
+  blobId?: BlobId;
+
+  /**
+   * Server-authoritative blob metadata (mime type, size, download URL, and
+   * the image dimensions/preview), resolved from the blob record. Omitted on
+   * the request that attaches the media and populated on returned copies.
+   *
+   * If unavailable at the time the media is retrieved, the client can use
+   * GetBlobs to query for the blob metadata.
+   *
+   * @generated from field: flipcash.blob.v1.BlobMetadata blob = 3;
+   */
+  blob?: BlobMetadata;
+
+  constructor(data?: PartialMessage<Rendition>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.Rendition";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "role", kind: "enum", T: proto3.getEnumType(Rendition_Role) },
+    { no: 2, name: "blob_id", kind: "message", T: BlobId },
+    { no: 3, name: "blob", kind: "message", T: BlobMetadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Rendition {
+    return new Rendition().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Rendition {
+    return new Rendition().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Rendition {
+    return new Rendition().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Rendition | PlainMessage<Rendition> | undefined, b: Rendition | PlainMessage<Rendition> | undefined): boolean {
+    return proto3.util.equals(Rendition, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.blob.v1.Rendition.Role
+ */
+export enum Rendition_Role {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * full-quality source the client uploaded
+   *
+   * @generated from enum value: ORIGINAL = 1;
+   */
+  ORIGINAL = 1,
+
+  /**
+   * downscaled/compressed for inline display
+   *
+   * @generated from enum value: DISPLAY = 2;
+   */
+  DISPLAY = 2,
+
+  /**
+   * tiny preview (grid cell, avatar, ...)
+   *
+   * @generated from enum value: THUMBNAIL = 3;
+   */
+  THUMBNAIL = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(Rendition_Role)
+proto3.util.setEnumType(Rendition_Role, "flipcash.blob.v1.Rendition.Role", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "ORIGINAL" },
+  { no: 2, name: "DISPLAY" },
+  { no: 3, name: "THUMBNAIL" },
+]);
 
 /**
  * The constraints the server enforces on uploads, surfaced so clients can
@@ -917,6 +1069,20 @@ export class AccessContext extends Message<AccessContext> {
      */
     value: ChatId;
     case: "chat";
+  } | {
+    /**
+     * The caller is accessing these blobs from this user's public profile.
+     * Authorized iff the blob is a rendition of that user's CURRENT profile
+     * picture — a profile grants nothing else, and a superseded picture's
+     * renditions stop resolving through it.
+     *
+     * A caller never needs this for its OWN profile picture, since it owns
+     * those blobs.
+     *
+     * @generated from field: flipcash.common.v1.UserId profile = 2;
+     */
+    value: UserId;
+    case: "profile";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<AccessContext>) {
@@ -928,6 +1094,7 @@ export class AccessContext extends Message<AccessContext> {
   static readonly typeName = "flipcash.blob.v1.AccessContext";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat", kind: "message", T: ChatId, oneof: "scope" },
+    { no: 2, name: "profile", kind: "message", T: UserId, oneof: "scope" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccessContext {
