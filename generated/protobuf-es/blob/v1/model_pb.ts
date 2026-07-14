@@ -110,6 +110,13 @@ export enum RejectionReason {
    * @generated from enum value: REJECTION_REASON_INTERNAL = 6;
    */
   INTERNAL = 6,
+
+  /**
+   * blob contains privacy metadata that was not stripped
+   *
+   * @generated from enum value: REJECTION_REASON_PRIVACY_METADATA = 7;
+   */
+  PRIVACY_METADATA = 7,
 }
 // Retrieve enum metadata with: proto3.getEnumType(RejectionReason)
 proto3.util.setEnumType(RejectionReason, "flipcash.blob.v1.RejectionReason", [
@@ -120,6 +127,7 @@ proto3.util.setEnumType(RejectionReason, "flipcash.blob.v1.RejectionReason", [
   { no: 4, name: "REJECTION_REASON_TOO_LARGE" },
   { no: 5, name: "REJECTION_REASON_CORRUPT" },
   { no: 6, name: "REJECTION_REASON_INTERNAL" },
+  { no: 7, name: "REJECTION_REASON_PRIVACY_METADATA" },
 ]);
 
 /**
