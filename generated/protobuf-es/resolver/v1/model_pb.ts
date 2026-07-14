@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
-import { PublicKey } from "../../common/v1/common_pb";
+import { PublicKey, UserId } from "../../common/v1/common_pb";
 
 /**
  * Identifier wraps a real-world identifier that can be resolved to a
@@ -24,6 +24,12 @@ export class Identifier extends Message<Identifier> {
      */
     value: PhoneNumber;
     case: "phone";
+  } | {
+    /**
+     * @generated from field: flipcash.common.v1.UserId user_id = 2;
+     */
+    value: UserId;
+    case: "userId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Identifier>) {
@@ -35,6 +41,7 @@ export class Identifier extends Message<Identifier> {
   static readonly typeName = "flipcash.resolver.v1.Identifier";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "kind" },
+    { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Identifier {
