@@ -291,6 +291,7 @@ enum RejectionReason {
     REJECTION_REASON_TOO_LARGE        = 4; // stored bytes exceeded the per-type ceiling
     REJECTION_REASON_CORRUPT          = 5; // bytes unreadable; failed to decode or transcode
     REJECTION_REASON_INTERNAL         = 6; // server-side processing error
+    REJECTION_REASON_PRIVACY_METADATA = 7; // blob contains privacy metadata that was not stripped
 }
 
 // AccessContext names the surface a caller is accessing blobs THROUGH on a
