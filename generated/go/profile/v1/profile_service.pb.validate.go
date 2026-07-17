@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	moderationpb "github.com/code-payments/flipcash2-protobuf-api/generated/go/moderation/v1"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = moderationpb.FlaggedCategory(0)
 )
 
 // Validate checks the field values on GetProfileRequest with the rules defined
@@ -515,6 +519,8 @@ func (m *SetDisplayNameResponse) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for Result
+
+	// no validation rules for FlaggedCategory
 
 	if len(errors) > 0 {
 		return SetDisplayNameResponseMultiError(errors)

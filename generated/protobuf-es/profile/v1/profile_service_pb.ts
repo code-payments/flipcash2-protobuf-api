@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, UserId } from "../../common/v1/common_pb";
 import { SocialProfile, UserProfile } from "./model_pb";
+import { FlaggedCategory } from "../../moderation/v1/model_pb";
 import { BlobId, Media } from "../../blob/v1/model_pb";
 
 /**
@@ -176,6 +177,15 @@ export class SetDisplayNameResponse extends Message<SetDisplayNameResponse> {
    */
   result = SetDisplayNameResponse_Result.OK;
 
+  /**
+   * The best-fit category that tripped moderation, mirroring the Moderation
+   * service's vocabulary. Set only when result == FAILED_MODERATED; NONE
+   * otherwise.
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 2;
+   */
+  flaggedCategory = FlaggedCategory.NONE;
+
   constructor(data?: PartialMessage<SetDisplayNameResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -185,6 +195,7 @@ export class SetDisplayNameResponse extends Message<SetDisplayNameResponse> {
   static readonly typeName = "flipcash.profile.v1.SetDisplayNameResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetDisplayNameResponse_Result) },
+    { no: 2, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetDisplayNameResponse {
@@ -222,12 +233,18 @@ export enum SetDisplayNameResponse_Result {
    * @generated from enum value: DENIED = 2;
    */
   DENIED = 2,
+
+  /**
+   * @generated from enum value: FAILED_MODERATED = 3;
+   */
+  FAILED_MODERATED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SetDisplayNameResponse_Result)
 proto3.util.setEnumType(SetDisplayNameResponse_Result, "flipcash.profile.v1.SetDisplayNameResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "INVALID_DISPLAY_NAME" },
   { no: 2, name: "DENIED" },
+  { no: 3, name: "FAILED_MODERATED" },
 ]);
 
 /**
