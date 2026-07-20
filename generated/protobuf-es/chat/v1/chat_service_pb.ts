@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
-import { Metadata } from "./model_pb";
+import { ChatType, Metadata } from "./model_pb";
 
 /**
  * @generated from message flipcash.chat.v1.GetChatRequest
@@ -139,6 +139,13 @@ export class GetDmChatFeedRequest extends Message<GetDmChatFeedRequest> {
   queryOptions?: QueryOptions;
 
   /**
+   * The type of DM chat to filter for
+   *
+   * @generated from field: flipcash.chat.v1.ChatType dm_chat_type = 2;
+   */
+  dmChatType = ChatType.UNKNOWN;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -152,6 +159,7 @@ export class GetDmChatFeedRequest extends Message<GetDmChatFeedRequest> {
   static readonly typeName = "flipcash.chat.v1.GetDmChatFeedRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 2, name: "dm_chat_type", kind: "enum", T: proto3.getEnumType(ChatType) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 

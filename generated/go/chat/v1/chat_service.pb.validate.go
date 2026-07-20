@@ -375,6 +375,17 @@ func (m *GetDmChatFeedRequest) validate(all bool) error {
 		}
 	}
 
+	if _, ok := _GetDmChatFeedRequest_DmChatType_InLookup[m.GetDmChatType()]; !ok {
+		err := GetDmChatFeedRequestValidationError{
+			field:  "DmChatType",
+			reason: "value must be in list [CONTACT_DM TIP_DM]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if m.GetAuth() == nil {
 		err := GetDmChatFeedRequestValidationError{
 			field:  "Auth",
@@ -494,6 +505,11 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetDmChatFeedRequestValidationError{}
+
+var _GetDmChatFeedRequest_DmChatType_InLookup = map[ChatType]struct{}{
+	1: {},
+	2: {},
+}
 
 // Validate checks the field values on GetDmChatFeedResponse with the rules
 // defined in the proto definition for this message. If any rules are
