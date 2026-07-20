@@ -378,7 +378,7 @@ func (m *GetDmChatFeedRequest) validate(all bool) error {
 	if _, ok := _GetDmChatFeedRequest_DmChatType_InLookup[m.GetDmChatType()]; !ok {
 		err := GetDmChatFeedRequestValidationError{
 			field:  "DmChatType",
-			reason: "value must be in list [CONTACT_DM TIP_DM]",
+			reason: "value must be in list [UNKNOWN CONTACT_DM TIP_DM]",
 		}
 		if !all {
 			return err
@@ -507,6 +507,7 @@ var _ interface {
 } = GetDmChatFeedRequestValidationError{}
 
 var _GetDmChatFeedRequest_DmChatType_InLookup = map[ChatType]struct{}{
+	0: {},
 	1: {},
 	2: {},
 }
