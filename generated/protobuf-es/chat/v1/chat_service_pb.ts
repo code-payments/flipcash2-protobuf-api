@@ -141,6 +141,8 @@ export class GetDmChatFeedRequest extends Message<GetDmChatFeedRequest> {
   /**
    * The type of DM chat to filter for
    *
+   * For backwards compatiblity, UNKNOWN maps to CONTACT_DM for legacy clients
+   *
    * @generated from field: flipcash.chat.v1.ChatType dm_chat_type = 2;
    */
   dmChatType = ChatType.UNKNOWN;
