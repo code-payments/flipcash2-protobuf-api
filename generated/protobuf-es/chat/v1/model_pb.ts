@@ -10,6 +10,32 @@ import { Message as Message$1, Pointer } from "../../messaging/v1/model_pb";
 import { UserProfile } from "../../profile/v1/model_pb";
 
 /**
+ * @generated from enum flipcash.chat.v1.ChatType
+ */
+export enum ChatType {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: CONTACT_DM = 1;
+   */
+  CONTACT_DM = 1,
+
+  /**
+   * @generated from enum value: TIP_DM = 2;
+   */
+  TIP_DM = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ChatType)
+proto3.util.setEnumType(ChatType, "flipcash.chat.v1.ChatType", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "CONTACT_DM" },
+  { no: 2, name: "TIP_DM" },
+]);
+
+/**
  * @generated from message flipcash.chat.v1.Metadata
  */
 export class Metadata extends Message<Metadata> {
@@ -21,9 +47,9 @@ export class Metadata extends Message<Metadata> {
   /**
    * The type of chat
    *
-   * @generated from field: flipcash.chat.v1.Metadata.ChatType type = 2;
+   * @generated from field: flipcash.chat.v1.ChatType type = 2;
    */
-  type = Metadata_ChatType.UNKNOWN;
+  type = ChatType.UNKNOWN;
 
   /**
    * Members of this chat
@@ -70,7 +96,7 @@ export class Metadata extends Message<Metadata> {
   static readonly typeName = "flipcash.chat.v1.Metadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
-    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(Metadata_ChatType) },
+    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(ChatType) },
     { no: 3, name: "members", kind: "message", T: Member, repeated: true },
     { no: 4, name: "last_message", kind: "message", T: Message$1 },
     { no: 5, name: "last_activity", kind: "message", T: Timestamp },
@@ -93,26 +119,6 @@ export class Metadata extends Message<Metadata> {
     return proto3.util.equals(Metadata, a, b);
   }
 }
-
-/**
- * @generated from enum flipcash.chat.v1.Metadata.ChatType
- */
-export enum Metadata_ChatType {
-  /**
-   * @generated from enum value: UNKNOWN = 0;
-   */
-  UNKNOWN = 0,
-
-  /**
-   * @generated from enum value: DM = 1;
-   */
-  DM = 1,
-}
-// Retrieve enum metadata with: proto3.getEnumType(Metadata_ChatType)
-proto3.util.setEnumType(Metadata_ChatType, "flipcash.chat.v1.Metadata.ChatType", [
-  { no: 0, name: "UNKNOWN" },
-  { no: 1, name: "DM" },
-]);
 
 /**
  * @generated from message flipcash.chat.v1.Member

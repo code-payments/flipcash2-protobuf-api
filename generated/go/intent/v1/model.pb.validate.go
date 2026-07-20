@@ -571,3 +571,105 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ChatMetadata_ContactDmPaymentValidationError{}
+
+// Validate checks the field values on ChatMetadata_TipDmPayment with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ChatMetadata_TipDmPayment) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChatMetadata_TipDmPayment with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ChatMetadata_TipDmPaymentMultiError, or nil if none found.
+func (m *ChatMetadata_TipDmPayment) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChatMetadata_TipDmPayment) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ChatMetadata_TipDmPaymentMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChatMetadata_TipDmPaymentMultiError is an error wrapping multiple validation
+// errors returned by ChatMetadata_TipDmPayment.ValidateAll() if the
+// designated constraints aren't met.
+type ChatMetadata_TipDmPaymentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChatMetadata_TipDmPaymentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChatMetadata_TipDmPaymentMultiError) AllErrors() []error { return m }
+
+// ChatMetadata_TipDmPaymentValidationError is the validation error returned by
+// ChatMetadata_TipDmPayment.Validate if the designated constraints aren't met.
+type ChatMetadata_TipDmPaymentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChatMetadata_TipDmPaymentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChatMetadata_TipDmPaymentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChatMetadata_TipDmPaymentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChatMetadata_TipDmPaymentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChatMetadata_TipDmPaymentValidationError) ErrorName() string {
+	return "ChatMetadata_TipDmPaymentValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChatMetadata_TipDmPaymentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChatMetadata_TipDmPayment.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChatMetadata_TipDmPaymentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChatMetadata_TipDmPaymentValidationError{}

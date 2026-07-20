@@ -151,3 +151,37 @@ export class ChatMetadata_ContactDmPayment extends Message<ChatMetadata_ContactD
   }
 }
 
+/**
+ * For sending a DM tip payment to someone. The message is empty, since
+ * it's between two user IDs, which map directly to/from public keys.
+ *
+ * @generated from message flipcash.intent.v1.ChatMetadata.TipDmPayment
+ */
+export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment> {
+  constructor(data?: PartialMessage<ChatMetadata_TipDmPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.intent.v1.ChatMetadata.TipDmPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_TipDmPayment {
+    return new ChatMetadata_TipDmPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_TipDmPayment {
+    return new ChatMetadata_TipDmPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_TipDmPayment {
+    return new ChatMetadata_TipDmPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatMetadata_TipDmPayment | PlainMessage<ChatMetadata_TipDmPayment> | undefined, b: ChatMetadata_TipDmPayment | PlainMessage<ChatMetadata_TipDmPayment> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata_TipDmPayment, a, b);
+  }
+}
+

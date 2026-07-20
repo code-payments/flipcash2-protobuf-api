@@ -261,7 +261,7 @@ var _ interface {
 	ErrorName() string
 } = MetadataValidationError{}
 
-var _Metadata_Type_NotInLookup = map[Metadata_ChatType]struct{}{
+var _Metadata_Type_NotInLookup = map[ChatType]struct{}{
 	0: {},
 }
 
