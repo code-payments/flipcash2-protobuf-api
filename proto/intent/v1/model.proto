@@ -26,6 +26,7 @@ message ChatMetadata {
         option (validate.required) = true;
 
         ContactDmPayment contact_dm_payment = 2;
+        TipDmPayment     tip_dm_payment     = 3;
     }
 
     // For sending a payment to a contact in a DM

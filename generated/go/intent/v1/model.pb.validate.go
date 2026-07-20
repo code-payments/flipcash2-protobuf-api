@@ -298,6 +298,48 @@ func (m *ChatMetadata) validate(all bool) error {
 			}
 		}
 
+	case *ChatMetadata_TipDmPayment_:
+		if v == nil {
+			err := ChatMetadataValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetTipDmPayment()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChatMetadataValidationError{
+						field:  "TipDmPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChatMetadataValidationError{
+						field:  "TipDmPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetTipDmPayment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChatMetadataValidationError{
+					field:  "TipDmPayment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}

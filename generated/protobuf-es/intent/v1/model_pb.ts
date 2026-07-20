@@ -71,6 +71,12 @@ export class ChatMetadata extends Message<ChatMetadata> {
      */
     value: ChatMetadata_ContactDmPayment;
     case: "contactDmPayment";
+  } | {
+    /**
+     * @generated from field: flipcash.intent.v1.ChatMetadata.TipDmPayment tip_dm_payment = 3;
+     */
+    value: ChatMetadata_TipDmPayment;
+    case: "tipDmPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatMetadata>) {
@@ -83,6 +89,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "contact_dm_payment", kind: "message", T: ChatMetadata_ContactDmPayment, oneof: "type" },
+    { no: 3, name: "tip_dm_payment", kind: "message", T: ChatMetadata_TipDmPayment, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
