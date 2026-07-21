@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { Auth, CountryCode, Platform, PublicKey, Signature, UserId } from "../../common/v1/common_pb";
+import { Auth, CountryCode, Platform, PublicKey, Region, Signature, UserId } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.account.v1.RegisterRequest
@@ -566,6 +566,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   requireCoinbaseEmailVerification = false;
 
+  /**
+   * Tip presets for all currencies
+   *
+   * @generated from field: repeated flipcash.account.v1.TipPresets tip_presets = 15;
+   */
+  tipPresets: TipPresets[] = [];
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -588,6 +595,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 12, name: "enable_phone_number_send", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 13, name: "minimum_holder_value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 14, name: "require_coinbase_email_verification", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 15, name: "tip_presets", kind: "message", T: TipPresets, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {
@@ -694,4 +702,65 @@ proto3.util.setEnumType(UserFlags_UsdcLiquidityPool, "flipcash.account.v1.UserFl
   { no: 1, name: "FLIPCASH" },
   { no: 2, name: "COINBASE_STABLE_SWAPPER" },
 ]);
+
+/**
+ * @generated from message flipcash.account.v1.TipPresets
+ */
+export class TipPresets extends Message<TipPresets> {
+  /**
+   * @generated from field: flipcash.common.v1.Region region = 1;
+   */
+  region?: Region;
+
+  /**
+   * @generated from field: double minimum = 2;
+   */
+  minimum = 0;
+
+  /**
+   * @generated from field: double low = 3;
+   */
+  low = 0;
+
+  /**
+   * @generated from field: double medium = 4;
+   */
+  medium = 0;
+
+  /**
+   * @generated from field: double high = 5;
+   */
+  high = 0;
+
+  constructor(data?: PartialMessage<TipPresets>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.account.v1.TipPresets";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "region", kind: "message", T: Region },
+    { no: 2, name: "minimum", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 3, name: "low", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 4, name: "medium", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 5, name: "high", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TipPresets {
+    return new TipPresets().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TipPresets {
+    return new TipPresets().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TipPresets {
+    return new TipPresets().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TipPresets | PlainMessage<TipPresets> | undefined, b: TipPresets | PlainMessage<TipPresets> | undefined): boolean {
+    return proto3.util.equals(TipPresets, a, b);
+  }
+}
 
