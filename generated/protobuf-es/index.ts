@@ -5,6 +5,8 @@ export * as Chat from './chat/v1';
 export * as Chat from './chat/v1';
 export * as Activity from './activity/v1';
 export * as Activity from './activity/v1';
+export * as Blocklist from './blocklist/v1';
+export * as Blocklist from './blocklist/v1';
 export * as Push from './push/v1';
 export * as Push from './push/v1';
 export * as Iap from './iap/v1';
