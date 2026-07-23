@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ChatId, PublicKey } from "../../common/v1/common_pb";
+import { ChatId, PublicKey, UserId } from "../../common/v1/common_pb";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
@@ -80,6 +80,11 @@ export class Payload extends Message<Payload> {
    */
   groupKey = "";
 
+  /**
+   * @generated from field: flipcash.push.v1.ChatMetadata chat_metadata = 6;
+   */
+  chatMetadata?: ChatMetadata;
+
   constructor(data?: PartialMessage<Payload>) {
     super();
     proto3.util.initPartial(data, this);
@@ -93,6 +98,7 @@ export class Payload extends Message<Payload> {
     { no: 3, name: "body_substitutions", kind: "message", T: Substitution, repeated: true },
     { no: 4, name: "category", kind: "enum", T: proto3.getEnumType(Payload_Category) },
     { no: 5, name: "group_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "chat_metadata", kind: "message", T: ChatMetadata },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payload {
@@ -271,6 +277,50 @@ export class Substitution extends Message<Substitution> {
 
   static equals(a: Substitution | PlainMessage<Substitution> | undefined, b: Substitution | PlainMessage<Substitution> | undefined): boolean {
     return proto3.util.equals(Substitution, a, b);
+  }
+}
+
+/**
+ * Additional metadata provided for chat pushes
+ *
+ * @generated from message flipcash.push.v1.ChatMetadata
+ */
+export class ChatMetadata extends Message<ChatMetadata> {
+  /**
+   * The user ID that sent a chat message
+   *
+   * Note: This will not be set for system messages OR for notifications that
+   *       don't relate to a user
+   *
+   * @generated from field: flipcash.common.v1.UserId sending_user_id = 1;
+   */
+  sendingUserId?: UserId;
+
+  constructor(data?: PartialMessage<ChatMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.push.v1.ChatMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sending_user_id", kind: "message", T: UserId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
+    return new ChatMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata {
+    return new ChatMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata {
+    return new ChatMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatMetadata | PlainMessage<ChatMetadata> | undefined, b: ChatMetadata | PlainMessage<ChatMetadata> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata, a, b);
   }
 }
 
