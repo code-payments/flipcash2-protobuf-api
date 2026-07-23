@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.push.v1";
 option objc_class_prefix = "FPBPushV1";
 
+import "chat/v1/model.proto";
 import "common/v1/common.proto";
 import "phone/v1/model.proto";
 import "validate/validate.proto";
@@ -87,4 +88,9 @@ message ChatMetadata {
     // Note: This will not be set for system messages OR for notifications that
     //       don't relate to a user
     common.v1.UserId sending_user_id = 1;
+
+    // The type of chat
+    chat.v1.ChatType type = 2 [(validate.rules).enum = {
+        not_in: [0] // UNKNOWN
+    }];
 }
