@@ -184,6 +184,8 @@ func (m *Metadata) validate(all bool) error {
 
 	// no validation rules for LatestEventSequence
 
+	// no validation rules for IsHidden
+
 	if len(errors) > 0 {
 		return MetadataMultiError(errors)
 	}

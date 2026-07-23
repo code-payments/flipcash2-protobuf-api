@@ -87,6 +87,15 @@ export class Metadata extends Message<Metadata> {
    */
   latestEventSequence = protoInt64.zero;
 
+  /**
+   * Whether this chat is hidden from the requesting owner's chat list.
+   * Per-viewer and server-computed (e.g. the chat's peer is on the caller's
+   * blocklist). Clients should exclude hidden chats from the primary DM list.
+   *
+   * @generated from field: bool is_hidden = 7;
+   */
+  isHidden = false;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -101,6 +110,7 @@ export class Metadata extends Message<Metadata> {
     { no: 4, name: "last_message", kind: "message", T: Message$1 },
     { no: 5, name: "last_activity", kind: "message", T: Timestamp },
     { no: 6, name: "latest_event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "is_hidden", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {
