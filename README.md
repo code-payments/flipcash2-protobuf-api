@@ -10,6 +10,7 @@ The APIs and models for communication between Flipcash clients and server.
 - [Account](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/account/v1/account_service.proto)
 - [Activity Feed](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/activity/v1/activity_feed_service.proto)
 - [Blob Storage](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/blob/v1/blob_storage_service.proto)
+- [Blocklist](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/blob/v1/blocklist_service.proto)
 - [Chat](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/chat/v1/chat_service.proto)
 - [Contact List](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/contact/v1/contact_list_service.proto)
 - [Email Verification](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/email/v1/email_verification_service.proto)
