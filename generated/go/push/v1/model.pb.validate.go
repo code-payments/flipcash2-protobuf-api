@@ -17,6 +17,8 @@ import (
 	"unicode/utf8"
 
 	"google.golang.org/protobuf/types/known/anypb"
+
+	chatpb "github.com/code-payments/flipcash2-protobuf-api/generated/go/chat/v1"
 )
 
 // ensure the imports are used
@@ -33,6 +35,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = chatpb.ChatType(0)
 )
 
 // Validate checks the field values on Payload with the rules defined in the
@@ -732,6 +736,17 @@ func (m *ChatMetadata) validate(all bool) error {
 		}
 	}
 
+	if _, ok := _ChatMetadata_Type_NotInLookup[m.GetType()]; ok {
+		err := ChatMetadataValidationError{
+			field:  "Type",
+			reason: "value must not be in list [UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ChatMetadataMultiError(errors)
 	}
@@ -808,3 +823,7 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ChatMetadataValidationError{}
+
+var _ChatMetadata_Type_NotInLookup = map[chatpb.ChatType]struct{}{
+	0: {},
+}

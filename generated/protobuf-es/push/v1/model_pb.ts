@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { ChatId, PublicKey, UserId } from "../../common/v1/common_pb";
 import { PhoneNumber } from "../../phone/v1/model_pb";
+import { ChatType } from "../../chat/v1/model_pb";
 
 /**
  * @generated from enum flipcash.push.v1.TokenType
@@ -296,6 +297,13 @@ export class ChatMetadata extends Message<ChatMetadata> {
    */
   sendingUserId?: UserId;
 
+  /**
+   * The type of chat
+   *
+   * @generated from field: flipcash.chat.v1.ChatType type = 2;
+   */
+  type = ChatType.UNKNOWN;
+
   constructor(data?: PartialMessage<ChatMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -305,6 +313,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
   static readonly typeName = "flipcash.push.v1.ChatMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "sending_user_id", kind: "message", T: UserId },
+    { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(ChatType) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
