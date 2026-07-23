@@ -45,6 +45,8 @@ message Payload {
     string group_key = 5 [(validate.rules).string = {
         max_len: 4096 // Arbitrary
     }];
+
+    ChatMetadata chat_metadata = 6;
 }
 
 // Navigation within the app upon clicking the push
@@ -76,4 +78,13 @@ message Substitution {
         // Phone number -> contact name or formatted phone number
         phone.v1.PhoneNumber contact = 2;
     }
+}
+
+// Additional metadata provided for chat pushes
+message ChatMetadata {
+    // The user ID that sent a chat message
+    //
+    // Note: This will not be set for system messages OR for notifications that
+    //       don't relate to a user
+    common.v1.UserId sending_user_id = 1;
 }
