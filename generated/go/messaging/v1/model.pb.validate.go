@@ -1128,6 +1128,8 @@ func (m *CashContent) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Action
+
 	if len(errors) > 0 {
 		return CashContentMultiError(errors)
 	}
