@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package flipcash.offramp.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/offramp/v1;offramppb";
+option java_package = "com.codeinc.flipcash.gen.offramp.v1";
+option objc_class_prefix = "FPBOfframpV1";
+
+import "common/v1/common.proto";
+import "validate/validate.proto";
+
+// Partner-specific messages for Bridge. Message shapes and enum values track
+// Bridge's API and are referenced from the core offramp messages through
+// partner oneofs; future partners get their own file alongside this one.
+
+// BridgeLiquidationAddress is Bridge's permanent deposit address provisioned
+// for a linked bank account. Any deposit to it is automatically converted
+// and paid out to the bank account.
+message BridgeLiquidationAddress {
+    common.v1.PublicKey address = 1 [(validate.rules).message.required = true];
+
+    // The crypto mint accepted at the address (currently USDC).
+    common.v1.PublicKey mint = 2 [(validate.rules).message.required = true];
+
+    // The fiat rail payouts are made over, fixed at link time based on the
+    // destination bank's capabilities.
+    PaymentRail rail = 3 [(validate.rules).enum.not_in = 0];
+    enum PaymentRail {
+        PAYMENT_RAIL_UNKNOWN = 0;
+        ACH                  = 1; // 1-2 business days
+        ACH_SAME_DAY         = 2; // hours, on banking days
+        WIRE                 = 3; // same banking day
+        FEDNOW               = 4; // seconds, 24/7
+    }
+}

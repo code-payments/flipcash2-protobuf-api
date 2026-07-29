@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package flipcash.kyc.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/kyc/v1;kycpb";
+option java_package = "com.codeinc.flipcash.gen.kyc.v1";
+option objc_class_prefix = "FPBKycV1";
+
+import "common/v1/common.proto";
+import "kyc/v1/model.proto";
+import "thirdparty/v1/model.proto";
+import "validate/validate.proto";
+
+// KycService facilitates identity verification (KYC) with external partners.
+// Verification unlocks regulated features.
+service KycService {
+    // GetAgreementLinks returns hosted agreement-acceptance URLs (e.g. the
+    // verification partner's terms of service) to open in a webview, one per
+    // agreement requiring acceptance. For first-time onboarding, completing
+    // each yields a SignedAgreementToken passed to SubmitKyc. When re-acceptance
+    // of updated versions is required (an AGREEMENT requirement in KycState),
+    // completion is reported via UpdateKyc.
+    rpc GetAgreementLinks(GetAgreementLinksRequest) returns (GetAgreementLinksResponse);
+
+    // SubmitKyc submits identity data to the partner requiring verification.
+    // All fields are proxied and never stored server-side.
+    rpc SubmitKyc(SubmitKycRequest) returns (SubmitKycResponse);
+
+    // GetKycStatus returns the user's current verification state, including
+    // any outstanding requirements to act on.
+    rpc GetKycStatus(GetKycStatusRequest) returns (GetKycStatusResponse);
+
+    // UpdateKyc resubmits a subset of identity data, correcting what is
+    // reported via KycState.requirements (e.g. retaking an unreadable
+    // document image). Only provided fields are updated.
+    rpc UpdateKyc(UpdateKycRequest) returns (UpdateKycResponse);
+}
+
+message GetAgreementLinksRequest {
+    // The partner to fetch agreements for, coordinated outside this service.
+    // Only BRIDGE is currently supported.
+    thirdparty.v1.Partner partner = 1 [(validate.rules).enum.const = 2];
+
+    // The type of KYC submission the agreements are for.
+    SubmissionType submission_type = 2 [(validate.rules).enum.not_in = 0];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetAgreementLinksResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        DENIED = 1;
+    }
+
+    // One per agreement requiring acceptance.
+    repeated AgreementLink links = 2;
+}
+
+message SubmitKycRequest {
+    // The partner being onboarded with, coordinated outside this service.
+    // Only BRIDGE is currently supported.
+    thirdparty.v1.Partner partner = 1 [(validate.rules).enum.const = 2];
+
+    // The onboarding payload for the entity type being onboarded, including
+    // the signed agreement tokens from completing each link returned by
+    // GetAgreementLinks.
+    oneof submission {
+        option (validate.required) = true;
+
+        IndividualKycSubmission individual = 2;
+    }
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SubmitKycResponse {
+    Result result = 1;
+    enum Result {
+        OK                 = 0;
+        DENIED             = 1;
+        UNSUPPORTED_REGION = 2; // e.g. New York residents with Bridge
+        INVALID_IDENTITY   = 3; // see kyc_state issues
+        ALREADY_VERIFIED   = 4;
+        AGREEMENT_EXPIRED  = 5; // restart at GetAgreementLinks
+    }
+
+    KycState kyc_state = 2;
+}
+
+message GetKycStatusRequest {
+    // The partner to fetch verification state for, coordinated outside this
+    // service. Only BRIDGE is currently supported.
+    thirdparty.v1.Partner partner = 1 [(validate.rules).enum.const = 2];
+
+    // The type of KYC submission being verified.
+    SubmissionType submission_type = 2 [(validate.rules).enum.not_in = 0];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetKycStatusResponse {
+    Result result = 1;
+    enum Result {
+        OK          = 0;
+        DENIED      = 1;
+        NOT_STARTED = 2; // no KYC submission exists for this partner and type
+    }
+
+    KycState kyc_state = 2;
+}
+
+message UpdateKycRequest {
+    // The partner backing the user's verification, as reported by
+    // KycState.partner. Only BRIDGE is currently supported.
+    thirdparty.v1.Partner partner = 1 [(validate.rules).enum.const = 2];
+
+    // The partial update for the entity type being verified. An agreement-only
+    // re-acceptance provides the arm with just its signed_agreement_tokens.
+    oneof update {
+        option (validate.required) = true;
+
+        IndividualKycUpdate individual = 2;
+    }
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message UpdateKycResponse {
+    Result result = 1;
+    enum Result {
+        OK                = 0;
+        DENIED            = 1;
+        NOT_STARTED       = 2; // no KYC submission exists; use SubmitKyc
+        INVALID_IDENTITY  = 3; // see kyc_state issues
+        NOTHING_TO_UPDATE = 4; // the provided update was empty
+    }
+
+    // The refreshed verification state after the update.
+    KycState kyc_state = 2;
+}

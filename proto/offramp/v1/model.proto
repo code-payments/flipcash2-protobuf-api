@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package flipcash.offramp.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/offramp/v1;offramppb";
+option java_package = "com.codeinc.flipcash.gen.offramp.v1";
+option objc_class_prefix = "FPBOfframpV1";
+
+import "offramp/v1/bridge.proto";
+import "thirdparty/v1/model.proto";
+import "validate/validate.proto";
+
+// BankAccountDetails are user-entered bank account details for linking, one
+// variant per supported jurisdiction.
+message BankAccountDetails {
+    oneof kind {
+        option (validate.required) = true;
+
+        UsBankAccount us = 1;
+    }
+
+    message UsBankAccount {
+        // ABA routing transit number. Checksum-validated server-side.
+        string routing_number = 1 [(validate.rules).string = {
+            pattern: "^[0-9]{9}$"
+        }];
+
+        string account_number = 2 [(validate.rules).string = {
+            min_len: 4
+            max_len: 17
+            pattern: "^[0-9]+$"
+        }];
+
+        Type type = 3 [(validate.rules).enum.not_in = 0];
+        enum Type {
+            TYPE_UNKNOWN = 0;
+            CHECKING     = 1;
+            SAVINGS      = 2;
+        }
+    }
+}
+
+message LinkedBankAccountId {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 1
+        max_len: 32
+    }];
+}
+
+// LinkedBankAccount is a bank account with its partner-specific cash-out
+// route.
+message LinkedBankAccount {
+    LinkedBankAccountId id = 1 [(validate.rules).message.required = true];
+
+    // Display-safe metadata; full account details are never returned.
+    string bank_name = 2 [(validate.rules).string = {
+        max_len: 256
+    }];
+    string last_4 = 3 [(validate.rules).string = {
+        pattern: "^[0-9]{4}$"
+    }];
+
+    State state = 4;
+    enum State {
+        STATE_UNKNOWN = 0;
+        ACTIVE        = 1;
+        RETIRED       = 2;
+    }
+
+    // The partner backing this account's cash-out route.
+    thirdparty.v1.Partner partner = 5 [(validate.rules).enum.not_in = 0];
+
+    // How cash-outs to this account move, partner-specific.
+    oneof route {
+        option (validate.required) = true;
+
+        BridgeLiquidationAddress bridge_liquidation_address = 6;
+    }
+}

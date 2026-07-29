@@ -11,7 +11,7 @@ import "thirdparty/v1/model.proto";
 import "validate/validate.proto";
 
 service ThirdParty {
-    // GetJwt gets a JWT for auth against a third part
+    // GetJwt gets a JWT for auth against a third party
     rpc GetJwt(GetJwtRequest) returns (GetJwtResponse);
 }
 

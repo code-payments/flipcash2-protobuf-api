@@ -868,3 +868,58 @@ export class Region extends Message<Region> {
   }
 }
 
+/**
+ * Date is a whole calendar date (e.g. a birth date), independent of time zone.
+ *
+ * @generated from message flipcash.common.v1.Date
+ */
+export class Date extends Message<Date> {
+  /**
+   * @generated from field: uint32 year = 1;
+   */
+  year = 0;
+
+  /**
+   * 1-12
+   *
+   * @generated from field: uint32 month = 2;
+   */
+  month = 0;
+
+  /**
+   * 1-31
+   *
+   * @generated from field: uint32 day = 3;
+   */
+  day = 0;
+
+  constructor(data?: PartialMessage<Date>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.Date";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "year", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 2, name: "month", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "day", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Date {
+    return new Date().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Date {
+    return new Date().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Date {
+    return new Date().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Date | PlainMessage<Date> | undefined, b: Date | PlainMessage<Date> | undefined): boolean {
+    return proto3.util.equals(Date, a, b);
+  }
+}
+
