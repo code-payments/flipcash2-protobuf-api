@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 import { EmailAddress } from "../../email/v1/model_pb";
 import { Media } from "../../blob/v1/model_pb";
@@ -58,6 +58,13 @@ export class UserProfile extends Message<UserProfile> {
    */
   profilePicture?: Media;
 
+  /**
+   * Timestamp the user joined Flipcash
+   *
+   * @generated from field: google.protobuf.Timestamp join_ts = 6;
+   */
+  joinTs?: Timestamp;
+
   constructor(data?: PartialMessage<UserProfile>) {
     super();
     proto3.util.initPartial(data, this);
@@ -71,6 +78,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 3, name: "phone_number", kind: "message", T: PhoneNumber },
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
     { no: 5, name: "profile_picture", kind: "message", T: Media },
+    { no: 6, name: "join_ts", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserProfile {

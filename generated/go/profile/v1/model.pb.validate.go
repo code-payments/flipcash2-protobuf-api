@@ -200,6 +200,17 @@ func (m *UserProfile) validate(all bool) error {
 		}
 	}
 
+	if m.GetJoinTs() == nil {
+		err := UserProfileValidationError{
+			field:  "JoinTs",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return UserProfileMultiError(errors)
 	}
