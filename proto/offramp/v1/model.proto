@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.offramp.v1";
 option objc_class_prefix = "FPBOfframpV1";
 
+import "kyc/v1/model.proto";
 import "offramp/v1/bridge.proto";
 import "thirdparty/v1/model.proto";
 import "validate/validate.proto";
@@ -38,6 +39,18 @@ message BankAccountDetails {
             SAVINGS      = 2;
         }
     }
+
+    // Reserved for account owner name, for when we can't retrieve it from the
+    // verification partner. It is expected that a user only links to a bank
+    // account under their name, so server auto-populates when it can.
+    reserved 2;
+
+    // The account holder's address as their bank has it on record, required
+    // by partners to pay out to the account. Collected here rather than
+    // reused from the user's KYC submission, which is proxied to the
+    // verification partner and never persisted server-side, and which may
+    // legitimately differ from the address on the bank account.
+    kyc.v1.Address beneficiary_address = 3 [(validate.rules).message.required = true];
 }
 
 message LinkedBankAccountId {

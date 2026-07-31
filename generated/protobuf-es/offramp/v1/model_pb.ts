@@ -5,6 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
+import { Address } from "../../kyc/v1/model_pb";
 import { Partner } from "../../thirdparty/v1/model_pb";
 import { BridgeLiquidationAddress } from "./bridge_pb";
 
@@ -26,6 +27,17 @@ export class BankAccountDetails extends Message<BankAccountDetails> {
     case: "us";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * The account holder's address as their bank has it on record, required
+   * by partners to pay out to the account. Collected here rather than
+   * reused from the user's KYC submission, which is proxied to the
+   * verification partner and never persisted server-side, and which may
+   * legitimately differ from the address on the bank account.
+   *
+   * @generated from field: flipcash.kyc.v1.Address beneficiary_address = 3;
+   */
+  beneficiaryAddress?: Address;
+
   constructor(data?: PartialMessage<BankAccountDetails>) {
     super();
     proto3.util.initPartial(data, this);
@@ -35,6 +47,7 @@ export class BankAccountDetails extends Message<BankAccountDetails> {
   static readonly typeName = "flipcash.offramp.v1.BankAccountDetails";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "us", kind: "message", T: BankAccountDetails_UsBankAccount, oneof: "kind" },
+    { no: 3, name: "beneficiary_address", kind: "message", T: Address },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BankAccountDetails {

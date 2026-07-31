@@ -32,4 +32,11 @@ message BridgeLiquidationAddress {
         WIRE                 = 3; // same banking day
         FEDNOW               = 4; // seconds, 24/7
     }
+
+    // The fiat currency deposits are paid out in, fixed at link time
+    // alongside the rail (currently always "usd").
+    common.v1.Region destination_currency = 4 [(validate.rules).message.required = true];
+
+    // The smallest amount that can be sent to this address in destination_currency
+    double minimum_payment_amount = 5 [(validate.rules).double.gte = 0];
 }

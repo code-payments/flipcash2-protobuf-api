@@ -61,6 +61,46 @@ func (m *BankAccountDetails) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetBeneficiaryAddress() == nil {
+		err := BankAccountDetailsValidationError{
+			field:  "BeneficiaryAddress",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBeneficiaryAddress()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BankAccountDetailsValidationError{
+					field:  "BeneficiaryAddress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BankAccountDetailsValidationError{
+					field:  "BeneficiaryAddress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBeneficiaryAddress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BankAccountDetailsValidationError{
+				field:  "BeneficiaryAddress",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	oneofKindPresent := false
 	switch v := m.Kind.(type) {
 	case *BankAccountDetails_Us:

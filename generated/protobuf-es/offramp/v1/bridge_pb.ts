@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { PublicKey } from "../../common/v1/common_pb";
+import { PublicKey, Region } from "../../common/v1/common_pb";
 
 /**
  * BridgeLiquidationAddress is Bridge's permanent deposit address provisioned
@@ -35,6 +35,21 @@ export class BridgeLiquidationAddress extends Message<BridgeLiquidationAddress> 
    */
   rail = BridgeLiquidationAddress_PaymentRail.PAYMENT_RAIL_UNKNOWN;
 
+  /**
+   * The fiat currency deposits are paid out in, fixed at link time
+   * alongside the rail (currently always "usd").
+   *
+   * @generated from field: flipcash.common.v1.Region destination_currency = 4;
+   */
+  destinationCurrency?: Region;
+
+  /**
+   * The smallest amount that can be sent to this address in destination_currency
+   *
+   * @generated from field: double minimum_payment_amount = 5;
+   */
+  minimumPaymentAmount = 0;
+
   constructor(data?: PartialMessage<BridgeLiquidationAddress>) {
     super();
     proto3.util.initPartial(data, this);
@@ -46,6 +61,8 @@ export class BridgeLiquidationAddress extends Message<BridgeLiquidationAddress> 
     { no: 1, name: "address", kind: "message", T: PublicKey },
     { no: 2, name: "mint", kind: "message", T: PublicKey },
     { no: 3, name: "rail", kind: "enum", T: proto3.getEnumType(BridgeLiquidationAddress_PaymentRail) },
+    { no: 4, name: "destination_currency", kind: "message", T: Region },
+    { no: 5, name: "minimum_payment_amount", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BridgeLiquidationAddress {
