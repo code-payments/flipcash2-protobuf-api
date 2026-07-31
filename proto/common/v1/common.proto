@@ -187,7 +187,7 @@ message Region {
 message Date {
     uint32 year = 1 [(validate.rules).uint32 = {
         gte: 1
-        lte: 2100
+        lte: 9999
     }];
 
     // 1-12

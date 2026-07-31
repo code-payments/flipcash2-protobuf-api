@@ -2079,10 +2079,10 @@ func (m *Date) validate(all bool) error {
 
 	var errors []error
 
-	if val := m.GetYear(); val < 1 || val > 2100 {
+	if val := m.GetYear(); val < 1 || val > 9999 {
 		err := DateValidationError{
 			field:  "Year",
-			reason: "value must be inside range [1, 2100]",
+			reason: "value must be inside range [1, 9999]",
 		}
 		if !all {
 			return err
