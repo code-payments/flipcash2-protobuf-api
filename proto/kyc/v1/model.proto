@@ -41,9 +41,8 @@ message KycState {
         NEXT_STEP_UNKNOWN    = 0;
         NONE                 = 1; // verified; nothing to do
         WAIT                 = 2; // submitted data or partner checks pending review; check back later
-        PROVIDE_REQUIREMENTS = 3; // action needed; see requirements
-        REJECTED             = 4; // submission rejected; see rejection reasons and resubmit/update
-        BLOCKED              = 5; // offboarded; cannot proceed
+        PROVIDE_REQUIREMENTS = 3; // action needed (missing or rejected fields); see requirements
+        BLOCKED              = 4; // offboarded; cannot proceed
     }
 
     // Outstanding actionable requirements and problems, driving re-collection

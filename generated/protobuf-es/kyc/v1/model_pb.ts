@@ -214,25 +214,18 @@ export enum KycState_NextStep {
   WAIT = 2,
 
   /**
-   * action needed; see requirements
+   * action needed (missing or rejected fields); see requirements
    *
    * @generated from enum value: PROVIDE_REQUIREMENTS = 3;
    */
   PROVIDE_REQUIREMENTS = 3,
 
   /**
-   * submission rejected; see rejection reasons and resubmit/update
-   *
-   * @generated from enum value: REJECTED = 4;
-   */
-  REJECTED = 4,
-
-  /**
    * offboarded; cannot proceed
    *
-   * @generated from enum value: BLOCKED = 5;
+   * @generated from enum value: BLOCKED = 4;
    */
-  BLOCKED = 5,
+  BLOCKED = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(KycState_NextStep)
 proto3.util.setEnumType(KycState_NextStep, "flipcash.kyc.v1.KycState.NextStep", [
@@ -240,8 +233,7 @@ proto3.util.setEnumType(KycState_NextStep, "flipcash.kyc.v1.KycState.NextStep", 
   { no: 1, name: "NONE" },
   { no: 2, name: "WAIT" },
   { no: 3, name: "PROVIDE_REQUIREMENTS" },
-  { no: 4, name: "REJECTED" },
-  { no: 5, name: "BLOCKED" },
+  { no: 4, name: "BLOCKED" },
 ]);
 
 /**
