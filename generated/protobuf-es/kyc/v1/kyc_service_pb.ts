@@ -248,9 +248,11 @@ export enum SubmitKycResponse_Result {
   DENIED = 1,
 
   /**
-   * @generated from enum value: ALREADY_VERIFIED = 2;
+   * see kyc_state which reflects current submission
+   *
+   * @generated from enum value: EXISTING_SUBMISSION = 2;
    */
-  ALREADY_VERIFIED = 2,
+  EXISTING_SUBMISSION = 2,
 
   /**
    * restart at GetAgreementLinks
@@ -263,7 +265,7 @@ export enum SubmitKycResponse_Result {
 proto3.util.setEnumType(SubmitKycResponse_Result, "flipcash.kyc.v1.SubmitKycResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
-  { no: 2, name: "ALREADY_VERIFIED" },
+  { no: 2, name: "EXISTING_SUBMISSION" },
   { no: 3, name: "AGREEMENT_EXPIRED" },
 ]);
 

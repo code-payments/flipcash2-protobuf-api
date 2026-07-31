@@ -78,10 +78,10 @@ message SubmitKycRequest {
 message SubmitKycResponse {
     Result result = 1;
     enum Result {
-        OK                 = 0;
-        DENIED             = 1;
-        ALREADY_VERIFIED   = 2;
-        AGREEMENT_EXPIRED  = 3; // restart at GetAgreementLinks
+        OK                  = 0;
+        DENIED              = 1;
+        EXISTING_SUBMISSION = 2; // see kyc_state which reflects current submission
+        AGREEMENT_EXPIRED   = 3; // restart at GetAgreementLinks
     }
 
     KycState kyc_state = 2;
