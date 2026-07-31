@@ -221,7 +221,7 @@ export enum KycState_NextStep {
   PROVIDE_REQUIREMENTS = 3,
 
   /**
-   * offboarded; cannot proceed
+   * blocked from proceeding
    *
    * @generated from enum value: BLOCKED = 4;
    */

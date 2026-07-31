@@ -42,7 +42,7 @@ message KycState {
         NONE                 = 1; // verified; nothing to do
         WAIT                 = 2; // submitted data or partner checks pending review; check back later
         PROVIDE_REQUIREMENTS = 3; // action needed (missing or rejected fields); see requirements
-        BLOCKED              = 4; // offboarded; cannot proceed
+        BLOCKED              = 4; // blocked from proceeding
     }
 
     // Outstanding actionable requirements and problems, driving re-collection

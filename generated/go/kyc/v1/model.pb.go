@@ -144,7 +144,7 @@ const (
 	KycState_NONE                 KycState_NextStep = 1 // verified; nothing to do
 	KycState_WAIT                 KycState_NextStep = 2 // submitted data or partner checks pending review; check back later
 	KycState_PROVIDE_REQUIREMENTS KycState_NextStep = 3 // action needed (missing or rejected fields); see requirements
-	KycState_BLOCKED              KycState_NextStep = 4 // offboarded; cannot proceed
+	KycState_BLOCKED              KycState_NextStep = 4 // blocked from proceeding
 )
 
 // Enum value maps for KycState_NextStep.
