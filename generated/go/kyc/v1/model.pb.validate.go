@@ -139,6 +139,17 @@ func (m *KycState) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if utf8.RuneCountInString(m.GetBlockedReason()) > 1024 {
+		err := KycStateValidationError{
+			field:  "BlockedReason",
+			reason: "value length must be at most 1024 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	oneofFeaturesPresent := false
 	switch v := m.Features.(type) {
 	case *KycState_BridgeFeatures:
@@ -1455,9 +1466,9 @@ func (m *IndividualKycSubmission) validate(all bool) error {
 		}
 	}
 
-	if l := len(m.GetDocuments()); l < 1 || l > 8 {
+	if l := len(m.GetIdentityDocuments()); l < 1 || l > 8 {
 		err := IndividualKycSubmissionValidationError{
-			field:  "Documents",
+			field:  "IdentityDocuments",
 			reason: "value must contain between 1 and 8 items, inclusive",
 		}
 		if !all {
@@ -1466,7 +1477,7 @@ func (m *IndividualKycSubmission) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetDocuments() {
+	for idx, item := range m.GetIdentityDocuments() {
 		_, _ = idx, item
 
 		if all {
@@ -1474,7 +1485,7 @@ func (m *IndividualKycSubmission) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, IndividualKycSubmissionValidationError{
-						field:  fmt.Sprintf("Documents[%v]", idx),
+						field:  fmt.Sprintf("IdentityDocuments[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1482,7 +1493,7 @@ func (m *IndividualKycSubmission) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, IndividualKycSubmissionValidationError{
-						field:  fmt.Sprintf("Documents[%v]", idx),
+						field:  fmt.Sprintf("IdentityDocuments[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1491,7 +1502,7 @@ func (m *IndividualKycSubmission) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return IndividualKycSubmissionValidationError{
-					field:  fmt.Sprintf("Documents[%v]", idx),
+					field:  fmt.Sprintf("IdentityDocuments[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1934,9 +1945,9 @@ func (m *IndividualKycUpdate) validate(all bool) error {
 		}
 	}
 
-	if len(m.GetDocuments()) > 8 {
+	if len(m.GetIdentityDocuments()) > 8 {
 		err := IndividualKycUpdateValidationError{
-			field:  "Documents",
+			field:  "IdentityDocuments",
 			reason: "value must contain no more than 8 item(s)",
 		}
 		if !all {
@@ -1945,7 +1956,7 @@ func (m *IndividualKycUpdate) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	for idx, item := range m.GetDocuments() {
+	for idx, item := range m.GetIdentityDocuments() {
 		_, _ = idx, item
 
 		if all {
@@ -1953,7 +1964,7 @@ func (m *IndividualKycUpdate) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, IndividualKycUpdateValidationError{
-						field:  fmt.Sprintf("Documents[%v]", idx),
+						field:  fmt.Sprintf("IdentityDocuments[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1961,7 +1972,7 @@ func (m *IndividualKycUpdate) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, IndividualKycUpdateValidationError{
-						field:  fmt.Sprintf("Documents[%v]", idx),
+						field:  fmt.Sprintf("IdentityDocuments[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1970,13 +1981,71 @@ func (m *IndividualKycUpdate) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return IndividualKycUpdateValidationError{
-					field:  fmt.Sprintf("Documents[%v]", idx),
+					field:  fmt.Sprintf("IdentityDocuments[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmail()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, IndividualKycUpdateValidationError{
+					field:  "Email",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, IndividualKycUpdateValidationError{
+					field:  "Email",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmail()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return IndividualKycUpdateValidationError{
+				field:  "Email",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPhone()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, IndividualKycUpdateValidationError{
+					field:  "Phone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, IndividualKycUpdateValidationError{
+					field:  "Phone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPhone()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return IndividualKycUpdateValidationError{
+				field:  "Phone",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(m.GetSupportingDocuments()) > 8 {

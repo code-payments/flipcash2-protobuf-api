@@ -110,11 +110,12 @@ export class KycState extends Message<KycState> {
   nextStep = KycState_NextStep.NEXT_STEP_UNKNOWN;
 
   /**
-   * Outstanding requirements and problems, driving re-collection and
-   * retake UX. Multiple entries may map to the same field (e.g. several
-   * document issues at once, or one document pending while another is
-   * missing); clients should group by field rather than assume uniqueness,
-   * showing the most severe kind (ISSUE > MISSING > PENDING).
+   * Outstanding actionable requirements and problems, driving re-collection
+   * and retake UX. Every entry maps to a field the user can provide or fix;
+   * non-actionable partner states (e.g. checks pending review) are conveyed
+   * via next_step instead. Multiple entries may map to the same field (e.g.
+   * several document issues at once); clients should group by field rather
+   * than assume uniqueness, showing the most severe kind (ISSUE > MISSING).
    *
    * @generated from field: repeated flipcash.kyc.v1.KycState.Requirement requirements = 3;
    */
@@ -150,6 +151,13 @@ export class KycState extends Message<KycState> {
     case: "bridgeFeatures";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Why the user cannot proceed; set only when next_step is BLOCKED.
+   *
+   * @generated from field: string blocked_reason = 7;
+   */
+  blockedReason = "";
+
   constructor(data?: PartialMessage<KycState>) {
     super();
     proto3.util.initPartial(data, this);
@@ -164,6 +172,7 @@ export class KycState extends Message<KycState> {
     { no: 4, name: "partner", kind: "enum", T: proto3.getEnumType(Partner) },
     { no: 5, name: "submission_type", kind: "enum", T: proto3.getEnumType(SubmissionType) },
     { no: 6, name: "bridge_features", kind: "message", T: BridgeFeatures, oneof: "features" },
+    { no: 7, name: "blocked_reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KycState {
@@ -200,7 +209,7 @@ export enum KycState_NextStep {
   NONE = 1,
 
   /**
-   * under review; check back later
+   * submitted data or partner checks pending review; check back later
    *
    * @generated from enum value: WAIT = 2;
    */
@@ -234,8 +243,9 @@ proto3.util.setEnumType(KycState_NextStep, "flipcash.kyc.v1.KycState.NextStep", 
  */
 export class KycState_Requirement extends Message<KycState_Requirement> {
   /**
-   * The field the requirement maps to. FIELD_UNKNOWN for requirements
-   * this client version doesn't recognize; consult raw_value.
+   * The field the requirement maps to. FIELD_UNKNOWN only occurs when
+   * the server reports a newer Field this client version doesn't know;
+   * consult raw_value.
    *
    * @generated from field: flipcash.kyc.v1.KycState.Requirement.Field field = 1;
    */
@@ -384,20 +394,12 @@ export enum KycState_Requirement_Kind {
    * @generated from enum value: ISSUE = 2;
    */
   ISSUE = 2,
-
-  /**
-   * provided; awaiting partner review
-   *
-   * @generated from enum value: PENDING = 3;
-   */
-  PENDING = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(KycState_Requirement_Kind)
 proto3.util.setEnumType(KycState_Requirement_Kind, "flipcash.kyc.v1.KycState.Requirement.Kind", [
   { no: 0, name: "KIND_UNKNOWN" },
   { no: 1, name: "MISSING" },
   { no: 2, name: "ISSUE" },
-  { no: 3, name: "PENDING" },
 ]);
 
 /**
@@ -907,9 +909,9 @@ export class IndividualKycSubmission extends Message<IndividualKycSubmission> {
   /**
    * Photo ID is required; at least one document must be provided.
    *
-   * @generated from field: repeated flipcash.kyc.v1.IdentityDocument documents = 5;
+   * @generated from field: repeated flipcash.kyc.v1.IdentityDocument identity_documents = 5;
    */
-  documents: IdentityDocument[] = [];
+  identityDocuments: IdentityDocument[] = [];
 
   /**
    * Contact details for the verification partner
@@ -967,7 +969,7 @@ export class IndividualKycSubmission extends Message<IndividualKycSubmission> {
     { no: 2, name: "birth_date", kind: "message", T: Date },
     { no: 3, name: "address", kind: "message", T: Address },
     { no: 4, name: "tax_id", kind: "message", T: TaxId },
-    { no: 5, name: "documents", kind: "message", T: IdentityDocument, repeated: true },
+    { no: 5, name: "identity_documents", kind: "message", T: IdentityDocument, repeated: true },
     { no: 6, name: "email", kind: "message", T: EmailAddress },
     { no: 7, name: "phone", kind: "message", T: PhoneNumber },
     { no: 8, name: "supporting_documents", kind: "message", T: SupportingDocument, repeated: true },
@@ -1023,12 +1025,22 @@ export class IndividualKycUpdate extends Message<IndividualKycUpdate> {
   taxId?: TaxId;
 
   /**
-   * @generated from field: repeated flipcash.kyc.v1.IdentityDocument documents = 5;
+   * @generated from field: repeated flipcash.kyc.v1.IdentityDocument identity_documents = 5;
    */
-  documents: IdentityDocument[] = [];
+  identityDocuments: IdentityDocument[] = [];
 
   /**
-   * @generated from field: repeated flipcash.kyc.v1.SupportingDocument supporting_documents = 6;
+   * @generated from field: flipcash.email.v1.EmailAddress email = 6;
+   */
+  email?: EmailAddress;
+
+  /**
+   * @generated from field: flipcash.phone.v1.PhoneNumber phone = 7;
+   */
+  phone?: PhoneNumber;
+
+  /**
+   * @generated from field: repeated flipcash.kyc.v1.SupportingDocument supporting_documents = 8;
    */
   supportingDocuments: SupportingDocument[] = [];
 
@@ -1036,7 +1048,7 @@ export class IndividualKycUpdate extends Message<IndividualKycUpdate> {
    * Provided after re-accepting updated agreement versions via
    * GetAgreementLinks (an AGREEMENT requirement).
    *
-   * @generated from field: repeated flipcash.kyc.v1.SignedAgreementToken signed_agreement_tokens = 7;
+   * @generated from field: repeated flipcash.kyc.v1.SignedAgreementToken signed_agreement_tokens = 9;
    */
   signedAgreementTokens: SignedAgreementToken[] = [];
 
@@ -1048,7 +1060,7 @@ export class IndividualKycUpdate extends Message<IndividualKycUpdate> {
    */
   compliance: {
     /**
-     * @generated from field: flipcash.kyc.v1.BridgeComplianceProfile bridge_compliance = 8;
+     * @generated from field: flipcash.kyc.v1.BridgeComplianceProfile bridge_compliance = 10;
      */
     value: BridgeComplianceProfile;
     case: "bridgeCompliance";
@@ -1066,10 +1078,12 @@ export class IndividualKycUpdate extends Message<IndividualKycUpdate> {
     { no: 2, name: "birth_date", kind: "message", T: Date },
     { no: 3, name: "address", kind: "message", T: Address },
     { no: 4, name: "tax_id", kind: "message", T: TaxId },
-    { no: 5, name: "documents", kind: "message", T: IdentityDocument, repeated: true },
-    { no: 6, name: "supporting_documents", kind: "message", T: SupportingDocument, repeated: true },
-    { no: 7, name: "signed_agreement_tokens", kind: "message", T: SignedAgreementToken, repeated: true },
-    { no: 8, name: "bridge_compliance", kind: "message", T: BridgeComplianceProfile, oneof: "compliance" },
+    { no: 5, name: "identity_documents", kind: "message", T: IdentityDocument, repeated: true },
+    { no: 6, name: "email", kind: "message", T: EmailAddress },
+    { no: 7, name: "phone", kind: "message", T: PhoneNumber },
+    { no: 8, name: "supporting_documents", kind: "message", T: SupportingDocument, repeated: true },
+    { no: 9, name: "signed_agreement_tokens", kind: "message", T: SignedAgreementToken, repeated: true },
+    { no: 10, name: "bridge_compliance", kind: "message", T: BridgeComplianceProfile, oneof: "compliance" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IndividualKycUpdate {

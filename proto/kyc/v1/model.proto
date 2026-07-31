@@ -40,20 +40,22 @@ message KycState {
     enum NextStep {
         NEXT_STEP_UNKNOWN    = 0;
         NONE                 = 1; // verified; nothing to do
-        WAIT                 = 2; // under review; check back later
+        WAIT                 = 2; // submitted data or partner checks pending review; check back later
         PROVIDE_REQUIREMENTS = 3; // action needed; see requirements
         BLOCKED              = 4; // rejected/offboarded; cannot proceed
     }
 
-    // Outstanding requirements and problems, driving re-collection and
-    // retake UX. Multiple entries may map to the same field (e.g. several
-    // document issues at once, or one document pending while another is
-    // missing); clients should group by field rather than assume uniqueness,
-    // showing the most severe kind (ISSUE > MISSING > PENDING).
+    // Outstanding actionable requirements and problems, driving re-collection
+    // and retake UX. Every entry maps to a field the user can provide or fix;
+    // non-actionable partner states (e.g. checks pending review) are conveyed
+    // via next_step instead. Multiple entries may map to the same field (e.g.
+    // several document issues at once); clients should group by field rather
+    // than assume uniqueness, showing the most severe kind (ISSUE > MISSING).
     repeated Requirement requirements = 3;
     message Requirement {
-        // The field the requirement maps to. FIELD_UNKNOWN for requirements
-        // this client version doesn't recognize; consult raw_value.
+        // The field the requirement maps to. FIELD_UNKNOWN only occurs when
+        // the server reports a newer Field this client version doesn't know;
+        // consult raw_value.
         Field field = 1 [(validate.rules).enum.not_in = 0];
         enum Field {
             FIELD_UNKNOWN       = 0;
@@ -74,7 +76,6 @@ message KycState {
             KIND_UNKNOWN = 0;
             MISSING      = 1; // not yet provided
             ISSUE        = 2; // provided but problematic (e.g. unreadable image)
-            PENDING      = 3; // provided; awaiting partner review
         }
 
         // The partner's raw requirement or issue identifier (e.g.
@@ -103,6 +104,11 @@ message KycState {
 
         BridgeFeatures bridge_features = 6;
     }
+
+    // Why the user cannot proceed; set only when next_step is BLOCKED.
+    string blocked_reason = 7 [(validate.rules).string = {
+        max_len: 1024
+    }];
 }
 
 // AgreementLink is a hosted agreement-acceptance page to open in a webview.
@@ -259,7 +265,7 @@ message IndividualKycSubmission {
     TaxId tax_id = 4 [(validate.rules).message.required = true];
 
     // Photo ID is required; at least one document must be provided.
-    repeated IdentityDocument documents = 5 [(validate.rules).repeated = {
+    repeated IdentityDocument identity_documents = 5 [(validate.rules).repeated = {
         min_items: 1
         max_items: 8
     }];
@@ -304,24 +310,28 @@ message IndividualKycUpdate {
 
     TaxId tax_id = 4;
 
-    repeated IdentityDocument documents = 5 [(validate.rules).repeated = {
+    repeated IdentityDocument identity_documents = 5 [(validate.rules).repeated = {
         max_items: 8
     }];
 
-    repeated SupportingDocument supporting_documents = 6 [(validate.rules).repeated = {
+    email.v1.EmailAddress email = 6;
+
+    phone.v1.PhoneNumber phone = 7;
+
+    repeated SupportingDocument supporting_documents = 8 [(validate.rules).repeated = {
         max_items: 8
     }];
 
     // Provided after re-accepting updated agreement versions via
     // GetAgreementLinks (an AGREEMENT requirement).
-    repeated SignedAgreementToken signed_agreement_tokens = 7 [(validate.rules).repeated = {
+    repeated SignedAgreementToken signed_agreement_tokens = 9 [(validate.rules).repeated = {
         max_items: 8
     }];
 
     // Partner-specific questionnaire answers, as in
     // IndividualKycSubmission.compliance.
     oneof compliance {
-        BridgeComplianceProfile bridge_compliance = 8;
+        BridgeComplianceProfile bridge_compliance = 10;
     }
 }
 
