@@ -80,10 +80,8 @@ message SubmitKycResponse {
     enum Result {
         OK                 = 0;
         DENIED             = 1;
-        UNSUPPORTED_REGION = 2; // e.g. New York residents with Bridge
-        INVALID_IDENTITY   = 3; // see kyc_state issues
-        ALREADY_VERIFIED   = 4;
-        AGREEMENT_EXPIRED  = 5; // restart at GetAgreementLinks
+        ALREADY_VERIFIED   = 2;
+        AGREEMENT_EXPIRED  = 3; // restart at GetAgreementLinks
     }
 
     KycState kyc_state = 2;
@@ -133,8 +131,7 @@ message UpdateKycResponse {
         OK                = 0;
         DENIED            = 1;
         NOT_STARTED       = 2; // no KYC submission exists; use SubmitKyc
-        INVALID_IDENTITY  = 3; // see kyc_state issues
-        NOTHING_TO_UPDATE = 4; // the provided update was empty
+        NOTHING_TO_UPDATE = 3; // the provided update was empty
     }
 
     // The refreshed verification state after the update.

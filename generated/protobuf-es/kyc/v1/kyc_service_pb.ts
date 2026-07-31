@@ -248,39 +248,23 @@ export enum SubmitKycResponse_Result {
   DENIED = 1,
 
   /**
-   * e.g. New York residents with Bridge
-   *
-   * @generated from enum value: UNSUPPORTED_REGION = 2;
+   * @generated from enum value: ALREADY_VERIFIED = 2;
    */
-  UNSUPPORTED_REGION = 2,
-
-  /**
-   * see kyc_state issues
-   *
-   * @generated from enum value: INVALID_IDENTITY = 3;
-   */
-  INVALID_IDENTITY = 3,
-
-  /**
-   * @generated from enum value: ALREADY_VERIFIED = 4;
-   */
-  ALREADY_VERIFIED = 4,
+  ALREADY_VERIFIED = 2,
 
   /**
    * restart at GetAgreementLinks
    *
-   * @generated from enum value: AGREEMENT_EXPIRED = 5;
+   * @generated from enum value: AGREEMENT_EXPIRED = 3;
    */
-  AGREEMENT_EXPIRED = 5,
+  AGREEMENT_EXPIRED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SubmitKycResponse_Result)
 proto3.util.setEnumType(SubmitKycResponse_Result, "flipcash.kyc.v1.SubmitKycResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
-  { no: 2, name: "UNSUPPORTED_REGION" },
-  { no: 3, name: "INVALID_IDENTITY" },
-  { no: 4, name: "ALREADY_VERIFIED" },
-  { no: 5, name: "AGREEMENT_EXPIRED" },
+  { no: 2, name: "ALREADY_VERIFIED" },
+  { no: 3, name: "AGREEMENT_EXPIRED" },
 ]);
 
 /**
@@ -536,25 +520,17 @@ export enum UpdateKycResponse_Result {
   NOT_STARTED = 2,
 
   /**
-   * see kyc_state issues
-   *
-   * @generated from enum value: INVALID_IDENTITY = 3;
-   */
-  INVALID_IDENTITY = 3,
-
-  /**
    * the provided update was empty
    *
-   * @generated from enum value: NOTHING_TO_UPDATE = 4;
+   * @generated from enum value: NOTHING_TO_UPDATE = 3;
    */
-  NOTHING_TO_UPDATE = 4,
+  NOTHING_TO_UPDATE = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(UpdateKycResponse_Result)
 proto3.util.setEnumType(UpdateKycResponse_Result, "flipcash.kyc.v1.UpdateKycResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_STARTED" },
-  { no: 3, name: "INVALID_IDENTITY" },
-  { no: 4, name: "NOTHING_TO_UPDATE" },
+  { no: 3, name: "NOTHING_TO_UPDATE" },
 ]);
 
