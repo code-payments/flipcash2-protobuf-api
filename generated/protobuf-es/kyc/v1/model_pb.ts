@@ -137,6 +137,11 @@ export class KycState extends Message<KycState> {
   submissionType = SubmissionType.SUBMISSION_TYPE_UNKNOWN;
 
   /**
+   * @generated from field: repeated flipcash.kyc.v1.KycState.RejectionReason rejection_reasons = 6;
+   */
+  rejectionReasons: KycState_RejectionReason[] = [];
+
+  /**
    * The features currently enabled for the user, provided via the arm for
    * the partner backing this verification. Derived server-side; clients
    * must use this rather than deriving feature availability from status.
@@ -145,18 +150,11 @@ export class KycState extends Message<KycState> {
    */
   features: {
     /**
-     * @generated from field: flipcash.kyc.v1.BridgeFeatures bridge_features = 6;
+     * @generated from field: flipcash.kyc.v1.BridgeFeatures bridge_features = 7;
      */
     value: BridgeFeatures;
     case: "bridgeFeatures";
   } | { case: undefined; value?: undefined } = { case: undefined };
-
-  /**
-   * Why the user cannot proceed; set only when next_step is BLOCKED.
-   *
-   * @generated from field: string blocked_reason = 7;
-   */
-  blockedReason = "";
 
   constructor(data?: PartialMessage<KycState>) {
     super();
@@ -171,8 +169,8 @@ export class KycState extends Message<KycState> {
     { no: 3, name: "requirements", kind: "message", T: KycState_Requirement, repeated: true },
     { no: 4, name: "partner", kind: "enum", T: proto3.getEnumType(Partner) },
     { no: 5, name: "submission_type", kind: "enum", T: proto3.getEnumType(SubmissionType) },
-    { no: 6, name: "bridge_features", kind: "message", T: BridgeFeatures, oneof: "features" },
-    { no: 7, name: "blocked_reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "rejection_reasons", kind: "message", T: KycState_RejectionReason, repeated: true },
+    { no: 7, name: "bridge_features", kind: "message", T: BridgeFeatures, oneof: "features" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KycState {
@@ -223,11 +221,18 @@ export enum KycState_NextStep {
   PROVIDE_REQUIREMENTS = 3,
 
   /**
-   * rejected/offboarded; cannot proceed
+   * submission rejected; see rejection reasons and resubmit/update
    *
-   * @generated from enum value: BLOCKED = 4;
+   * @generated from enum value: REJECTED = 4;
    */
-  BLOCKED = 4,
+  REJECTED = 4,
+
+  /**
+   * offboarded; cannot proceed
+   *
+   * @generated from enum value: BLOCKED = 5;
+   */
+  BLOCKED = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(KycState_NextStep)
 proto3.util.setEnumType(KycState_NextStep, "flipcash.kyc.v1.KycState.NextStep", [
@@ -235,7 +240,8 @@ proto3.util.setEnumType(KycState_NextStep, "flipcash.kyc.v1.KycState.NextStep", 
   { no: 1, name: "NONE" },
   { no: 2, name: "WAIT" },
   { no: 3, name: "PROVIDE_REQUIREMENTS" },
-  { no: 4, name: "BLOCKED" },
+  { no: 4, name: "REJECTED" },
+  { no: 5, name: "BLOCKED" },
 ]);
 
 /**
@@ -401,6 +407,45 @@ proto3.util.setEnumType(KycState_Requirement_Kind, "flipcash.kyc.v1.KycState.Req
   { no: 1, name: "MISSING" },
   { no: 2, name: "ISSUE" },
 ]);
+
+/**
+ * Reasons for submission rejection
+ *
+ * @generated from message flipcash.kyc.v1.KycState.RejectionReason
+ */
+export class KycState_RejectionReason extends Message<KycState_RejectionReason> {
+  /**
+   * @generated from field: string message = 1;
+   */
+  message = "";
+
+  constructor(data?: PartialMessage<KycState_RejectionReason>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.kyc.v1.KycState.RejectionReason";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): KycState_RejectionReason {
+    return new KycState_RejectionReason().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): KycState_RejectionReason {
+    return new KycState_RejectionReason().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): KycState_RejectionReason {
+    return new KycState_RejectionReason().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: KycState_RejectionReason | PlainMessage<KycState_RejectionReason> | undefined, b: KycState_RejectionReason | PlainMessage<KycState_RejectionReason> | undefined): boolean {
+    return proto3.util.equals(KycState_RejectionReason, a, b);
+  }
+}
 
 /**
  * AgreementLink is a hosted agreement-acceptance page to open in a webview.

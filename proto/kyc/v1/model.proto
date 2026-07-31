@@ -42,7 +42,8 @@ message KycState {
         NONE                 = 1; // verified; nothing to do
         WAIT                 = 2; // submitted data or partner checks pending review; check back later
         PROVIDE_REQUIREMENTS = 3; // action needed; see requirements
-        BLOCKED              = 4; // rejected/offboarded; cannot proceed
+        REJECTED             = 4; // submission rejected; see rejection reasons and resubmit/update
+        BLOCKED              = 5; // offboarded; cannot proceed
     }
 
     // Outstanding actionable requirements and problems, driving re-collection
@@ -96,19 +97,22 @@ message KycState {
     // The type of KYC submission this state describes.
     SubmissionType submission_type = 5 [(validate.rules).enum.not_in = 0];
 
+    // Reasons for submission rejection
+    message RejectionReason {
+        string message = 1 [(validate.rules).string = {
+            max_len: 1024
+        }];
+    }
+    repeated RejectionReason rejection_reasons = 6;
+
     // The features currently enabled for the user, provided via the arm for
     // the partner backing this verification. Derived server-side; clients
     // must use this rather than deriving feature availability from status.
     oneof features {
         option (validate.required) = true;
 
-        BridgeFeatures bridge_features = 6;
+        BridgeFeatures bridge_features = 7;
     }
-
-    // Why the user cannot proceed; set only when next_step is BLOCKED.
-    string blocked_reason = 7 [(validate.rules).string = {
-        max_len: 1024
-    }];
 }
 
 // AgreementLink is a hosted agreement-acceptance page to open in a webview.

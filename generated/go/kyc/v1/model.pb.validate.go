@@ -139,15 +139,38 @@ func (m *KycState) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBlockedReason()) > 1024 {
-		err := KycStateValidationError{
-			field:  "BlockedReason",
-			reason: "value length must be at most 1024 runes",
+	for idx, item := range m.GetRejectionReasons() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, KycStateValidationError{
+						field:  fmt.Sprintf("RejectionReasons[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, KycStateValidationError{
+						field:  fmt.Sprintf("RejectionReasons[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return KycStateValidationError{
+					field:  fmt.Sprintf("RejectionReasons[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	oneofFeaturesPresent := false
@@ -2532,3 +2555,116 @@ var _KycState_Requirement_Field_NotInLookup = map[KycState_Requirement_Field]str
 var _KycState_Requirement_Kind_NotInLookup = map[KycState_Requirement_Kind]struct{}{
 	0: {},
 }
+
+// Validate checks the field values on KycState_RejectionReason with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *KycState_RejectionReason) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on KycState_RejectionReason with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// KycState_RejectionReasonMultiError, or nil if none found.
+func (m *KycState_RejectionReason) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *KycState_RejectionReason) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetMessage()) > 1024 {
+		err := KycState_RejectionReasonValidationError{
+			field:  "Message",
+			reason: "value length must be at most 1024 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return KycState_RejectionReasonMultiError(errors)
+	}
+
+	return nil
+}
+
+// KycState_RejectionReasonMultiError is an error wrapping multiple validation
+// errors returned by KycState_RejectionReason.ValidateAll() if the designated
+// constraints aren't met.
+type KycState_RejectionReasonMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m KycState_RejectionReasonMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m KycState_RejectionReasonMultiError) AllErrors() []error { return m }
+
+// KycState_RejectionReasonValidationError is the validation error returned by
+// KycState_RejectionReason.Validate if the designated constraints aren't met.
+type KycState_RejectionReasonValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e KycState_RejectionReasonValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e KycState_RejectionReasonValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e KycState_RejectionReasonValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e KycState_RejectionReasonValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e KycState_RejectionReasonValidationError) ErrorName() string {
+	return "KycState_RejectionReasonValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e KycState_RejectionReasonValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sKycState_RejectionReason.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = KycState_RejectionReasonValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = KycState_RejectionReasonValidationError{}
