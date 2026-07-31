@@ -102,7 +102,9 @@ message KycState {
             max_len: 1024
         }];
     }
-    repeated RejectionReason rejection_reasons = 6;
+    repeated RejectionReason rejection_reasons = 6 [(validate.rules).repeated = {
+        max_items: 32
+    }];
 
     // The features currently enabled for the user, provided via the arm for
     // the partner backing this verification. Derived server-side; clients

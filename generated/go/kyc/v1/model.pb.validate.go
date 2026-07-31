@@ -139,6 +139,17 @@ func (m *KycState) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if len(m.GetRejectionReasons()) > 32 {
+		err := KycStateValidationError{
+			field:  "RejectionReasons",
+			reason: "value must contain no more than 32 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	for idx, item := range m.GetRejectionReasons() {
 		_, _ = idx, item
 
