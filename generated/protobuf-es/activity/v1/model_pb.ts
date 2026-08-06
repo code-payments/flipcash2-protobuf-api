@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { CryptoPaymentAmount, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
-import { PhoneNumber } from "../../phone/v1/model_pb";
+import { CryptoPaymentAmount, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
 
 /**
  * ActivityFeedType enables multiple activity feeds, where notifications may be
@@ -289,7 +288,7 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
    */
   destinationIdentifier: {
     /**
-     * @generated from field: flipcash.phone.v1.PhoneNumber phone = 1;
+     * @generated from field: flipcash.common.v1.PhoneNumber phone = 1;
      */
     value: PhoneNumber;
     case: "phone";
@@ -339,7 +338,7 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
    */
   sourceIdentifier: {
     /**
-     * @generated from field: flipcash.phone.v1.PhoneNumber phone = 1;
+     * @generated from field: flipcash.common.v1.PhoneNumber phone = 1;
      */
     value: PhoneNumber;
     case: "phone";

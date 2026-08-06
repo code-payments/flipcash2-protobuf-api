@@ -6,7 +6,9 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.common.v1";
 option objc_class_prefix = "FPBCommonV1";
 
-import "phone/v1/model.proto";
+// Note: common/v1 is imported by every other domain, so it must remain a leaf
+// package. Importing another flipcash domain here creates a Go import cycle,
+// since that domain's service protos import common/v1 in turn.
 import "validate/validate.proto";
 
 message PublicKey {
@@ -81,6 +83,17 @@ message AppInstallId {
         min_len: 1
         max_len: 256 // todo: What's a reasonable size
     }];
+}
+
+// PhoneNumber is an E.164 phone number
+message PhoneNumber {
+    // Regex provided by Twilio here: https://www.twilio.com/docs/glossary/what-e164#regex-matching-for-e164
+    string value = 1 [(validate.rules).string.pattern = "^\\+[1-9]\\d{1,14}$"];
+}
+
+// EmailAddress is an email address
+message EmailAddress {
+    string value = 1 [(validate.rules).string.pattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"];
 }
 
 enum Platform {
@@ -204,9 +217,9 @@ message Substitution {
         option (validate.required) = true;
 
         // Phone number -> contact name or formatted phone number
-        phone.v1.PhoneNumber phone_number_to_contact_name = 2;
+        common.v1.PhoneNumber phone_number_to_contact_name = 2;
 
         // User ID -> display name
-        common.v1.UserId     user_id_to_display_name      = 3;
+        common.v1.UserId      user_id_to_display_name      = 3;
     }
 }

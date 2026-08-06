@@ -958,6 +958,230 @@ var _ interface {
 	ErrorName() string
 } = AppInstallIdValidationError{}
 
+// Validate checks the field values on PhoneNumber with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PhoneNumber) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PhoneNumber with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PhoneNumberMultiError, or
+// nil if none found.
+func (m *PhoneNumber) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PhoneNumber) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_PhoneNumber_Value_Pattern.MatchString(m.GetValue()) {
+		err := PhoneNumberValidationError{
+			field:  "Value",
+			reason: "value does not match regex pattern \"^\\\\+[1-9]\\\\d{1,14}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PhoneNumberMultiError(errors)
+	}
+
+	return nil
+}
+
+// PhoneNumberMultiError is an error wrapping multiple validation errors
+// returned by PhoneNumber.ValidateAll() if the designated constraints aren't met.
+type PhoneNumberMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PhoneNumberMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PhoneNumberMultiError) AllErrors() []error { return m }
+
+// PhoneNumberValidationError is the validation error returned by
+// PhoneNumber.Validate if the designated constraints aren't met.
+type PhoneNumberValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PhoneNumberValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PhoneNumberValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PhoneNumberValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PhoneNumberValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PhoneNumberValidationError) ErrorName() string { return "PhoneNumberValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PhoneNumberValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPhoneNumber.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PhoneNumberValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PhoneNumberValidationError{}
+
+var _PhoneNumber_Value_Pattern = regexp.MustCompile("^\\+[1-9]\\d{1,14}$")
+
+// Validate checks the field values on EmailAddress with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EmailAddress) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EmailAddress with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EmailAddressMultiError, or
+// nil if none found.
+func (m *EmailAddress) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EmailAddress) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_EmailAddress_Value_Pattern.MatchString(m.GetValue()) {
+		err := EmailAddressValidationError{
+			field:  "Value",
+			reason: "value does not match regex pattern \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EmailAddressMultiError(errors)
+	}
+
+	return nil
+}
+
+// EmailAddressMultiError is an error wrapping multiple validation errors
+// returned by EmailAddress.ValidateAll() if the designated constraints aren't met.
+type EmailAddressMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EmailAddressMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EmailAddressMultiError) AllErrors() []error { return m }
+
+// EmailAddressValidationError is the validation error returned by
+// EmailAddress.Validate if the designated constraints aren't met.
+type EmailAddressValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EmailAddressValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EmailAddressValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EmailAddressValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EmailAddressValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EmailAddressValidationError) ErrorName() string { return "EmailAddressValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EmailAddressValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEmailAddress.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EmailAddressValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EmailAddressValidationError{}
+
+var _EmailAddress_Value_Pattern = regexp.MustCompile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+
 // Validate checks the field values on CryptoPaymentAmount with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

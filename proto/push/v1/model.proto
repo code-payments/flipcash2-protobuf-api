@@ -8,7 +8,6 @@ option objc_class_prefix = "FPBPushV1";
 
 import "chat/v1/model.proto";
 import "common/v1/common.proto";
-import "phone/v1/model.proto";
 import "validate/validate.proto";
 
 enum TokenType {
@@ -62,7 +61,7 @@ message Navigation {
         common.v1.ChatId chat_id = 2;
 
         // Chat for a contact with the provided phone number
-        phone.v1.PhoneNumber chat_contact_phone_number = 3;
+        common.v1.PhoneNumber chat_contact_phone_number = 3;
     }
 }
 // Additional metadata provided for chat pushes

@@ -5,8 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { EmailAddress, VerificationCode } from "./model_pb";
-import { Auth } from "../../common/v1/common_pb";
+import { Auth, EmailAddress } from "../../common/v1/common_pb";
+import { VerificationCode } from "./model_pb";
 
 /**
  * @generated from message flipcash.email.v1.SendVerificationCodeRequest
@@ -15,7 +15,7 @@ export class SendVerificationCodeRequest extends Message<SendVerificationCodeReq
   /**
    * The email address to send a verification code to
    *
-   * @generated from field: flipcash.email.v1.EmailAddress email_address = 1;
+   * @generated from field: flipcash.common.v1.EmailAddress email_address = 1;
    */
   emailAddress?: EmailAddress;
 
@@ -143,7 +143,7 @@ export class CheckVerificationCodeRequest extends Message<CheckVerificationCodeR
   /**
    * The email address being verified
    *
-   * @generated from field: flipcash.email.v1.EmailAddress email_address = 1;
+   * @generated from field: flipcash.common.v1.EmailAddress email_address = 1;
    */
   emailAddress?: EmailAddress;
 
@@ -283,7 +283,7 @@ export class UnlinkRequest extends Message<UnlinkRequest> {
   /**
    * The email address to unlink
    *
-   * @generated from field: flipcash.email.v1.EmailAddress email_address = 1;
+   * @generated from field: flipcash.common.v1.EmailAddress email_address = 1;
    */
   emailAddress?: EmailAddress;
 
