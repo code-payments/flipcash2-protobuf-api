@@ -13,7 +13,7 @@ export const ThirdParty = {
   typeName: "flipcash.thirdparty.v1.ThirdParty",
   methods: {
     /**
-     * GetJwt gets a JWT for auth against a third part
+     * GetJwt gets a JWT for auth against a third party
      *
      * @generated from rpc flipcash.thirdparty.v1.ThirdParty.GetJwt
      */

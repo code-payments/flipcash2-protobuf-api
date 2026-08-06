@@ -56,9 +56,9 @@ func (m *ApiKey) validate(all bool) error {
 
 	var errors []error
 
-	if _, ok := _ApiKey_Provider_InLookup[m.GetProvider()]; !ok {
+	if _, ok := _ApiKey_Partner_InLookup[m.GetPartner()]; !ok {
 		err := ApiKeyValidationError{
-			field:  "Provider",
+			field:  "Partner",
 			reason: "value must be in list [COINBASE]",
 		}
 		if !all {
@@ -156,7 +156,7 @@ var _ interface {
 	ErrorName() string
 } = ApiKeyValidationError{}
 
-var _ApiKey_Provider_InLookup = map[Provider]struct{}{
+var _ApiKey_Partner_InLookup = map[Partner]struct{}{
 	1: {},
 }
 

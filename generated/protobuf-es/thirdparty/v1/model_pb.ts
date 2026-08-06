@@ -7,23 +7,31 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 
 /**
- * @generated from enum flipcash.thirdparty.v1.Provider
+ * Partner is the external partner
+ *
+ * @generated from enum flipcash.thirdparty.v1.Partner
  */
-export enum Provider {
+export enum Partner {
   /**
-   * @generated from enum value: UNKNOWN = 0;
+   * @generated from enum value: PARTNER_UNKNOWN = 0;
    */
-  UNKNOWN = 0,
+  PARTNER_UNKNOWN = 0,
 
   /**
    * @generated from enum value: COINBASE = 1;
    */
   COINBASE = 1,
+
+  /**
+   * @generated from enum value: BRIDGE = 2;
+   */
+  BRIDGE = 2,
 }
-// Retrieve enum metadata with: proto3.getEnumType(Provider)
-proto3.util.setEnumType(Provider, "flipcash.thirdparty.v1.Provider", [
-  { no: 0, name: "UNKNOWN" },
+// Retrieve enum metadata with: proto3.getEnumType(Partner)
+proto3.util.setEnumType(Partner, "flipcash.thirdparty.v1.Partner", [
+  { no: 0, name: "PARTNER_UNKNOWN" },
   { no: 1, name: "COINBASE" },
+  { no: 2, name: "BRIDGE" },
 ]);
 
 /**
@@ -31,9 +39,9 @@ proto3.util.setEnumType(Provider, "flipcash.thirdparty.v1.Provider", [
  */
 export class ApiKey extends Message<ApiKey> {
   /**
-   * @generated from field: flipcash.thirdparty.v1.Provider provider = 1;
+   * @generated from field: flipcash.thirdparty.v1.Partner partner = 1;
    */
-  provider = Provider.UNKNOWN;
+  partner = Partner.PARTNER_UNKNOWN;
 
   /**
    * @generated from field: string value = 2;
@@ -48,7 +56,7 @@ export class ApiKey extends Message<ApiKey> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.thirdparty.v1.ApiKey";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "provider", kind: "enum", T: proto3.getEnumType(Provider) },
+    { no: 1, name: "partner", kind: "enum", T: proto3.getEnumType(Partner) },
     { no: 2, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 

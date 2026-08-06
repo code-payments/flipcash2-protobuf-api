@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package flipcash.kyc.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/kyc/v1;kycpb";
+option java_package = "com.codeinc.flipcash.gen.kyc.v1";
+option objc_class_prefix = "FPBKycV1";
+
+import "validate/validate.proto";
+
+// Partner-specific messages for Bridge. Message shapes and enum values track
+// Bridge's API and are referenced from the core KYC messages through partner
+// oneofs; future partners get their own file alongside this one.
+
+// BridgeFeatures reports which Bridge-backed features are enabled or disabled
+// for the user, derived server-side from the user's verification state.
+message BridgeFeatures {
+    // Whether the user can cash out via flipcash.offramp.v1.OfframpService.
+    bool can_offramp = 1;
+}
+
+// BridgeComplianceProfile carries Bridge's enhanced-onboarding questionnaire
+// answers, collected upfront or lazily when reported via KycState.requirements
+// as a COMPLIANCE_PROFILE requirement. Enum values are Bridge's accepted
+// answer lists.
+message BridgeComplianceProfile {
+    AccountPurpose account_purpose = 1;
+    enum AccountPurpose {
+        ACCOUNT_PURPOSE_UNKNOWN              = 0;
+        RECEIVE_SALARY                       = 1;
+        PERSONAL_OR_LIVING_EXPENSES          = 2;
+        PAYMENTS_TO_FRIENDS_OR_FAMILY_ABROAD = 3;
+        CHARITABLE_DONATIONS                 = 4;
+        ECOMMERCE_RETAIL_PAYMENTS            = 5;
+        INVESTMENT_PURPOSES                  = 6;
+        OPERATING_A_COMPANY                  = 7;
+        PROTECT_WEALTH                       = 8;
+        PURCHASE_GOODS_AND_SERVICES          = 9;
+        RECEIVE_PAYMENT_FOR_FREELANCING      = 10;
+        ACCOUNT_PURPOSE_OTHER                = 11;
+    }
+
+    // Required when account_purpose is ACCOUNT_PURPOSE_OTHER.
+    string account_purpose_other = 2 [(validate.rules).string = {
+        max_len: 256
+    }];
+
+    SourceOfFunds source_of_funds = 3;
+    enum SourceOfFunds {
+        SOURCE_OF_FUNDS_UNKNOWN    = 0;
+        SALARY                     = 1;
+        SAVINGS                    = 2;
+        INVESTMENTS_LOANS          = 3;
+        INHERITANCE                = 4;
+        GIFTS                      = 5;
+        COMPANY_FUNDS              = 6;
+        ECOMMERCE_RESELLER         = 7;
+        GAMBLING_PROCEEDS          = 8;
+        GOVERNMENT_BENEFITS        = 9;
+        PENSION_RETIREMENT         = 10;
+        SALE_OF_ASSETS_REAL_ESTATE = 11;
+        SOMEONE_ELSES_FUNDS        = 12;
+    }
+
+    EmploymentStatus employment_status = 4;
+    enum EmploymentStatus {
+        EMPLOYMENT_STATUS_UNKNOWN = 0;
+        EMPLOYED                  = 1;
+        SELF_EMPLOYED             = 2;
+        STUDENT                   = 3;
+        RETIRED                   = 4;
+        UNEMPLOYED                = 5;
+        HOMEMAKER                 = 6;
+    }
+
+    ExpectedMonthlyVolume expected_monthly_volume = 5;
+    enum ExpectedMonthlyVolume {
+        EXPECTED_MONTHLY_VOLUME_UNKNOWN = 0;
+        UNDER_5K_USD                    = 1;
+        FROM_5K_TO_10K_USD              = 2;
+        FROM_10K_TO_50K_USD             = 3;
+        OVER_50K_USD                    = 4;
+    }
+
+    // Whether the user sends or receives funds on behalf of someone other
+    // than themselves.
+    bool acting_as_intermediary = 6;
+
+    // Alphanumeric occupation code from Bridge's occupation list.
+    string occupation = 7 [(validate.rules).string = {
+        max_len: 64
+    }];
+}

@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ThirdPartyClient interface {
-	// GetJwt gets a JWT for auth against a third part
+	// GetJwt gets a JWT for auth against a third party
 	GetJwt(ctx context.Context, in *GetJwtRequest, opts ...grpc.CallOption) (*GetJwtResponse, error)
 }
 
@@ -52,7 +52,7 @@ func (c *thirdPartyClient) GetJwt(ctx context.Context, in *GetJwtRequest, opts .
 // All implementations must embed UnimplementedThirdPartyServer
 // for forward compatibility.
 type ThirdPartyServer interface {
-	// GetJwt gets a JWT for auth against a third part
+	// GetJwt gets a JWT for auth against a third party
 	GetJwt(context.Context, *GetJwtRequest) (*GetJwtResponse, error)
 	mustEmbedUnimplementedThirdPartyServer()
 }

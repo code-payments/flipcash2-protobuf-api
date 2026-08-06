@@ -1,0 +1,356 @@
+syntax = "proto3";
+
+package flipcash.kyc.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/kyc/v1;kycpb";
+option java_package = "com.codeinc.flipcash.gen.kyc.v1";
+option objc_class_prefix = "FPBKycV1";
+
+import "common/v1/common.proto";
+import "email/v1/model.proto";
+import "kyc/v1/bridge.proto";
+import "phone/v1/model.proto";
+import "thirdparty/v1/model.proto";
+import "validate/validate.proto";
+
+// SubmissionType is the type of entity a KYC submission verifies.
+enum SubmissionType {
+    SUBMISSION_TYPE_UNKNOWN = 0;
+    INDIVIDUAL              = 1;
+}
+
+// KycStatus is the user's verification status with the verification partner.
+enum KycStatus {
+    KYC_STATUS_UNKNOWN = 0;
+    NOT_STARTED        = 1;
+    INCOMPLETE         = 2;
+    UNDER_REVIEW       = 3;
+    ACTIVE             = 4;
+    REJECTED           = 5;
+    OFFBOARDED         = 6;
+    PAUSED             = 7;
+}
+
+// KycState is the user's current verification state.
+message KycState {
+    KycStatus status = 1 [(validate.rules).enum.not_in = 0];
+
+    // What the user should do next; drives which screen to show.
+    NextStep next_step = 2 [(validate.rules).enum.not_in = 0];
+    enum NextStep {
+        NEXT_STEP_UNKNOWN    = 0;
+        NONE                 = 1; // verified; nothing to do
+        WAIT                 = 2; // submitted data or partner checks pending review; check back later
+        PROVIDE_REQUIREMENTS = 3; // action needed (missing or rejected fields); see requirements
+        BLOCKED              = 4; // blocked from proceeding
+    }
+
+    // Outstanding actionable requirements and problems, driving re-collection
+    // and retake UX. Every entry maps to a field the user can provide or fix;
+    // non-actionable partner states (e.g. checks pending review) are conveyed
+    // via next_step instead. Multiple entries may map to the same field (e.g.
+    // several document issues at once); clients should group by field rather
+    // than assume uniqueness, showing the most severe kind (ISSUE > MISSING).
+    repeated Requirement requirements = 3;
+    message Requirement {
+        // The field the requirement maps to. FIELD_UNKNOWN only occurs when
+        // the server reports a newer Field this client version doesn't know;
+        // consult raw_value.
+        Field field = 1 [(validate.rules).enum.not_in = 0];
+        enum Field {
+            FIELD_UNKNOWN       = 0;
+            LEGAL_NAME          = 1;
+            BIRTH_DATE          = 2;
+            RESIDENTIAL_ADDRESS = 3;
+            TAX_ID              = 4;
+            ID_DOCUMENT         = 5;
+            EMAIL               = 6;
+            PHONE               = 7;
+            COMPLIANCE_PROFILE  = 8;
+            PROOF_OF_ADDRESS    = 9;
+            AGREEMENT           = 10;
+        }
+
+        Kind kind = 2 [(validate.rules).enum.not_in = 0];
+        enum Kind {
+            KIND_UNKNOWN = 0;
+            MISSING      = 1; // not yet provided
+            ISSUE        = 2; // provided but problematic (e.g. unreadable image)
+        }
+
+        // The partner's raw requirement or issue identifier (e.g.
+        // "government_id_verification_failed", "poa_name_mismatch"), for
+        // diagnostics and unrecognized fields. Partners report categories
+        // only — never which document type is needed or which submitted
+        // item failed — so clients offer the full accepted set when
+        // re-collecting.
+        string raw_value = 3 [(validate.rules).string = {
+            max_len: 256
+        }];
+    }
+
+    // The partner backing this verification; determines which
+    // partner-specific oneof arms apply.
+    thirdparty.v1.Partner partner = 4 [(validate.rules).enum.not_in = 0];
+
+    // The type of KYC submission this state describes.
+    SubmissionType submission_type = 5 [(validate.rules).enum.not_in = 0];
+
+    // Reasons for submission rejection
+    message RejectionReason {
+        string message = 1 [(validate.rules).string = {
+            max_len: 1024
+        }];
+    }
+    repeated RejectionReason rejection_reasons = 6 [(validate.rules).repeated = {
+        max_items: 32
+    }];
+
+    // The features currently enabled for the user, provided via the arm for
+    // the partner backing this verification. Derived server-side; clients
+    // must use this rather than deriving feature availability from status.
+    oneof features {
+        option (validate.required) = true;
+
+        BridgeFeatures bridge_features = 7;
+    }
+}
+
+// AgreementLink is a hosted agreement-acceptance page to open in a webview.
+// Completion yields a SignedAgreementToken.
+message AgreementLink {
+    Type type = 1 [(validate.rules).enum.not_in = 0];
+    enum Type {
+        TYPE_UNKNOWN = 0;
+        TOS          = 1; // the verification partner's terms of service
+    }
+
+    string url = 2 [(validate.rules).string = {
+        uri: true
+        max_len: 2048
+    }];
+}
+
+// SignedAgreementToken is the token minted when the user completes an
+// agreement link's hosted acceptance page. It is consumed once by SubmitKyc
+// or UpdateKyc and never stored.
+message SignedAgreementToken {
+    string value = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 1024
+    }];
+}
+
+// LegalName is the user's legal name.
+message LegalName {
+    string first_name = 1 [(validate.rules).string = {
+        min_len: 2
+        max_len: 256
+    }];
+    string middle_name = 2 [(validate.rules).string = {
+        max_len: 256
+    }];
+    string last_name = 3 [(validate.rules).string = {
+        min_len: 2
+        max_len: 256
+    }];
+}
+
+// Address is a physical address, jurisdiction-neutral (e.g. an individual's
+// residential address or a business's registered address).
+message Address {
+    string street_line_1 = 1 [(validate.rules).string = {
+        min_len: 4
+        max_len: 256
+    }];
+    string street_line_2 = 2 [(validate.rules).string = {
+        max_len: 256
+    }];
+    string city = 3 [(validate.rules).string = {
+        min_len: 1
+        max_len: 256
+    }];
+
+    // State/province/region code where the country uses them (e.g. "CA");
+    // required for US addresses.
+    string subdivision = 4 [(validate.rules).string = {
+        max_len: 16
+    }];
+
+    // Required for countries that use postal codes.
+    string postal_code = 5 [(validate.rules).string = {
+        max_len: 32
+    }];
+
+    common.v1.CountryCode country = 6 [(validate.rules).message.required = true];
+}
+
+// IdentityDocument is a captured government ID image set.
+message IdentityDocument {
+    Type type = 1 [(validate.rules).enum.not_in = 0];
+    enum Type {
+        TYPE_UNKNOWN    = 0;
+        DRIVERS_LICENSE = 1;
+        PASSPORT        = 2;
+        STATE_ID        = 3;
+    }
+
+    bytes front_image = 2 [(validate.rules).bytes = {
+        min_len: 1
+        max_len: 1048576 // 1 MiB
+    }];
+
+    // Required for documents with a back side (e.g. driver's licenses).
+    bytes back_image = 3 [(validate.rules).bytes = {
+        max_len: 1048576 // 1 MiB
+    }];
+
+    string mime_type = 4 [(validate.rules).string = {
+        pattern: "^image/(jpeg|png)$"
+    }];
+
+    common.v1.CountryCode issuing_country = 5 [(validate.rules).message.required = true];
+
+    // The document's identifying number, where present.
+    string document_number = 6 [(validate.rules).string = {
+        max_len: 64
+    }];
+
+    common.v1.Date expiration_date = 7;
+}
+
+// SupportingDocument is an additional compliance document requested during
+// onboarding or review (e.g. proof of address).
+message SupportingDocument {
+    repeated Purpose purposes = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 8
+        items: {enum: {not_in: [0]}}
+    }];
+    enum Purpose {
+        PURPOSE_UNKNOWN                 = 0;
+        PROOF_OF_ADDRESS                = 1;
+        PROOF_OF_SOURCE_OF_FUNDS        = 2;
+        PROOF_OF_TAX_IDENTIFICATION     = 3;
+        PROOF_OF_ACCOUNT_PURPOSE        = 4;
+        PROOF_OF_INDIVIDUAL_NAME_CHANGE = 5;
+        PROOF_OF_RELATIONSHIP           = 6;
+        PROOF_OF_SOURCE_OF_WEALTH       = 7;
+        PURPOSE_OTHER                   = 8; // description required
+    }
+
+    bytes file = 2 [(validate.rules).bytes = {
+        min_len: 1
+        max_len: 1048576 // 1 MiB
+    }];
+
+    // PDFs are accepted for supporting documents, unlike ID images.
+    string mime_type = 3 [(validate.rules).string = {
+        pattern: "^(image/(jpeg|png)|application/pdf)$"
+    }];
+
+    // Required when purposes includes PURPOSE_OTHER.
+    string description = 4 [(validate.rules).string = {
+        max_len: 256
+    }];
+}
+
+// IndividualKycSubmission is the complete onboarding payload for an
+// individual — identity data plus accepted agreements — proxied to the
+// verification partner. No field is persisted server-side.
+message IndividualKycSubmission {
+    LegalName name = 1 [(validate.rules).message.required = true];
+
+    // Must be 18+.
+    common.v1.Date birth_date = 2 [(validate.rules).message.required = true];
+
+    // The individual's residential address.
+    Address address = 3 [(validate.rules).message.required = true];
+
+    TaxId tax_id = 4 [(validate.rules).message.required = true];
+
+    // Photo ID is required; at least one document must be provided.
+    repeated IdentityDocument identity_documents = 5 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 8
+    }];
+
+    // Contact details for the verification partner
+    email.v1.EmailAddress email = 6 [(validate.rules).message.required = true];
+    phone.v1.PhoneNumber phone = 7 [(validate.rules).message.required = true];
+
+    // Additional compliance documents, requested during onboarding or when
+    // reported via KycState.requirements.
+    repeated SupportingDocument supporting_documents = 8 [(validate.rules).repeated = {
+        max_items: 8
+    }];
+
+    // Tokens from completing each agreement link returned by
+    // GetAgreementLinks.
+    repeated SignedAgreementToken signed_agreement_tokens = 9 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 8
+    }];
+
+    // Enhanced-onboarding questionnaire answers, collected upfront or lazily
+    // when reported via KycState.requirements. The questionnaire is
+    // partner-specific; provide the arm for the partner the user is
+    // onboarding with.
+    oneof compliance {
+        BridgeComplianceProfile bridge_compliance = 10;
+    }
+}
+
+// IndividualKycUpdate is a partial resubmission of an individual's KYC data,
+// correcting what is reported via KycState.requirements. All fields are
+// optional; only those provided are updated. An agreement-only re-acceptance
+// provides just signed_agreement_tokens. All fields are proxied to the
+// verification partner and never stored, as with IndividualKycSubmission.
+message IndividualKycUpdate {
+    LegalName name = 1;
+
+    common.v1.Date birth_date = 2;
+
+    Address address = 3;
+
+    TaxId tax_id = 4;
+
+    repeated IdentityDocument identity_documents = 5 [(validate.rules).repeated = {
+        max_items: 8
+    }];
+
+    email.v1.EmailAddress email = 6;
+
+    phone.v1.PhoneNumber phone = 7;
+
+    repeated SupportingDocument supporting_documents = 8 [(validate.rules).repeated = {
+        max_items: 8
+    }];
+
+    // Provided after re-accepting updated agreement versions via
+    // GetAgreementLinks (an AGREEMENT requirement).
+    repeated SignedAgreementToken signed_agreement_tokens = 9 [(validate.rules).repeated = {
+        max_items: 8
+    }];
+
+    // Partner-specific questionnaire answers, as in
+    // IndividualKycSubmission.compliance.
+    oneof compliance {
+        BridgeComplianceProfile bridge_compliance = 10;
+    }
+}
+
+// TaxId is a US tax identification number.
+message TaxId {
+    Type type = 1 [(validate.rules).enum.not_in = 0];
+    enum Type {
+        TYPE_UNKNOWN = 0;
+        US_SSN       = 1;
+        US_ITIN      = 2;
+    }
+
+    // Digits only, no separators.
+    string value = 2 [(validate.rules).string = {
+        pattern: "^[0-9]{9}$"
+    }];
+}

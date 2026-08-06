@@ -182,3 +182,23 @@ message Region {
         pattern: "^[a-z]{3,4}$"
     }];
 }
+
+// Date is a whole calendar date (e.g. a birth date), independent of time zone.
+message Date {
+    uint32 year = 1 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 9999
+    }];
+
+    // 1-12
+    uint32 month = 2 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 12
+    }];
+
+    // 1-31
+    uint32 day = 3 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 31
+    }];
+}

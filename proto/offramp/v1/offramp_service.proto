@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package flipcash.offramp.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/offramp/v1;offramppb";
+option java_package = "com.codeinc.flipcash.gen.offramp.v1";
+option objc_class_prefix = "FPBOfframpV1";
+
+import "common/v1/common.proto";
+import "offramp/v1/model.proto";
+import "thirdparty/v1/model.proto";
+import "validate/validate.proto";
+
+// OfframpService manages bank accounts for the fiat offramp: users verified
+// via flipcash.kyc.v1.KycService link bank accounts, each provisioned with a
+// partner-specific cash-out route (e.g. a permanent deposit address that
+// cash-outs are transferred to on-chain).
+service OfframpService {
+    // LinkBankAccount links a bank account from user-entered details and
+    // provisions its cash-out route (e.g. a deposit address).
+    rpc LinkBankAccount(LinkBankAccountRequest) returns (LinkBankAccountResponse);
+
+    // GetLinkedBankAccounts returns the user's linked bank accounts and, for
+    // each, the route cash-outs move through.
+    rpc GetLinkedBankAccounts(GetLinkedBankAccountsRequest) returns (GetLinkedBankAccountsResponse);
+}
+
+message LinkBankAccountRequest {
+    BankAccountDetails details = 1 [(validate.rules).message.required = true];
+
+    // The partner to provision the cash-out route with, coordinated outside
+    // this service. Only BRIDGE is currently supported.
+    thirdparty.v1.Partner partner = 2 [(validate.rules).enum.const = 2];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message LinkBankAccountResponse {
+    Result result = 1;
+    enum Result {
+        OK                = 0;
+        DENIED            = 1;
+        KYC_REQUIRED      = 2; // complete verification via flipcash.kyc.v1.KycService
+        INVALID_DETAILS   = 3; // e.g. failed routing number checksum or unknown institution
+        DUPLICATE_ACCOUNT = 4; // already linked; see account
+    }
+
+    // The linked account, including its cash-out route. On
+    // DUPLICATE_ACCOUNT, the previously linked account.
+    LinkedBankAccount account = 2;
+}
+
+message GetLinkedBankAccountsRequest {
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetLinkedBankAccountsResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        DENIED = 1;
+    }
+
+    repeated LinkedBankAccount accounts = 2;
+}
