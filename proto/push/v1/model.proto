@@ -25,10 +25,10 @@ message Payload {
     Navigation navigation = 1;
 
     // Ordered substitutions to apply to push title
-    repeated Substitution title_substitutions = 2;
+    repeated common.v1.Substitution title_substitutions = 2;
 
     // Ordered substitutions to apply to push body
-    repeated Substitution body_substitutions = 3;
+    repeated common.v1.Substitution body_substitutions = 3;
 
     // Push notification category
     Category category = 4;
@@ -65,22 +65,6 @@ message Navigation {
         phone.v1.PhoneNumber chat_contact_phone_number = 3;
     }
 }
-
-message Substitution {
-    // Fallback string for forwards compatibility
-    string fallback = 1 [(validate.rules).string = {
-        min_len: 1
-        max_len: 4096 // Arbitrary
-    }];
-
-    oneof kind {
-        option (validate.required) = true;
-
-        // Phone number -> contact name or formatted phone number
-        phone.v1.PhoneNumber contact = 2;
-    }
-}
-
 // Additional metadata provided for chat pushes
 message ChatMetadata {
     // The user ID that sent a chat message

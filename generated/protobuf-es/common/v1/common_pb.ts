@@ -5,6 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
  * @generated from enum flipcash.common.v1.Platform
@@ -865,6 +866,70 @@ export class Region extends Message<Region> {
 
   static equals(a: Region | PlainMessage<Region> | undefined, b: Region | PlainMessage<Region> | undefined): boolean {
     return proto3.util.equals(Region, a, b);
+  }
+}
+
+/**
+ * Substitution is a text subsitution
+ *
+ * @generated from message flipcash.common.v1.Substitution
+ */
+export class Substitution extends Message<Substitution> {
+  /**
+   * Fallback string for forwards compatibility
+   *
+   * @generated from field: string fallback = 1;
+   */
+  fallback = "";
+
+  /**
+   * @generated from oneof flipcash.common.v1.Substitution.kind
+   */
+  kind: {
+    /**
+     * Phone number -> contact name or formatted phone number
+     *
+     * @generated from field: flipcash.phone.v1.PhoneNumber phone_number_to_contact_name = 2;
+     */
+    value: PhoneNumber;
+    case: "phoneNumberToContactName";
+  } | {
+    /**
+     * User ID -> display name
+     *
+     * @generated from field: flipcash.common.v1.UserId user_id_to_display_name = 3;
+     */
+    value: UserId;
+    case: "userIdToDisplayName";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Substitution>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.Substitution";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fallback", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "phone_number_to_contact_name", kind: "message", T: PhoneNumber, oneof: "kind" },
+    { no: 3, name: "user_id_to_display_name", kind: "message", T: UserId, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Substitution {
+    return new Substitution().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Substitution {
+    return new Substitution().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Substitution {
+    return new Substitution().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Substitution | PlainMessage<Substitution> | undefined, b: Substitution | PlainMessage<Substitution> | undefined): boolean {
+    return proto3.util.equals(Substitution, a, b);
   }
 }
 

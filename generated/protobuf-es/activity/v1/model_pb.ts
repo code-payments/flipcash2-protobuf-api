@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { CryptoPaymentAmount, PublicKey } from "../../common/v1/common_pb";
+import { CryptoPaymentAmount, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
@@ -233,6 +233,13 @@ export class Notification extends Message<Notification> {
     case: "soldCrypto";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Ordered substitutions to apply to localized_text
+   *
+   * @generated from field: repeated flipcash.common.v1.Substitution text_substitutions = 100;
+   */
+  textSubstitutions: Substitution[] = [];
+
   constructor(data?: PartialMessage<Notification>) {
     super();
     proto3.util.initPartial(data, this);
@@ -253,6 +260,7 @@ export class Notification extends Message<Notification> {
     { no: 11, name: "deposited_crypto", kind: "message", T: DepositedCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 12, name: "bought_crypto", kind: "message", T: BoughtCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 13, name: "sold_crypto", kind: "message", T: SoldCryptoNotificationMetadata, oneof: "additional_metadata" },
+    { no: 100, name: "text_substitutions", kind: "message", T: Substitution, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Notification {
@@ -285,6 +293,12 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
      */
     value: PhoneNumber;
     case: "phone";
+  } | {
+    /**
+     * @generated from field: flipcash.common.v1.UserId user_id = 2;
+     */
+    value: UserId;
+    case: "userId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<DirectlySentCryptoNotificationMetadata>) {
@@ -296,6 +310,7 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
   static readonly typeName = "flipcash.activity.v1.DirectlySentCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "destination_identifier" },
+    { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "destination_identifier" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DirectlySentCryptoNotificationMetadata {
@@ -328,6 +343,12 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
      */
     value: PhoneNumber;
     case: "phone";
+  } | {
+    /**
+     * @generated from field: flipcash.common.v1.UserId user_id = 2;
+     */
+    value: UserId;
+    case: "userId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ReceivedCryptoNotificationMetadata>) {
@@ -339,6 +360,7 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
   static readonly typeName = "flipcash.activity.v1.ReceivedCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "source_identifier" },
+    { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "source_identifier" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReceivedCryptoNotificationMetadata {
