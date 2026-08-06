@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, UserId } from "../../common/v1/common_pb";
+import { Auth, Color, UserId } from "../../common/v1/common_pb";
 import { SocialProfile, UserProfile } from "./model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 import { BlobId, Media } from "../../blob/v1/model_pb";
@@ -390,6 +390,114 @@ proto3.util.setEnumType(SetProfilePictureResponse_Result, "flipcash.profile.v1.S
   { no: 3, name: "BLOB_NOT_READY" },
   { no: 4, name: "BLOB_REJECTED" },
   { no: 5, name: "INVALID_BLOB" },
+]);
+
+/**
+ * @generated from message flipcash.profile.v1.UpdateTipCardRequest
+ */
+export class UpdateTipCardRequest extends Message<UpdateTipCardRequest> {
+  /**
+   * The new colour of the Tip Card. Left unchanged when unset.
+   *
+   * @generated from field: flipcash.common.v1.Color color = 1;
+   */
+  color?: Color;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<UpdateTipCardRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.UpdateTipCardRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "color", kind: "message", T: Color },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateTipCardRequest {
+    return new UpdateTipCardRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateTipCardRequest {
+    return new UpdateTipCardRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateTipCardRequest {
+    return new UpdateTipCardRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateTipCardRequest | PlainMessage<UpdateTipCardRequest> | undefined, b: UpdateTipCardRequest | PlainMessage<UpdateTipCardRequest> | undefined): boolean {
+    return proto3.util.equals(UpdateTipCardRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.UpdateTipCardResponse
+ */
+export class UpdateTipCardResponse extends Message<UpdateTipCardResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.UpdateTipCardResponse.Result result = 1;
+   */
+  result = UpdateTipCardResponse_Result.OK;
+
+  constructor(data?: PartialMessage<UpdateTipCardResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.UpdateTipCardResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(UpdateTipCardResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateTipCardResponse {
+    return new UpdateTipCardResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateTipCardResponse {
+    return new UpdateTipCardResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateTipCardResponse {
+    return new UpdateTipCardResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateTipCardResponse | PlainMessage<UpdateTipCardResponse> | undefined, b: UpdateTipCardResponse | PlainMessage<UpdateTipCardResponse> | undefined): boolean {
+    return proto3.util.equals(UpdateTipCardResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.UpdateTipCardResponse.Result
+ */
+export enum UpdateTipCardResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: INVALID_COLOR = 2;
+   */
+  INVALID_COLOR = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UpdateTipCardResponse_Result)
+proto3.util.setEnumType(UpdateTipCardResponse_Result, "flipcash.profile.v1.UpdateTipCardResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "INVALID_COLOR" },
 ]);
 
 /**

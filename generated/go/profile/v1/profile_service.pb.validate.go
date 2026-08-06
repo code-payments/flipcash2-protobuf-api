@@ -917,6 +917,281 @@ var _ interface {
 	ErrorName() string
 } = SetProfilePictureResponseValidationError{}
 
+// Validate checks the field values on UpdateTipCardRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateTipCardRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateTipCardRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateTipCardRequestMultiError, or nil if none found.
+func (m *UpdateTipCardRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateTipCardRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetColor()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateTipCardRequestValidationError{
+					field:  "Color",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateTipCardRequestValidationError{
+					field:  "Color",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetColor()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateTipCardRequestValidationError{
+				field:  "Color",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := UpdateTipCardRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateTipCardRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateTipCardRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateTipCardRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateTipCardRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateTipCardRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateTipCardRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateTipCardRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateTipCardRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateTipCardRequestMultiError) AllErrors() []error { return m }
+
+// UpdateTipCardRequestValidationError is the validation error returned by
+// UpdateTipCardRequest.Validate if the designated constraints aren't met.
+type UpdateTipCardRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateTipCardRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateTipCardRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateTipCardRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateTipCardRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateTipCardRequestValidationError) ErrorName() string {
+	return "UpdateTipCardRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateTipCardRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateTipCardRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateTipCardRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateTipCardRequestValidationError{}
+
+// Validate checks the field values on UpdateTipCardResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateTipCardResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateTipCardResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateTipCardResponseMultiError, or nil if none found.
+func (m *UpdateTipCardResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateTipCardResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(errors) > 0 {
+		return UpdateTipCardResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateTipCardResponseMultiError is an error wrapping multiple validation
+// errors returned by UpdateTipCardResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateTipCardResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateTipCardResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateTipCardResponseMultiError) AllErrors() []error { return m }
+
+// UpdateTipCardResponseValidationError is the validation error returned by
+// UpdateTipCardResponse.Validate if the designated constraints aren't met.
+type UpdateTipCardResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateTipCardResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateTipCardResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateTipCardResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateTipCardResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateTipCardResponseValidationError) ErrorName() string {
+	return "UpdateTipCardResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateTipCardResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateTipCardResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateTipCardResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateTipCardResponseValidationError{}
+
 // Validate checks the field values on LinkSocialAccountRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

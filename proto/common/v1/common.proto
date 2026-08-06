@@ -184,6 +184,14 @@ message Region {
     }];
 }
 
+// Color represents an RGB colour
+message Color {
+    // Hex colour value (e.g. "#19191A")
+    string hex = 1 [(validate.rules).string = {
+        pattern: "^#[0-9a-fA-F]{6}$"
+    }];
+}
+
 // Substitution is a text subsitution
 message Substitution {
     // Fallback string for forwards compatibility

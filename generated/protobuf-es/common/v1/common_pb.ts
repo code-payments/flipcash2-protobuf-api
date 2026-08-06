@@ -870,6 +870,47 @@ export class Region extends Message<Region> {
 }
 
 /**
+ * Color represents an RGB colour
+ *
+ * @generated from message flipcash.common.v1.Color
+ */
+export class Color extends Message<Color> {
+  /**
+   * Hex colour value (e.g. "#19191A")
+   *
+   * @generated from field: string hex = 1;
+   */
+  hex = "";
+
+  constructor(data?: PartialMessage<Color>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.Color";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "hex", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Color {
+    return new Color().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Color {
+    return new Color().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Color {
+    return new Color().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Color | PlainMessage<Color> | undefined, b: Color | PlainMessage<Color> | undefined): boolean {
+    return proto3.util.equals(Color, a, b);
+  }
+}
+
+/**
  * Substitution is a text subsitution
  *
  * @generated from message flipcash.common.v1.Substitution
