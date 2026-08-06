@@ -8,6 +8,7 @@ import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { PhoneNumber } from "../../phone/v1/model_pb";
 import { EmailAddress } from "../../email/v1/model_pb";
 import { Media } from "../../blob/v1/model_pb";
+import { Color } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.profile.v1.UserProfile
@@ -65,6 +66,15 @@ export class UserProfile extends Message<UserProfile> {
    */
   joinTs?: Timestamp;
 
+  /**
+   * How the user has customized their Tip Card. Public, so it is returned for
+   * any user, not just the caller. Always set — the server resolves defaults
+   * for anything the user hasn't customized. Update it with UpdateTipCard.
+   *
+   * @generated from field: flipcash.profile.v1.TipCardCustomization tip_card_customization = 7;
+   */
+  tipCardCustomization?: TipCardCustomization;
+
   constructor(data?: PartialMessage<UserProfile>) {
     super();
     proto3.util.initPartial(data, this);
@@ -79,6 +89,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
     { no: 5, name: "profile_picture", kind: "message", T: Media },
     { no: 6, name: "join_ts", kind: "message", T: Timestamp },
+    { no: 7, name: "tip_card_customization", kind: "message", T: TipCardCustomization },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserProfile {
@@ -259,4 +270,46 @@ proto3.util.setEnumType(XProfile_VerifiedType, "flipcash.profile.v1.XProfile.Ver
   { no: 2, name: "BUSINESS" },
   { no: 3, name: "GOVERNMENT" },
 ]);
+
+/**
+ * Customization for a Tip Card
+ *
+ * @generated from message flipcash.profile.v1.TipCardCustomization
+ */
+export class TipCardCustomization extends Message<TipCardCustomization> {
+  /**
+   * The colour of the Tip Card. Always set — the server falls back to the
+   * default colour when the user hasn't picked one.
+   *
+   * @generated from field: flipcash.common.v1.Color color = 1;
+   */
+  color?: Color;
+
+  constructor(data?: PartialMessage<TipCardCustomization>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.TipCardCustomization";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "color", kind: "message", T: Color },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TipCardCustomization {
+    return new TipCardCustomization().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TipCardCustomization {
+    return new TipCardCustomization().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TipCardCustomization {
+    return new TipCardCustomization().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TipCardCustomization | PlainMessage<TipCardCustomization> | undefined, b: TipCardCustomization | PlainMessage<TipCardCustomization> | undefined): boolean {
+    return proto3.util.equals(TipCardCustomization, a, b);
+  }
+}
 

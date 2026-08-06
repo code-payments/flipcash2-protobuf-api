@@ -22,6 +22,7 @@ const (
 	Profile_GetProfile_FullMethodName          = "/flipcash.profile.v1.Profile/GetProfile"
 	Profile_SetDisplayName_FullMethodName      = "/flipcash.profile.v1.Profile/SetDisplayName"
 	Profile_SetProfilePicture_FullMethodName   = "/flipcash.profile.v1.Profile/SetProfilePicture"
+	Profile_UpdateTipCard_FullMethodName       = "/flipcash.profile.v1.Profile/UpdateTipCard"
 	Profile_LinkSocialAccount_FullMethodName   = "/flipcash.profile.v1.Profile/LinkSocialAccount"
 	Profile_UnlinkSocialAccount_FullMethodName = "/flipcash.profile.v1.Profile/UnlinkSocialAccount"
 )
@@ -40,6 +41,9 @@ type ProfileClient interface {
 	// resulting BlobId here once the blob is READY. The server derives the
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	SetProfilePicture(ctx context.Context, in *SetProfilePictureRequest, opts ...grpc.CallOption) (*SetProfilePictureResponse, error)
+	// UpdateTipCard updates the caller's Tip Card customization. Every field is
+	// optional; only the ones set in the request are changed.
+	UpdateTipCard(ctx context.Context, in *UpdateTipCardRequest, opts ...grpc.CallOption) (*UpdateTipCardResponse, error)
 	// LinkSocialAccount links a social account to a user
 	LinkSocialAccount(ctx context.Context, in *LinkSocialAccountRequest, opts ...grpc.CallOption) (*LinkSocialAccountResponse, error)
 	// UnlinkSocialAccount removes a social account link from a user
@@ -84,6 +88,16 @@ func (c *profileClient) SetProfilePicture(ctx context.Context, in *SetProfilePic
 	return out, nil
 }
 
+func (c *profileClient) UpdateTipCard(ctx context.Context, in *UpdateTipCardRequest, opts ...grpc.CallOption) (*UpdateTipCardResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateTipCardResponse)
+	err := c.cc.Invoke(ctx, Profile_UpdateTipCard_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *profileClient) LinkSocialAccount(ctx context.Context, in *LinkSocialAccountRequest, opts ...grpc.CallOption) (*LinkSocialAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LinkSocialAccountResponse)
@@ -118,6 +132,9 @@ type ProfileServer interface {
 	// resulting BlobId here once the blob is READY. The server derives the
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error)
+	// UpdateTipCard updates the caller's Tip Card customization. Every field is
+	// optional; only the ones set in the request are changed.
+	UpdateTipCard(context.Context, *UpdateTipCardRequest) (*UpdateTipCardResponse, error)
 	// LinkSocialAccount links a social account to a user
 	LinkSocialAccount(context.Context, *LinkSocialAccountRequest) (*LinkSocialAccountResponse, error)
 	// UnlinkSocialAccount removes a social account link from a user
@@ -140,6 +157,9 @@ func (UnimplementedProfileServer) SetDisplayName(context.Context, *SetDisplayNam
 }
 func (UnimplementedProfileServer) SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetProfilePicture not implemented")
+}
+func (UnimplementedProfileServer) UpdateTipCard(context.Context, *UpdateTipCardRequest) (*UpdateTipCardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTipCard not implemented")
 }
 func (UnimplementedProfileServer) LinkSocialAccount(context.Context, *LinkSocialAccountRequest) (*LinkSocialAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LinkSocialAccount not implemented")
@@ -222,6 +242,24 @@ func _Profile_SetProfilePicture_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Profile_UpdateTipCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTipCardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).UpdateTipCard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Profile_UpdateTipCard_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).UpdateTipCard(ctx, req.(*UpdateTipCardRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Profile_LinkSocialAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LinkSocialAccountRequest)
 	if err := dec(in); err != nil {
@@ -276,6 +314,10 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetProfilePicture",
 			Handler:    _Profile_SetProfilePicture_Handler,
+		},
+		{
+			MethodName: "UpdateTipCard",
+			Handler:    _Profile_UpdateTipCard_Handler,
 		},
 		{
 			MethodName: "LinkSocialAccount",
