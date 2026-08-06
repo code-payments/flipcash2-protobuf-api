@@ -159,12 +159,17 @@ export class ChatMetadata_ContactDmPayment extends Message<ChatMetadata_ContactD
 }
 
 /**
- * For sending a DM tip payment to someone. The message is empty, since
- * it's between two user IDs, which map directly to/from public keys.
+ * For sending a DM payment to someone using their user ID, which maps
+ * directly to/from a public key.
  *
  * @generated from message flipcash.intent.v1.ChatMetadata.TipDmPayment
  */
 export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment> {
+  /**
+   * @generated from field: flipcash.intent.v1.ChatMetadata.TipDmPayment.Location location = 1;
+   */
+  location = ChatMetadata_TipDmPayment_Location.TIPCARD;
+
   constructor(data?: PartialMessage<ChatMetadata_TipDmPayment>) {
     super();
     proto3.util.initPartial(data, this);
@@ -173,6 +178,7 @@ export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.intent.v1.ChatMetadata.TipDmPayment";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "location", kind: "enum", T: proto3.getEnumType(ChatMetadata_TipDmPayment_Location) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_TipDmPayment {
@@ -191,4 +197,26 @@ export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment
     return proto3.util.equals(ChatMetadata_TipDmPayment, a, b);
   }
 }
+
+/**
+ * Location in the app the payment was sent from
+ *
+ * @generated from enum flipcash.intent.v1.ChatMetadata.TipDmPayment.Location
+ */
+export enum ChatMetadata_TipDmPayment_Location {
+  /**
+   * @generated from enum value: TIPCARD = 0;
+   */
+  TIPCARD = 0,
+
+  /**
+   * @generated from enum value: CHAT = 1;
+   */
+  CHAT = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_TipDmPayment_Location)
+proto3.util.setEnumType(ChatMetadata_TipDmPayment_Location, "flipcash.intent.v1.ChatMetadata.TipDmPayment.Location", [
+  { no: 0, name: "TIPCARD" },
+  { no: 1, name: "CHAT" },
+]);
 

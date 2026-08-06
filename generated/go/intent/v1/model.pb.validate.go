@@ -636,6 +636,8 @@ func (m *ChatMetadata_TipDmPayment) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Location
+
 	if len(errors) > 0 {
 		return ChatMetadata_TipDmPaymentMultiError(errors)
 	}

@@ -1128,7 +1128,7 @@ func (m *CashContent) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for Action
+	// no validation rules for Verb
 
 	if len(errors) > 0 {
 		return CashContentMultiError(errors)

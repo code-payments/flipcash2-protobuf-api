@@ -362,9 +362,9 @@ export class CashContent extends Message$1<CashContent> {
   amount?: CryptoPaymentAmount;
 
   /**
-   * @generated from field: flipcash.messaging.v1.CashContent.Action action = 4;
+   * @generated from field: flipcash.messaging.v1.CashContent.Verb verb = 4;
    */
-  action = CashContent_Action.SENT;
+  verb = CashContent_Verb.SENT;
 
   constructor(data?: PartialMessage<CashContent>) {
     super();
@@ -376,7 +376,7 @@ export class CashContent extends Message$1<CashContent> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "intent_id", kind: "message", T: IntentId },
     { no: 2, name: "amount", kind: "message", T: CryptoPaymentAmount },
-    { no: 4, name: "action", kind: "enum", T: proto3.getEnumType(CashContent_Action) },
+    { no: 4, name: "verb", kind: "enum", T: proto3.getEnumType(CashContent_Verb) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent {
@@ -397,12 +397,12 @@ export class CashContent extends Message$1<CashContent> {
 }
 
 /**
- * Action for how the cash was sent. Clietns should always show SENT as a
+ * Verb for how the cash was sent. Clietns should always show SENT as a
  * fallback.
  *
- * @generated from enum flipcash.messaging.v1.CashContent.Action
+ * @generated from enum flipcash.messaging.v1.CashContent.Verb
  */
-export enum CashContent_Action {
+export enum CashContent_Verb {
   /**
    * @generated from enum value: SENT = 0;
    */
@@ -413,8 +413,8 @@ export enum CashContent_Action {
    */
   TIPPED = 1,
 }
-// Retrieve enum metadata with: proto3.getEnumType(CashContent_Action)
-proto3.util.setEnumType(CashContent_Action, "flipcash.messaging.v1.CashContent.Action", [
+// Retrieve enum metadata with: proto3.getEnumType(CashContent_Verb)
+proto3.util.setEnumType(CashContent_Verb, "flipcash.messaging.v1.CashContent.Verb", [
   { no: 0, name: "SENT" },
   { no: 1, name: "TIPPED" },
 ]);
