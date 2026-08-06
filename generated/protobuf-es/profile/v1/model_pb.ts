@@ -5,10 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { PhoneNumber } from "../../phone/v1/model_pb";
-import { EmailAddress } from "../../email/v1/model_pb";
+import { Color, EmailAddress, PhoneNumber } from "../../common/v1/common_pb";
 import { Media } from "../../blob/v1/model_pb";
-import { Color } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.profile.v1.UserProfile
@@ -32,7 +30,7 @@ export class UserProfile extends Message<UserProfile> {
    * Phone number linked to this user. This is private and will only be returned
    * when the requesting user asks for their own profile
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 3;
+   * @generated from field: flipcash.common.v1.PhoneNumber phone_number = 3;
    */
   phoneNumber?: PhoneNumber;
 
@@ -40,7 +38,7 @@ export class UserProfile extends Message<UserProfile> {
    * Email address linked to this user. This is private and will only be returned
    * when the requesting user asks for their own profile
    *
-   * @generated from field: flipcash.email.v1.EmailAddress email_address = 4;
+   * @generated from field: flipcash.common.v1.EmailAddress email_address = 4;
    */
   emailAddress?: EmailAddress;
 

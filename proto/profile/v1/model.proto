@@ -8,8 +8,6 @@ option objc_class_prefix = "FPBProfileV1";
 
 import "blob/v1/model.proto";
 import "common/v1/common.proto";
-import "email/v1/model.proto";
-import "phone/v1/model.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
@@ -29,11 +27,11 @@ message UserProfile {
 
     // Phone number linked to this user. This is private and will only be returned
     // when the requesting user asks for their own profile
-    phone.v1.PhoneNumber phone_number = 3;
+    common.v1.PhoneNumber phone_number = 3;
 
     // Email address linked to this user. This is private and will only be returned
     // when the requesting user asks for their own profile
-    email.v1.EmailAddress email_address = 4;
+    common.v1.EmailAddress email_address = 4;
 
     // The user's profile picture, as the set of renditions it is stored as —
     // typically a DISPLAY for the profile view and a THUMBNAIL for avatars in

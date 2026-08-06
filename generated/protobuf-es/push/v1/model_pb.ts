@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ChatId, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
-import { PhoneNumber } from "../../phone/v1/model_pb";
+import { ChatId, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
 import { ChatType } from "../../chat/v1/model_pb";
 
 /**
@@ -192,7 +191,7 @@ export class Navigation extends Message<Navigation> {
     /**
      * Chat for a contact with the provided phone number
      *
-     * @generated from field: flipcash.phone.v1.PhoneNumber chat_contact_phone_number = 3;
+     * @generated from field: flipcash.common.v1.PhoneNumber chat_contact_phone_number = 3;
      */
     value: PhoneNumber;
     case: "chatContactPhoneNumber";

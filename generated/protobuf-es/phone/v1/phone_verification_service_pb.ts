@@ -5,8 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { PhoneNumber, VerificationCode } from "./model_pb";
-import { Auth, Platform } from "../../common/v1/common_pb";
+import { Auth, PhoneNumber, Platform } from "../../common/v1/common_pb";
+import { VerificationCode } from "./model_pb";
 
 /**
  * @generated from message flipcash.phone.v1.SendVerificationCodeRequest
@@ -15,7 +15,7 @@ export class SendVerificationCodeRequest extends Message<SendVerificationCodeReq
   /**
    * The phone number to send a verification code over SMS to
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 1;
+   * @generated from field: flipcash.common.v1.PhoneNumber phone_number = 1;
    */
   phoneNumber?: PhoneNumber;
 
@@ -152,7 +152,7 @@ export class CheckVerificationCodeRequest extends Message<CheckVerificationCodeR
   /**
    * The phone number being verified
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 1;
+   * @generated from field: flipcash.common.v1.PhoneNumber phone_number = 1;
    */
   phoneNumber?: PhoneNumber;
 
@@ -292,7 +292,7 @@ export class UnlinkRequest extends Message<UnlinkRequest> {
   /**
    * The phone number to unlink
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 1;
+   * @generated from field: flipcash.common.v1.PhoneNumber phone_number = 1;
    */
   phoneNumber?: PhoneNumber;
 
@@ -394,7 +394,7 @@ export class LinkForPaymentRequest extends Message<LinkForPaymentRequest> {
   /**
    * The phone number to link for payment
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone_number = 1;
+   * @generated from field: flipcash.common.v1.PhoneNumber phone_number = 1;
    */
   phoneNumber?: PhoneNumber;
 

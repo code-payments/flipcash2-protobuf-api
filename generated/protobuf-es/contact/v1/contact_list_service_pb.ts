@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, Hash } from "../../common/v1/common_pb";
-import { PhoneNumber } from "../../phone/v1/model_pb";
+import { Auth, Hash, PhoneNumber } from "../../common/v1/common_pb";
 import { FlipcashContact } from "./model_pb";
 
 /**
@@ -136,12 +135,12 @@ export class DeltaUploadRequest extends Message<DeltaUploadRequest> {
   auth?: Auth;
 
   /**
-   * @generated from field: repeated flipcash.phone.v1.PhoneNumber adds = 2;
+   * @generated from field: repeated flipcash.common.v1.PhoneNumber adds = 2;
    */
   adds: PhoneNumber[] = [];
 
   /**
-   * @generated from field: repeated flipcash.phone.v1.PhoneNumber removes = 3;
+   * @generated from field: repeated flipcash.common.v1.PhoneNumber removes = 3;
    */
   removes: PhoneNumber[] = [];
 
@@ -287,7 +286,7 @@ export class FullUploadRequest extends Message<FullUploadRequest> {
    * The complete current contact set. Server replaces stored state with
    * this list in one transaction.
    *
-   * @generated from field: repeated flipcash.phone.v1.PhoneNumber phones = 2;
+   * @generated from field: repeated flipcash.common.v1.PhoneNumber phones = 2;
    */
   phones: PhoneNumber[] = [];
 

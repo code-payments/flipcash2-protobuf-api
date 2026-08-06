@@ -5,15 +5,14 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { PhoneNumber } from "../../phone/v1/model_pb";
-import { ChatId } from "../../common/v1/common_pb";
+import { ChatId, PhoneNumber } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.contact.v1.FlipcashContact
  */
 export class FlipcashContact extends Message<FlipcashContact> {
   /**
-   * @generated from field: flipcash.phone.v1.PhoneNumber phone = 1;
+   * @generated from field: flipcash.common.v1.PhoneNumber phone = 1;
    */
   phone?: PhoneNumber;
 

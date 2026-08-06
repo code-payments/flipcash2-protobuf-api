@@ -5,7 +5,6 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { PhoneNumber } from "../../phone/v1/model_pb";
 
 /**
  * @generated from enum flipcash.common.v1.Platform
@@ -391,6 +390,86 @@ export class AppInstallId extends Message<AppInstallId> {
 
   static equals(a: AppInstallId | PlainMessage<AppInstallId> | undefined, b: AppInstallId | PlainMessage<AppInstallId> | undefined): boolean {
     return proto3.util.equals(AppInstallId, a, b);
+  }
+}
+
+/**
+ * PhoneNumber is an E.164 phone number
+ *
+ * @generated from message flipcash.common.v1.PhoneNumber
+ */
+export class PhoneNumber extends Message<PhoneNumber> {
+  /**
+   * Regex provided by Twilio here: https://www.twilio.com/docs/glossary/what-e164#regex-matching-for-e164
+   *
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<PhoneNumber>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.PhoneNumber";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PhoneNumber {
+    return new PhoneNumber().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PhoneNumber {
+    return new PhoneNumber().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PhoneNumber {
+    return new PhoneNumber().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PhoneNumber | PlainMessage<PhoneNumber> | undefined, b: PhoneNumber | PlainMessage<PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(PhoneNumber, a, b);
+  }
+}
+
+/**
+ * EmailAddress is an email address
+ *
+ * @generated from message flipcash.common.v1.EmailAddress
+ */
+export class EmailAddress extends Message<EmailAddress> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<EmailAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.EmailAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EmailAddress {
+    return new EmailAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EmailAddress {
+    return new EmailAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EmailAddress {
+    return new EmailAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EmailAddress | PlainMessage<EmailAddress> | undefined, b: EmailAddress | PlainMessage<EmailAddress> | undefined): boolean {
+    return proto3.util.equals(EmailAddress, a, b);
   }
 }
 
@@ -930,7 +1009,7 @@ export class Substitution extends Message<Substitution> {
     /**
      * Phone number -> contact name or formatted phone number
      *
-     * @generated from field: flipcash.phone.v1.PhoneNumber phone_number_to_contact_name = 2;
+     * @generated from field: flipcash.common.v1.PhoneNumber phone_number_to_contact_name = 2;
      */
     value: PhoneNumber;
     case: "phoneNumberToContactName";

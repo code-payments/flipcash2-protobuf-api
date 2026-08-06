@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ChatId } from "../../common/v1/common_pb";
-import { PhoneNumber } from "../../phone/v1/model_pb";
+import { ChatId, PhoneNumber } from "../../common/v1/common_pb";
 
 /**
  * @generated from message flipcash.intent.v1.AppMetadata
@@ -118,14 +117,14 @@ export class ChatMetadata_ContactDmPayment extends Message<ChatMetadata_ContactD
   /**
    * Source phone number that is paying. This is validated to be linked to the sender.
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber source = 1;
+   * @generated from field: flipcash.common.v1.PhoneNumber source = 1;
    */
   source?: PhoneNumber;
 
   /**
    * Destination phone number that is being paid. This is validated to be linked to the receiver.
    *
-   * @generated from field: flipcash.phone.v1.PhoneNumber destination = 2;
+   * @generated from field: flipcash.common.v1.PhoneNumber destination = 2;
    */
   destination?: PhoneNumber;
 

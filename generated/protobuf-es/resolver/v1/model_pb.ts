@@ -5,8 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { PhoneNumber } from "../../phone/v1/model_pb";
-import { PublicKey, UserId } from "../../common/v1/common_pb";
+import { PhoneNumber, PublicKey, UserId } from "../../common/v1/common_pb";
 
 /**
  * Identifier wraps a real-world identifier that can be resolved to a
@@ -20,7 +19,7 @@ export class Identifier extends Message<Identifier> {
    */
   kind: {
     /**
-     * @generated from field: flipcash.phone.v1.PhoneNumber phone = 1;
+     * @generated from field: flipcash.common.v1.PhoneNumber phone = 1;
      */
     value: PhoneNumber;
     case: "phone";
