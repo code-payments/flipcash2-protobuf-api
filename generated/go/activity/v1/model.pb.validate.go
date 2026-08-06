@@ -270,6 +270,40 @@ func (m *Notification) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	for idx, item := range m.GetTextSubstitutions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  fmt.Sprintf("TextSubstitutions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  fmt.Sprintf("TextSubstitutions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NotificationValidationError{
+					field:  fmt.Sprintf("TextSubstitutions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	switch v := m.AdditionalMetadata.(type) {
 	case *Notification_DirectlySentCrypto:
 		if v == nil {
@@ -709,6 +743,47 @@ func (m *DirectlySentCryptoNotificationMetadata) validate(all bool) error {
 			}
 		}
 
+	case *DirectlySentCryptoNotificationMetadata_UserId:
+		if v == nil {
+			err := DirectlySentCryptoNotificationMetadataValidationError{
+				field:  "DestinationIdentifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetUserId()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "UserId",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "UserId",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -854,6 +929,47 @@ func (m *ReceivedCryptoNotificationMetadata) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ReceivedCryptoNotificationMetadataValidationError{
 					field:  "Phone",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ReceivedCryptoNotificationMetadata_UserId:
+		if v == nil {
+			err := ReceivedCryptoNotificationMetadataValidationError{
+				field:  "SourceIdentifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetUserId()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "UserId",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "UserId",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReceivedCryptoNotificationMetadataValidationError{
+					field:  "UserId",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

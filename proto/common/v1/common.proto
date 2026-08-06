@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.common.v1";
 option objc_class_prefix = "FPBCommonV1";
 
+import "phone/v1/model.proto";
 import "validate/validate.proto";
 
 message PublicKey {
@@ -181,4 +182,23 @@ message Region {
     string value = 1 [(validate.rules).string = {
         pattern: "^[a-z]{3,4}$"
     }];
+}
+
+// Substitution is a text subsitution
+message Substitution {
+    // Fallback string for forwards compatibility
+    string fallback = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 4096 // Arbitrary
+    }];
+
+    oneof kind {
+        option (validate.required) = true;
+
+        // Phone number -> contact name or formatted phone number
+        phone.v1.PhoneNumber phone_number_to_contact_name = 2;
+
+        // User ID -> display name
+        common.v1.UserId     user_id_to_display_name      = 3;
+    }
 }
