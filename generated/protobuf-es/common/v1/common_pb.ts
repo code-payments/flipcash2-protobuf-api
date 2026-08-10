@@ -283,6 +283,10 @@ export class UserId extends Message<UserId> {
  */
 export class ChatId extends Message<ChatId> {
   /**
+   * value has the following structure:
+   *  - 32 byte hash for DMs
+   *  - 16 byte UUID for group chats
+   *
    * @generated from field: bytes value = 1;
    */
   value = new Uint8Array(0);
