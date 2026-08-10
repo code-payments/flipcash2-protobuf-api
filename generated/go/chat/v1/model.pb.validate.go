@@ -186,6 +186,17 @@ func (m *Metadata) validate(all bool) error {
 
 	// no validation rules for IsHidden
 
+	if l := utf8.RuneCountInString(m.GetTitle()); l < 0 || l > 64 {
+		err := MetadataValidationError{
+			field:  "Title",
+			reason: "value length must be between 0 and 64 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return MetadataMultiError(errors)
 	}

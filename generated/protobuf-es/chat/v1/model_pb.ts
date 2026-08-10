@@ -27,12 +27,18 @@ export enum ChatType {
    * @generated from enum value: TIP_DM = 2;
    */
   TIP_DM = 2,
+
+  /**
+   * @generated from enum value: GROUP = 3;
+   */
+  GROUP = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ChatType)
 proto3.util.setEnumType(ChatType, "flipcash.chat.v1.ChatType", [
   { no: 0, name: "UNKNOWN" },
   { no: 1, name: "CONTACT_DM" },
   { no: 2, name: "TIP_DM" },
+  { no: 3, name: "GROUP" },
 ]);
 
 /**
@@ -53,6 +59,8 @@ export class Metadata extends Message<Metadata> {
 
   /**
    * Members of this chat
+   *
+   * For large group chats, this is a subset of all members.
    *
    * @generated from field: repeated flipcash.chat.v1.Member members = 3;
    */
@@ -96,6 +104,13 @@ export class Metadata extends Message<Metadata> {
    */
   isHidden = false;
 
+  /**
+   * Title for this chat. Only supported for group chats
+   *
+   * @generated from field: string title = 8;
+   */
+  title = "";
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -111,6 +126,7 @@ export class Metadata extends Message<Metadata> {
     { no: 5, name: "last_activity", kind: "message", T: Timestamp },
     { no: 6, name: "latest_event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "is_hidden", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {
