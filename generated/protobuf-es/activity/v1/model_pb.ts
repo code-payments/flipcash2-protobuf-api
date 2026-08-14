@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { CryptoPaymentAmount, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
+import { CryptoPaymentAmount, FiatPaymentAmount, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
 
 /**
  * ActivityFeedType enables multiple activity feeds, where notifications may be
@@ -165,6 +165,9 @@ export class Notification extends Message<Notification> {
   /**
    * If a payment applies, the amount that was paid
    *
+   * Note: For multi-mint operations, amounts are carried in additional_metadata
+   *       (eg. swapped_crypto).
+   *
    * @generated from field: flipcash.common.v1.CryptoPaymentAmount payment_amount = 3;
    */
   paymentAmount?: CryptoPaymentAmount;
@@ -220,16 +223,24 @@ export class Notification extends Message<Notification> {
     case: "depositedCrypto";
   } | {
     /**
-     * @generated from field: flipcash.activity.v1.BoughtCryptoNotificationMetadata bought_crypto = 12;
+     * @generated from field: flipcash.activity.v1.BoughtCryptoNotificationMetadata bought_crypto = 12 [deprecated = true];
+     * @deprecated
      */
     value: BoughtCryptoNotificationMetadata;
     case: "boughtCrypto";
   } | {
     /**
-     * @generated from field: flipcash.activity.v1.SoldCryptoNotificationMetadata sold_crypto = 13;
+     * @generated from field: flipcash.activity.v1.SoldCryptoNotificationMetadata sold_crypto = 13 [deprecated = true];
+     * @deprecated
      */
     value: SoldCryptoNotificationMetadata;
     case: "soldCrypto";
+  } | {
+    /**
+     * @generated from field: flipcash.activity.v1.SwappedCryptoNotificationMetadata swapped_crypto = 14;
+     */
+    value: SwappedCryptoNotificationMetadata;
+    case: "swappedCrypto";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
@@ -259,6 +270,7 @@ export class Notification extends Message<Notification> {
     { no: 11, name: "deposited_crypto", kind: "message", T: DepositedCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 12, name: "bought_crypto", kind: "message", T: BoughtCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 13, name: "sold_crypto", kind: "message", T: SoldCryptoNotificationMetadata, oneof: "additional_metadata" },
+    { no: 14, name: "swapped_crypto", kind: "message", T: SwappedCryptoNotificationMetadata, oneof: "additional_metadata" },
     { no: 100, name: "text_substitutions", kind: "message", T: Substitution, repeated: true },
   ]);
 
@@ -384,9 +396,18 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
  */
 export class WithdrewCryptoNotificationMetadata extends Message<WithdrewCryptoNotificationMetadata> {
   /**
+   * Deprecated in favour of swap_metadata
+   *
    * @generated from field: flipcash.activity.v1.SwapState swap_state = 1;
    */
   swapState = SwapState.UNKNOWN;
+
+  /**
+   * When a withdraw is a swap, the metadata for that swap
+   *
+   * @generated from field: flipcash.activity.v1.SwappedCryptoNotificationMetadata swap_metadata = 2;
+   */
+  swapMetadata?: SwappedCryptoNotificationMetadata;
 
   constructor(data?: PartialMessage<WithdrewCryptoNotificationMetadata>) {
     super();
@@ -397,6 +418,7 @@ export class WithdrewCryptoNotificationMetadata extends Message<WithdrewCryptoNo
   static readonly typeName = "flipcash.activity.v1.WithdrewCryptoNotificationMetadata";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "swap_state", kind: "enum", T: proto3.getEnumType(SwapState) },
+    { no: 2, name: "swap_metadata", kind: "message", T: SwappedCryptoNotificationMetadata },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WithdrewCryptoNotificationMetadata {
@@ -495,6 +517,9 @@ export class DepositedCryptoNotificationMetadata extends Message<DepositedCrypto
 }
 
 /**
+ * Deprecated: Use SwappedCryptoNotificationMetadata, which models both halves
+ *             of the swap in a single notification.
+ *
  * @generated from message flipcash.activity.v1.BoughtCryptoNotificationMetadata
  */
 export class BoughtCryptoNotificationMetadata extends Message<BoughtCryptoNotificationMetadata> {
@@ -532,6 +557,9 @@ export class BoughtCryptoNotificationMetadata extends Message<BoughtCryptoNotifi
 }
 
 /**
+ * Deprecated: Use SwappedCryptoNotificationMetadata, which models both halves
+ *             of the swap in a single notification.
+ *
  * @generated from message flipcash.activity.v1.SoldCryptoNotificationMetadata
  */
 export class SoldCryptoNotificationMetadata extends Message<SoldCryptoNotificationMetadata> {
@@ -565,6 +593,93 @@ export class SoldCryptoNotificationMetadata extends Message<SoldCryptoNotificati
 
   static equals(a: SoldCryptoNotificationMetadata | PlainMessage<SoldCryptoNotificationMetadata> | undefined, b: SoldCryptoNotificationMetadata | PlainMessage<SoldCryptoNotificationMetadata> | undefined): boolean {
     return proto3.util.equals(SoldCryptoNotificationMetadata, a, b);
+  }
+}
+
+/**
+ * SwappedCryptoNotificationMetadata represents a swap between two mints as a
+ * single notification. It supersedes BoughtCryptoNotificationMetadata and
+ * SoldCryptoNotificationMetadata, which modelled the two halves of a swap as
+ * separate notifications.
+ *
+ * @generated from message flipcash.activity.v1.SwappedCryptoNotificationMetadata
+ */
+export class SwappedCryptoNotificationMetadata extends Message<SwappedCryptoNotificationMetadata> {
+  /**
+   * The amount the user gave up in the source mint
+   *
+   * @generated from field: flipcash.common.v1.CryptoPaymentAmount from = 1;
+   */
+  from?: CryptoPaymentAmount;
+
+  /**
+   * What the user received in the destination mint. The mint is always known,
+   * but the amount is only known once the swap has executed.
+   *
+   * @generated from oneof flipcash.activity.v1.SwappedCryptoNotificationMetadata.to
+   */
+  to: {
+    /**
+     * The destination mint, when the amount isn't yet known
+     *
+     * @generated from field: flipcash.common.v1.PublicKey to_mint = 2;
+     */
+    value: PublicKey;
+    case: "toMint";
+  } | {
+    /**
+     * The amount the user received in the destination mint
+     *
+     * @generated from field: flipcash.common.v1.CryptoPaymentAmount to_amount = 3;
+     */
+    value: CryptoPaymentAmount;
+    case: "toAmount";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * The fee charged for the swap, which is known upfront and is set regardless
+   * of the state of the swap
+   *
+   * @generated from field: flipcash.common.v1.FiatPaymentAmount fee = 4;
+   */
+  fee?: FiatPaymentAmount;
+
+  /**
+   * The state of the swap as a whole
+   *
+   * @generated from field: flipcash.activity.v1.SwapState swap_state = 5;
+   */
+  swapState = SwapState.UNKNOWN;
+
+  constructor(data?: PartialMessage<SwappedCryptoNotificationMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.activity.v1.SwappedCryptoNotificationMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "from", kind: "message", T: CryptoPaymentAmount },
+    { no: 2, name: "to_mint", kind: "message", T: PublicKey, oneof: "to" },
+    { no: 3, name: "to_amount", kind: "message", T: CryptoPaymentAmount, oneof: "to" },
+    { no: 4, name: "fee", kind: "message", T: FiatPaymentAmount },
+    { no: 5, name: "swap_state", kind: "enum", T: proto3.getEnumType(SwapState) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SwappedCryptoNotificationMetadata {
+    return new SwappedCryptoNotificationMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SwappedCryptoNotificationMetadata {
+    return new SwappedCryptoNotificationMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SwappedCryptoNotificationMetadata {
+    return new SwappedCryptoNotificationMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SwappedCryptoNotificationMetadata | PlainMessage<SwappedCryptoNotificationMetadata> | undefined, b: SwappedCryptoNotificationMetadata | PlainMessage<SwappedCryptoNotificationMetadata> | undefined): boolean {
+    return proto3.util.equals(SwappedCryptoNotificationMetadata, a, b);
   }
 }
 

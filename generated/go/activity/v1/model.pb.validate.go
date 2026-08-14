@@ -592,6 +592,47 @@ func (m *Notification) validate(all bool) error {
 			}
 		}
 
+	case *Notification_SwappedCrypto:
+		if v == nil {
+			err := NotificationValidationError{
+				field:  "AdditionalMetadata",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetSwappedCrypto()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  "SwappedCrypto",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, NotificationValidationError{
+						field:  "SwappedCrypto",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSwappedCrypto()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return NotificationValidationError{
+					field:  "SwappedCrypto",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1094,6 +1135,35 @@ func (m *WithdrewCryptoNotificationMetadata) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetSwapMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, WithdrewCryptoNotificationMetadataValidationError{
+					field:  "SwapMetadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, WithdrewCryptoNotificationMetadataValidationError{
+					field:  "SwapMetadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSwapMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return WithdrewCryptoNotificationMetadataValidationError{
+				field:  "SwapMetadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -1670,5 +1740,305 @@ var _ interface {
 } = SoldCryptoNotificationMetadataValidationError{}
 
 var _SoldCryptoNotificationMetadata_SwapState_NotInLookup = map[SwapState]struct{}{
+	0: {},
+}
+
+// Validate checks the field values on SwappedCryptoNotificationMetadata with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SwappedCryptoNotificationMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SwappedCryptoNotificationMetadata
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SwappedCryptoNotificationMetadataMultiError, or nil if none found.
+func (m *SwappedCryptoNotificationMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SwappedCryptoNotificationMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetFrom() == nil {
+		err := SwappedCryptoNotificationMetadataValidationError{
+			field:  "From",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetFrom()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+					field:  "From",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+					field:  "From",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetFrom()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SwappedCryptoNotificationMetadataValidationError{
+				field:  "From",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetFee() == nil {
+		err := SwappedCryptoNotificationMetadataValidationError{
+			field:  "Fee",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetFee()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+					field:  "Fee",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+					field:  "Fee",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetFee()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SwappedCryptoNotificationMetadataValidationError{
+				field:  "Fee",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if _, ok := _SwappedCryptoNotificationMetadata_SwapState_NotInLookup[m.GetSwapState()]; ok {
+		err := SwappedCryptoNotificationMetadataValidationError{
+			field:  "SwapState",
+			reason: "value must not be in list [SWAP_STATE_UNKNOWN]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	oneofToPresent := false
+	switch v := m.To.(type) {
+	case *SwappedCryptoNotificationMetadata_ToMint:
+		if v == nil {
+			err := SwappedCryptoNotificationMetadataValidationError{
+				field:  "To",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofToPresent = true
+
+		if all {
+			switch v := interface{}(m.GetToMint()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+						field:  "ToMint",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+						field:  "ToMint",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetToMint()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SwappedCryptoNotificationMetadataValidationError{
+					field:  "ToMint",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *SwappedCryptoNotificationMetadata_ToAmount:
+		if v == nil {
+			err := SwappedCryptoNotificationMetadataValidationError{
+				field:  "To",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofToPresent = true
+
+		if all {
+			switch v := interface{}(m.GetToAmount()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+						field:  "ToAmount",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SwappedCryptoNotificationMetadataValidationError{
+						field:  "ToAmount",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetToAmount()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SwappedCryptoNotificationMetadataValidationError{
+					field:  "ToAmount",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofToPresent {
+		err := SwappedCryptoNotificationMetadataValidationError{
+			field:  "To",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return SwappedCryptoNotificationMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// SwappedCryptoNotificationMetadataMultiError is an error wrapping multiple
+// validation errors returned by
+// SwappedCryptoNotificationMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type SwappedCryptoNotificationMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SwappedCryptoNotificationMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SwappedCryptoNotificationMetadataMultiError) AllErrors() []error { return m }
+
+// SwappedCryptoNotificationMetadataValidationError is the validation error
+// returned by SwappedCryptoNotificationMetadata.Validate if the designated
+// constraints aren't met.
+type SwappedCryptoNotificationMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SwappedCryptoNotificationMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SwappedCryptoNotificationMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SwappedCryptoNotificationMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SwappedCryptoNotificationMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SwappedCryptoNotificationMetadataValidationError) ErrorName() string {
+	return "SwappedCryptoNotificationMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SwappedCryptoNotificationMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSwappedCryptoNotificationMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SwappedCryptoNotificationMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SwappedCryptoNotificationMetadataValidationError{}
+
+var _SwappedCryptoNotificationMetadata_SwapState_NotInLookup = map[SwapState]struct{}{
 	0: {},
 }
