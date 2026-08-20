@@ -279,6 +279,47 @@ export class UserId extends Message<UserId> {
 }
 
 /**
+ * Username is a user's unique handle on Flipcash. It uses the same character
+ * set as X — letters, digits and underscores — with the exception that it must
+ * be lowercase.
+ *
+ * @generated from message flipcash.common.v1.Username
+ */
+export class Username extends Message<Username> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Username>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.common.v1.Username";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Username {
+    return new Username().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Username {
+    return new Username().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Username {
+    return new Username().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Username | PlainMessage<Username> | undefined, b: Username | PlainMessage<Username> | undefined): boolean {
+    return proto3.util.equals(Username, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.common.v1.ChatId
  */
 export class ChatId extends Message<ChatId> {
