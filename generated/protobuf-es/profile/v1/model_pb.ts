@@ -20,6 +20,14 @@ export class UserProfile extends Message<UserProfile> {
   displayName = "";
 
   /**
+   * The user's username on Flipcash. Public, so it is returned for any user,
+   * not just the caller. Unset when the user hasn't claimed one yet.
+   *
+   * @generated from field: flipcash.profile.v1.Username username = 8;
+   */
+  username?: Username;
+
+  /**
    * Social profiles are links to external social accounts
    *
    * @generated from field: repeated flipcash.profile.v1.SocialProfile social_profiles = 2;
@@ -82,6 +90,7 @@ export class UserProfile extends Message<UserProfile> {
   static readonly typeName = "flipcash.profile.v1.UserProfile";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "display_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "username", kind: "message", T: Username },
     { no: 2, name: "social_profiles", kind: "message", T: SocialProfile, repeated: true },
     { no: 3, name: "phone_number", kind: "message", T: PhoneNumber },
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
@@ -104,6 +113,47 @@ export class UserProfile extends Message<UserProfile> {
 
   static equals(a: UserProfile | PlainMessage<UserProfile> | undefined, b: UserProfile | PlainMessage<UserProfile> | undefined): boolean {
     return proto3.util.equals(UserProfile, a, b);
+  }
+}
+
+/**
+ * Username is a user's unique handle on Flipcash. It uses the same character
+ * set as X — letters, digits and underscores — with the exception that it must
+ * be lowercase.
+ *
+ * @generated from message flipcash.profile.v1.Username
+ */
+export class Username extends Message<Username> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<Username>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.Username";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Username {
+    return new Username().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Username {
+    return new Username().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Username {
+    return new Username().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Username | PlainMessage<Username> | undefined, b: Username | PlainMessage<Username> | undefined): boolean {
+    return proto3.util.equals(Username, a, b);
   }
 }
 
