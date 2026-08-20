@@ -20,7 +20,7 @@ message UserProfile {
 
 	// The user's username on Flipcash. Public, so it is returned for any user,
 	// not just the caller. Unset when the user hasn't claimed one yet.
-	Username username = 8;
+	common.v1.Username username = 8;
 
 	// Social profiles are links to external social accounts
 	repeated SocialProfile social_profiles = 2 [(validate.rules).repeated = {
@@ -55,13 +55,6 @@ message UserProfile {
     // any user, not just the caller. Always set — the server resolves defaults
     // for anything the user hasn't customized. Update it with UpdateTipCard.
     TipCardCustomization tip_card_customization = 7 [(validate.rules).message.required = true];
-}
-
-// Username is a user's unique handle on Flipcash. It uses the same character
-// set as X — letters, digits and underscores — with the exception that it must
-// be lowercase.
-message Username {
-    string value = 1 [(validate.rules).string.pattern = "^[a-z0-9_]{2,15}$"];
 }
 
 message SocialProfile {
