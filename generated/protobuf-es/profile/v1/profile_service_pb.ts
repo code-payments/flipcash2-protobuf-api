@@ -264,6 +264,148 @@ proto3.util.setEnumType(SetDisplayNameResponse_Result, "flipcash.profile.v1.SetD
 ]);
 
 /**
+ * @generated from message flipcash.profile.v1.SetUsernameRequest
+ */
+export class SetUsernameRequest extends Message<SetUsernameRequest> {
+  /**
+   * Username is the new username to set.
+   *
+   * @generated from field: flipcash.common.v1.Username username = 1;
+   */
+  username?: Username;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetUsernameRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetUsernameRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "username", kind: "message", T: Username },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetUsernameRequest {
+    return new SetUsernameRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetUsernameRequest {
+    return new SetUsernameRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetUsernameRequest {
+    return new SetUsernameRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetUsernameRequest | PlainMessage<SetUsernameRequest> | undefined, b: SetUsernameRequest | PlainMessage<SetUsernameRequest> | undefined): boolean {
+    return proto3.util.equals(SetUsernameRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.SetUsernameResponse
+ */
+export class SetUsernameResponse extends Message<SetUsernameResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.SetUsernameResponse.Result result = 1;
+   */
+  result = SetUsernameResponse_Result.OK;
+
+  /**
+   * The best-fit category that tripped moderation, mirroring the Moderation
+   * service's vocabulary. Set only when result == FAILED_MODERATED; NONE
+   * otherwise.
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 2;
+   */
+  flaggedCategory = FlaggedCategory.NONE;
+
+  constructor(data?: PartialMessage<SetUsernameResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetUsernameResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetUsernameResponse_Result) },
+    { no: 2, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetUsernameResponse {
+    return new SetUsernameResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetUsernameResponse {
+    return new SetUsernameResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetUsernameResponse {
+    return new SetUsernameResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetUsernameResponse | PlainMessage<SetUsernameResponse> | undefined, b: SetUsernameResponse | PlainMessage<SetUsernameResponse> | undefined): boolean {
+    return proto3.util.equals(SetUsernameResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.SetUsernameResponse.Result
+ */
+export enum SetUsernameResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: INVALID_USERNAME = 1;
+   */
+  INVALID_USERNAME = 1,
+
+  /**
+   * @generated from enum value: DENIED = 2;
+   */
+  DENIED = 2,
+
+  /**
+   * @generated from enum value: ALREADY_TAKEN = 3;
+   */
+  ALREADY_TAKEN = 3,
+
+  /**
+   * @generated from enum value: FAILED_MODERATED = 4;
+   */
+  FAILED_MODERATED = 4,
+
+  /**
+   * @generated from enum value: INSUFFICIENT_BALANCE = 5;
+   */
+  INSUFFICIENT_BALANCE = 5,
+
+  /**
+   * @generated from enum value: RESERVED_WORD = 6;
+   */
+  RESERVED_WORD = 6,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetUsernameResponse_Result)
+proto3.util.setEnumType(SetUsernameResponse_Result, "flipcash.profile.v1.SetUsernameResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "INVALID_USERNAME" },
+  { no: 2, name: "DENIED" },
+  { no: 3, name: "ALREADY_TAKEN" },
+  { no: 4, name: "FAILED_MODERATED" },
+  { no: 5, name: "INSUFFICIENT_BALANCE" },
+  { no: 6, name: "RESERVED_WORD" },
+]);
+
+/**
  * @generated from message flipcash.profile.v1.SetProfilePictureRequest
  */
 export class SetProfilePictureRequest extends Message<SetProfilePictureRequest> {

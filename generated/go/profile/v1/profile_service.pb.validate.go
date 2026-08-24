@@ -662,6 +662,294 @@ var _ interface {
 	ErrorName() string
 } = SetDisplayNameResponseValidationError{}
 
+// Validate checks the field values on SetUsernameRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetUsernameRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetUsernameRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetUsernameRequestMultiError, or nil if none found.
+func (m *SetUsernameRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetUsernameRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetUsername() == nil {
+		err := SetUsernameRequestValidationError{
+			field:  "Username",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUsername()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetUsernameRequestValidationError{
+					field:  "Username",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetUsernameRequestValidationError{
+					field:  "Username",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUsername()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetUsernameRequestValidationError{
+				field:  "Username",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := SetUsernameRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetUsernameRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetUsernameRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetUsernameRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetUsernameRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetUsernameRequestMultiError is an error wrapping multiple validation errors
+// returned by SetUsernameRequest.ValidateAll() if the designated constraints
+// aren't met.
+type SetUsernameRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetUsernameRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetUsernameRequestMultiError) AllErrors() []error { return m }
+
+// SetUsernameRequestValidationError is the validation error returned by
+// SetUsernameRequest.Validate if the designated constraints aren't met.
+type SetUsernameRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetUsernameRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetUsernameRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetUsernameRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetUsernameRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetUsernameRequestValidationError) ErrorName() string {
+	return "SetUsernameRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetUsernameRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetUsernameRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetUsernameRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetUsernameRequestValidationError{}
+
+// Validate checks the field values on SetUsernameResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetUsernameResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetUsernameResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetUsernameResponseMultiError, or nil if none found.
+func (m *SetUsernameResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetUsernameResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	// no validation rules for FlaggedCategory
+
+	if len(errors) > 0 {
+		return SetUsernameResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetUsernameResponseMultiError is an error wrapping multiple validation
+// errors returned by SetUsernameResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SetUsernameResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetUsernameResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetUsernameResponseMultiError) AllErrors() []error { return m }
+
+// SetUsernameResponseValidationError is the validation error returned by
+// SetUsernameResponse.Validate if the designated constraints aren't met.
+type SetUsernameResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetUsernameResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetUsernameResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetUsernameResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetUsernameResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetUsernameResponseValidationError) ErrorName() string {
+	return "SetUsernameResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetUsernameResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetUsernameResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetUsernameResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetUsernameResponseValidationError{}
+
 // Validate checks the field values on SetProfilePictureRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
