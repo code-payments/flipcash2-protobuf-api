@@ -57,6 +57,46 @@ func (m *UserProfile) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetUserId() == nil {
+		err := UserProfileValidationError{
+			field:  "UserId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUserId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UserProfileValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UserProfileValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UserProfileValidationError{
+				field:  "UserId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if l := utf8.RuneCountInString(m.GetDisplayName()); l < 0 || l > 64 {
 		err := UserProfileValidationError{
 			field:  "DisplayName",
