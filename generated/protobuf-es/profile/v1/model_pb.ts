@@ -5,13 +5,21 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { Color, EmailAddress, PhoneNumber, Username } from "../../common/v1/common_pb";
+import { Color, EmailAddress, PhoneNumber, UserId, Username } from "../../common/v1/common_pb";
 import { Media } from "../../blob/v1/model_pb";
 
 /**
  * @generated from message flipcash.profile.v1.UserProfile
  */
 export class UserProfile extends Message<UserProfile> {
+  /**
+   * The ID of the user this profile belongs to. Always set, so a caller that
+   * looked the profile up by username learns the user's ID from the response.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 9;
+   */
+  userId?: UserId;
+
   /**
    * Display name is the display name of the user (if found).
    *
@@ -89,6 +97,7 @@ export class UserProfile extends Message<UserProfile> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.profile.v1.UserProfile";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 9, name: "user_id", kind: "message", T: UserId },
     { no: 1, name: "display_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "username", kind: "message", T: Username },
     { no: 2, name: "social_profiles", kind: "message", T: SocialProfile, repeated: true },
