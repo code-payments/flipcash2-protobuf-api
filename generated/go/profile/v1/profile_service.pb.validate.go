@@ -61,46 +61,6 @@ func (m *GetProfileRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetUserId() == nil {
-		err := GetProfileRequestValidationError{
-			field:  "UserId",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetUserId()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetProfileRequestValidationError{
-					field:  "UserId",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, GetProfileRequestValidationError{
-					field:  "UserId",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return GetProfileRequestValidationError{
-				field:  "UserId",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	if all {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:
@@ -128,6 +88,106 @@ func (m *GetProfileRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	oneofIdentifierPresent := false
+	switch v := m.Identifier.(type) {
+	case *GetProfileRequest_UserId:
+		if v == nil {
+			err := GetProfileRequestValidationError{
+				field:  "Identifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofIdentifierPresent = true
+
+		if all {
+			switch v := interface{}(m.GetUserId()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetProfileRequestValidationError{
+						field:  "UserId",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetProfileRequestValidationError{
+						field:  "UserId",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetProfileRequestValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *GetProfileRequest_Username:
+		if v == nil {
+			err := GetProfileRequestValidationError{
+				field:  "Identifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofIdentifierPresent = true
+
+		if all {
+			switch v := interface{}(m.GetUsername()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetProfileRequestValidationError{
+						field:  "Username",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetProfileRequestValidationError{
+						field:  "Username",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUsername()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetProfileRequestValidationError{
+					field:  "Username",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofIdentifierPresent {
+		err := GetProfileRequestValidationError{
+			field:  "Identifier",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {

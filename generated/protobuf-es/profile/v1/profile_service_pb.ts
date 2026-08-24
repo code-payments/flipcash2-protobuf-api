@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, Color, UserId } from "../../common/v1/common_pb";
+import { Auth, Color, UserId, Username } from "../../common/v1/common_pb";
 import { SocialProfile, UserProfile } from "./model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 import { BlobId, Media } from "../../blob/v1/model_pb";
@@ -15,9 +15,24 @@ import { BlobId, Media } from "../../blob/v1/model_pb";
  */
 export class GetProfileRequest extends Message<GetProfileRequest> {
   /**
-   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   * The user whose profile is being fetched, identified either by their user
+   * ID or by their username. Exactly one must be set.
+   *
+   * @generated from oneof flipcash.profile.v1.GetProfileRequest.identifier
    */
-  userId?: UserId;
+  identifier: {
+    /**
+     * @generated from field: flipcash.common.v1.UserId user_id = 1;
+     */
+    value: UserId;
+    case: "userId";
+  } | {
+    /**
+     * @generated from field: flipcash.common.v1.Username username = 3;
+     */
+    value: Username;
+    case: "username";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
    * Optional auth to retrieve private profile information for self
@@ -34,7 +49,8 @@ export class GetProfileRequest extends Message<GetProfileRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.profile.v1.GetProfileRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "user_id", kind: "message", T: UserId },
+    { no: 1, name: "user_id", kind: "message", T: UserId, oneof: "identifier" },
+    { no: 3, name: "username", kind: "message", T: Username, oneof: "identifier" },
     { no: 2, name: "auth", kind: "message", T: Auth },
   ]);
 
