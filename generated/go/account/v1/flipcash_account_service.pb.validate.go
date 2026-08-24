@@ -1369,6 +1369,8 @@ func (m *UserFlags) validate(all bool) error {
 
 	}
 
+	// no validation rules for UsernameMinBalance
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}

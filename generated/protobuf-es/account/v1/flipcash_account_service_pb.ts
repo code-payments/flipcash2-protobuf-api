@@ -573,6 +573,13 @@ export class UserFlags extends Message<UserFlags> {
    */
   tipPresets: TipPresets[] = [];
 
+  /**
+   * USDF amount, in quarks, that must be held across all currencies in order to set a username
+   *
+   * @generated from field: uint64 username_min_balance = 16;
+   */
+  usernameMinBalance = protoInt64.zero;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -596,6 +603,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 13, name: "minimum_holder_value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 14, name: "require_coinbase_email_verification", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "tip_presets", kind: "message", T: TipPresets, repeated: true },
+    { no: 16, name: "username_min_balance", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {
