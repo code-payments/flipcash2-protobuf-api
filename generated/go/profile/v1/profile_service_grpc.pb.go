@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Profile_GetProfile_FullMethodName          = "/flipcash.profile.v1.Profile/GetProfile"
 	Profile_SetDisplayName_FullMethodName      = "/flipcash.profile.v1.Profile/SetDisplayName"
+	Profile_SetUsername_FullMethodName         = "/flipcash.profile.v1.Profile/SetUsername"
 	Profile_SetProfilePicture_FullMethodName   = "/flipcash.profile.v1.Profile/SetProfilePicture"
 	Profile_UpdateTipCard_FullMethodName       = "/flipcash.profile.v1.Profile/UpdateTipCard"
 	Profile_LinkSocialAccount_FullMethodName   = "/flipcash.profile.v1.Profile/LinkSocialAccount"
@@ -33,6 +34,9 @@ const (
 type ProfileClient interface {
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*GetProfileResponse, error)
 	SetDisplayName(ctx context.Context, in *SetDisplayNameRequest, opts ...grpc.CallOption) (*SetDisplayNameResponse, error)
+	// SetUsername sets the caller's username, replacing any username already
+	// set.
+	SetUsername(ctx context.Context, in *SetUsernameRequest, opts ...grpc.CallOption) (*SetUsernameResponse, error)
 	// SetProfilePicture sets the caller's profile picture to a blob they have
 	// already uploaded via BlobStorage, replacing any picture already set.
 	//
@@ -72,6 +76,16 @@ func (c *profileClient) SetDisplayName(ctx context.Context, in *SetDisplayNameRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SetDisplayNameResponse)
 	err := c.cc.Invoke(ctx, Profile_SetDisplayName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) SetUsername(ctx context.Context, in *SetUsernameRequest, opts ...grpc.CallOption) (*SetUsernameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetUsernameResponse)
+	err := c.cc.Invoke(ctx, Profile_SetUsername_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +138,9 @@ func (c *profileClient) UnlinkSocialAccount(ctx context.Context, in *UnlinkSocia
 type ProfileServer interface {
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error)
 	SetDisplayName(context.Context, *SetDisplayNameRequest) (*SetDisplayNameResponse, error)
+	// SetUsername sets the caller's username, replacing any username already
+	// set.
+	SetUsername(context.Context, *SetUsernameRequest) (*SetUsernameResponse, error)
 	// SetProfilePicture sets the caller's profile picture to a blob they have
 	// already uploaded via BlobStorage, replacing any picture already set.
 	//
@@ -154,6 +171,9 @@ func (UnimplementedProfileServer) GetProfile(context.Context, *GetProfileRequest
 }
 func (UnimplementedProfileServer) SetDisplayName(context.Context, *SetDisplayNameRequest) (*SetDisplayNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetDisplayName not implemented")
+}
+func (UnimplementedProfileServer) SetUsername(context.Context, *SetUsernameRequest) (*SetUsernameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetUsername not implemented")
 }
 func (UnimplementedProfileServer) SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetProfilePicture not implemented")
@@ -220,6 +240,24 @@ func _Profile_SetDisplayName_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServer).SetDisplayName(ctx, req.(*SetDisplayNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_SetUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetUsernameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).SetUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Profile_SetUsername_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).SetUsername(ctx, req.(*SetUsernameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -310,6 +348,10 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetDisplayName",
 			Handler:    _Profile_SetDisplayName_Handler,
+		},
+		{
+			MethodName: "SetUsername",
+			Handler:    _Profile_SetUsername_Handler,
 		},
 		{
 			MethodName: "SetProfilePicture",

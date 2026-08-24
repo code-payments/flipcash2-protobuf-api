@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetProfilePictureRequest, SetProfilePictureResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateTipCardRequest, UpdateTipCardResponse } from "./profile_service_pb";
+import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateTipCardRequest, UpdateTipCardResponse } from "./profile_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -28,6 +28,18 @@ export const Profile = {
       name: "SetDisplayName",
       I: SetDisplayNameRequest,
       O: SetDisplayNameResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetUsername sets the caller's username, replacing any username already
+     * set.
+     *
+     * @generated from rpc flipcash.profile.v1.Profile.SetUsername
+     */
+    setUsername: {
+      name: "SetUsername",
+      I: SetUsernameRequest,
+      O: SetUsernameResponse,
       kind: MethodKind.Unary,
     },
     /**
