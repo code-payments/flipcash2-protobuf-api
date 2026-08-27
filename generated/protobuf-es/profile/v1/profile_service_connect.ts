@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateTipCardRequest, UpdateTipCardResponse } from "./profile_service_pb";
+import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateTipCardRequest, UpdateTipCardResponse } from "./profile_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -69,6 +69,18 @@ export const Profile = {
       name: "UpdateTipCard",
       I: UpdateTipCardRequest,
       O: UpdateTipCardResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetMinDmChatInitFee sets the minimum fee another user must pay to
+     * initialize a DM chat with the caller, replacing any fee already set.
+     *
+     * @generated from rpc flipcash.profile.v1.Profile.SetMinDmChatInitFee
+     */
+    setMinDmChatInitFee: {
+      name: "SetMinDmChatInitFee",
+      I: SetMinDmChatInitFeeRequest,
+      O: SetMinDmChatInitFeeResponse,
       kind: MethodKind.Unary,
     },
     /**

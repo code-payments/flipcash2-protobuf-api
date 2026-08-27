@@ -34,6 +34,10 @@ service Profile {
 	// optional; only the ones set in the request are changed.
 	rpc UpdateTipCard(UpdateTipCardRequest) returns (UpdateTipCardResponse);
 
+	// SetMinDmChatInitFee sets the minimum fee another user must pay to
+	// initialize a DM chat with the caller, replacing any fee already set.
+	rpc SetMinDmChatInitFee(SetMinDmChatInitFeeRequest) returns (SetMinDmChatInitFeeResponse);
+
 	// LinkSocialAccount links a social account to a user
 	rpc LinkSocialAccount(LinkSocialAccountRequest) returns (LinkSocialAccountResponse);
 
@@ -157,6 +161,22 @@ message UpdateTipCardResponse {
 		OK            = 0;
 		DENIED        = 1;
 		INVALID_COLOR = 2;
+	}
+}
+
+message SetMinDmChatInitFeeRequest {
+	// The new minimum DM chat initialization fee to set.
+	common.v1.FiatPaymentAmount min_dm_chat_init_fee = 1 [(validate.rules).message.required = true];
+
+	common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetMinDmChatInitFeeResponse {
+	Result result = 1;
+	enum Result {
+		OK             = 0;
+		DENIED         = 1;
+		INVALID_AMOUNT = 2; // e.g. unsupported currency, or amount outside the allowed range
 	}
 }
 

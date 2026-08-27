@@ -1540,6 +1540,293 @@ var _ interface {
 	ErrorName() string
 } = UpdateTipCardResponseValidationError{}
 
+// Validate checks the field values on SetMinDmChatInitFeeRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetMinDmChatInitFeeRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetMinDmChatInitFeeRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetMinDmChatInitFeeRequestMultiError, or nil if none found.
+func (m *SetMinDmChatInitFeeRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetMinDmChatInitFeeRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMinDmChatInitFee() == nil {
+		err := SetMinDmChatInitFeeRequestValidationError{
+			field:  "MinDmChatInitFee",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMinDmChatInitFee()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetMinDmChatInitFeeRequestValidationError{
+					field:  "MinDmChatInitFee",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetMinDmChatInitFeeRequestValidationError{
+					field:  "MinDmChatInitFee",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMinDmChatInitFee()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetMinDmChatInitFeeRequestValidationError{
+				field:  "MinDmChatInitFee",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := SetMinDmChatInitFeeRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetMinDmChatInitFeeRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetMinDmChatInitFeeRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetMinDmChatInitFeeRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetMinDmChatInitFeeRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetMinDmChatInitFeeRequestMultiError is an error wrapping multiple
+// validation errors returned by SetMinDmChatInitFeeRequest.ValidateAll() if
+// the designated constraints aren't met.
+type SetMinDmChatInitFeeRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetMinDmChatInitFeeRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetMinDmChatInitFeeRequestMultiError) AllErrors() []error { return m }
+
+// SetMinDmChatInitFeeRequestValidationError is the validation error returned
+// by SetMinDmChatInitFeeRequest.Validate if the designated constraints aren't met.
+type SetMinDmChatInitFeeRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetMinDmChatInitFeeRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetMinDmChatInitFeeRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetMinDmChatInitFeeRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetMinDmChatInitFeeRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetMinDmChatInitFeeRequestValidationError) ErrorName() string {
+	return "SetMinDmChatInitFeeRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetMinDmChatInitFeeRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetMinDmChatInitFeeRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetMinDmChatInitFeeRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetMinDmChatInitFeeRequestValidationError{}
+
+// Validate checks the field values on SetMinDmChatInitFeeResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetMinDmChatInitFeeResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetMinDmChatInitFeeResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetMinDmChatInitFeeResponseMultiError, or nil if none found.
+func (m *SetMinDmChatInitFeeResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetMinDmChatInitFeeResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(errors) > 0 {
+		return SetMinDmChatInitFeeResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetMinDmChatInitFeeResponseMultiError is an error wrapping multiple
+// validation errors returned by SetMinDmChatInitFeeResponse.ValidateAll() if
+// the designated constraints aren't met.
+type SetMinDmChatInitFeeResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetMinDmChatInitFeeResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetMinDmChatInitFeeResponseMultiError) AllErrors() []error { return m }
+
+// SetMinDmChatInitFeeResponseValidationError is the validation error returned
+// by SetMinDmChatInitFeeResponse.Validate if the designated constraints
+// aren't met.
+type SetMinDmChatInitFeeResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetMinDmChatInitFeeResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetMinDmChatInitFeeResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetMinDmChatInitFeeResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetMinDmChatInitFeeResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetMinDmChatInitFeeResponseValidationError) ErrorName() string {
+	return "SetMinDmChatInitFeeResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetMinDmChatInitFeeResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetMinDmChatInitFeeResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetMinDmChatInitFeeResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetMinDmChatInitFeeResponseValidationError{}
+
 // Validate checks the field values on LinkSocialAccountRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
