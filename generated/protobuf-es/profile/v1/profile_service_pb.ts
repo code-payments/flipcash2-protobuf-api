@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, Color, UserId, Username } from "../../common/v1/common_pb";
+import { Auth, Color, FiatPaymentAmount, UserId, Username } from "../../common/v1/common_pb";
 import { SocialProfile, UserProfile } from "./model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 import { BlobId, Media } from "../../blob/v1/model_pb";
@@ -656,6 +656,116 @@ proto3.util.setEnumType(UpdateTipCardResponse_Result, "flipcash.profile.v1.Updat
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "INVALID_COLOR" },
+]);
+
+/**
+ * @generated from message flipcash.profile.v1.SetMinDmChatInitFeeRequest
+ */
+export class SetMinDmChatInitFeeRequest extends Message<SetMinDmChatInitFeeRequest> {
+  /**
+   * The new minimum DM chat initialization fee to set.
+   *
+   * @generated from field: flipcash.common.v1.FiatPaymentAmount min_dm_chat_init_fee = 1;
+   */
+  minDmChatInitFee?: FiatPaymentAmount;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetMinDmChatInitFeeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetMinDmChatInitFeeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "min_dm_chat_init_fee", kind: "message", T: FiatPaymentAmount },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetMinDmChatInitFeeRequest {
+    return new SetMinDmChatInitFeeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetMinDmChatInitFeeRequest {
+    return new SetMinDmChatInitFeeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetMinDmChatInitFeeRequest {
+    return new SetMinDmChatInitFeeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetMinDmChatInitFeeRequest | PlainMessage<SetMinDmChatInitFeeRequest> | undefined, b: SetMinDmChatInitFeeRequest | PlainMessage<SetMinDmChatInitFeeRequest> | undefined): boolean {
+    return proto3.util.equals(SetMinDmChatInitFeeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.SetMinDmChatInitFeeResponse
+ */
+export class SetMinDmChatInitFeeResponse extends Message<SetMinDmChatInitFeeResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.SetMinDmChatInitFeeResponse.Result result = 1;
+   */
+  result = SetMinDmChatInitFeeResponse_Result.OK;
+
+  constructor(data?: PartialMessage<SetMinDmChatInitFeeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetMinDmChatInitFeeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetMinDmChatInitFeeResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetMinDmChatInitFeeResponse {
+    return new SetMinDmChatInitFeeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetMinDmChatInitFeeResponse {
+    return new SetMinDmChatInitFeeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetMinDmChatInitFeeResponse {
+    return new SetMinDmChatInitFeeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetMinDmChatInitFeeResponse | PlainMessage<SetMinDmChatInitFeeResponse> | undefined, b: SetMinDmChatInitFeeResponse | PlainMessage<SetMinDmChatInitFeeResponse> | undefined): boolean {
+    return proto3.util.equals(SetMinDmChatInitFeeResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.SetMinDmChatInitFeeResponse.Result
+ */
+export enum SetMinDmChatInitFeeResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * e.g. unsupported currency, or amount outside the allowed range
+   *
+   * @generated from enum value: INVALID_AMOUNT = 2;
+   */
+  INVALID_AMOUNT = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetMinDmChatInitFeeResponse_Result)
+proto3.util.setEnumType(SetMinDmChatInitFeeResponse_Result, "flipcash.profile.v1.SetMinDmChatInitFeeResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "INVALID_AMOUNT" },
 ]);
 
 /**

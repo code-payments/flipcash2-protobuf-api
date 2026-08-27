@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { Color, EmailAddress, PhoneNumber, UserId, Username } from "../../common/v1/common_pb";
+import { Color, EmailAddress, FiatPaymentAmount, PhoneNumber, UserId, Username } from "../../common/v1/common_pb";
 import { Media } from "../../blob/v1/model_pb";
 
 /**
@@ -89,6 +89,16 @@ export class UserProfile extends Message<UserProfile> {
    */
   tipCardCustomization?: TipCardCustomization;
 
+  /**
+   * The minimum fee another user must pay to initialize a DM chat with this
+   * user. Public, so it is returned for any user, not just the caller. Unset
+   * when the user hasn't set one, in which case the server default applies.
+   * Update it with SetMinDmChatInitFee.
+   *
+   * @generated from field: flipcash.common.v1.FiatPaymentAmount min_dm_chat_init_fee = 10;
+   */
+  minDmChatInitFee?: FiatPaymentAmount;
+
   constructor(data?: PartialMessage<UserProfile>) {
     super();
     proto3.util.initPartial(data, this);
@@ -106,6 +116,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 5, name: "profile_picture", kind: "message", T: Media },
     { no: 6, name: "join_ts", kind: "message", T: Timestamp },
     { no: 7, name: "tip_card_customization", kind: "message", T: TipCardCustomization },
+    { no: 10, name: "min_dm_chat_init_fee", kind: "message", T: FiatPaymentAmount },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserProfile {

@@ -59,6 +59,12 @@ message UserProfile {
     // any user, not just the caller. Always set — the server resolves defaults
     // for anything the user hasn't customized. Update it with UpdateTipCard.
     TipCardCustomization tip_card_customization = 7 [(validate.rules).message.required = true];
+
+    // The minimum fee another user must pay to initialize a DM chat with this
+    // user. Public, so it is returned for any user, not just the caller. Unset
+    // when the user hasn't set one, in which case the server default applies.
+    // Update it with SetMinDmChatInitFee.
+    common.v1.FiatPaymentAmount min_dm_chat_init_fee = 10;
 }
 
 message SocialProfile {
