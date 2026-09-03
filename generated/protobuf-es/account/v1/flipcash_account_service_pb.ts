@@ -580,6 +580,20 @@ export class UserFlags extends Message<UserFlags> {
    */
   usernameMinBalance = protoInt64.zero;
 
+  /**
+   * Duration after message creation when a message can be edited
+   *
+   * @generated from field: google.protobuf.Duration message_edit_window = 17;
+   */
+  messageEditWindow?: Duration;
+
+  /**
+   * Duration after message creation when a message can be deleted
+   *
+   * @generated from field: google.protobuf.Duration message_delete_window = 18;
+   */
+  messageDeleteWindow?: Duration;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -604,6 +618,8 @@ export class UserFlags extends Message<UserFlags> {
     { no: 14, name: "require_coinbase_email_verification", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "tip_presets", kind: "message", T: TipPresets, repeated: true },
     { no: 16, name: "username_min_balance", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 17, name: "message_edit_window", kind: "message", T: Duration },
+    { no: 18, name: "message_delete_window", kind: "message", T: Duration },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {

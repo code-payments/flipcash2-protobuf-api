@@ -172,6 +172,12 @@ message UserFlags {
 
 	// USDF amount, in quarks, that must be held across all currencies in order to set a username
 	uint64 username_min_balance = 16;
+
+	// Duration after message creation when a message can be edited
+	google.protobuf.Duration message_edit_window = 17;
+
+	// Duration after message creation when a message can be deleted
+	google.protobuf.Duration message_delete_window = 18;
 }
 
 message TipPresets {
