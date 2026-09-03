@@ -1371,6 +1371,64 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for UsernameMinBalance
 
+	if all {
+		switch v := interface{}(m.GetMessageEditWindow()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UserFlagsValidationError{
+					field:  "MessageEditWindow",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UserFlagsValidationError{
+					field:  "MessageEditWindow",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageEditWindow()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UserFlagsValidationError{
+				field:  "MessageEditWindow",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageDeleteWindow()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UserFlagsValidationError{
+					field:  "MessageDeleteWindow",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UserFlagsValidationError{
+					field:  "MessageDeleteWindow",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageDeleteWindow()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UserFlagsValidationError{
+				field:  "MessageDeleteWindow",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return UserFlagsMultiError(errors)
 	}
