@@ -169,6 +169,11 @@ export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment
    */
   location = ChatMetadata_TipDmPayment_Location.TIPCARD;
 
+  /**
+   * @generated from field: flipcash.intent.v1.ChatMetadata.TipDmPayment.Action action = 2;
+   */
+  action = ChatMetadata_TipDmPayment_Action.DEFAULT;
+
   constructor(data?: PartialMessage<ChatMetadata_TipDmPayment>) {
     super();
     proto3.util.initPartial(data, this);
@@ -178,6 +183,7 @@ export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment
   static readonly typeName = "flipcash.intent.v1.ChatMetadata.TipDmPayment";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "location", kind: "enum", T: proto3.getEnumType(ChatMetadata_TipDmPayment_Location) },
+    { no: 2, name: "action", kind: "enum", T: proto3.getEnumType(ChatMetadata_TipDmPayment_Action) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_TipDmPayment {
@@ -217,5 +223,35 @@ export enum ChatMetadata_TipDmPayment_Location {
 proto3.util.setEnumType(ChatMetadata_TipDmPayment_Location, "flipcash.intent.v1.ChatMetadata.TipDmPayment.Location", [
   { no: 0, name: "TIPCARD" },
   { no: 1, name: "CHAT" },
+]);
+
+/**
+ * The action being performed for the payment
+ *
+ * @generated from enum flipcash.intent.v1.ChatMetadata.TipDmPayment.Action
+ */
+export enum ChatMetadata_TipDmPayment_Action {
+  /**
+   * Default based on location
+   *
+   * @generated from enum value: DEFAULT = 0;
+   */
+  DEFAULT = 0,
+
+  /**
+   * @generated from enum value: SEND = 1;
+   */
+  SEND = 1,
+
+  /**
+   * @generated from enum value: TIP = 2;
+   */
+  TIP = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_TipDmPayment_Action)
+proto3.util.setEnumType(ChatMetadata_TipDmPayment_Action, "flipcash.intent.v1.ChatMetadata.TipDmPayment.Action", [
+  { no: 0, name: "DEFAULT" },
+  { no: 1, name: "SEND" },
+  { no: 2, name: "TIP" },
 ]);
 

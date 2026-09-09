@@ -638,6 +638,8 @@ func (m *ChatMetadata_TipDmPayment) validate(all bool) error {
 
 	// no validation rules for Location
 
+	// no validation rules for Action
+
 	if len(errors) > 0 {
 		return ChatMetadata_TipDmPaymentMultiError(errors)
 	}
