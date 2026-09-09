@@ -46,5 +46,13 @@ message ChatMetadata {
             CHAT    = 1;
         }
         Location location = 1;
+
+        // The action being performed for the payment
+        enum Action {
+            DEFAULT = 0; // Default based on location
+            SEND    = 1;
+            TIP     = 2;
+        }
+        Action action = 2;
     }
 }
