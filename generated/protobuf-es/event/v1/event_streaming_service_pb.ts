@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { ClientPong, EventBatch, ServerPing, UserEventBatch } from "./model_pb";
+import { ChatEventBatch, ClientPong, EventBatch, ServerPing, UserEventBatch } from "./model_pb";
 import { Auth } from "../../common/v1/common_pb";
 
 /**
@@ -225,9 +225,21 @@ proto3.util.setEnumType(StreamEventsResponse_StreamError_Code, "flipcash.event.v
  */
 export class ForwardEventsRequest extends Message<ForwardEventsRequest> {
   /**
-   * @generated from field: flipcash.event.v1.UserEventBatch user_events = 1;
+   * @generated from oneof flipcash.event.v1.ForwardEventsRequest.type
    */
-  userEvents?: UserEventBatch;
+  type: {
+    /**
+     * @generated from field: flipcash.event.v1.UserEventBatch user_events = 1;
+     */
+    value: UserEventBatch;
+    case: "userEvents";
+  } | {
+    /**
+     * @generated from field: flipcash.event.v1.ChatEventBatch chat_events = 2;
+     */
+    value: ChatEventBatch;
+    case: "chatEvents";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ForwardEventsRequest>) {
     super();
@@ -237,7 +249,8 @@ export class ForwardEventsRequest extends Message<ForwardEventsRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.event.v1.ForwardEventsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "user_events", kind: "message", T: UserEventBatch },
+    { no: 1, name: "user_events", kind: "message", T: UserEventBatch, oneof: "type" },
+    { no: 2, name: "chat_events", kind: "message", T: ChatEventBatch, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForwardEventsRequest {

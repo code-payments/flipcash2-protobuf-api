@@ -236,6 +236,92 @@ export class UserEventBatch extends Message<UserEventBatch> {
 }
 
 /**
+ * @generated from message flipcash.event.v1.ChatEvent
+ */
+export class ChatEvent extends Message<ChatEvent> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.event.v1.Event event = 2;
+   */
+  event?: Event;
+
+  /**
+   * @generated from field: repeated flipcash.common.v1.UserId exclude_user_ids = 3;
+   */
+  excludeUserIds: UserId[] = [];
+
+  constructor(data?: PartialMessage<ChatEvent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.ChatEvent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "event", kind: "message", T: Event },
+    { no: 3, name: "exclude_user_ids", kind: "message", T: UserId, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatEvent {
+    return new ChatEvent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatEvent {
+    return new ChatEvent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatEvent {
+    return new ChatEvent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatEvent | PlainMessage<ChatEvent> | undefined, b: ChatEvent | PlainMessage<ChatEvent> | undefined): boolean {
+    return proto3.util.equals(ChatEvent, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.event.v1.ChatEventBatch
+ */
+export class ChatEventBatch extends Message<ChatEventBatch> {
+  /**
+   * @generated from field: repeated flipcash.event.v1.ChatEvent events = 1;
+   */
+  events: ChatEvent[] = [];
+
+  constructor(data?: PartialMessage<ChatEventBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.ChatEventBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "events", kind: "message", T: ChatEvent, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatEventBatch {
+    return new ChatEventBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatEventBatch {
+    return new ChatEventBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatEventBatch {
+    return new ChatEventBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatEventBatch | PlainMessage<ChatEventBatch> | undefined, b: ChatEventBatch | PlainMessage<ChatEventBatch> | undefined): boolean {
+    return proto3.util.equals(ChatEventBatch, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.event.v1.TestEvent
  */
 export class TestEvent extends Message<TestEvent> {
