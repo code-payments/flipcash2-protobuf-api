@@ -503,44 +503,104 @@ func (m *ForwardEventsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetUserEvents() == nil {
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
+	case *ForwardEventsRequest_UserEvents:
+		if v == nil {
+			err := ForwardEventsRequestValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetUserEvents()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ForwardEventsRequestValidationError{
+						field:  "UserEvents",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ForwardEventsRequestValidationError{
+						field:  "UserEvents",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUserEvents()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ForwardEventsRequestValidationError{
+					field:  "UserEvents",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ForwardEventsRequest_ChatEvents:
+		if v == nil {
+			err := ForwardEventsRequestValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetChatEvents()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ForwardEventsRequestValidationError{
+						field:  "ChatEvents",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ForwardEventsRequestValidationError{
+						field:  "ChatEvents",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetChatEvents()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ForwardEventsRequestValidationError{
+					field:  "ChatEvents",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
 		err := ForwardEventsRequestValidationError{
-			field:  "UserEvents",
+			field:  "Type",
 			reason: "value is required",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetUserEvents()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ForwardEventsRequestValidationError{
-					field:  "UserEvents",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ForwardEventsRequestValidationError{
-					field:  "UserEvents",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetUserEvents()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ForwardEventsRequestValidationError{
-				field:  "UserEvents",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
 	}
 
 	if len(errors) > 0 {

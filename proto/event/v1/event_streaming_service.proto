@@ -57,7 +57,12 @@ message StreamEventsResponse {
 }
 
 message ForwardEventsRequest {
-    UserEventBatch user_events = 1 [(validate.rules).message.required = true];
+    oneof type {
+        option (validate.required) = true;
+
+        UserEventBatch user_events = 1;
+        ChatEventBatch chat_events = 2;
+    }
 }
 
 message ForwardEventsResponse {

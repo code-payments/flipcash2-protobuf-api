@@ -903,6 +903,375 @@ var _ interface {
 	ErrorName() string
 } = UserEventBatchValidationError{}
 
+// Validate checks the field values on ChatEvent with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ChatEvent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChatEvent with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ChatEventMultiError, or nil
+// if none found.
+func (m *ChatEvent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChatEvent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := ChatEventValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatEventValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatEventValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatEventValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEvent() == nil {
+		err := ChatEventValidationError{
+			field:  "Event",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEvent()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatEventValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatEventValidationError{
+					field:  "Event",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEvent()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatEventValidationError{
+				field:  "Event",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(m.GetExcludeUserIds()) > 1024 {
+		err := ChatEventValidationError{
+			field:  "ExcludeUserIds",
+			reason: "value must contain no more than 1024 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetExcludeUserIds() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChatEventValidationError{
+						field:  fmt.Sprintf("ExcludeUserIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChatEventValidationError{
+						field:  fmt.Sprintf("ExcludeUserIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChatEventValidationError{
+					field:  fmt.Sprintf("ExcludeUserIds[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ChatEventMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChatEventMultiError is an error wrapping multiple validation errors returned
+// by ChatEvent.ValidateAll() if the designated constraints aren't met.
+type ChatEventMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChatEventMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChatEventMultiError) AllErrors() []error { return m }
+
+// ChatEventValidationError is the validation error returned by
+// ChatEvent.Validate if the designated constraints aren't met.
+type ChatEventValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChatEventValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChatEventValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChatEventValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChatEventValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChatEventValidationError) ErrorName() string { return "ChatEventValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ChatEventValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChatEvent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChatEventValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChatEventValidationError{}
+
+// Validate checks the field values on ChatEventBatch with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ChatEventBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChatEventBatch with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ChatEventBatchMultiError,
+// or nil if none found.
+func (m *ChatEventBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChatEventBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetEvents()); l < 1 || l > 1024 {
+		err := ChatEventBatchValidationError{
+			field:  "Events",
+			reason: "value must contain between 1 and 1024 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetEvents() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChatEventBatchValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChatEventBatchValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChatEventBatchValidationError{
+					field:  fmt.Sprintf("Events[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ChatEventBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChatEventBatchMultiError is an error wrapping multiple validation errors
+// returned by ChatEventBatch.ValidateAll() if the designated constraints
+// aren't met.
+type ChatEventBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChatEventBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChatEventBatchMultiError) AllErrors() []error { return m }
+
+// ChatEventBatchValidationError is the validation error returned by
+// ChatEventBatch.Validate if the designated constraints aren't met.
+type ChatEventBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChatEventBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChatEventBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChatEventBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChatEventBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChatEventBatchValidationError) ErrorName() string { return "ChatEventBatchValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ChatEventBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChatEventBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChatEventBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChatEventBatchValidationError{}
+
 // Validate checks the field values on TestEvent with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
