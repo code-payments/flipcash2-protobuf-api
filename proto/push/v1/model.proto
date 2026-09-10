@@ -8,6 +8,7 @@ option objc_class_prefix = "FPBPushV1";
 
 import "chat/v1/model.proto";
 import "common/v1/common.proto";
+import "messaging/v1/model.proto";
 import "validate/validate.proto";
 
 enum TokenType {
@@ -70,10 +71,15 @@ message ChatMetadata {
     //
     // Note: This will not be set for system messages OR for notifications that
     //       don't relate to a user
+    //
+    // Deprecated: Infer from message instead
     common.v1.UserId sending_user_id = 1;
 
     // The type of chat
     chat.v1.ChatType type = 2 [(validate.rules).enum = {
         not_in: [0] // UNKNOWN
     }];
+
+    // The chat message that was sent, if the push is for a message
+    messaging.v1.Message message = 3;
 }
