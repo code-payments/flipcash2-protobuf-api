@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, UserId } from "../../common/v1/common_pb";
 import { Message as Message$1, Pointer } from "../../messaging/v1/model_pb";
+import { Media } from "../../blob/v1/model_pb";
 import { UserProfile } from "../../profile/v1/model_pb";
 
 /**
@@ -60,7 +61,8 @@ export class Metadata extends Message<Metadata> {
   /**
    * Members of this chat
    *
-   * For large group chats, this is a subset of all members.
+   * For large group chats, this is a subset of all members. Use member_count
+   * to infer if there are more members.
    *
    * @generated from field: repeated flipcash.chat.v1.Member members = 3;
    */
@@ -111,6 +113,20 @@ export class Metadata extends Message<Metadata> {
    */
   title = "";
 
+  /**
+   * Picture for this chat. Only supported for group chats
+   *
+   * @generated from field: flipcash.blob.v1.Media picture = 9;
+   */
+  picture?: Media;
+
+  /**
+   * Number of members in this chat
+   *
+   * @generated from field: uint64 member_count = 10;
+   */
+  memberCount = protoInt64.zero;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -127,6 +143,8 @@ export class Metadata extends Message<Metadata> {
     { no: 6, name: "latest_event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "is_hidden", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "picture", kind: "message", T: Media },
+    { no: 10, name: "member_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {

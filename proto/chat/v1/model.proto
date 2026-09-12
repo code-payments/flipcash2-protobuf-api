@@ -6,6 +6,7 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.chat.v1";
 option objc_class_prefix = "FPBChatV1";
 
+import "blob/v1/model.proto";
 import "common/v1/common.proto";
 import "profile/v1/model.proto";
 import "messaging/v1/model.proto";
@@ -29,7 +30,8 @@ message Metadata {
 
     // Members of this chat
     //
-    // For large group chats, this is a subset of all members.
+    // For large group chats, this is a subset of all members. Use member_count
+    // to infer if there are more members.
     repeated Member members = 3;
 
     // The last message in this chat
@@ -59,6 +61,12 @@ message Metadata {
         min_len: 0
         max_len: 64
     }];
+
+    // Picture for this chat. Only supported for group chats
+    blob.v1.Media picture = 9;
+
+    // Number of members in this chat
+    uint64 member_count = 10;
 }
 
 message Member {
