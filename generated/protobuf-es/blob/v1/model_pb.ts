@@ -1087,10 +1087,21 @@ export class AccessContext extends Message<AccessContext> {
      * A caller never needs this for its OWN profile picture, since it owns
      * those blobs.
      *
-     * @generated from field: flipcash.common.v1.UserId profile = 2;
+     * @generated from field: flipcash.common.v1.UserId user_profile = 2;
      */
     value: UserId;
-    case: "profile";
+    case: "userProfile";
+  } | {
+    /**
+     * The caller is accessing these blobs from this chat's public profile.
+     * Authorized iff the blob is a rendition of that chat's CURRENT profile
+     * picture — a profile grants nothing else, and a superseded picture's
+     * renditions stop resolving through it.
+     *
+     * @generated from field: flipcash.common.v1.ChatId chat_profile = 3;
+     */
+    value: ChatId;
+    case: "chatProfile";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<AccessContext>) {
@@ -1102,7 +1113,8 @@ export class AccessContext extends Message<AccessContext> {
   static readonly typeName = "flipcash.blob.v1.AccessContext";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat", kind: "message", T: ChatId, oneof: "scope" },
-    { no: 2, name: "profile", kind: "message", T: UserId, oneof: "scope" },
+    { no: 2, name: "user_profile", kind: "message", T: UserId, oneof: "scope" },
+    { no: 3, name: "chat_profile", kind: "message", T: ChatId, oneof: "scope" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccessContext {
