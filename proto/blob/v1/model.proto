@@ -321,6 +321,12 @@ message AccessContext {
         //
         // A caller never needs this for its OWN profile picture, since it owns
         // those blobs.
-        common.v1.UserId profile = 2 [(validate.rules).message.required = true];
+        common.v1.UserId user_profile = 2 [(validate.rules).message.required = true];
+
+        // The caller is accessing these blobs from this chat's public profile.
+        // Authorized iff the blob is a rendition of that chat's CURRENT profile
+        // picture — a profile grants nothing else, and a superseded picture's
+        // renditions stop resolving through it.
+        common.v1.ChatId chat_profile = 3 [(validate.rules).message.required = true];
     }
 }

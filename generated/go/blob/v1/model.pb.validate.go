@@ -2408,7 +2408,7 @@ func (m *AccessContext) validate(all bool) error {
 			}
 		}
 
-	case *AccessContext_Profile:
+	case *AccessContext_UserProfile:
 		if v == nil {
 			err := AccessContextValidationError{
 				field:  "Scope",
@@ -2421,9 +2421,9 @@ func (m *AccessContext) validate(all bool) error {
 		}
 		oneofScopePresent = true
 
-		if m.GetProfile() == nil {
+		if m.GetUserProfile() == nil {
 			err := AccessContextValidationError{
-				field:  "Profile",
+				field:  "UserProfile",
 				reason: "value is required",
 			}
 			if !all {
@@ -2433,11 +2433,11 @@ func (m *AccessContext) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetProfile()).(type) {
+			switch v := interface{}(m.GetUserProfile()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, AccessContextValidationError{
-						field:  "Profile",
+						field:  "UserProfile",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2445,16 +2445,69 @@ func (m *AccessContext) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, AccessContextValidationError{
-						field:  "Profile",
+						field:  "UserProfile",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetProfile()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetUserProfile()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return AccessContextValidationError{
-					field:  "Profile",
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *AccessContext_ChatProfile:
+		if v == nil {
+			err := AccessContextValidationError{
+				field:  "Scope",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofScopePresent = true
+
+		if m.GetChatProfile() == nil {
+			err := AccessContextValidationError{
+				field:  "ChatProfile",
+				reason: "value is required",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetChatProfile()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AccessContextValidationError{
+						field:  "ChatProfile",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AccessContextValidationError{
+						field:  "ChatProfile",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetChatProfile()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AccessContextValidationError{
+					field:  "ChatProfile",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
