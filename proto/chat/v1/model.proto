@@ -67,6 +67,62 @@ message Metadata {
 
     // Chat roster summary
     RosterSummary roster_summary = 10 [(validate.rules).message.required = true];
+
+    // Rules governing participation in this chat. Only supported for group
+    // chats. If not set, the chat has no participation requirements.
+    Rules rules = 11;
+}
+
+// Rules define the requirements a user must satisfy to participate in a chat.
+//
+// Rules are split into two classes, each of which is independently optional:
+//  - ListenerRules gate reading and joining the chat
+//  - SpeakerRules gate sending messages in the chat
+//
+// Speaker rules are applied in addition to listener rules: a user must be able
+// to listen before they can speak.
+message Rules {
+    // Rules to read and join the chat. If not set, anyone can read and join.
+    ListenerRules listener = 1;
+
+    // Rules to send messages in the chat. If not set, any member can send
+    // messages.
+    SpeakerRules speaker = 2;
+}
+
+// ListenerRules are the rules a user must satisfy to read and join a chat
+message ListenerRules {
+    oneof kind {
+        option (validate.required) = true;
+
+        MinimumBalanceRequirement minimum_balance = 1;
+    }
+}
+
+// SpeakerRules are the rules a user must satisfy to send messages in a chat
+message SpeakerRules {
+    oneof kind {
+        option (validate.required) = true;
+
+        MinimumBalanceRequirement minimum_balance = 1;
+    }
+}
+
+// MinimumBalanceRequirement requires a user to hold a minimum balance,
+// denominated in fiat, in an acceptable mint.
+message MinimumBalanceRequirement {
+    // The minimum balance, denominated in fiat
+    common.v1.FiatPaymentAmount amount = 1 [(validate.rules).message.required = true];
+
+    // The mints the balance may be held in. If empty, the requirement applies
+    // to all mints. Otherwise, it applies only to the one listed mint.
+    //
+    // Currently limited to at most one mint. This is a repeated field so that
+    // multiple mints can be specified in the future.
+    repeated common.v1.PublicKey mints = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 1
+    }];
 }
 
 message Member {

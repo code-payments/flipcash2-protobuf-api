@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { ChatId, UserId } from "../../common/v1/common_pb";
+import { ChatId, FiatPaymentAmount, PublicKey, UserId } from "../../common/v1/common_pb";
 import { Message as Message$1, Pointer } from "../../messaging/v1/model_pb";
 import { Media } from "../../blob/v1/model_pb";
 import { UserProfile } from "../../profile/v1/model_pb";
@@ -127,6 +127,14 @@ export class Metadata extends Message<Metadata> {
    */
   rosterSummary?: RosterSummary;
 
+  /**
+   * Rules governing participation in this chat. Only supported for group
+   * chats. If not set, the chat has no participation requirements.
+   *
+   * @generated from field: flipcash.chat.v1.Rules rules = 11;
+   */
+  rules?: Rules;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -145,6 +153,7 @@ export class Metadata extends Message<Metadata> {
     { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "picture", kind: "message", T: Media },
     { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
+    { no: 11, name: "rules", kind: "message", T: Rules },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {
@@ -161,6 +170,207 @@ export class Metadata extends Message<Metadata> {
 
   static equals(a: Metadata | PlainMessage<Metadata> | undefined, b: Metadata | PlainMessage<Metadata> | undefined): boolean {
     return proto3.util.equals(Metadata, a, b);
+  }
+}
+
+/**
+ * Rules define the requirements a user must satisfy to participate in a chat.
+ *
+ * Rules are split into two classes, each of which is independently optional:
+ *  - ListenerRules gate reading and joining the chat
+ *  - SpeakerRules gate sending messages in the chat
+ *
+ * Speaker rules are applied in addition to listener rules: a user must be able
+ * to listen before they can speak.
+ *
+ * @generated from message flipcash.chat.v1.Rules
+ */
+export class Rules extends Message<Rules> {
+  /**
+   * Rules to read and join the chat. If not set, anyone can read and join.
+   *
+   * @generated from field: flipcash.chat.v1.ListenerRules listener = 1;
+   */
+  listener?: ListenerRules;
+
+  /**
+   * Rules to send messages in the chat. If not set, any member can send
+   * messages.
+   *
+   * @generated from field: flipcash.chat.v1.SpeakerRules speaker = 2;
+   */
+  speaker?: SpeakerRules;
+
+  constructor(data?: PartialMessage<Rules>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.Rules";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "listener", kind: "message", T: ListenerRules },
+    { no: 2, name: "speaker", kind: "message", T: SpeakerRules },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Rules {
+    return new Rules().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Rules {
+    return new Rules().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Rules {
+    return new Rules().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Rules | PlainMessage<Rules> | undefined, b: Rules | PlainMessage<Rules> | undefined): boolean {
+    return proto3.util.equals(Rules, a, b);
+  }
+}
+
+/**
+ * ListenerRules are the rules a user must satisfy to read and join a chat
+ *
+ * @generated from message flipcash.chat.v1.ListenerRules
+ */
+export class ListenerRules extends Message<ListenerRules> {
+  /**
+   * @generated from oneof flipcash.chat.v1.ListenerRules.kind
+   */
+  kind: {
+    /**
+     * @generated from field: flipcash.chat.v1.MinimumBalanceRequirement minimum_balance = 1;
+     */
+    value: MinimumBalanceRequirement;
+    case: "minimumBalance";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<ListenerRules>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ListenerRules";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "minimum_balance", kind: "message", T: MinimumBalanceRequirement, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListenerRules {
+    return new ListenerRules().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListenerRules {
+    return new ListenerRules().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListenerRules {
+    return new ListenerRules().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListenerRules | PlainMessage<ListenerRules> | undefined, b: ListenerRules | PlainMessage<ListenerRules> | undefined): boolean {
+    return proto3.util.equals(ListenerRules, a, b);
+  }
+}
+
+/**
+ * SpeakerRules are the rules a user must satisfy to send messages in a chat
+ *
+ * @generated from message flipcash.chat.v1.SpeakerRules
+ */
+export class SpeakerRules extends Message<SpeakerRules> {
+  /**
+   * @generated from oneof flipcash.chat.v1.SpeakerRules.kind
+   */
+  kind: {
+    /**
+     * @generated from field: flipcash.chat.v1.MinimumBalanceRequirement minimum_balance = 1;
+     */
+    value: MinimumBalanceRequirement;
+    case: "minimumBalance";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<SpeakerRules>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SpeakerRules";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "minimum_balance", kind: "message", T: MinimumBalanceRequirement, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SpeakerRules {
+    return new SpeakerRules().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SpeakerRules {
+    return new SpeakerRules().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SpeakerRules {
+    return new SpeakerRules().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SpeakerRules | PlainMessage<SpeakerRules> | undefined, b: SpeakerRules | PlainMessage<SpeakerRules> | undefined): boolean {
+    return proto3.util.equals(SpeakerRules, a, b);
+  }
+}
+
+/**
+ * MinimumBalanceRequirement requires a user to hold a minimum balance,
+ * denominated in fiat, in an acceptable mint.
+ *
+ * @generated from message flipcash.chat.v1.MinimumBalanceRequirement
+ */
+export class MinimumBalanceRequirement extends Message<MinimumBalanceRequirement> {
+  /**
+   * The minimum balance, denominated in fiat
+   *
+   * @generated from field: flipcash.common.v1.FiatPaymentAmount amount = 1;
+   */
+  amount?: FiatPaymentAmount;
+
+  /**
+   * The mints the balance may be held in. If empty, the requirement applies
+   * to all mints. Otherwise, it applies only to the one listed mint.
+   *
+   * Currently limited to at most one mint. This is a repeated field so that
+   * multiple mints can be specified in the future.
+   *
+   * @generated from field: repeated flipcash.common.v1.PublicKey mints = 2;
+   */
+  mints: PublicKey[] = [];
+
+  constructor(data?: PartialMessage<MinimumBalanceRequirement>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MinimumBalanceRequirement";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "amount", kind: "message", T: FiatPaymentAmount },
+    { no: 2, name: "mints", kind: "message", T: PublicKey, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MinimumBalanceRequirement {
+    return new MinimumBalanceRequirement().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MinimumBalanceRequirement {
+    return new MinimumBalanceRequirement().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MinimumBalanceRequirement {
+    return new MinimumBalanceRequirement().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MinimumBalanceRequirement | PlainMessage<MinimumBalanceRequirement> | undefined, b: MinimumBalanceRequirement | PlainMessage<MinimumBalanceRequirement> | undefined): boolean {
+    return proto3.util.equals(MinimumBalanceRequirement, a, b);
   }
 }
 

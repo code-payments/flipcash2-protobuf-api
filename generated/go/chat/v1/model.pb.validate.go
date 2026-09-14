@@ -266,6 +266,35 @@ func (m *Metadata) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetRules()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MetadataValidationError{
+					field:  "Rules",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MetadataValidationError{
+					field:  "Rules",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRules()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MetadataValidationError{
+				field:  "Rules",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return MetadataMultiError(errors)
 	}
@@ -346,6 +375,664 @@ var _ interface {
 var _Metadata_Type_NotInLookup = map[ChatType]struct{}{
 	0: {},
 }
+
+// Validate checks the field values on Rules with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Rules) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Rules with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in RulesMultiError, or nil if none found.
+func (m *Rules) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Rules) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetListener()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RulesValidationError{
+					field:  "Listener",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RulesValidationError{
+					field:  "Listener",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetListener()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RulesValidationError{
+				field:  "Listener",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSpeaker()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RulesValidationError{
+					field:  "Speaker",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RulesValidationError{
+					field:  "Speaker",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSpeaker()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RulesValidationError{
+				field:  "Speaker",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RulesMultiError(errors)
+	}
+
+	return nil
+}
+
+// RulesMultiError is an error wrapping multiple validation errors returned by
+// Rules.ValidateAll() if the designated constraints aren't met.
+type RulesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RulesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RulesMultiError) AllErrors() []error { return m }
+
+// RulesValidationError is the validation error returned by Rules.Validate if
+// the designated constraints aren't met.
+type RulesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RulesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RulesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RulesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RulesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RulesValidationError) ErrorName() string { return "RulesValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RulesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRules.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RulesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RulesValidationError{}
+
+// Validate checks the field values on ListenerRules with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ListenerRules) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListenerRules with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ListenerRulesMultiError, or
+// nil if none found.
+func (m *ListenerRules) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListenerRules) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofKindPresent := false
+	switch v := m.Kind.(type) {
+	case *ListenerRules_MinimumBalance:
+		if v == nil {
+			err := ListenerRulesValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetMinimumBalance()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListenerRulesValidationError{
+						field:  "MinimumBalance",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListenerRulesValidationError{
+						field:  "MinimumBalance",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMinimumBalance()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListenerRulesValidationError{
+					field:  "MinimumBalance",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofKindPresent {
+		err := ListenerRulesValidationError{
+			field:  "Kind",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListenerRulesMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListenerRulesMultiError is an error wrapping multiple validation errors
+// returned by ListenerRules.ValidateAll() if the designated constraints
+// aren't met.
+type ListenerRulesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListenerRulesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListenerRulesMultiError) AllErrors() []error { return m }
+
+// ListenerRulesValidationError is the validation error returned by
+// ListenerRules.Validate if the designated constraints aren't met.
+type ListenerRulesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListenerRulesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListenerRulesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListenerRulesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListenerRulesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListenerRulesValidationError) ErrorName() string { return "ListenerRulesValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ListenerRulesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListenerRules.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListenerRulesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListenerRulesValidationError{}
+
+// Validate checks the field values on SpeakerRules with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SpeakerRules) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SpeakerRules with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SpeakerRulesMultiError, or
+// nil if none found.
+func (m *SpeakerRules) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SpeakerRules) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofKindPresent := false
+	switch v := m.Kind.(type) {
+	case *SpeakerRules_MinimumBalance:
+		if v == nil {
+			err := SpeakerRulesValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetMinimumBalance()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SpeakerRulesValidationError{
+						field:  "MinimumBalance",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SpeakerRulesValidationError{
+						field:  "MinimumBalance",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMinimumBalance()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SpeakerRulesValidationError{
+					field:  "MinimumBalance",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofKindPresent {
+		err := SpeakerRulesValidationError{
+			field:  "Kind",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return SpeakerRulesMultiError(errors)
+	}
+
+	return nil
+}
+
+// SpeakerRulesMultiError is an error wrapping multiple validation errors
+// returned by SpeakerRules.ValidateAll() if the designated constraints aren't met.
+type SpeakerRulesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SpeakerRulesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SpeakerRulesMultiError) AllErrors() []error { return m }
+
+// SpeakerRulesValidationError is the validation error returned by
+// SpeakerRules.Validate if the designated constraints aren't met.
+type SpeakerRulesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SpeakerRulesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SpeakerRulesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SpeakerRulesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SpeakerRulesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SpeakerRulesValidationError) ErrorName() string { return "SpeakerRulesValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SpeakerRulesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSpeakerRules.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SpeakerRulesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SpeakerRulesValidationError{}
+
+// Validate checks the field values on MinimumBalanceRequirement with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MinimumBalanceRequirement) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MinimumBalanceRequirement with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MinimumBalanceRequirementMultiError, or nil if none found.
+func (m *MinimumBalanceRequirement) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MinimumBalanceRequirement) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetAmount() == nil {
+		err := MinimumBalanceRequirementValidationError{
+			field:  "Amount",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAmount()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MinimumBalanceRequirementValidationError{
+					field:  "Amount",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MinimumBalanceRequirementValidationError{
+					field:  "Amount",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAmount()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MinimumBalanceRequirementValidationError{
+				field:  "Amount",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(m.GetMints()) > 1 {
+		err := MinimumBalanceRequirementValidationError{
+			field:  "Mints",
+			reason: "value must contain no more than 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetMints() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MinimumBalanceRequirementValidationError{
+						field:  fmt.Sprintf("Mints[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MinimumBalanceRequirementValidationError{
+						field:  fmt.Sprintf("Mints[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MinimumBalanceRequirementValidationError{
+					field:  fmt.Sprintf("Mints[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return MinimumBalanceRequirementMultiError(errors)
+	}
+
+	return nil
+}
+
+// MinimumBalanceRequirementMultiError is an error wrapping multiple validation
+// errors returned by MinimumBalanceRequirement.ValidateAll() if the
+// designated constraints aren't met.
+type MinimumBalanceRequirementMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MinimumBalanceRequirementMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MinimumBalanceRequirementMultiError) AllErrors() []error { return m }
+
+// MinimumBalanceRequirementValidationError is the validation error returned by
+// MinimumBalanceRequirement.Validate if the designated constraints aren't met.
+type MinimumBalanceRequirementValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MinimumBalanceRequirementValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MinimumBalanceRequirementValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MinimumBalanceRequirementValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MinimumBalanceRequirementValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MinimumBalanceRequirementValidationError) ErrorName() string {
+	return "MinimumBalanceRequirementValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MinimumBalanceRequirementValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMinimumBalanceRequirement.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MinimumBalanceRequirementValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MinimumBalanceRequirementValidationError{}
 
 // Validate checks the field values on Member with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
