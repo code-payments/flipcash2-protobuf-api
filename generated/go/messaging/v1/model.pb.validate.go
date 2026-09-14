@@ -2369,9 +2369,9 @@ func (m *EmojiReaction) validate(all bool) error {
 
 	}
 
-	if m.GetSequence() < 1 {
+	if m.GetVersion() < 1 {
 		err := EmojiReactionValidationError{
-			field:  "Sequence",
+			field:  "Version",
 			reason: "value must be greater than or equal to 1",
 		}
 		if !all {
@@ -2613,9 +2613,9 @@ func (m *ReactionUpdate) validate(all bool) error {
 
 	// no validation rules for Count
 
-	if m.GetSequence() < 1 {
+	if m.GetVersion() < 1 {
 		err := ReactionUpdateValidationError{
-			field:  "Sequence",
+			field:  "Version",
 			reason: "value must be greater than or equal to 1",
 		}
 		if !all {

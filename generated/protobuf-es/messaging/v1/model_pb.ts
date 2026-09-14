@@ -811,17 +811,21 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
   sampleReactors: Reactor[] = [];
 
   /**
-   * Monotonic version of this emoji's aggregate on the message, assigned by
-   * the server and advanced on every change to it. Ordering only: clients
-   * apply reaction updates last-writer-wins by this value per (message, emoji)
-   * — and per actor for reacted_by_self — and treat a loaded summary as stale
-   * when a higher sequence arrives. It is NOT the chat event sequence
-   * (reactions never advance that), and it is NOT gapless: it carries no
-   * gap-detection meaning.
+   * Version of this emoji's aggregate on the message: assigned by the server
+   * and advanced by one on every change to it — a reactor added or removed.
    *
-   * @generated from field: uint64 sequence = 5;
+   * Opaque to clients, and for ordering only. Apply reaction updates
+   * last-writer-wins by this value per (message, emoji) — and per actor for
+   * reacted_by_self — and treat a loaded summary as stale when a higher
+   * version arrives. It is compared the same way as chat.v1.RosterSummary.
+   * version. It is NOT the chat event sequence (reactions never advance
+   * that), and it is NOT gapless: a skipped value means nothing, and there is
+   * no delta to fetch against it — a missed update is reconciled by
+   * refreshing the summary on view.
+   *
+   * @generated from field: uint64 version = 5;
    */
-  sequence = protoInt64.zero;
+  version = protoInt64.zero;
 
   constructor(data?: PartialMessage<EmojiReaction>) {
     super();
@@ -835,7 +839,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
     { no: 2, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 3, name: "reacted_by_self", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 4, name: "sample_reactors", kind: "message", T: Reactor, repeated: true },
-    { no: 5, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 5, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EmojiReaction {
@@ -902,14 +906,14 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
   count = protoInt64.zero;
 
   /**
-   * The emoji aggregate's new version after this change. Clients apply
-   * last-writer-wins by this value: ignore the count if sequence <= the
-   * count watermark held, and ignore the actor's reacted_by_self toggle if
-   * sequence <= the per-actor watermark held. Matches EmojiReaction.sequence.
+   * The emoji aggregate's version after this change. Clients apply
+   * last-writer-wins by this value: ignore the count if version <= the count
+   * watermark held, and ignore the actor's reacted_by_self toggle if
+   * version <= the per-actor watermark held. Matches EmojiReaction.version.
    *
-   * @generated from field: uint64 sequence = 6;
+   * @generated from field: uint64 version = 6;
    */
-  sequence = protoInt64.zero;
+  version = protoInt64.zero;
 
   /**
    * When the actor reacted. On ADDED, clients record this as the actor's
@@ -934,7 +938,7 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
     { no: 3, name: "actor", kind: "message", T: UserId },
     { no: 4, name: "action", kind: "enum", T: proto3.getEnumType(ReactionUpdate_Action) },
     { no: 5, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 6, name: "sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "reacted_ts", kind: "message", T: Timestamp },
   ]);
 
