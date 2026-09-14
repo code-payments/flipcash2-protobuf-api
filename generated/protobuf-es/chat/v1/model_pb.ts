@@ -61,8 +61,8 @@ export class Metadata extends Message<Metadata> {
   /**
    * Members of this chat
    *
-   * For large group chats, this is a subset of all members. Use member_count
-   * to infer if there are more members.
+   * For large group chats, this is a subset of all members. Use
+   * RosterSummary.member_count to infer if there are more members.
    *
    * @generated from field: repeated flipcash.chat.v1.Member members = 3;
    */
@@ -121,11 +121,11 @@ export class Metadata extends Message<Metadata> {
   picture?: Media;
 
   /**
-   * Number of members in this chat
+   * Chat roster summary
    *
-   * @generated from field: uint64 member_count = 10;
+   * @generated from field: flipcash.chat.v1.RosterSummary roster_summary = 10;
    */
-  memberCount = protoInt64.zero;
+  rosterSummary?: RosterSummary;
 
   constructor(data?: PartialMessage<Metadata>) {
     super();
@@ -144,7 +144,7 @@ export class Metadata extends Message<Metadata> {
     { no: 7, name: "is_hidden", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 9, name: "picture", kind: "message", T: Media },
-    { no: 10, name: "member_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {
@@ -218,6 +218,72 @@ export class Member extends Message<Member> {
 
   static equals(a: Member | PlainMessage<Member> | undefined, b: Member | PlainMessage<Member> | undefined): boolean {
     return proto3.util.equals(Member, a, b);
+  }
+}
+
+/**
+ * RosterSummary describes a chat's roster — its member list — without
+ * containing it: what a client needs in order to know whether its copy of
+ * that list is stale, without holding the list.
+ *
+ * It says nothing about member profiles. Profiles are hydrated afresh onto
+ * every response that carries a member, and a profile change never moves
+ * this summary.
+ *
+ * @generated from message flipcash.chat.v1.RosterSummary
+ */
+export class RosterSummary extends Message<RosterSummary> {
+  /**
+   * Number of currently joined members. For a large group chat,
+   * Metadata.members is a subset of the roster; this is its true size.
+   *
+   * @generated from field: uint64 member_count = 1;
+   */
+  memberCount = protoInt64.zero;
+
+  /**
+   * Version of the roster: advanced by exactly one on every change to the
+   * membership records — a member joining, a member leaving, and in future
+   * any change to what the chat records about a member (e.g. a role) — and
+   * never by an idempotent no-op or a profile change.
+   *
+   * Opaque to clients. Compare it against the last value seen: a different
+   * value means the cached member list may be stale and should be refetched.
+   * On a stream, apply a greater value and drop the rest, so delivery order
+   * does not matter. It is compared the same way as ReactionSummary.version
+   * and, like it, is NOT the chat event sequence: there is no delta to fetch
+   * against it, only a refetch of the members.
+   *
+   * @generated from field: uint64 version = 2;
+   */
+  version = protoInt64.zero;
+
+  constructor(data?: PartialMessage<RosterSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RosterSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "member_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RosterSummary {
+    return new RosterSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RosterSummary {
+    return new RosterSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RosterSummary {
+    return new RosterSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RosterSummary | PlainMessage<RosterSummary> | undefined, b: RosterSummary | PlainMessage<RosterSummary> | undefined): boolean {
+    return proto3.util.equals(RosterSummary, a, b);
   }
 }
 

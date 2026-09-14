@@ -30,8 +30,8 @@ message Metadata {
 
     // Members of this chat
     //
-    // For large group chats, this is a subset of all members. Use member_count
-    // to infer if there are more members.
+    // For large group chats, this is a subset of all members. Use
+    // RosterSummary.member_count to infer if there are more members.
     repeated Member members = 3;
 
     // The last message in this chat
@@ -65,8 +65,8 @@ message Metadata {
     // Picture for this chat. Only supported for group chats
     blob.v1.Media picture = 9;
 
-    // Number of members in this chat
-    uint64 member_count = 10;
+    // Chat roster summary
+    RosterSummary roster_summary = 10 [(validate.rules).timestamp.required = true];
 }
 
 message Member {
@@ -84,6 +84,32 @@ message Member {
         min_items: 0
         max_items: 2
     }];
+}
+
+// RosterSummary describes a chat's roster — its member list — without
+// containing it: what a client needs in order to know whether its copy of
+// that list is stale, without holding the list.
+//
+// It says nothing about member profiles. Profiles are hydrated afresh onto
+// every response that carries a member, and a profile change never moves
+// this summary.
+message RosterSummary {
+    // Number of currently joined members. For a large group chat,
+    // Metadata.members is a subset of the roster; this is its true size.
+    uint64 member_count = 1;
+
+    // Version of the roster: advanced by exactly one on every change to the
+    // membership records — a member joining, a member leaving, and in future
+    // any change to what the chat records about a member (e.g. a role) — and
+    // never by an idempotent no-op or a profile change.
+    //
+    // Opaque to clients. Compare it against the last value seen: a different
+    // value means the cached member list may be stale and should be refetched.
+    // On a stream, apply a greater value and drop the rest, so delivery order
+    // does not matter. It is compared the same way as ReactionSummary.version
+    // and, like it, is NOT the chat event sequence: there is no delta to fetch
+    // against it, only a refetch of the members.
+    uint64 version = 2;
 }
 
 message MetadataUpdate {
