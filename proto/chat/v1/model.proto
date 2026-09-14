@@ -79,15 +79,22 @@ message Metadata {
 //  - ListenerRules gate reading and joining the chat
 //  - SpeakerRules gate sending messages in the chat
 //
-// Speaker rules are applied in addition to listener rules: a user must be able
-// to listen before they can speak.
+// All rules within a class must be satisfied. Speaker rules are applied in
+// addition to listener rules: a user must be able to listen before they can
+// speak.
 message Rules {
-    // Rules to read and join the chat. If not set, anyone can read and join.
-    ListenerRules listener = 1;
+    // Rules to read and join the chat. If empty, anyone can read and join.
+    repeated ListenerRules listener = 1 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 32
+    }];
 
-    // Rules to send messages in the chat. If not set, any member can send
+    // Rules to send messages in the chat. If empty, any member can send
     // messages.
-    SpeakerRules speaker = 2;
+    repeated SpeakerRules speaker = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 32
+    }];
 }
 
 // ListenerRules are the rules a user must satisfy to read and join a chat
@@ -96,6 +103,7 @@ message ListenerRules {
         option (validate.required) = true;
 
         MinimumBalanceRequirement minimum_balance = 1;
+        StaffRequirement          staff           = 2;
     }
 }
 
@@ -105,7 +113,13 @@ message SpeakerRules {
         option (validate.required) = true;
 
         MinimumBalanceRequirement minimum_balance = 1;
+        StaffRequirement          staff           = 2;
     }
+}
+
+// StaffRequirement requires the user to be a Flipcash staff member, as
+// indicated by UserFlags.is_staff.
+message StaffRequirement {
 }
 
 // MinimumBalanceRequirement requires a user to hold a minimum balance,

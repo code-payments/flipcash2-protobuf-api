@@ -397,62 +397,94 @@ func (m *Rules) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetListener()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RulesValidationError{
-					field:  "Listener",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RulesValidationError{
-					field:  "Listener",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
+	if len(m.GetListener()) > 32 {
+		err := RulesValidationError{
+			field:  "Listener",
+			reason: "value must contain no more than 32 item(s)",
 		}
-	} else if v, ok := interface{}(m.GetListener()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RulesValidationError{
-				field:  "Listener",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
+		if !all {
+			return err
 		}
+		errors = append(errors, err)
 	}
 
-	if all {
-		switch v := interface{}(m.GetSpeaker()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RulesValidationError{
-					field:  "Speaker",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+	for idx, item := range m.GetListener() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RulesValidationError{
+						field:  fmt.Sprintf("Listener[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RulesValidationError{
+						field:  fmt.Sprintf("Listener[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, RulesValidationError{
-					field:  "Speaker",
+				return RulesValidationError{
+					field:  fmt.Sprintf("Listener[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetSpeaker()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RulesValidationError{
-				field:  "Speaker",
-				reason: "embedded message failed validation",
-				cause:  err,
+
+	}
+
+	if len(m.GetSpeaker()) > 32 {
+		err := RulesValidationError{
+			field:  "Speaker",
+			reason: "value must contain no more than 32 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetSpeaker() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RulesValidationError{
+						field:  fmt.Sprintf("Speaker[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RulesValidationError{
+						field:  fmt.Sprintf("Speaker[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RulesValidationError{
+					field:  fmt.Sprintf("Speaker[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
 		}
+
 	}
 
 	if len(errors) > 0 {
@@ -592,6 +624,48 @@ func (m *ListenerRules) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ListenerRulesValidationError{
 					field:  "MinimumBalance",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ListenerRules_Staff:
+		if v == nil {
+			err := ListenerRulesValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetStaff()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListenerRulesValidationError{
+						field:  "Staff",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListenerRulesValidationError{
+						field:  "Staff",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetStaff()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListenerRulesValidationError{
+					field:  "Staff",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -756,6 +830,48 @@ func (m *SpeakerRules) validate(all bool) error {
 			}
 		}
 
+	case *SpeakerRules_Staff:
+		if v == nil {
+			err := SpeakerRulesValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetStaff()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SpeakerRulesValidationError{
+						field:  "Staff",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SpeakerRulesValidationError{
+						field:  "Staff",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetStaff()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SpeakerRulesValidationError{
+					field:  "Staff",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -846,6 +962,106 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SpeakerRulesValidationError{}
+
+// Validate checks the field values on StaffRequirement with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *StaffRequirement) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StaffRequirement with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// StaffRequirementMultiError, or nil if none found.
+func (m *StaffRequirement) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StaffRequirement) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return StaffRequirementMultiError(errors)
+	}
+
+	return nil
+}
+
+// StaffRequirementMultiError is an error wrapping multiple validation errors
+// returned by StaffRequirement.ValidateAll() if the designated constraints
+// aren't met.
+type StaffRequirementMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StaffRequirementMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StaffRequirementMultiError) AllErrors() []error { return m }
+
+// StaffRequirementValidationError is the validation error returned by
+// StaffRequirement.Validate if the designated constraints aren't met.
+type StaffRequirementValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StaffRequirementValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StaffRequirementValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StaffRequirementValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StaffRequirementValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StaffRequirementValidationError) ErrorName() string { return "StaffRequirementValidationError" }
+
+// Error satisfies the builtin error interface
+func (e StaffRequirementValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStaffRequirement.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StaffRequirementValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StaffRequirementValidationError{}
 
 // Validate checks the field values on MinimumBalanceRequirement with the rules
 // defined in the proto definition for this message. If any rules are
