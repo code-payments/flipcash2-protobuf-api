@@ -139,7 +139,7 @@ message FiatPaymentAmount {
 message PagingToken {
     bytes value = 1 [(validate.rules).bytes = {
         min_len: 1
-        max_len: 128
+        max_len: 16384
     }];
 }
 

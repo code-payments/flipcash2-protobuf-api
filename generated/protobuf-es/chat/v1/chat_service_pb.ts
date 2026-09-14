@@ -275,3 +275,153 @@ proto3.util.setEnumType(GetDmChatFeedResponse_Result, "flipcash.chat.v1.GetDmCha
   { no: 2, name: "NOT_FOUND" },
 ]);
 
+/**
+ * @generated from message flipcash.chat.v1.GetGroupChatFeedRequest
+ */
+export class GetGroupChatFeedRequest extends Message<GetGroupChatFeedRequest> {
+  /**
+   * QueryOptions controls page_size. Ordering is fixed to most-recent
+   * activity first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request: the server
+   * mints a token that pins a new snapshot and returns it in the response. On
+   * every subsequent request, set query_options.paging_token to the
+   * paging_token from the most recent response to advance within the same
+   * snapshot. The token is opaque and server-generated; do not construct it.
+   *
+   * Group feed tokens are larger than DM feed tokens: the server carries
+   * the snapshot's remaining order in the token so later pages do not
+   * recompute it. Clients must treat the token as an opaque blob of up to
+   * common.v1.PagingToken's maximum size.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 1;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetGroupChatFeedRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetGroupChatFeedRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetGroupChatFeedRequest {
+    return new GetGroupChatFeedRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetGroupChatFeedRequest {
+    return new GetGroupChatFeedRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetGroupChatFeedRequest {
+    return new GetGroupChatFeedRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetGroupChatFeedRequest | PlainMessage<GetGroupChatFeedRequest> | undefined, b: GetGroupChatFeedRequest | PlainMessage<GetGroupChatFeedRequest> | undefined): boolean {
+    return proto3.util.equals(GetGroupChatFeedRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetGroupChatFeedResponse
+ */
+export class GetGroupChatFeedResponse extends Message<GetGroupChatFeedResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetGroupChatFeedResponse.Result result = 1;
+   */
+  result = GetGroupChatFeedResponse_Result.OK;
+
+  /**
+   * @generated from field: repeated flipcash.chat.v1.Metadata chats = 2;
+   */
+  chats: Metadata[] = [];
+
+  /**
+   * PagingToken is the server-generated token for this paginated read. On the
+   * first response it pins a new snapshot; on later responses it carries the
+   * advanced cursor over (last_activity, chat_id). The client MUST send the
+   * most recent value back in query_options.paging_token on the next
+   * GetGroupChatFeedRequest. Set when result is OK.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain in this snapshot. When
+   * false, the paginated set has been fully read; the complete chat list is
+   * this set reconciled with the event stream (see GetGroupChatFeed). When
+   * true, the client should issue another GetGroupChatFeedRequest with the
+   * returned paging_token.
+   *
+   * @generated from field: bool has_more = 4;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetGroupChatFeedResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetGroupChatFeedResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetGroupChatFeedResponse_Result) },
+    { no: 2, name: "chats", kind: "message", T: Metadata, repeated: true },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetGroupChatFeedResponse {
+    return new GetGroupChatFeedResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetGroupChatFeedResponse {
+    return new GetGroupChatFeedResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetGroupChatFeedResponse {
+    return new GetGroupChatFeedResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetGroupChatFeedResponse | PlainMessage<GetGroupChatFeedResponse> | undefined, b: GetGroupChatFeedResponse | PlainMessage<GetGroupChatFeedResponse> | undefined): boolean {
+    return proto3.util.equals(GetGroupChatFeedResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetGroupChatFeedResponse.Result
+ */
+export enum GetGroupChatFeedResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetGroupChatFeedResponse_Result)
+proto3.util.setEnumType(GetGroupChatFeedResponse_Result, "flipcash.chat.v1.GetGroupChatFeedResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+

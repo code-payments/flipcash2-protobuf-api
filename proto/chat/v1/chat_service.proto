@@ -37,6 +37,30 @@ service Chat {
     // and the stream guarantees freshness and ordering. The local last_activity
     // sort is maintained by the client from the stream after the initial read.
     rpc GetDmChatFeed(GetDmChatFeedRequest) returns (GetDmChatFeedResponse);
+
+    // GetGroupChatFeed gets the set of group chats for an owner account using
+    // a paged API, ordered by last activity with the most recent first.
+    //
+    // It has the same read contract as GetDmChatFeed. Chats are ordered by a
+    // mutable key (last_activity), so pagination alone cannot guarantee a
+    // complete read. To get the full list, the client MUST combine this RPC
+    // with the event stream:
+    //
+    //   1. Open the event stream to receive ChatUpdate and begin buffering
+    //      updates BEFORE the first GetGroupChatFeed call.
+    //   2. Page through GetGroupChatFeed to exhaustion (until has_more is
+    //      false), always echoing back the paging token returned by the prior
+    //      response. All pages are served against a single snapshot pinned by
+    //      that token.
+    //   3. Merge the buffered and ongoing stream updates onto the paginated
+    //      set. Any chat whose activity changed after the snapshot watermark
+    //      is delivered via the stream rather than via pagination.
+    //
+    // Unlike the DM feed, a group's membership can change while the feed is
+    // being read. Every page is served only for groups the caller is still a
+    // member of at the time of that page; a group the caller left between
+    // pages is dropped, and its removal arrives on the stream.
+    rpc GetGroupChatFeed(GetGroupChatFeedRequest) returns (GetGroupChatFeedResponse);
 }
 
 message GetChatRequest {
@@ -102,5 +126,52 @@ message GetDmChatFeedResponse {
     // this set reconciled with the event stream (see GetDmChatFeed). When true, the
     // client should issue another GetDmChatFeedRequest with the returned
     // paging_token.
+    bool has_more = 4;
+}
+
+message GetGroupChatFeedRequest {
+    // QueryOptions controls page_size. Ordering is fixed to most-recent
+    // activity first and is not client-selectable.
+    //
+    // Leave query_options.paging_token unset on the first request: the server
+    // mints a token that pins a new snapshot and returns it in the response. On
+    // every subsequent request, set query_options.paging_token to the
+    // paging_token from the most recent response to advance within the same
+    // snapshot. The token is opaque and server-generated; do not construct it.
+    //
+    // Group feed tokens are larger than DM feed tokens: the server carries
+    // the snapshot's remaining order in the token so later pages do not
+    // recompute it. Clients must treat the token as an opaque blob of up to
+    // common.v1.PagingToken's maximum size.
+    common.v1.QueryOptions query_options = 1;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetGroupChatFeedResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
+
+    repeated Metadata chats = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // PagingToken is the server-generated token for this paginated read. On the
+    // first response it pins a new snapshot; on later responses it carries the
+    // advanced cursor over (last_activity, chat_id). The client MUST send the
+    // most recent value back in query_options.paging_token on the next
+    // GetGroupChatFeedRequest. Set when result is OK.
+    common.v1.PagingToken paging_token = 3;
+
+    // HasMore indicates whether further pages remain in this snapshot. When
+    // false, the paginated set has been fully read; the complete chat list is
+    // this set reconciled with the event stream (see GetGroupChatFeed). When
+    // true, the client should issue another GetGroupChatFeedRequest with the
+    // returned paging_token.
     bool has_more = 4;
 }

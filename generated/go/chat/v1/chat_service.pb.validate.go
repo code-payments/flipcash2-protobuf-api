@@ -691,3 +691,354 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetDmChatFeedResponseValidationError{}
+
+// Validate checks the field values on GetGroupChatFeedRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetGroupChatFeedRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetGroupChatFeedRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetGroupChatFeedRequestMultiError, or nil if none found.
+func (m *GetGroupChatFeedRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetGroupChatFeedRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetQueryOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetGroupChatFeedRequestValidationError{
+					field:  "QueryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetGroupChatFeedRequestValidationError{
+					field:  "QueryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetQueryOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetGroupChatFeedRequestValidationError{
+				field:  "QueryOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := GetGroupChatFeedRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetGroupChatFeedRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetGroupChatFeedRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetGroupChatFeedRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetGroupChatFeedRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetGroupChatFeedRequestMultiError is an error wrapping multiple validation
+// errors returned by GetGroupChatFeedRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetGroupChatFeedRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetGroupChatFeedRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetGroupChatFeedRequestMultiError) AllErrors() []error { return m }
+
+// GetGroupChatFeedRequestValidationError is the validation error returned by
+// GetGroupChatFeedRequest.Validate if the designated constraints aren't met.
+type GetGroupChatFeedRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetGroupChatFeedRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetGroupChatFeedRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetGroupChatFeedRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetGroupChatFeedRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetGroupChatFeedRequestValidationError) ErrorName() string {
+	return "GetGroupChatFeedRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetGroupChatFeedRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetGroupChatFeedRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetGroupChatFeedRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetGroupChatFeedRequestValidationError{}
+
+// Validate checks the field values on GetGroupChatFeedResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetGroupChatFeedResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetGroupChatFeedResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetGroupChatFeedResponseMultiError, or nil if none found.
+func (m *GetGroupChatFeedResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetGroupChatFeedResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetChats()) > 100 {
+		err := GetGroupChatFeedResponseValidationError{
+			field:  "Chats",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetChats() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetGroupChatFeedResponseValidationError{
+						field:  fmt.Sprintf("Chats[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetGroupChatFeedResponseValidationError{
+						field:  fmt.Sprintf("Chats[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetGroupChatFeedResponseValidationError{
+					field:  fmt.Sprintf("Chats[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagingToken()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetGroupChatFeedResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetGroupChatFeedResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagingToken()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetGroupChatFeedResponseValidationError{
+				field:  "PagingToken",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for HasMore
+
+	if len(errors) > 0 {
+		return GetGroupChatFeedResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetGroupChatFeedResponseMultiError is an error wrapping multiple validation
+// errors returned by GetGroupChatFeedResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetGroupChatFeedResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetGroupChatFeedResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetGroupChatFeedResponseMultiError) AllErrors() []error { return m }
+
+// GetGroupChatFeedResponseValidationError is the validation error returned by
+// GetGroupChatFeedResponse.Validate if the designated constraints aren't met.
+type GetGroupChatFeedResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetGroupChatFeedResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetGroupChatFeedResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetGroupChatFeedResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetGroupChatFeedResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetGroupChatFeedResponseValidationError) ErrorName() string {
+	return "GetGroupChatFeedResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetGroupChatFeedResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetGroupChatFeedResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetGroupChatFeedResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetGroupChatFeedResponseValidationError{}
