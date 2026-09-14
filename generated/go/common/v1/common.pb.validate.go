@@ -1610,10 +1610,10 @@ func (m *PagingToken) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetValue()); l < 1 || l > 128 {
+	if l := len(m.GetValue()); l < 1 || l > 16384 {
 		err := PagingTokenValidationError{
 			field:  "Value",
-			reason: "value length must be between 1 and 128 bytes, inclusive",
+			reason: "value length must be between 1 and 16384 bytes, inclusive",
 		}
 		if !all {
 			return err

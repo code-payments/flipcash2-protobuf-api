@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Chat_GetChat_FullMethodName       = "/flipcash.chat.v1.Chat/GetChat"
-	Chat_GetDmChatFeed_FullMethodName = "/flipcash.chat.v1.Chat/GetDmChatFeed"
+	Chat_GetChat_FullMethodName          = "/flipcash.chat.v1.Chat/GetChat"
+	Chat_GetDmChatFeed_FullMethodName    = "/flipcash.chat.v1.Chat/GetDmChatFeed"
+	Chat_GetGroupChatFeed_FullMethodName = "/flipcash.chat.v1.Chat/GetGroupChatFeed"
 )
 
 // ChatClient is the client API for Chat service.
@@ -52,6 +53,29 @@ type ChatClient interface {
 	// and the stream guarantees freshness and ordering. The local last_activity
 	// sort is maintained by the client from the stream after the initial read.
 	GetDmChatFeed(ctx context.Context, in *GetDmChatFeedRequest, opts ...grpc.CallOption) (*GetDmChatFeedResponse, error)
+	// GetGroupChatFeed gets the set of group chats for an owner account using
+	// a paged API, ordered by last activity with the most recent first.
+	//
+	// It has the same read contract as GetDmChatFeed. Chats are ordered by a
+	// mutable key (last_activity), so pagination alone cannot guarantee a
+	// complete read. To get the full list, the client MUST combine this RPC
+	// with the event stream:
+	//
+	//  1. Open the event stream to receive ChatUpdate and begin buffering
+	//     updates BEFORE the first GetGroupChatFeed call.
+	//  2. Page through GetGroupChatFeed to exhaustion (until has_more is
+	//     false), always echoing back the paging token returned by the prior
+	//     response. All pages are served against a single snapshot pinned by
+	//     that token.
+	//  3. Merge the buffered and ongoing stream updates onto the paginated
+	//     set. Any chat whose activity changed after the snapshot watermark
+	//     is delivered via the stream rather than via pagination.
+	//
+	// Unlike the DM feed, a group's membership can change while the feed is
+	// being read. Every page is served only for groups the caller is still a
+	// member of at the time of that page; a group the caller left between
+	// pages is dropped, and its removal arrives on the stream.
+	GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedRequest, opts ...grpc.CallOption) (*GetGroupChatFeedResponse, error)
 }
 
 type chatClient struct {
@@ -76,6 +100,16 @@ func (c *chatClient) GetDmChatFeed(ctx context.Context, in *GetDmChatFeedRequest
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetDmChatFeedResponse)
 	err := c.cc.Invoke(ctx, Chat_GetDmChatFeed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedRequest, opts ...grpc.CallOption) (*GetGroupChatFeedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGroupChatFeedResponse)
+	err := c.cc.Invoke(ctx, Chat_GetGroupChatFeed_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +145,29 @@ type ChatServer interface {
 	// and the stream guarantees freshness and ordering. The local last_activity
 	// sort is maintained by the client from the stream after the initial read.
 	GetDmChatFeed(context.Context, *GetDmChatFeedRequest) (*GetDmChatFeedResponse, error)
+	// GetGroupChatFeed gets the set of group chats for an owner account using
+	// a paged API, ordered by last activity with the most recent first.
+	//
+	// It has the same read contract as GetDmChatFeed. Chats are ordered by a
+	// mutable key (last_activity), so pagination alone cannot guarantee a
+	// complete read. To get the full list, the client MUST combine this RPC
+	// with the event stream:
+	//
+	//  1. Open the event stream to receive ChatUpdate and begin buffering
+	//     updates BEFORE the first GetGroupChatFeed call.
+	//  2. Page through GetGroupChatFeed to exhaustion (until has_more is
+	//     false), always echoing back the paging token returned by the prior
+	//     response. All pages are served against a single snapshot pinned by
+	//     that token.
+	//  3. Merge the buffered and ongoing stream updates onto the paginated
+	//     set. Any chat whose activity changed after the snapshot watermark
+	//     is delivered via the stream rather than via pagination.
+	//
+	// Unlike the DM feed, a group's membership can change while the feed is
+	// being read. Every page is served only for groups the caller is still a
+	// member of at the time of that page; a group the caller left between
+	// pages is dropped, and its removal arrives on the stream.
+	GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -126,6 +183,9 @@ func (UnimplementedChatServer) GetChat(context.Context, *GetChatRequest) (*GetCh
 }
 func (UnimplementedChatServer) GetDmChatFeed(context.Context, *GetDmChatFeedRequest) (*GetDmChatFeedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDmChatFeed not implemented")
+}
+func (UnimplementedChatServer) GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGroupChatFeed not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -184,6 +244,24 @@ func _Chat_GetDmChatFeed_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_GetGroupChatFeed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGroupChatFeedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetGroupChatFeed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetGroupChatFeed_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetGroupChatFeed(ctx, req.(*GetGroupChatFeedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -198,6 +276,10 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDmChatFeed",
 			Handler:    _Chat_GetDmChatFeed_Handler,
+		},
+		{
+			MethodName: "GetGroupChatFeed",
+			Handler:    _Chat_GetGroupChatFeed_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

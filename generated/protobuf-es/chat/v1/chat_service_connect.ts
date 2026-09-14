@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse } from "./chat_service_pb";
+import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -53,6 +53,38 @@ export const Chat = {
       name: "GetDmChatFeed",
       I: GetDmChatFeedRequest,
       O: GetDmChatFeedResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetGroupChatFeed gets the set of group chats for an owner account using
+     * a paged API, ordered by last activity with the most recent first.
+     *
+     * It has the same read contract as GetDmChatFeed. Chats are ordered by a
+     * mutable key (last_activity), so pagination alone cannot guarantee a
+     * complete read. To get the full list, the client MUST combine this RPC
+     * with the event stream:
+     *
+     *   1. Open the event stream to receive ChatUpdate and begin buffering
+     *      updates BEFORE the first GetGroupChatFeed call.
+     *   2. Page through GetGroupChatFeed to exhaustion (until has_more is
+     *      false), always echoing back the paging token returned by the prior
+     *      response. All pages are served against a single snapshot pinned by
+     *      that token.
+     *   3. Merge the buffered and ongoing stream updates onto the paginated
+     *      set. Any chat whose activity changed after the snapshot watermark
+     *      is delivered via the stream rather than via pagination.
+     *
+     * Unlike the DM feed, a group's membership can change while the feed is
+     * being read. Every page is served only for groups the caller is still a
+     * member of at the time of that page; a group the caller left between
+     * pages is dropped, and its removal arrives on the stream.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetGroupChatFeed
+     */
+    getGroupChatFeed: {
+      name: "GetGroupChatFeed",
+      I: GetGroupChatFeedRequest,
+      O: GetGroupChatFeedResponse,
       kind: MethodKind.Unary,
     },
   }
