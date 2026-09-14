@@ -180,26 +180,27 @@ export class Metadata extends Message<Metadata> {
  *  - ListenerRules gate reading and joining the chat
  *  - SpeakerRules gate sending messages in the chat
  *
- * Speaker rules are applied in addition to listener rules: a user must be able
- * to listen before they can speak.
+ * All rules within a class must be satisfied. Speaker rules are applied in
+ * addition to listener rules: a user must be able to listen before they can
+ * speak.
  *
  * @generated from message flipcash.chat.v1.Rules
  */
 export class Rules extends Message<Rules> {
   /**
-   * Rules to read and join the chat. If not set, anyone can read and join.
+   * Rules to read and join the chat. If empty, anyone can read and join.
    *
-   * @generated from field: flipcash.chat.v1.ListenerRules listener = 1;
+   * @generated from field: repeated flipcash.chat.v1.ListenerRules listener = 1;
    */
-  listener?: ListenerRules;
+  listener: ListenerRules[] = [];
 
   /**
-   * Rules to send messages in the chat. If not set, any member can send
+   * Rules to send messages in the chat. If empty, any member can send
    * messages.
    *
-   * @generated from field: flipcash.chat.v1.SpeakerRules speaker = 2;
+   * @generated from field: repeated flipcash.chat.v1.SpeakerRules speaker = 2;
    */
-  speaker?: SpeakerRules;
+  speaker: SpeakerRules[] = [];
 
   constructor(data?: PartialMessage<Rules>) {
     super();
@@ -209,8 +210,8 @@ export class Rules extends Message<Rules> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.chat.v1.Rules";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "listener", kind: "message", T: ListenerRules },
-    { no: 2, name: "speaker", kind: "message", T: SpeakerRules },
+    { no: 1, name: "listener", kind: "message", T: ListenerRules, repeated: true },
+    { no: 2, name: "speaker", kind: "message", T: SpeakerRules, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Rules {
@@ -245,6 +246,12 @@ export class ListenerRules extends Message<ListenerRules> {
      */
     value: MinimumBalanceRequirement;
     case: "minimumBalance";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.StaffRequirement staff = 2;
+     */
+    value: StaffRequirement;
+    case: "staff";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ListenerRules>) {
@@ -256,6 +263,7 @@ export class ListenerRules extends Message<ListenerRules> {
   static readonly typeName = "flipcash.chat.v1.ListenerRules";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "minimum_balance", kind: "message", T: MinimumBalanceRequirement, oneof: "kind" },
+    { no: 2, name: "staff", kind: "message", T: StaffRequirement, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListenerRules {
@@ -290,6 +298,12 @@ export class SpeakerRules extends Message<SpeakerRules> {
      */
     value: MinimumBalanceRequirement;
     case: "minimumBalance";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.StaffRequirement staff = 2;
+     */
+    value: StaffRequirement;
+    case: "staff";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SpeakerRules>) {
@@ -301,6 +315,7 @@ export class SpeakerRules extends Message<SpeakerRules> {
   static readonly typeName = "flipcash.chat.v1.SpeakerRules";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "minimum_balance", kind: "message", T: MinimumBalanceRequirement, oneof: "kind" },
+    { no: 2, name: "staff", kind: "message", T: StaffRequirement, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SpeakerRules {
@@ -317,6 +332,40 @@ export class SpeakerRules extends Message<SpeakerRules> {
 
   static equals(a: SpeakerRules | PlainMessage<SpeakerRules> | undefined, b: SpeakerRules | PlainMessage<SpeakerRules> | undefined): boolean {
     return proto3.util.equals(SpeakerRules, a, b);
+  }
+}
+
+/**
+ * StaffRequirement requires the user to be a Flipcash staff member, as
+ * indicated by UserFlags.is_staff.
+ *
+ * @generated from message flipcash.chat.v1.StaffRequirement
+ */
+export class StaffRequirement extends Message<StaffRequirement> {
+  constructor(data?: PartialMessage<StaffRequirement>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.StaffRequirement";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StaffRequirement {
+    return new StaffRequirement().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StaffRequirement {
+    return new StaffRequirement().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StaffRequirement {
+    return new StaffRequirement().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StaffRequirement | PlainMessage<StaffRequirement> | undefined, b: StaffRequirement | PlainMessage<StaffRequirement> | undefined): boolean {
+    return proto3.util.equals(StaffRequirement, a, b);
   }
 }
 
