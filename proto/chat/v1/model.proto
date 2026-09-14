@@ -66,7 +66,7 @@ message Metadata {
     blob.v1.Media picture = 9;
 
     // Chat roster summary
-    RosterSummary roster_summary = 10 [(validate.rules).timestamp.required = true];
+    RosterSummary roster_summary = 10 [(validate.rules).message.required = true];
 }
 
 message Member {
