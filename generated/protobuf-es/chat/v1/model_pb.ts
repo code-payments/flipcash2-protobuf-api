@@ -674,3 +674,214 @@ export class MetadataUpdate_LastActivityChanged extends Message<MetadataUpdate_L
   }
 }
 
+/**
+ * RosterUpdate is a best-effort, real-time change to a chat's roster — a
+ * member joining (e.g. via Chat.JoinChat, or as the first member via
+ * Chat.StartChat) or leaving (e.g. via Chat.LeaveChat). It is delivered to
+ * the chat's members, including the affected user's other devices.
+ *
+ * Roster changes are a convergent overlay, so these ride the event stream
+ * OUTSIDE the gap-detected event log. Clients apply them by roster_summary
+ * version as described on RosterSummary: a greater version than the one held
+ * means the cached member list is stale and this update should be applied; a
+ * lesser or equal version should be dropped, so delivery order does not
+ * matter. A missed update is not caught up via GetDelta but reconciled by
+ * refetching the roster when a client observes a version it cannot reconcile.
+ *
+ * @generated from message flipcash.chat.v1.RosterUpdate
+ */
+export class RosterUpdate extends Message<RosterUpdate> {
+  /**
+   * @generated from oneof flipcash.chat.v1.RosterUpdate.kind
+   */
+  kind: {
+    /**
+     * @generated from field: flipcash.chat.v1.RosterUpdate.MemberJoined member_joined = 1;
+     */
+    value: RosterUpdate_MemberJoined;
+    case: "memberJoined";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.RosterUpdate.MemberLeft member_left = 2;
+     */
+    value: RosterUpdate_MemberLeft;
+    case: "memberLeft";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * The chat's roster summary after this change, applied by version as
+   * described above.
+   *
+   * @generated from field: flipcash.chat.v1.RosterSummary roster_summary = 10;
+   */
+  rosterSummary?: RosterSummary;
+
+  constructor(data?: PartialMessage<RosterUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RosterUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "member_joined", kind: "message", T: RosterUpdate_MemberJoined, oneof: "kind" },
+    { no: 2, name: "member_left", kind: "message", T: RosterUpdate_MemberLeft, oneof: "kind" },
+    { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RosterUpdate {
+    return new RosterUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RosterUpdate {
+    return new RosterUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RosterUpdate {
+    return new RosterUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RosterUpdate | PlainMessage<RosterUpdate> | undefined, b: RosterUpdate | PlainMessage<RosterUpdate> | undefined): boolean {
+    return proto3.util.equals(RosterUpdate, a, b);
+  }
+}
+
+/**
+ * A member joined the chat. When member is the recipient, the recipient
+ * has just become a member of the chat and should insert it into their
+ * chat list using metadata.
+ *
+ * @generated from message flipcash.chat.v1.RosterUpdate.MemberJoined
+ */
+export class RosterUpdate_MemberJoined extends Message<RosterUpdate_MemberJoined> {
+  /**
+   * The member that joined, with their profile hydrated, so a client
+   * can update its cached member list without a refetch.
+   *
+   * @generated from field: flipcash.chat.v1.Member member = 1;
+   */
+  member?: Member;
+
+  /**
+   * The full metadata for the chat, so the recipient can insert it into
+   * their chat list without a refetch. Set only when member is the
+   * recipient; unset for every other member of the chat.
+   *
+   * The recipient inserts the chat from this snapshot, then applies the
+   * enclosing RosterUpdate.roster_summary by version like any other
+   * roster update. RosterUpdate.roster_summary is authoritative for
+   * versioning; metadata.roster_summary is not compared separately.
+   *
+   * @generated from field: flipcash.chat.v1.Metadata metadata = 2;
+   */
+  metadata?: Metadata;
+
+  constructor(data?: PartialMessage<RosterUpdate_MemberJoined>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RosterUpdate.MemberJoined";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "member", kind: "message", T: Member },
+    { no: 2, name: "metadata", kind: "message", T: Metadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RosterUpdate_MemberJoined {
+    return new RosterUpdate_MemberJoined().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RosterUpdate_MemberJoined {
+    return new RosterUpdate_MemberJoined().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RosterUpdate_MemberJoined {
+    return new RosterUpdate_MemberJoined().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RosterUpdate_MemberJoined | PlainMessage<RosterUpdate_MemberJoined> | undefined, b: RosterUpdate_MemberJoined | PlainMessage<RosterUpdate_MemberJoined> | undefined): boolean {
+    return proto3.util.equals(RosterUpdate_MemberJoined, a, b);
+  }
+}
+
+/**
+ * A member left the chat. When user_id is the recipient, the recipient is
+ * no longer a member of the chat and should remove it from their chat
+ * list.
+ *
+ * @generated from message flipcash.chat.v1.RosterUpdate.MemberLeft
+ */
+export class RosterUpdate_MemberLeft extends Message<RosterUpdate_MemberLeft> {
+  /**
+   * The user that left
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   */
+  userId?: UserId;
+
+  constructor(data?: PartialMessage<RosterUpdate_MemberLeft>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RosterUpdate.MemberLeft";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "message", T: UserId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RosterUpdate_MemberLeft {
+    return new RosterUpdate_MemberLeft().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RosterUpdate_MemberLeft {
+    return new RosterUpdate_MemberLeft().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RosterUpdate_MemberLeft {
+    return new RosterUpdate_MemberLeft().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RosterUpdate_MemberLeft | PlainMessage<RosterUpdate_MemberLeft> | undefined, b: RosterUpdate_MemberLeft | PlainMessage<RosterUpdate_MemberLeft> | undefined): boolean {
+    return proto3.util.equals(RosterUpdate_MemberLeft, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.RosterUpdateBatch
+ */
+export class RosterUpdateBatch extends Message<RosterUpdateBatch> {
+  /**
+   * @generated from field: repeated flipcash.chat.v1.RosterUpdate roster_updates = 1;
+   */
+  rosterUpdates: RosterUpdate[] = [];
+
+  constructor(data?: PartialMessage<RosterUpdateBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RosterUpdateBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "roster_updates", kind: "message", T: RosterUpdate, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RosterUpdateBatch {
+    return new RosterUpdateBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RosterUpdateBatch {
+    return new RosterUpdateBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RosterUpdateBatch {
+    return new RosterUpdateBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RosterUpdateBatch | PlainMessage<RosterUpdateBatch> | undefined, b: RosterUpdateBatch | PlainMessage<RosterUpdateBatch> | undefined): boolean {
+    return proto3.util.equals(RosterUpdateBatch, a, b);
+  }
+}
+

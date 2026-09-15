@@ -98,11 +98,8 @@ message ChatUpdate {
     // The chat that this update is for
     common.v1.ChatId chat = 1 [(validate.rules).message.required = true];
 
-    // If present, new real-time messages sent on the chat.
-    //
-    // Deprecated: superseded by `events` (Event.message_sent), which is
-    // sequenced and gap-detectable. New messages now arrive as events.
-    messaging.v1.MessageBatch new_messages = 2 [deprecated = true];
+    // Deprecated new_messages field
+    reserved 2;
 
     // If present, message pointer updates for members in the chat. Pointers are
     // convergent (monotonic, last-writer-wins), so they ride the stream as a
@@ -131,6 +128,18 @@ message ChatUpdate {
     // ReactionUpdate.sequence and reconcile any misses by refreshing a message's
     // ReactionSummary on view.
     messaging.v1.ReactionUpdateBatch reaction_updates = 7;
+
+    // If present, best-effort real-time roster changes for the chat — members
+    // joining or leaving. Like reaction_updates, roster changes are a
+    // convergent overlay — NOT part of the gap-detected event log; clients
+    // apply them by RosterSummary.version and reconcile any misses by
+    // refetching the roster.
+    //
+    // When a RosterUpdate.MemberLeft names the recipient, the recipient is no
+    // longer a member of the chat and should remove it from their chat list.
+    // This is how a chat left between pages of a chat feed read is
+    // reconciled.
+    chat.v1.RosterUpdateBatch roster_updates = 8;
 }
 
 // BlobUpdate notifies the recipient in real time that blobs they uploaded have

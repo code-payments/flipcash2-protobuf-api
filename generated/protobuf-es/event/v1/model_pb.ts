@@ -6,8 +6,8 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, UserId } from "../../common/v1/common_pb";
-import { EventBatch as EventBatch$1, IsTypingNotificationBatch, MessageBatch, PointerBatch, ReactionUpdateBatch } from "../../messaging/v1/model_pb";
-import { MetadataUpdate } from "../../chat/v1/model_pb";
+import { EventBatch as EventBatch$1, IsTypingNotificationBatch, PointerBatch, ReactionUpdateBatch } from "../../messaging/v1/model_pb";
+import { MetadataUpdate, RosterUpdateBatch } from "../../chat/v1/model_pb";
 import { BlobBatch } from "../../blob/v1/model_pb";
 
 /**
@@ -464,17 +464,6 @@ export class ChatUpdate extends Message<ChatUpdate> {
   chat?: ChatId;
 
   /**
-   * If present, new real-time messages sent on the chat.
-   *
-   * Deprecated: superseded by `events` (Event.message_sent), which is
-   * sequenced and gap-detectable. New messages now arrive as events.
-   *
-   * @generated from field: flipcash.messaging.v1.MessageBatch new_messages = 2 [deprecated = true];
-   * @deprecated
-   */
-  newMessages?: MessageBatch;
-
-  /**
    * If present, message pointer updates for members in the chat. Pointers are
    * convergent (monotonic, last-writer-wins), so they ride the stream as a
    * best-effort overlay and are reconciled from current state on reconnect —
@@ -520,6 +509,22 @@ export class ChatUpdate extends Message<ChatUpdate> {
    */
   reactionUpdates?: ReactionUpdateBatch;
 
+  /**
+   * If present, best-effort real-time roster changes for the chat — members
+   * joining or leaving. Like reaction_updates, roster changes are a
+   * convergent overlay — NOT part of the gap-detected event log; clients
+   * apply them by RosterSummary.version and reconcile any misses by
+   * refetching the roster.
+   *
+   * When a RosterUpdate.MemberLeft names the recipient, the recipient is no
+   * longer a member of the chat and should remove it from their chat list.
+   * This is how a chat left between pages of a chat feed read is
+   * reconciled.
+   *
+   * @generated from field: flipcash.chat.v1.RosterUpdateBatch roster_updates = 8;
+   */
+  rosterUpdates?: RosterUpdateBatch;
+
   constructor(data?: PartialMessage<ChatUpdate>) {
     super();
     proto3.util.initPartial(data, this);
@@ -529,12 +534,12 @@ export class ChatUpdate extends Message<ChatUpdate> {
   static readonly typeName = "flipcash.event.v1.ChatUpdate";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat", kind: "message", T: ChatId },
-    { no: 2, name: "new_messages", kind: "message", T: MessageBatch },
     { no: 3, name: "pointer_updates", kind: "message", T: PointerBatch },
     { no: 4, name: "is_typing_notifications", kind: "message", T: IsTypingNotificationBatch },
     { no: 5, name: "metadata_updates", kind: "message", T: MetadataUpdate, repeated: true },
     { no: 6, name: "events", kind: "message", T: EventBatch$1 },
     { no: 7, name: "reaction_updates", kind: "message", T: ReactionUpdateBatch },
+    { no: 8, name: "roster_updates", kind: "message", T: RosterUpdateBatch },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUpdate {

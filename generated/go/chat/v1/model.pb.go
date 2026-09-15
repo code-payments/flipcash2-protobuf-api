@@ -770,6 +770,152 @@ func (*MetadataUpdate_FullRefresh_) isMetadataUpdate_Kind() {}
 
 func (*MetadataUpdate_LastActivityChanged_) isMetadataUpdate_Kind() {}
 
+// RosterUpdate is a best-effort, real-time change to a chat's roster — a
+// member joining (e.g. via Chat.JoinChat, or as the first member via
+// Chat.StartChat) or leaving (e.g. via Chat.LeaveChat). It is delivered to
+// the chat's members, including the affected user's other devices.
+//
+// Roster changes are a convergent overlay, so these ride the event stream
+// OUTSIDE the gap-detected event log. Clients apply them by roster_summary
+// version as described on RosterSummary: a greater version than the one held
+// means the cached member list is stale and this update should be applied; a
+// lesser or equal version should be dropped, so delivery order does not
+// matter. A missed update is not caught up via GetDelta but reconciled by
+// refetching the roster when a client observes a version it cannot reconcile.
+type RosterUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Kind:
+	//
+	//	*RosterUpdate_MemberJoined_
+	//	*RosterUpdate_MemberLeft_
+	Kind isRosterUpdate_Kind `protobuf_oneof:"kind"`
+	// The chat's roster summary after this change, applied by version as
+	// described above.
+	RosterSummary *RosterSummary `protobuf:"bytes,10,opt,name=roster_summary,json=rosterSummary,proto3" json:"roster_summary,omitempty"`
+}
+
+func (x *RosterUpdate) Reset() {
+	*x = RosterUpdate{}
+	mi := &file_chat_v1_model_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RosterUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RosterUpdate) ProtoMessage() {}
+
+func (x *RosterUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RosterUpdate.ProtoReflect.Descriptor instead.
+func (*RosterUpdate) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{9}
+}
+
+func (m *RosterUpdate) GetKind() isRosterUpdate_Kind {
+	if m != nil {
+		return m.Kind
+	}
+	return nil
+}
+
+func (x *RosterUpdate) GetMemberJoined() *RosterUpdate_MemberJoined {
+	if x, ok := x.GetKind().(*RosterUpdate_MemberJoined_); ok {
+		return x.MemberJoined
+	}
+	return nil
+}
+
+func (x *RosterUpdate) GetMemberLeft() *RosterUpdate_MemberLeft {
+	if x, ok := x.GetKind().(*RosterUpdate_MemberLeft_); ok {
+		return x.MemberLeft
+	}
+	return nil
+}
+
+func (x *RosterUpdate) GetRosterSummary() *RosterSummary {
+	if x != nil {
+		return x.RosterSummary
+	}
+	return nil
+}
+
+type isRosterUpdate_Kind interface {
+	isRosterUpdate_Kind()
+}
+
+type RosterUpdate_MemberJoined_ struct {
+	MemberJoined *RosterUpdate_MemberJoined `protobuf:"bytes,1,opt,name=member_joined,json=memberJoined,proto3,oneof"`
+}
+
+type RosterUpdate_MemberLeft_ struct {
+	MemberLeft *RosterUpdate_MemberLeft `protobuf:"bytes,2,opt,name=member_left,json=memberLeft,proto3,oneof"`
+}
+
+func (*RosterUpdate_MemberJoined_) isRosterUpdate_Kind() {}
+
+func (*RosterUpdate_MemberLeft_) isRosterUpdate_Kind() {}
+
+type RosterUpdateBatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	RosterUpdates []*RosterUpdate `protobuf:"bytes,1,rep,name=roster_updates,json=rosterUpdates,proto3" json:"roster_updates,omitempty"`
+}
+
+func (x *RosterUpdateBatch) Reset() {
+	*x = RosterUpdateBatch{}
+	mi := &file_chat_v1_model_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RosterUpdateBatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RosterUpdateBatch) ProtoMessage() {}
+
+func (x *RosterUpdateBatch) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RosterUpdateBatch.ProtoReflect.Descriptor instead.
+func (*RosterUpdateBatch) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *RosterUpdateBatch) GetRosterUpdates() []*RosterUpdate {
+	if x != nil {
+		return x.RosterUpdates
+	}
+	return nil
+}
+
 // Refreshes the entire chat metadata
 type MetadataUpdate_FullRefresh struct {
 	state         protoimpl.MessageState
@@ -781,7 +927,7 @@ type MetadataUpdate_FullRefresh struct {
 
 func (x *MetadataUpdate_FullRefresh) Reset() {
 	*x = MetadataUpdate_FullRefresh{}
-	mi := &file_chat_v1_model_proto_msgTypes[9]
+	mi := &file_chat_v1_model_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -793,7 +939,7 @@ func (x *MetadataUpdate_FullRefresh) String() string {
 func (*MetadataUpdate_FullRefresh) ProtoMessage() {}
 
 func (x *MetadataUpdate_FullRefresh) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[9]
+	mi := &file_chat_v1_model_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +973,7 @@ type MetadataUpdate_LastActivityChanged struct {
 
 func (x *MetadataUpdate_LastActivityChanged) Reset() {
 	*x = MetadataUpdate_LastActivityChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[10]
+	mi := &file_chat_v1_model_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -839,7 +985,7 @@ func (x *MetadataUpdate_LastActivityChanged) String() string {
 func (*MetadataUpdate_LastActivityChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_LastActivityChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[10]
+	mi := &file_chat_v1_model_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,6 +1004,121 @@ func (*MetadataUpdate_LastActivityChanged) Descriptor() ([]byte, []int) {
 func (x *MetadataUpdate_LastActivityChanged) GetNewLastActivity() *timestamppb.Timestamp {
 	if x != nil {
 		return x.NewLastActivity
+	}
+	return nil
+}
+
+// A member joined the chat. When member is the recipient, the recipient
+// has just become a member of the chat and should insert it into their
+// chat list using metadata.
+type RosterUpdate_MemberJoined struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The member that joined, with their profile hydrated, so a client
+	// can update its cached member list without a refetch.
+	Member *Member `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	// The full metadata for the chat, so the recipient can insert it into
+	// their chat list without a refetch. Set only when member is the
+	// recipient; unset for every other member of the chat.
+	//
+	// The recipient inserts the chat from this snapshot, then applies the
+	// enclosing RosterUpdate.roster_summary by version like any other
+	// roster update. RosterUpdate.roster_summary is authoritative for
+	// versioning; metadata.roster_summary is not compared separately.
+	Metadata *Metadata `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
+}
+
+func (x *RosterUpdate_MemberJoined) Reset() {
+	*x = RosterUpdate_MemberJoined{}
+	mi := &file_chat_v1_model_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RosterUpdate_MemberJoined) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RosterUpdate_MemberJoined) ProtoMessage() {}
+
+func (x *RosterUpdate_MemberJoined) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RosterUpdate_MemberJoined.ProtoReflect.Descriptor instead.
+func (*RosterUpdate_MemberJoined) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{9, 0}
+}
+
+func (x *RosterUpdate_MemberJoined) GetMember() *Member {
+	if x != nil {
+		return x.Member
+	}
+	return nil
+}
+
+func (x *RosterUpdate_MemberJoined) GetMetadata() *Metadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+// A member left the chat. When user_id is the recipient, the recipient is
+// no longer a member of the chat and should remove it from their chat
+// list.
+type RosterUpdate_MemberLeft struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The user that left
+	UserId *v1.UserId `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+}
+
+func (x *RosterUpdate_MemberLeft) Reset() {
+	*x = RosterUpdate_MemberLeft{}
+	mi := &file_chat_v1_model_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RosterUpdate_MemberLeft) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RosterUpdate_MemberLeft) ProtoMessage() {}
+
+func (x *RosterUpdate_MemberLeft) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RosterUpdate_MemberLeft.ProtoReflect.Descriptor instead.
+func (*RosterUpdate_MemberLeft) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{9, 1}
+}
+
+func (x *RosterUpdate_MemberLeft) GetUserId() *v1.UserId {
+	if x != nil {
+		return x.UserId
 	}
 	return nil
 }
@@ -1004,19 +1265,56 @@ var file_chat_v1_model_proto_rawDesc = []byte{
 	0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x08, 0xfa, 0x42, 0x05, 0xb2, 0x01, 0x02,
 	0x08, 0x01, 0x52, 0x0f, 0x6e, 0x65, 0x77, 0x4c, 0x61, 0x73, 0x74, 0x41, 0x63, 0x74, 0x69, 0x76,
 	0x69, 0x74, 0x79, 0x42, 0x0b, 0x0a, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x03, 0xf8, 0x42, 0x01,
-	0x2a, 0x3e, 0x0a, 0x08, 0x43, 0x68, 0x61, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07,
-	0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0e, 0x0a, 0x0a, 0x43, 0x4f, 0x4e,
-	0x54, 0x41, 0x43, 0x54, 0x5f, 0x44, 0x4d, 0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x54, 0x49, 0x50,
-	0x5f, 0x44, 0x4d, 0x10, 0x02, 0x12, 0x09, 0x0a, 0x05, 0x47, 0x52, 0x4f, 0x55, 0x50, 0x10, 0x03,
-	0x42, 0x7b, 0x0a, 0x20, 0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e,
-	0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x63, 0x68, 0x61,
-	0x74, 0x2e, 0x76, 0x31, 0x5a, 0x4b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x66,
-	0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x32, 0x2d, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
-	0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2f,
-	0x67, 0x6f, 0x2f, 0x63, 0x68, 0x61, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x68, 0x61, 0x74, 0x70,
-	0x62, 0xa2, 0x02, 0x09, 0x46, 0x50, 0x42, 0x43, 0x68, 0x61, 0x74, 0x56, 0x31, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0xe1, 0x03, 0x0a, 0x0c, 0x52, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x12, 0x52, 0x0a, 0x0d, 0x6d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x5f, 0x6a, 0x6f, 0x69, 0x6e,
+	0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63,
+	0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x6f, 0x73, 0x74,
+	0x65, 0x72, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x4a,
+	0x6f, 0x69, 0x6e, 0x65, 0x64, 0x48, 0x00, 0x52, 0x0c, 0x6d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x4a,
+	0x6f, 0x69, 0x6e, 0x65, 0x64, 0x12, 0x4c, 0x0a, 0x0b, 0x6d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x5f,
+	0x6c, 0x65, 0x66, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x66, 0x6c, 0x69,
+	0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x6f,
+	0x73, 0x74, 0x65, 0x72, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x4d, 0x65, 0x6d, 0x62, 0x65,
+	0x72, 0x4c, 0x65, 0x66, 0x74, 0x48, 0x00, 0x52, 0x0a, 0x6d, 0x65, 0x6d, 0x62, 0x65, 0x72, 0x4c,
+	0x65, 0x66, 0x74, 0x12, 0x50, 0x0a, 0x0e, 0x72, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x75,
+	0x6d, 0x6d, 0x61, 0x72, 0x79, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x66, 0x6c,
+	0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52,
+	0x6f, 0x73, 0x74, 0x65, 0x72, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x42, 0x08, 0xfa, 0x42,
+	0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x0d, 0x72, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x53, 0x75,
+	0x6d, 0x6d, 0x61, 0x72, 0x79, 0x1a, 0x82, 0x01, 0x0a, 0x0c, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72,
+	0x4a, 0x6f, 0x69, 0x6e, 0x65, 0x64, 0x12, 0x3a, 0x0a, 0x06, 0x6d, 0x65, 0x6d, 0x62, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73,
+	0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x6d, 0x62, 0x65, 0x72,
+	0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x06, 0x6d, 0x65, 0x6d, 0x62,
+	0x65, 0x72, 0x12, 0x36, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e,
+	0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61,
+	0x52, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x4b, 0x0a, 0x0a, 0x4d, 0x65,
+	0x6d, 0x62, 0x65, 0x72, 0x4c, 0x65, 0x66, 0x74, 0x12, 0x3d, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x66, 0x6c, 0x69, 0x70,
+	0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x55,
+	0x73, 0x65, 0x72, 0x49, 0x64, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52,
+	0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x42, 0x0b, 0x0a, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12,
+	0x03, 0xf8, 0x42, 0x01, 0x22, 0x66, 0x0a, 0x11, 0x52, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x51, 0x0a, 0x0e, 0x72, 0x6f, 0x73,
+	0x74, 0x65, 0x72, 0x5f, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x1e, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61,
+	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x42, 0x0a, 0xfa, 0x42, 0x07, 0x92, 0x01, 0x04, 0x08, 0x01, 0x10, 0x64, 0x52, 0x0d, 0x72,
+	0x6f, 0x73, 0x74, 0x65, 0x72, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x2a, 0x3e, 0x0a, 0x08,
+	0x43, 0x68, 0x61, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e,
+	0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0e, 0x0a, 0x0a, 0x43, 0x4f, 0x4e, 0x54, 0x41, 0x43, 0x54,
+	0x5f, 0x44, 0x4d, 0x10, 0x01, 0x12, 0x0a, 0x0a, 0x06, 0x54, 0x49, 0x50, 0x5f, 0x44, 0x4d, 0x10,
+	0x02, 0x12, 0x09, 0x0a, 0x05, 0x47, 0x52, 0x4f, 0x55, 0x50, 0x10, 0x03, 0x42, 0x7b, 0x0a, 0x20,
+	0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e, 0x66, 0x6c, 0x69, 0x70,
+	0x63, 0x61, 0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31,
+	0x5a, 0x4b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x64,
+	0x65, 0x2d, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x66, 0x6c, 0x69, 0x70, 0x63,
+	0x61, 0x73, 0x68, 0x32, 0x2d, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2d, 0x61, 0x70,
+	0x69, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x63,
+	0x68, 0x61, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x68, 0x61, 0x74, 0x70, 0x62, 0xa2, 0x02, 0x09,
+	0x46, 0x50, 0x42, 0x43, 0x68, 0x61, 0x74, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -1032,7 +1330,7 @@ func file_chat_v1_model_proto_rawDescGZIP() []byte {
 }
 
 var file_chat_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_chat_v1_model_proto_goTypes = []any{
 	(ChatType)(0),                              // 0: flipcash.chat.v1.ChatType
 	(*Metadata)(nil),                           // 1: flipcash.chat.v1.Metadata
@@ -1044,25 +1342,29 @@ var file_chat_v1_model_proto_goTypes = []any{
 	(*Member)(nil),                             // 7: flipcash.chat.v1.Member
 	(*RosterSummary)(nil),                      // 8: flipcash.chat.v1.RosterSummary
 	(*MetadataUpdate)(nil),                     // 9: flipcash.chat.v1.MetadataUpdate
-	(*MetadataUpdate_FullRefresh)(nil),         // 10: flipcash.chat.v1.MetadataUpdate.FullRefresh
-	(*MetadataUpdate_LastActivityChanged)(nil), // 11: flipcash.chat.v1.MetadataUpdate.LastActivityChanged
-	(*v1.ChatId)(nil),                          // 12: flipcash.common.v1.ChatId
-	(*v11.Message)(nil),                        // 13: flipcash.messaging.v1.Message
-	(*timestamppb.Timestamp)(nil),              // 14: google.protobuf.Timestamp
-	(*v12.Media)(nil),                          // 15: flipcash.blob.v1.Media
-	(*v1.FiatPaymentAmount)(nil),               // 16: flipcash.common.v1.FiatPaymentAmount
-	(*v1.PublicKey)(nil),                       // 17: flipcash.common.v1.PublicKey
-	(*v1.UserId)(nil),                          // 18: flipcash.common.v1.UserId
-	(*v13.UserProfile)(nil),                    // 19: flipcash.profile.v1.UserProfile
-	(*v11.Pointer)(nil),                        // 20: flipcash.messaging.v1.Pointer
+	(*RosterUpdate)(nil),                       // 10: flipcash.chat.v1.RosterUpdate
+	(*RosterUpdateBatch)(nil),                  // 11: flipcash.chat.v1.RosterUpdateBatch
+	(*MetadataUpdate_FullRefresh)(nil),         // 12: flipcash.chat.v1.MetadataUpdate.FullRefresh
+	(*MetadataUpdate_LastActivityChanged)(nil), // 13: flipcash.chat.v1.MetadataUpdate.LastActivityChanged
+	(*RosterUpdate_MemberJoined)(nil),          // 14: flipcash.chat.v1.RosterUpdate.MemberJoined
+	(*RosterUpdate_MemberLeft)(nil),            // 15: flipcash.chat.v1.RosterUpdate.MemberLeft
+	(*v1.ChatId)(nil),                          // 16: flipcash.common.v1.ChatId
+	(*v11.Message)(nil),                        // 17: flipcash.messaging.v1.Message
+	(*timestamppb.Timestamp)(nil),              // 18: google.protobuf.Timestamp
+	(*v12.Media)(nil),                          // 19: flipcash.blob.v1.Media
+	(*v1.FiatPaymentAmount)(nil),               // 20: flipcash.common.v1.FiatPaymentAmount
+	(*v1.PublicKey)(nil),                       // 21: flipcash.common.v1.PublicKey
+	(*v1.UserId)(nil),                          // 22: flipcash.common.v1.UserId
+	(*v13.UserProfile)(nil),                    // 23: flipcash.profile.v1.UserProfile
+	(*v11.Pointer)(nil),                        // 24: flipcash.messaging.v1.Pointer
 }
 var file_chat_v1_model_proto_depIdxs = []int32{
-	12, // 0: flipcash.chat.v1.Metadata.chat_id:type_name -> flipcash.common.v1.ChatId
+	16, // 0: flipcash.chat.v1.Metadata.chat_id:type_name -> flipcash.common.v1.ChatId
 	0,  // 1: flipcash.chat.v1.Metadata.type:type_name -> flipcash.chat.v1.ChatType
 	7,  // 2: flipcash.chat.v1.Metadata.members:type_name -> flipcash.chat.v1.Member
-	13, // 3: flipcash.chat.v1.Metadata.last_message:type_name -> flipcash.messaging.v1.Message
-	14, // 4: flipcash.chat.v1.Metadata.last_activity:type_name -> google.protobuf.Timestamp
-	15, // 5: flipcash.chat.v1.Metadata.picture:type_name -> flipcash.blob.v1.Media
+	17, // 3: flipcash.chat.v1.Metadata.last_message:type_name -> flipcash.messaging.v1.Message
+	18, // 4: flipcash.chat.v1.Metadata.last_activity:type_name -> google.protobuf.Timestamp
+	19, // 5: flipcash.chat.v1.Metadata.picture:type_name -> flipcash.blob.v1.Media
 	8,  // 6: flipcash.chat.v1.Metadata.roster_summary:type_name -> flipcash.chat.v1.RosterSummary
 	2,  // 7: flipcash.chat.v1.Metadata.rules:type_name -> flipcash.chat.v1.Rules
 	3,  // 8: flipcash.chat.v1.Rules.listener:type_name -> flipcash.chat.v1.ListenerRules
@@ -1071,20 +1373,27 @@ var file_chat_v1_model_proto_depIdxs = []int32{
 	5,  // 11: flipcash.chat.v1.ListenerRules.staff:type_name -> flipcash.chat.v1.StaffRequirement
 	6,  // 12: flipcash.chat.v1.SpeakerRules.minimum_balance:type_name -> flipcash.chat.v1.MinimumBalanceRequirement
 	5,  // 13: flipcash.chat.v1.SpeakerRules.staff:type_name -> flipcash.chat.v1.StaffRequirement
-	16, // 14: flipcash.chat.v1.MinimumBalanceRequirement.amount:type_name -> flipcash.common.v1.FiatPaymentAmount
-	17, // 15: flipcash.chat.v1.MinimumBalanceRequirement.mints:type_name -> flipcash.common.v1.PublicKey
-	18, // 16: flipcash.chat.v1.Member.user_id:type_name -> flipcash.common.v1.UserId
-	19, // 17: flipcash.chat.v1.Member.user_profile:type_name -> flipcash.profile.v1.UserProfile
-	20, // 18: flipcash.chat.v1.Member.pointers:type_name -> flipcash.messaging.v1.Pointer
-	10, // 19: flipcash.chat.v1.MetadataUpdate.full_refresh:type_name -> flipcash.chat.v1.MetadataUpdate.FullRefresh
-	11, // 20: flipcash.chat.v1.MetadataUpdate.last_activity_changed:type_name -> flipcash.chat.v1.MetadataUpdate.LastActivityChanged
-	1,  // 21: flipcash.chat.v1.MetadataUpdate.FullRefresh.metadata:type_name -> flipcash.chat.v1.Metadata
-	14, // 22: flipcash.chat.v1.MetadataUpdate.LastActivityChanged.new_last_activity:type_name -> google.protobuf.Timestamp
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	20, // 14: flipcash.chat.v1.MinimumBalanceRequirement.amount:type_name -> flipcash.common.v1.FiatPaymentAmount
+	21, // 15: flipcash.chat.v1.MinimumBalanceRequirement.mints:type_name -> flipcash.common.v1.PublicKey
+	22, // 16: flipcash.chat.v1.Member.user_id:type_name -> flipcash.common.v1.UserId
+	23, // 17: flipcash.chat.v1.Member.user_profile:type_name -> flipcash.profile.v1.UserProfile
+	24, // 18: flipcash.chat.v1.Member.pointers:type_name -> flipcash.messaging.v1.Pointer
+	12, // 19: flipcash.chat.v1.MetadataUpdate.full_refresh:type_name -> flipcash.chat.v1.MetadataUpdate.FullRefresh
+	13, // 20: flipcash.chat.v1.MetadataUpdate.last_activity_changed:type_name -> flipcash.chat.v1.MetadataUpdate.LastActivityChanged
+	14, // 21: flipcash.chat.v1.RosterUpdate.member_joined:type_name -> flipcash.chat.v1.RosterUpdate.MemberJoined
+	15, // 22: flipcash.chat.v1.RosterUpdate.member_left:type_name -> flipcash.chat.v1.RosterUpdate.MemberLeft
+	8,  // 23: flipcash.chat.v1.RosterUpdate.roster_summary:type_name -> flipcash.chat.v1.RosterSummary
+	10, // 24: flipcash.chat.v1.RosterUpdateBatch.roster_updates:type_name -> flipcash.chat.v1.RosterUpdate
+	1,  // 25: flipcash.chat.v1.MetadataUpdate.FullRefresh.metadata:type_name -> flipcash.chat.v1.Metadata
+	18, // 26: flipcash.chat.v1.MetadataUpdate.LastActivityChanged.new_last_activity:type_name -> google.protobuf.Timestamp
+	7,  // 27: flipcash.chat.v1.RosterUpdate.MemberJoined.member:type_name -> flipcash.chat.v1.Member
+	1,  // 28: flipcash.chat.v1.RosterUpdate.MemberJoined.metadata:type_name -> flipcash.chat.v1.Metadata
+	22, // 29: flipcash.chat.v1.RosterUpdate.MemberLeft.user_id:type_name -> flipcash.common.v1.UserId
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_chat_v1_model_proto_init() }
@@ -1104,13 +1413,17 @@ func file_chat_v1_model_proto_init() {
 		(*MetadataUpdate_FullRefresh_)(nil),
 		(*MetadataUpdate_LastActivityChanged_)(nil),
 	}
+	file_chat_v1_model_proto_msgTypes[9].OneofWrappers = []any{
+		(*RosterUpdate_MemberJoined_)(nil),
+		(*RosterUpdate_MemberLeft_)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_chat_v1_model_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

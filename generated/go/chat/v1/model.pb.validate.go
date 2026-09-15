@@ -1777,6 +1777,392 @@ var _ interface {
 	ErrorName() string
 } = MetadataUpdateValidationError{}
 
+// Validate checks the field values on RosterUpdate with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RosterUpdate) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RosterUpdate with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RosterUpdateMultiError, or
+// nil if none found.
+func (m *RosterUpdate) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RosterUpdate) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetRosterSummary() == nil {
+		err := RosterUpdateValidationError{
+			field:  "RosterSummary",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetRosterSummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RosterUpdateValidationError{
+					field:  "RosterSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RosterUpdateValidationError{
+					field:  "RosterSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRosterSummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RosterUpdateValidationError{
+				field:  "RosterSummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	oneofKindPresent := false
+	switch v := m.Kind.(type) {
+	case *RosterUpdate_MemberJoined_:
+		if v == nil {
+			err := RosterUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetMemberJoined()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RosterUpdateValidationError{
+						field:  "MemberJoined",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RosterUpdateValidationError{
+						field:  "MemberJoined",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMemberJoined()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RosterUpdateValidationError{
+					field:  "MemberJoined",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *RosterUpdate_MemberLeft_:
+		if v == nil {
+			err := RosterUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetMemberLeft()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RosterUpdateValidationError{
+						field:  "MemberLeft",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RosterUpdateValidationError{
+						field:  "MemberLeft",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMemberLeft()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RosterUpdateValidationError{
+					field:  "MemberLeft",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofKindPresent {
+		err := RosterUpdateValidationError{
+			field:  "Kind",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return RosterUpdateMultiError(errors)
+	}
+
+	return nil
+}
+
+// RosterUpdateMultiError is an error wrapping multiple validation errors
+// returned by RosterUpdate.ValidateAll() if the designated constraints aren't met.
+type RosterUpdateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RosterUpdateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RosterUpdateMultiError) AllErrors() []error { return m }
+
+// RosterUpdateValidationError is the validation error returned by
+// RosterUpdate.Validate if the designated constraints aren't met.
+type RosterUpdateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RosterUpdateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RosterUpdateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RosterUpdateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RosterUpdateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RosterUpdateValidationError) ErrorName() string { return "RosterUpdateValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RosterUpdateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRosterUpdate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RosterUpdateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RosterUpdateValidationError{}
+
+// Validate checks the field values on RosterUpdateBatch with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RosterUpdateBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RosterUpdateBatch with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RosterUpdateBatchMultiError, or nil if none found.
+func (m *RosterUpdateBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RosterUpdateBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetRosterUpdates()); l < 1 || l > 100 {
+		err := RosterUpdateBatchValidationError{
+			field:  "RosterUpdates",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetRosterUpdates() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RosterUpdateBatchValidationError{
+						field:  fmt.Sprintf("RosterUpdates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RosterUpdateBatchValidationError{
+						field:  fmt.Sprintf("RosterUpdates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RosterUpdateBatchValidationError{
+					field:  fmt.Sprintf("RosterUpdates[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return RosterUpdateBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// RosterUpdateBatchMultiError is an error wrapping multiple validation errors
+// returned by RosterUpdateBatch.ValidateAll() if the designated constraints
+// aren't met.
+type RosterUpdateBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RosterUpdateBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RosterUpdateBatchMultiError) AllErrors() []error { return m }
+
+// RosterUpdateBatchValidationError is the validation error returned by
+// RosterUpdateBatch.Validate if the designated constraints aren't met.
+type RosterUpdateBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RosterUpdateBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RosterUpdateBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RosterUpdateBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RosterUpdateBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RosterUpdateBatchValidationError) ErrorName() string {
+	return "RosterUpdateBatchValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RosterUpdateBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRosterUpdateBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RosterUpdateBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RosterUpdateBatchValidationError{}
+
 // Validate checks the field values on MetadataUpdate_FullRefresh with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -2034,3 +2420,316 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MetadataUpdate_LastActivityChangedValidationError{}
+
+// Validate checks the field values on RosterUpdate_MemberJoined with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RosterUpdate_MemberJoined) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RosterUpdate_MemberJoined with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RosterUpdate_MemberJoinedMultiError, or nil if none found.
+func (m *RosterUpdate_MemberJoined) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RosterUpdate_MemberJoined) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMember() == nil {
+		err := RosterUpdate_MemberJoinedValidationError{
+			field:  "Member",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMember()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RosterUpdate_MemberJoinedValidationError{
+					field:  "Member",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RosterUpdate_MemberJoinedValidationError{
+					field:  "Member",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMember()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RosterUpdate_MemberJoinedValidationError{
+				field:  "Member",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RosterUpdate_MemberJoinedValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RosterUpdate_MemberJoinedValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RosterUpdate_MemberJoinedValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RosterUpdate_MemberJoinedMultiError(errors)
+	}
+
+	return nil
+}
+
+// RosterUpdate_MemberJoinedMultiError is an error wrapping multiple validation
+// errors returned by RosterUpdate_MemberJoined.ValidateAll() if the
+// designated constraints aren't met.
+type RosterUpdate_MemberJoinedMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RosterUpdate_MemberJoinedMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RosterUpdate_MemberJoinedMultiError) AllErrors() []error { return m }
+
+// RosterUpdate_MemberJoinedValidationError is the validation error returned by
+// RosterUpdate_MemberJoined.Validate if the designated constraints aren't met.
+type RosterUpdate_MemberJoinedValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RosterUpdate_MemberJoinedValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RosterUpdate_MemberJoinedValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RosterUpdate_MemberJoinedValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RosterUpdate_MemberJoinedValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RosterUpdate_MemberJoinedValidationError) ErrorName() string {
+	return "RosterUpdate_MemberJoinedValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RosterUpdate_MemberJoinedValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRosterUpdate_MemberJoined.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RosterUpdate_MemberJoinedValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RosterUpdate_MemberJoinedValidationError{}
+
+// Validate checks the field values on RosterUpdate_MemberLeft with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RosterUpdate_MemberLeft) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RosterUpdate_MemberLeft with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RosterUpdate_MemberLeftMultiError, or nil if none found.
+func (m *RosterUpdate_MemberLeft) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RosterUpdate_MemberLeft) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetUserId() == nil {
+		err := RosterUpdate_MemberLeftValidationError{
+			field:  "UserId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUserId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RosterUpdate_MemberLeftValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RosterUpdate_MemberLeftValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RosterUpdate_MemberLeftValidationError{
+				field:  "UserId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RosterUpdate_MemberLeftMultiError(errors)
+	}
+
+	return nil
+}
+
+// RosterUpdate_MemberLeftMultiError is an error wrapping multiple validation
+// errors returned by RosterUpdate_MemberLeft.ValidateAll() if the designated
+// constraints aren't met.
+type RosterUpdate_MemberLeftMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RosterUpdate_MemberLeftMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RosterUpdate_MemberLeftMultiError) AllErrors() []error { return m }
+
+// RosterUpdate_MemberLeftValidationError is the validation error returned by
+// RosterUpdate_MemberLeft.Validate if the designated constraints aren't met.
+type RosterUpdate_MemberLeftValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RosterUpdate_MemberLeftValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RosterUpdate_MemberLeftValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RosterUpdate_MemberLeftValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RosterUpdate_MemberLeftValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RosterUpdate_MemberLeftValidationError) ErrorName() string {
+	return "RosterUpdate_MemberLeftValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RosterUpdate_MemberLeftValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRosterUpdate_MemberLeft.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RosterUpdate_MemberLeftValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RosterUpdate_MemberLeftValidationError{}

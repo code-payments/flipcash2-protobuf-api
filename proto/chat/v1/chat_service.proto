@@ -6,8 +6,10 @@ option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/g
 option java_package = "com.codeinc.flipcash.gen.chat.v1";
 option objc_class_prefix = "FPBChatV1";
 
+import "blob/v1/model.proto";
 import "chat/v1/model.proto";
 import "common/v1/common.proto";
+import "moderation/v1/model.proto";
 import "validate/validate.proto";
 
 service Chat {
@@ -61,6 +63,15 @@ service Chat {
     // member of at the time of that page; a group the caller left between
     // pages is dropped, and its removal arrives on the stream.
     rpc GetGroupChatFeed(GetGroupChatFeedRequest) returns (GetGroupChatFeedResponse);
+
+    // StartChat starts a new chat.
+    rpc StartChat(StartChatRequest) returns (StartChatResponse);
+
+    // JoinChat adds the caller to a chat's roster.
+    rpc JoinChat(JoinChatRequest) returns (JoinChatResponse);
+
+    // LeaveChat removes the caller from a chat's roster.
+    rpc LeaveChat(LeaveChatRequest) returns (LeaveChatResponse);
 }
 
 message GetChatRequest {
@@ -174,4 +185,91 @@ message GetGroupChatFeedResponse {
     // true, the client should issue another GetGroupChatFeedRequest with the
     // returned paging_token.
     bool has_more = 4;
+}
+
+message StartChatRequest {
+    // Parameters for the kind of chat being created. The variant selects the
+    // chat type.
+    oneof parameters {
+        option (validate.required) = true;
+
+        GroupChatParameters group = 1;
+    }
+
+    // Parameters for creating a group chat
+    message GroupChatParameters {
+        // Title for the chat.
+        string title = 1 [(validate.rules).string = {
+            min_len: 1
+            max_len: 64
+        }];
+
+        // The blob holding the ORIGINAL picture the caller uploaded. Optional.
+        // If set, it must be owned by the caller and READY.
+        blob.v1.BlobId picture = 2;
+
+        // Rules governing participation in the chat. Optional; if not set, the
+        // chat has no participation requirements. Caller must satisfy the rules
+        // in order for the chat to be started.
+        Rules rules = 3;
+    }
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message StartChatResponse {
+    Result result = 1;
+    enum Result {
+        OK                        = 0;
+        DENIED                    = 1;
+        TITLE_MODERATED           = 2;
+        PICTURE_BLOB_NOT_ACCEPTED = 3;
+        INVALID_RULES             = 4;
+        RULES_NOT_SATISFIED       = 5;
+    }
+
+    // The metadata for the newly created chat, including the server-generated
+    // chat_id and any picture renditions the server derived. Set only when
+    // result == OK.
+    Metadata chat = 2;
+
+    // The best-fit category that tripped moderation, mirroring the Moderation
+    // service's vocabulary. Set only when result == TITLE_MODERATED; NONE
+    // otherwise.
+    moderation.v1.FlaggedCategory flagged_category = 3;
+}
+
+message JoinChatRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message JoinChatResponse {
+    Result result = 1;
+    enum Result {
+        OK                  = 0;
+        DENIED              = 1;
+        NOT_FOUND           = 2;
+        RULES_NOT_SATISFIED = 3;
+    }
+
+    // The metadata for the joined chat, as seen by the caller. Set only when
+    // result == OK.
+    Metadata chat = 2;
+}
+
+message LeaveChatRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message LeaveChatResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
 }
