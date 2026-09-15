@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse } from "./chat_service_pb";
+import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, StartChatRequest, StartChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -85,6 +85,39 @@ export const Chat = {
       name: "GetGroupChatFeed",
       I: GetGroupChatFeedRequest,
       O: GetGroupChatFeedResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * StartChat starts a new chat.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.StartChat
+     */
+    startChat: {
+      name: "StartChat",
+      I: StartChatRequest,
+      O: StartChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * JoinChat adds the caller to a chat's roster.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.JoinChat
+     */
+    joinChat: {
+      name: "JoinChat",
+      I: JoinChatRequest,
+      O: JoinChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * LeaveChat removes the caller from a chat's roster.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.LeaveChat
+     */
+    leaveChat: {
+      name: "LeaveChat",
+      I: LeaveChatRequest,
+      O: LeaveChatResponse,
       kind: MethodKind.Unary,
     },
   }

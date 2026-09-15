@@ -22,6 +22,9 @@ const (
 	Chat_GetChat_FullMethodName          = "/flipcash.chat.v1.Chat/GetChat"
 	Chat_GetDmChatFeed_FullMethodName    = "/flipcash.chat.v1.Chat/GetDmChatFeed"
 	Chat_GetGroupChatFeed_FullMethodName = "/flipcash.chat.v1.Chat/GetGroupChatFeed"
+	Chat_StartChat_FullMethodName        = "/flipcash.chat.v1.Chat/StartChat"
+	Chat_JoinChat_FullMethodName         = "/flipcash.chat.v1.Chat/JoinChat"
+	Chat_LeaveChat_FullMethodName        = "/flipcash.chat.v1.Chat/LeaveChat"
 )
 
 // ChatClient is the client API for Chat service.
@@ -76,6 +79,12 @@ type ChatClient interface {
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
 	GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedRequest, opts ...grpc.CallOption) (*GetGroupChatFeedResponse, error)
+	// StartChat starts a new chat.
+	StartChat(ctx context.Context, in *StartChatRequest, opts ...grpc.CallOption) (*StartChatResponse, error)
+	// JoinChat adds the caller to a chat's roster.
+	JoinChat(ctx context.Context, in *JoinChatRequest, opts ...grpc.CallOption) (*JoinChatResponse, error)
+	// LeaveChat removes the caller from a chat's roster.
+	LeaveChat(ctx context.Context, in *LeaveChatRequest, opts ...grpc.CallOption) (*LeaveChatResponse, error)
 }
 
 type chatClient struct {
@@ -110,6 +119,36 @@ func (c *chatClient) GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetGroupChatFeedResponse)
 	err := c.cc.Invoke(ctx, Chat_GetGroupChatFeed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) StartChat(ctx context.Context, in *StartChatRequest, opts ...grpc.CallOption) (*StartChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartChatResponse)
+	err := c.cc.Invoke(ctx, Chat_StartChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) JoinChat(ctx context.Context, in *JoinChatRequest, opts ...grpc.CallOption) (*JoinChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(JoinChatResponse)
+	err := c.cc.Invoke(ctx, Chat_JoinChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) LeaveChat(ctx context.Context, in *LeaveChatRequest, opts ...grpc.CallOption) (*LeaveChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LeaveChatResponse)
+	err := c.cc.Invoke(ctx, Chat_LeaveChat_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +207,12 @@ type ChatServer interface {
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
 	GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error)
+	// StartChat starts a new chat.
+	StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error)
+	// JoinChat adds the caller to a chat's roster.
+	JoinChat(context.Context, *JoinChatRequest) (*JoinChatResponse, error)
+	// LeaveChat removes the caller from a chat's roster.
+	LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -186,6 +231,15 @@ func (UnimplementedChatServer) GetDmChatFeed(context.Context, *GetDmChatFeedRequ
 }
 func (UnimplementedChatServer) GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGroupChatFeed not implemented")
+}
+func (UnimplementedChatServer) StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartChat not implemented")
+}
+func (UnimplementedChatServer) JoinChat(context.Context, *JoinChatRequest) (*JoinChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinChat not implemented")
+}
+func (UnimplementedChatServer) LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LeaveChat not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -262,6 +316,60 @@ func _Chat_GetGroupChatFeed_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_StartChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).StartChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_StartChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).StartChat(ctx, req.(*StartChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_JoinChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).JoinChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_JoinChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).JoinChat(ctx, req.(*JoinChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_LeaveChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LeaveChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).LeaveChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_LeaveChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).LeaveChat(ctx, req.(*LeaveChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -280,6 +388,18 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGroupChatFeed",
 			Handler:    _Chat_GetGroupChatFeed_Handler,
+		},
+		{
+			MethodName: "StartChat",
+			Handler:    _Chat_StartChat_Handler,
+		},
+		{
+			MethodName: "JoinChat",
+			Handler:    _Chat_JoinChat_Handler,
+		},
+		{
+			MethodName: "LeaveChat",
+			Handler:    _Chat_LeaveChat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

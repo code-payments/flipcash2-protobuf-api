@@ -1667,35 +1667,6 @@ func (m *ChatUpdate) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetNewMessages()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ChatUpdateValidationError{
-					field:  "NewMessages",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ChatUpdateValidationError{
-					field:  "NewMessages",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetNewMessages()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ChatUpdateValidationError{
-				field:  "NewMessages",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
 		switch v := interface{}(m.GetPointerUpdates()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
@@ -1850,6 +1821,35 @@ func (m *ChatUpdate) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return ChatUpdateValidationError{
 				field:  "ReactionUpdates",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetRosterUpdates()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatUpdateValidationError{
+					field:  "RosterUpdates",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatUpdateValidationError{
+					field:  "RosterUpdates",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRosterUpdates()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatUpdateValidationError{
+				field:  "RosterUpdates",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

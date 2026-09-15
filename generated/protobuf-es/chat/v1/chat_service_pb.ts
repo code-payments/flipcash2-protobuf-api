@@ -6,7 +6,9 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
-import { ChatType, Metadata } from "./model_pb";
+import { ChatType, Metadata, Rules } from "./model_pb";
+import { BlobId } from "../../blob/v1/model_pb";
+import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
 /**
  * @generated from message flipcash.chat.v1.GetChatRequest
@@ -420,6 +422,446 @@ export enum GetGroupChatFeedResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetGroupChatFeedResponse_Result)
 proto3.util.setEnumType(GetGroupChatFeedResponse_Result, "flipcash.chat.v1.GetGroupChatFeedResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.StartChatRequest
+ */
+export class StartChatRequest extends Message<StartChatRequest> {
+  /**
+   * Parameters for the kind of chat being created. The variant selects the
+   * chat type.
+   *
+   * @generated from oneof flipcash.chat.v1.StartChatRequest.parameters
+   */
+  parameters: {
+    /**
+     * @generated from field: flipcash.chat.v1.StartChatRequest.GroupChatParameters group = 1;
+     */
+    value: StartChatRequest_GroupChatParameters;
+    case: "group";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<StartChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.StartChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "group", kind: "message", T: StartChatRequest_GroupChatParameters, oneof: "parameters" },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest {
+    return new StartChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatRequest {
+    return new StartChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatRequest {
+    return new StartChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StartChatRequest | PlainMessage<StartChatRequest> | undefined, b: StartChatRequest | PlainMessage<StartChatRequest> | undefined): boolean {
+    return proto3.util.equals(StartChatRequest, a, b);
+  }
+}
+
+/**
+ * Parameters for creating a group chat
+ *
+ * @generated from message flipcash.chat.v1.StartChatRequest.GroupChatParameters
+ */
+export class StartChatRequest_GroupChatParameters extends Message<StartChatRequest_GroupChatParameters> {
+  /**
+   * Title for the chat.
+   *
+   * @generated from field: string title = 1;
+   */
+  title = "";
+
+  /**
+   * The blob holding the ORIGINAL picture the caller uploaded. Optional.
+   * If set, it must be owned by the caller and READY.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId picture = 2;
+   */
+  picture?: BlobId;
+
+  /**
+   * Rules governing participation in the chat. Optional; if not set, the
+   * chat has no participation requirements. Caller must satisfy the rules
+   * in order for the chat to be started.
+   *
+   * @generated from field: flipcash.chat.v1.Rules rules = 3;
+   */
+  rules?: Rules;
+
+  constructor(data?: PartialMessage<StartChatRequest_GroupChatParameters>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.StartChatRequest.GroupChatParameters";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "picture", kind: "message", T: BlobId },
+    { no: 3, name: "rules", kind: "message", T: Rules },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_GroupChatParameters {
+    return new StartChatRequest_GroupChatParameters().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatRequest_GroupChatParameters {
+    return new StartChatRequest_GroupChatParameters().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatRequest_GroupChatParameters {
+    return new StartChatRequest_GroupChatParameters().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StartChatRequest_GroupChatParameters | PlainMessage<StartChatRequest_GroupChatParameters> | undefined, b: StartChatRequest_GroupChatParameters | PlainMessage<StartChatRequest_GroupChatParameters> | undefined): boolean {
+    return proto3.util.equals(StartChatRequest_GroupChatParameters, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.StartChatResponse
+ */
+export class StartChatResponse extends Message<StartChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.StartChatResponse.Result result = 1;
+   */
+  result = StartChatResponse_Result.OK;
+
+  /**
+   * The metadata for the newly created chat, including the server-generated
+   * chat_id and any picture renditions the server derived. Set only when
+   * result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Metadata chat = 2;
+   */
+  chat?: Metadata;
+
+  /**
+   * The best-fit category that tripped moderation, mirroring the Moderation
+   * service's vocabulary. Set only when result == TITLE_MODERATED; NONE
+   * otherwise.
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 3;
+   */
+  flaggedCategory = FlaggedCategory.NONE;
+
+  constructor(data?: PartialMessage<StartChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.StartChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(StartChatResponse_Result) },
+    { no: 2, name: "chat", kind: "message", T: Metadata },
+    { no: 3, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatResponse {
+    return new StartChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatResponse {
+    return new StartChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatResponse {
+    return new StartChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StartChatResponse | PlainMessage<StartChatResponse> | undefined, b: StartChatResponse | PlainMessage<StartChatResponse> | undefined): boolean {
+    return proto3.util.equals(StartChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.StartChatResponse.Result
+ */
+export enum StartChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: TITLE_MODERATED = 2;
+   */
+  TITLE_MODERATED = 2,
+
+  /**
+   * @generated from enum value: PICTURE_BLOB_NOT_ACCEPTED = 3;
+   */
+  PICTURE_BLOB_NOT_ACCEPTED = 3,
+
+  /**
+   * @generated from enum value: INVALID_RULES = 4;
+   */
+  INVALID_RULES = 4,
+
+  /**
+   * @generated from enum value: RULES_NOT_SATISFIED = 5;
+   */
+  RULES_NOT_SATISFIED = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(StartChatResponse_Result)
+proto3.util.setEnumType(StartChatResponse_Result, "flipcash.chat.v1.StartChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "TITLE_MODERATED" },
+  { no: 3, name: "PICTURE_BLOB_NOT_ACCEPTED" },
+  { no: 4, name: "INVALID_RULES" },
+  { no: 5, name: "RULES_NOT_SATISFIED" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.JoinChatRequest
+ */
+export class JoinChatRequest extends Message<JoinChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<JoinChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.JoinChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JoinChatRequest {
+    return new JoinChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JoinChatRequest {
+    return new JoinChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JoinChatRequest {
+    return new JoinChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JoinChatRequest | PlainMessage<JoinChatRequest> | undefined, b: JoinChatRequest | PlainMessage<JoinChatRequest> | undefined): boolean {
+    return proto3.util.equals(JoinChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.JoinChatResponse
+ */
+export class JoinChatResponse extends Message<JoinChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.JoinChatResponse.Result result = 1;
+   */
+  result = JoinChatResponse_Result.OK;
+
+  /**
+   * The metadata for the joined chat, as seen by the caller. Set only when
+   * result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Metadata chat = 2;
+   */
+  chat?: Metadata;
+
+  constructor(data?: PartialMessage<JoinChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.JoinChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(JoinChatResponse_Result) },
+    { no: 2, name: "chat", kind: "message", T: Metadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JoinChatResponse {
+    return new JoinChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JoinChatResponse {
+    return new JoinChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JoinChatResponse {
+    return new JoinChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JoinChatResponse | PlainMessage<JoinChatResponse> | undefined, b: JoinChatResponse | PlainMessage<JoinChatResponse> | undefined): boolean {
+    return proto3.util.equals(JoinChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.JoinChatResponse.Result
+ */
+export enum JoinChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * @generated from enum value: RULES_NOT_SATISFIED = 3;
+   */
+  RULES_NOT_SATISFIED = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(JoinChatResponse_Result)
+proto3.util.setEnumType(JoinChatResponse_Result, "flipcash.chat.v1.JoinChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "RULES_NOT_SATISFIED" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.LeaveChatRequest
+ */
+export class LeaveChatRequest extends Message<LeaveChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<LeaveChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.LeaveChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LeaveChatRequest {
+    return new LeaveChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LeaveChatRequest {
+    return new LeaveChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LeaveChatRequest {
+    return new LeaveChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LeaveChatRequest | PlainMessage<LeaveChatRequest> | undefined, b: LeaveChatRequest | PlainMessage<LeaveChatRequest> | undefined): boolean {
+    return proto3.util.equals(LeaveChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.LeaveChatResponse
+ */
+export class LeaveChatResponse extends Message<LeaveChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.LeaveChatResponse.Result result = 1;
+   */
+  result = LeaveChatResponse_Result.OK;
+
+  constructor(data?: PartialMessage<LeaveChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.LeaveChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(LeaveChatResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LeaveChatResponse {
+    return new LeaveChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LeaveChatResponse {
+    return new LeaveChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LeaveChatResponse {
+    return new LeaveChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LeaveChatResponse | PlainMessage<LeaveChatResponse> | undefined, b: LeaveChatResponse | PlainMessage<LeaveChatResponse> | undefined): boolean {
+    return proto3.util.equals(LeaveChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.LeaveChatResponse.Result
+ */
+export enum LeaveChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(LeaveChatResponse_Result)
+proto3.util.setEnumType(LeaveChatResponse_Result, "flipcash.chat.v1.LeaveChatResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
