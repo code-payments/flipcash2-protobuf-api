@@ -337,6 +337,13 @@ export class BlobMetadata extends Message<BlobMetadata> {
    * Ephemeral, server-minted URL for fetching the blob bytes, together with
    * the instant it expires. Re-issued on every fetch — see DownloadUrl.
    *
+   * Absent when the viewer may know what the blob is but may not fetch its
+   * bytes: a redacted message (see messaging.v1.Message.redacted) carries
+   * each rendition's intrinsic metadata — for an image, its dimensions and
+   * blurhash — without a URL. A client renders such media from the blurhash
+   * alone and does not call GetBlobs to mint one; the blob is not readable
+   * by that viewer and the call would not return it.
+   *
    * @generated from field: flipcash.blob.v1.DownloadUrl download_url = 3;
    */
   downloadUrl?: DownloadUrl;
