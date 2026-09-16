@@ -885,3 +885,49 @@ export class RosterUpdateBatch extends Message<RosterUpdateBatch> {
   }
 }
 
+/**
+ * IdempotencyKey lets a client safely retry a request that creates something.
+ * The server derives the created object's identity from the caller and this
+ * key, so a retry with the same key returns the original result instead of
+ * creating a duplicate. Which parameters were sent is not part of the identity:
+ * a retry with different parameters still returns the original.
+ *
+ * The key is owned by the client and is typically a randomly generated UUID.
+ * It is never exposed as the object's identity.
+ *
+ * @generated from message flipcash.chat.v1.IdempotencyKey
+ */
+export class IdempotencyKey extends Message<IdempotencyKey> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<IdempotencyKey>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.IdempotencyKey";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IdempotencyKey {
+    return new IdempotencyKey().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IdempotencyKey {
+    return new IdempotencyKey().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IdempotencyKey {
+    return new IdempotencyKey().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IdempotencyKey | PlainMessage<IdempotencyKey> | undefined, b: IdempotencyKey | PlainMessage<IdempotencyKey> | undefined): boolean {
+    return proto3.util.equals(IdempotencyKey, a, b);
+  }
+}
+

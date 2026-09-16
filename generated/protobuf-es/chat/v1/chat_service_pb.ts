@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
-import { ChatType, Metadata, Rules } from "./model_pb";
+import { ChatType, IdempotencyKey, Metadata, Rules } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -446,6 +446,15 @@ export class StartChatRequest extends Message<StartChatRequest> {
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
+   * Key for retrying this request safely. A retry with the same key from the
+   * same caller returns the chat the first attempt created, with result OK,
+   * even if the parameters differ.
+   *
+   * @generated from field: flipcash.chat.v1.IdempotencyKey idempotency_key = 9;
+   */
+  idempotencyKey?: IdempotencyKey;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -459,6 +468,7 @@ export class StartChatRequest extends Message<StartChatRequest> {
   static readonly typeName = "flipcash.chat.v1.StartChatRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "group", kind: "message", T: StartChatRequest_GroupChatParameters, oneof: "parameters" },
+    { no: 9, name: "idempotency_key", kind: "message", T: IdempotencyKey },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
