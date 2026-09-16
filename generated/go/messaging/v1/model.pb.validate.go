@@ -473,6 +473,8 @@ func (m *Message) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Redacted
+
 	if len(errors) > 0 {
 		return MessageMultiError(errors)
 	}

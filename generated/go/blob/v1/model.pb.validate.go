@@ -678,17 +678,6 @@ func (m *BlobMetadata) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if m.GetDownloadUrl() == nil {
-		err := BlobMetadataValidationError{
-			field:  "DownloadUrl",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if all {
 		switch v := interface{}(m.GetDownloadUrl()).(type) {
 		case interface{ ValidateAll() error }:

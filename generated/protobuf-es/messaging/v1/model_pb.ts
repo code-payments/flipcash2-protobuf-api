@@ -187,6 +187,32 @@ export class Message extends Message$1<Message> {
    */
   reactions?: ReactionSummary;
 
+  /**
+   * Set when this copy of the message was redacted for the viewer: a
+   * non-member browsing a group whose listener rules they do not satisfy
+   * sees that the message exists and its shape, never what it says. The
+   * content keeps its kind and structure but holds placeholders — text of
+   * the same script, length and line structure; media with its dimensions
+   * and blurhash but no download_url; a reply to the same message with a
+   * placeholder body. Cash, system and deleted content are not redacted.
+   *
+   * Clients render a redacted message blurred, the way they render a
+   * blurhash, and must not offer to copy, quote, download or otherwise
+   * surface its content. The placeholder is a pure function of the
+   * message's identity and shape, so it is stable across pages and devices.
+   * A redacted copy is not a version of the message: event_sequence still
+   * describes the underlying message, and a client that later reads the
+   * same message unredacted replaces the placeholder on membership, not on
+   * a higher event_sequence.
+   *
+   * Per-viewer, like ReactionSummary.reacted_by_self: never set on a copy
+   * returned to a member. Absent on every message from a server that does
+   * not redact.
+   *
+   * @generated from field: bool redacted = 9;
+   */
+  redacted = false;
+
   constructor(data?: PartialMessage<Message>) {
     super();
     proto3.util.initPartial(data, this);
@@ -203,6 +229,7 @@ export class Message extends Message$1<Message> {
     { no: 6, name: "last_edited_ts", kind: "message", T: Timestamp },
     { no: 7, name: "event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 8, name: "reactions", kind: "message", T: ReactionSummary },
+    { no: 9, name: "redacted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Message {
