@@ -1069,6 +1069,46 @@ func (m *StartChatRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetIdempotencyKey() == nil {
+		err := StartChatRequestValidationError{
+			field:  "IdempotencyKey",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetIdempotencyKey()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StartChatRequestValidationError{
+					field:  "IdempotencyKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StartChatRequestValidationError{
+					field:  "IdempotencyKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetIdempotencyKey()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StartChatRequestValidationError{
+				field:  "IdempotencyKey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if m.GetAuth() == nil {
 		err := StartChatRequestValidationError{
 			field:  "Auth",

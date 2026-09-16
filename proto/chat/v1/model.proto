@@ -259,3 +259,18 @@ message RosterUpdateBatch {
         max_items: 100
     }];
 }
+
+// IdempotencyKey lets a client safely retry a request that creates something.
+// The server derives the created object's identity from the caller and this
+// key, so a retry with the same key returns the original result instead of
+// creating a duplicate. Which parameters were sent is not part of the identity:
+// a retry with different parameters still returns the original.
+//
+// The key is owned by the client and is typically a randomly generated UUID.
+// It is never exposed as the object's identity.
+message IdempotencyKey {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}

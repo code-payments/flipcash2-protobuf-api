@@ -214,6 +214,11 @@ message StartChatRequest {
         Rules rules = 3;
     }
 
+    // Key for retrying this request safely. A retry with the same key from the
+    // same caller returns the chat the first attempt created, with result OK,
+    // even if the parameters differ.
+    IdempotencyKey idempotency_key = 9 [(validate.rules).message.required = true];
+
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }
 
