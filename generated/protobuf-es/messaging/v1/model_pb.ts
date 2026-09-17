@@ -840,6 +840,9 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
    * sample_reactors are shareable across users, but this bit is computed for
    * the caller.
    *
+   * It is guaranteed to be computed at least at version returned for this
+   * aggregate.
+   *
    * @generated from field: bool reacted_by_self = 3;
    */
   reactedBySelf = false;

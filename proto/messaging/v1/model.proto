@@ -278,6 +278,9 @@ message EmojiReaction {
     // Whether the requesting user reacted with this emoji. Per-viewer: count and
     // sample_reactors are shareable across users, but this bit is computed for
     // the caller.
+    //
+    // It is guaranteed to be computed at least at version returned for this
+    // aggregate.
     bool reacted_by_self = 3;
 
     // A small sample of reactors (e.g. for rendering a few avatars), capped
