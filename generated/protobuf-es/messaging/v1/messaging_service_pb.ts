@@ -931,7 +931,8 @@ export class AddReactionResponse extends Message<AddReactionResponse> {
   result = AddReactionResponse_Result.OK;
 
   /**
-   * The affected emoji's aggregate after the add (count, reacted_by_self true).
+   * The affected emoji's aggregate after the add (count, self_reactor set at
+   * the aggregate's version).
    *
    * @generated from field: flipcash.messaging.v1.EmojiReaction reaction = 2;
    */
@@ -1374,7 +1375,7 @@ export class GetReactionSummaryResponse extends Message<GetReactionSummaryRespon
   result = GetReactionSummaryResponse_Result.OK;
 
   /**
-   * The aggregate reaction state for the message. reacted_by_self is computed
+   * The aggregate reaction state for the message. self_reactor is computed
    * for the caller; clients still apply per (message, emoji) by
    * EmojiReaction.version, so a summary that is slightly behind a live update
    * is harmlessly ignored rather than regressing state.
@@ -1511,7 +1512,7 @@ export class GetReactionSummariesResponse extends Message<GetReactionSummariesRe
 
   /**
    * One summary per requested message, keyed by ReactionSummary.message_id.
-   * reacted_by_self in each summary is computed for the caller; clients still
+   * self_reactor in each summary is computed for the caller; clients still
    * apply per (message, emoji) by EmojiReaction.version, so a summary that is
    * slightly behind a live update is harmlessly ignored rather than regressing
    * state.

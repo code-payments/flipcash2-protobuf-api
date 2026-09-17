@@ -1578,7 +1578,8 @@ type AddReactionResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Result AddReactionResponse_Result `protobuf:"varint,1,opt,name=result,proto3,enum=flipcash.messaging.v1.AddReactionResponse_Result" json:"result,omitempty"`
-	// The affected emoji's aggregate after the add (count, reacted_by_self true).
+	// The affected emoji's aggregate after the add (count, self_reactor set at
+	// the aggregate's version).
 	Reaction *EmojiReaction `protobuf:"bytes,2,opt,name=reaction,proto3" json:"reaction,omitempty"`
 }
 
@@ -1997,7 +1998,7 @@ type GetReactionSummaryResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Result GetReactionSummaryResponse_Result `protobuf:"varint,1,opt,name=result,proto3,enum=flipcash.messaging.v1.GetReactionSummaryResponse_Result" json:"result,omitempty"`
-	// The aggregate reaction state for the message. reacted_by_self is computed
+	// The aggregate reaction state for the message. self_reactor is computed
 	// for the caller; clients still apply per (message, emoji) by
 	// EmojiReaction.version, so a summary that is slightly behind a live update
 	// is harmlessly ignored rather than regressing state.
@@ -2150,7 +2151,7 @@ type GetReactionSummariesResponse struct {
 
 	Result GetReactionSummariesResponse_Result `protobuf:"varint,1,opt,name=result,proto3,enum=flipcash.messaging.v1.GetReactionSummariesResponse_Result" json:"result,omitempty"`
 	// One summary per requested message, keyed by ReactionSummary.message_id.
-	// reacted_by_self in each summary is computed for the caller; clients still
+	// self_reactor in each summary is computed for the caller; clients still
 	// apply per (message, emoji) by EmojiReaction.version, so a summary that is
 	// slightly behind a live update is harmlessly ignored rather than regressing
 	// state.
