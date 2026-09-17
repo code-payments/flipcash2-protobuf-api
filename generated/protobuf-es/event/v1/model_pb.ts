@@ -502,7 +502,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
    * If present, best-effort real-time reaction changes for messages in the
    * chat. Like pointer_updates, reactions are a convergent overlay — NOT part
    * of the gap-detected event log; clients apply them last-writer-wins by
-   * ReactionUpdate.sequence and reconcile any misses by refreshing a message's
+   * ReactionUpdate.version and reconcile any misses by refreshing a message's
    * ReactionSummary on view.
    *
    * @generated from field: flipcash.messaging.v1.ReactionUpdateBatch reaction_updates = 7;

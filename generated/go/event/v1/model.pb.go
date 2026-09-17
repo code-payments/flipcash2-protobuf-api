@@ -612,7 +612,7 @@ type ChatUpdate struct {
 	// If present, best-effort real-time reaction changes for messages in the
 	// chat. Like pointer_updates, reactions are a convergent overlay — NOT part
 	// of the gap-detected event log; clients apply them last-writer-wins by
-	// ReactionUpdate.sequence and reconcile any misses by refreshing a message's
+	// ReactionUpdate.version and reconcile any misses by refreshing a message's
 	// ReactionSummary on view.
 	ReactionUpdates *v11.ReactionUpdateBatch `protobuf:"bytes,7,opt,name=reaction_updates,json=reactionUpdates,proto3" json:"reaction_updates,omitempty"`
 	// If present, best-effort real-time roster changes for the chat — members
