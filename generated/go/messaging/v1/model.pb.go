@@ -1174,6 +1174,9 @@ type EmojiReaction struct {
 	// Whether the requesting user reacted with this emoji. Per-viewer: count and
 	// sample_reactors are shareable across users, but this bit is computed for
 	// the caller.
+	//
+	// It is guaranteed to be computed at least at version returned for this
+	// aggregate.
 	ReactedBySelf bool `protobuf:"varint,3,opt,name=reacted_by_self,json=reactedBySelf,proto3" json:"reacted_by_self,omitempty"`
 	// A small sample of reactors (e.g. for rendering a few avatars), capped
 	// well below count: the most recent reactors by Reactor.version, newest
