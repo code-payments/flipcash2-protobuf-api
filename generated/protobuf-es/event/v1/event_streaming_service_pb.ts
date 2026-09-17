@@ -6,7 +6,8 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { ChatEventBatch, ClientPong, EventBatch, ServerPing, UserEventBatch } from "./model_pb";
-import { Auth } from "../../common/v1/common_pb";
+import { Auth, ChatId } from "../../common/v1/common_pb";
+import { ViewMode } from "../../messaging/v1/model_pb";
 
 /**
  * @generated from message flipcash.event.v1.StreamEventsRequest
@@ -77,6 +78,22 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
    */
   ts?: Timestamp;
 
+  /**
+   * What the stream is for. Optional: when nothing is set, the stream is
+   * for the signing user and carries every event addressed to them, the
+   * contract that predates this field. When set, it takes over, and the
+   * stream carries only what the target describes.
+   *
+   * @generated from oneof flipcash.event.v1.StreamEventsRequest.Params.target
+   */
+  target: {
+    /**
+     * @generated from field: flipcash.event.v1.StreamEventsRequest.ChatParams chat = 3;
+     */
+    value: StreamEventsRequest_ChatParams;
+    case: "chat";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
   constructor(data?: PartialMessage<StreamEventsRequest_Params>) {
     super();
     proto3.util.initPartial(data, this);
@@ -87,6 +104,7 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "ts", kind: "message", T: Timestamp },
+    { no: 3, name: "chat", kind: "message", T: StreamEventsRequest_ChatParams, oneof: "target" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest_Params {
@@ -103,6 +121,81 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
 
   static equals(a: StreamEventsRequest_Params | PlainMessage<StreamEventsRequest_Params> | undefined, b: StreamEventsRequest_Params | PlainMessage<StreamEventsRequest_Params> | undefined): boolean {
     return proto3.util.equals(StreamEventsRequest_Params, a, b);
+  }
+}
+
+/**
+ * ChatParams targets a stream at a single chat: ChatUpdate for chat_id,
+ * under view_mode, and nothing else. No BlobUpdate, and no update for any
+ * other chat, is ever delivered on it.
+ *
+ * The stream opens only if the viewer may read the chat under the mode,
+ * by the same rule as any other read under a messaging.v1.ViewMode: a
+ * member, or a non-member of a group who satisfies its listener rules,
+ * may read in full; a non-member of a group with listener rules they do
+ * not satisfy may read redacted; anyone else is DENIED. A chat that does
+ * not exist is NOT_FOUND. Standing is evaluated at stream open, and the
+ * server may end the stream with DENIED if the viewer later may not read
+ * the chat under the mode — e.g. the rules changed, or they were removed
+ * from the roster.
+ *
+ * Within a ChatUpdate, the mode decides only the messages: those carried
+ * by events, and last_message in metadata_updates. Every message on the
+ * stream is delivered under the mode fixed at open, like GetDelta, never
+ * mixed, with Message.redacted set on each when redacted. Pointer,
+ * typing, reaction and roster overlays are delivered whatever the mode.
+ *
+ * A client reading a chat redacted keeps this stream and its
+ * GetMessages/GetDelta reads under the same mode, so the events it
+ * applies are shaped like the state it applies them to (see
+ * messaging.v1.Message.redacted).
+ *
+ * @generated from message flipcash.event.v1.StreamEventsRequest.ChatParams
+ */
+export class StreamEventsRequest_ChatParams extends Message<StreamEventsRequest_ChatParams> {
+  /**
+   * The one chat whose updates are streamed.
+   *
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * What the client intends to render of the chat, and so whether its
+   * messages may be delivered redacted (see messaging.v1.ViewMode).
+   * Unset (FULL) delivers full content to a viewer who may read the
+   * chat in full, and is DENIED to everyone else.
+   *
+   * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 2;
+   */
+  viewMode = ViewMode.FULL;
+
+  constructor(data?: PartialMessage<StreamEventsRequest_ChatParams>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.StreamEventsRequest.ChatParams";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest_ChatParams {
+    return new StreamEventsRequest_ChatParams().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreamEventsRequest_ChatParams {
+    return new StreamEventsRequest_ChatParams().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreamEventsRequest_ChatParams {
+    return new StreamEventsRequest_ChatParams().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StreamEventsRequest_ChatParams | PlainMessage<StreamEventsRequest_ChatParams> | undefined, b: StreamEventsRequest_ChatParams | PlainMessage<StreamEventsRequest_ChatParams> | undefined): boolean {
+    return proto3.util.equals(StreamEventsRequest_ChatParams, a, b);
   }
 }
 
@@ -213,11 +306,20 @@ export enum StreamEventsResponse_StreamError_Code {
    * @generated from enum value: INVALID_TIMESTAMP = 1;
    */
   INVALID_TIMESTAMP = 1,
+
+  /**
+   * The chat named by Params.chat does not exist. Never sent on a
+   * stream for the signing user.
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(StreamEventsResponse_StreamError_Code)
 proto3.util.setEnumType(StreamEventsResponse_StreamError_Code, "flipcash.event.v1.StreamEventsResponse.StreamError.Code", [
   { no: 0, name: "DENIED" },
   { no: 1, name: "INVALID_TIMESTAMP" },
+  { no: 2, name: "NOT_FOUND" },
 ]);
 
 /**
