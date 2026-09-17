@@ -27,7 +27,21 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventStreamingClient interface {
-	// StreamEvents streams events for the requesting user.
+	// StreamEvents streams events to the requesting user. Params, the first
+	// message on the stream, selects what is streamed:
+	//
+	//   - With no target set, every event addressed to the signing user, across
+	//     all of their events.
+	//   - With chat set, ChatUpdate for that single chat, under a
+	//     messaging.v1.ViewMode, and nothing else. This is how a viewer who is
+	//     not a member of a group — and so is not addressed by its events —
+	//     follows it live, and how any viewer follows a chat redacted.
+	//
+	// The two are independent. A client may hold several streams at once, e.g.
+	// a user stream plus a chat stream for the group it is currently reading
+	// as a non-member. Nothing is deduplicated across streams: a member who
+	// opens a chat stream for one of their own chats receives that chat's
+	// updates on both.
 	StreamEvents(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamEventsRequest, StreamEventsResponse], error)
 	// ForwardEvents is an internal RPC for forwarding events to another server.
 	ForwardEvents(ctx context.Context, in *ForwardEventsRequest, opts ...grpc.CallOption) (*ForwardEventsResponse, error)
@@ -68,7 +82,21 @@ func (c *eventStreamingClient) ForwardEvents(ctx context.Context, in *ForwardEve
 // All implementations must embed UnimplementedEventStreamingServer
 // for forward compatibility.
 type EventStreamingServer interface {
-	// StreamEvents streams events for the requesting user.
+	// StreamEvents streams events to the requesting user. Params, the first
+	// message on the stream, selects what is streamed:
+	//
+	//   - With no target set, every event addressed to the signing user, across
+	//     all of their events.
+	//   - With chat set, ChatUpdate for that single chat, under a
+	//     messaging.v1.ViewMode, and nothing else. This is how a viewer who is
+	//     not a member of a group — and so is not addressed by its events —
+	//     follows it live, and how any viewer follows a chat redacted.
+	//
+	// The two are independent. A client may hold several streams at once, e.g.
+	// a user stream plus a chat stream for the group it is currently reading
+	// as a non-member. Nothing is deduplicated across streams: a member who
+	// opens a chat stream for one of their own chats receives that chat's
+	// updates on both.
 	StreamEvents(grpc.BidiStreamingServer[StreamEventsRequest, StreamEventsResponse]) error
 	// ForwardEvents is an internal RPC for forwarding events to another server.
 	ForwardEvents(context.Context, *ForwardEventsRequest) (*ForwardEventsResponse, error)

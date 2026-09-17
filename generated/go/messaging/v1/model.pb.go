@@ -26,9 +26,9 @@ const (
 
 // ViewMode is what a client intends to render from a read of a chat's
 // messages, and so how much of them the server may return. It is set on
-// every read that returns a Message (GetMessage, GetMessages, GetDelta and
-// chat.v1.GetChat, for last_message) and is combined with the viewer's
-// standing in the chat:
+// every read that returns a Message (GetMessage, GetMessages, GetDelta,
+// chat.v1.GetChat, for last_message, and event.v1.StreamEvents when targeted
+// at a chat) and is combined with the viewer's standing in the chat:
 //
 //   - A member, or a non-member of a group who satisfies its listener rules,
 //     may read the chat in full.

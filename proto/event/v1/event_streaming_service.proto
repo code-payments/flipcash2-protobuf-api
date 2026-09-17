@@ -8,11 +8,26 @@ option objc_class_prefix = "FPBEventV1";
 
 import "event/v1/model.proto";
 import "common/v1/common.proto";
+import "messaging/v1/model.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
 service EventStreaming {
-    // StreamEvents streams events for the requesting user.
+    // StreamEvents streams events to the requesting user. Params, the first
+    // message on the stream, selects what is streamed:
+    //
+    //   - With no target set, every event addressed to the signing user, across
+    //     all of their events.
+    //   - With chat set, ChatUpdate for that single chat, under a
+    //     messaging.v1.ViewMode, and nothing else. This is how a viewer who is
+    //     not a member of a group — and so is not addressed by its events —
+    //     follows it live, and how any viewer follows a chat redacted.
+    //
+    // The two are independent. A client may hold several streams at once, e.g.
+    // a user stream plus a chat stream for the group it is currently reading
+    // as a non-member. Nothing is deduplicated across streams: a member who
+    // opens a chat stream for one of their own chats receives that chat's
+    // updates on both.
     rpc StreamEvents(stream StreamEventsRequest) returns (stream StreamEventsResponse);
 
     // ForwardEvents is an internal RPC for forwarding events to another server.
@@ -35,6 +50,51 @@ message StreamEventsRequest {
         // It is used primarily as a nonce for auth. Server may reject
         // timestamps that are too far in the future or past.
         google.protobuf.Timestamp ts = 2 [(validate.rules).timestamp.required = true];
+
+        // What the stream is for. Optional: when nothing is set, the stream is
+        // for the signing user and carries every event addressed to them, the
+        // contract that predates this field. When set, it takes over, and the
+        // stream carries only what the target describes.
+        oneof target {
+            ChatParams chat = 3;
+        }
+    }
+
+    // ChatParams targets a stream at a single chat: ChatUpdate for chat_id,
+    // under view_mode, and nothing else. No BlobUpdate, and no update for any
+    // other chat, is ever delivered on it.
+    //
+    // The stream opens only if the viewer may read the chat under the mode,
+    // by the same rule as any other read under a messaging.v1.ViewMode: a
+    // member, or a non-member of a group who satisfies its listener rules,
+    // may read in full; a non-member of a group with listener rules they do
+    // not satisfy may read redacted; anyone else is DENIED. A chat that does
+    // not exist is NOT_FOUND. Standing is evaluated at stream open, and the
+    // server may end the stream with DENIED if the viewer later may not read
+    // the chat under the mode — e.g. the rules changed, or they were removed
+    // from the roster.
+    //
+    // Within a ChatUpdate, the mode decides only the messages: those carried
+    // by events, and last_message in metadata_updates. Every message on the
+    // stream is delivered under the mode fixed at open, like GetDelta, never
+    // mixed, with Message.redacted set on each when redacted. Pointer,
+    // typing, reaction and roster overlays are delivered whatever the mode.
+    //
+    // A client reading a chat redacted keeps this stream and its
+    // GetMessages/GetDelta reads under the same mode, so the events it
+    // applies are shaped like the state it applies them to (see
+    // messaging.v1.Message.redacted).
+    message ChatParams {
+        // The one chat whose updates are streamed.
+        common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+        // What the client intends to render of the chat, and so whether its
+        // messages may be delivered redacted (see messaging.v1.ViewMode).
+        // Unset (FULL) delivers full content to a viewer who may read the
+        // chat in full, and is DENIED to everyone else.
+        messaging.v1.ViewMode view_mode = 2 [(validate.rules).enum = {
+            in: [0, 1, 2] // FULL, FULL_OR_REDACTED, REDACTED
+        }];
     }
 }
 
@@ -52,6 +112,9 @@ message StreamEventsResponse {
         enum Code {
             DENIED            = 0;
             INVALID_TIMESTAMP = 1;
+            // The chat named by Params.chat does not exist. Never sent on a
+            // stream for the signing user.
+            NOT_FOUND         = 2;
         }
     }
 }
