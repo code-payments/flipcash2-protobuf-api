@@ -141,6 +141,17 @@ export const Messaging = {
      * a given emoji — the on-demand drill-down behind EmojiReaction.count, which
      * never inlines the full reactor list.
      *
+     * The reaction reads (GetReactors, GetReactionSummary, GetReactionSummaries)
+     * carry no ViewMode, since they return no Message, and are answered for
+     * anyone who may read the chat under any mode: a member, or a non-member of
+     * a group that carries a listener rule, whether or not they satisfy it.
+     * Reactions are an overlay — who reacted, with what, on which message is
+     * the conversation's movement, not its words — and are delivered whole to a
+     * redacted reader, on these reads as on a chat preview stream (see
+     * event.v1.StreamEventsRequest.ChatPreviewParams). A non-member's
+     * self_reactor is always absent: reacting is a member's write. Anyone who
+     * may not read the chat at all is DENIED.
+     *
      * @generated from rpc flipcash.messaging.v1.Messaging.GetReactors
      */
     getReactors: {
@@ -151,7 +162,8 @@ export const Messaging = {
     },
     /**
      * GetReactionSummary fetches the current aggregate reaction state for a
-     * single message.
+     * single message. Answered for anyone who may read the chat under any mode
+     * (see GetReactors).
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.GetReactionSummary
      */
@@ -163,7 +175,8 @@ export const Messaging = {
     },
     /**
      * GetReactionSummaries fetches the current aggregate reaction state using
-     * paged and batched APIs
+     * paged and batched APIs. Answered for anyone who may read the chat under
+     * any mode (see GetReactors).
      *
      * @generated from rpc flipcash.messaging.v1.Messaging.GetReactionSummaries
      */
