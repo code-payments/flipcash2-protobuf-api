@@ -98,6 +98,13 @@ message GetMessageRequest {
 
     MessageId message_id = 2 [(validate.rules).message.required = true];
 
+    // What the client intends to render, and so whether the message may be
+    // returned redacted (see ViewMode). Unset (FULL) is the pre-redaction
+    // contract: full content, or DENIED.
+    ViewMode view_mode = 3 [(validate.rules).enum = {
+        in: [0, 1, 2] // FULL, FULL_OR_REDACTED, REDACTED
+    }];
+
     common.v1.Auth auth = 10;
 }
 
@@ -122,6 +129,15 @@ message GetMessagesRequest {
         MessageIdBatch         message_ids  = 3;
     }
 
+    // What the client intends to render, and so whether the messages may be
+    // returned redacted (see ViewMode). Applies to both query forms. Unset
+    // (FULL) is the pre-redaction contract: full content, or DENIED. Every
+    // message in a response is returned under the same mode: a page is
+    // either wholly full or wholly redacted, never mixed.
+    ViewMode view_mode = 4 [(validate.rules).enum = {
+        in: [0, 1, 2] // FULL, FULL_OR_REDACTED, REDACTED
+    }];
+
     common.v1.Auth auth = 10;
 }
 
@@ -144,6 +160,17 @@ message GetDeltaRequest {
     // this value, up to the current head. Use 0 to fetch from the beginning of
     // the retained log.
     uint64 after_sequence = 2;
+
+    // What the client intends to render, and so whether the messages may be
+    // returned redacted (see ViewMode). Unset (FULL) is the pre-redaction
+    // contract: full content, or DENIED. The mode is fixed at stream open,
+    // like latest_sequence: every batch in the stream is returned under the
+    // same mode, never mixed. A client catching up a redacted view must use
+    // the same mode it read the history under, so the delta it applies is
+    // shaped like the state it applies it to.
+    ViewMode view_mode = 3 [(validate.rules).enum = {
+        in: [0, 1, 2] // FULL, FULL_OR_REDACTED, REDACTED
+    }];
 
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }

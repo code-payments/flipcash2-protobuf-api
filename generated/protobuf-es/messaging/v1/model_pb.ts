@@ -9,6 +9,73 @@ import { CryptoPaymentAmount, IntentId, UserId } from "../../common/v1/common_pb
 import { Media } from "../../blob/v1/model_pb";
 
 /**
+ * ViewMode is what a client intends to render from a read of a chat's
+ * messages, and so how much of them the server may return. It is set on
+ * every read that returns a Message (GetMessage, GetMessages, GetDelta and
+ * chat.v1.GetChat, for last_message) and is combined with the viewer's
+ * standing in the chat:
+ *
+ *   - A member, or a non-member of a group who satisfies its listener rules,
+ *     may read the chat in full.
+ *   - A non-member of a group who does not satisfy its listener rules may
+ *     read it redacted, provided the group has at least one listener rule.
+ *   - Anyone else — a non-member of a DM, or of a group with no listener
+ *     rules — may not read it at all.
+ *
+ * The mode never widens what the standing allows: it can turn a full read
+ * into a redacted one, or a refusal into a redacted read, but never a
+ * redacted read into a full one. Redaction is the server's, not the
+ * client's; blurring full content on the device is not a substitute, since
+ * the content is still on the device.
+ *
+ * The default, FULL, is the contract that predates redaction, so a client
+ * that does not set the field behaves exactly as before.
+ *
+ * @generated from enum flipcash.messaging.v1.ViewMode
+ */
+export enum ViewMode {
+  /**
+   * Full content or nothing. A viewer who may read the chat in full gets
+   * it; every other viewer is DENIED. Never returns a redacted message, so
+   * a client that does not understand Message.redacted is never handed one.
+   *
+   * @generated from enum value: FULL = 0;
+   */
+  FULL = 0,
+
+  /**
+   * The most the viewer's standing allows. A viewer who may read the chat
+   * in full gets it; a viewer who may only read it redacted gets it
+   * redacted, with Message.redacted set on every message; every other
+   * viewer is DENIED. The server evaluates the group's listener rules to
+   * decide which, so this mode costs what a full read costs.
+   *
+   * @generated from enum value: FULL_OR_REDACTED = 1;
+   */
+  FULL_OR_REDACTED = 1,
+
+  /**
+   * Redacted content, always. Every viewer who may read the chat at all —
+   * in full or redacted — gets it redacted, with Message.redacted set on
+   * every message; every other viewer is DENIED. A member asking for
+   * REDACTED gets placeholders too. The server does not evaluate the
+   * group's listener rules, only that it carries one, so this is the cheap
+   * way to render a group blurred, and the mode to use whenever the client
+   * intends to render it blurred regardless of whether the viewer could
+   * read it in full.
+   *
+   * @generated from enum value: REDACTED = 2;
+   */
+  REDACTED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ViewMode)
+proto3.util.setEnumType(ViewMode, "flipcash.messaging.v1.ViewMode", [
+  { no: 0, name: "FULL" },
+  { no: 1, name: "FULL_OR_REDACTED" },
+  { no: 2, name: "REDACTED" },
+]);
+
+/**
  * @generated from message flipcash.messaging.v1.MessageId
  */
 export class MessageId extends Message$1<MessageId> {
@@ -188,26 +255,35 @@ export class Message extends Message$1<Message> {
   reactions?: ReactionSummary;
 
   /**
-   * Set when this copy of the message was redacted for the viewer: a
-   * non-member browsing a group whose listener rules they do not satisfy
-   * sees that the message exists and its shape, never what it says. The
-   * content keeps its kind and structure but holds placeholders — text of
-   * the same script, length and line structure; media with its dimensions
-   * and blurhash but no download_url; a reply to the same message with a
-   * placeholder body. Cash, system and deleted content are not redacted.
+   * Set when this copy of the message was redacted for the viewer: the
+   * viewer sees that the message exists and its shape, never what it says.
+   * The content keeps its kind and structure but holds placeholders — text
+   * of the same script, length and line structure; media with its
+   * dimensions and blurhash but no download_url; a reply to the same
+   * message with a placeholder body. Cash, system and deleted content are
+   * not redacted.
+   *
+   * A copy is redacted for one of two reasons, and the client cannot tell
+   * which from the message alone (see ViewMode on the read request):
+   *  - The viewer asked for FULL_OR_REDACTED and is a non-member of a group
+   *    whose listener rules they do not satisfy. Full content would have
+   *    been DENIED.
+   *  - The viewer asked for REDACTED, whatever their standing.
    *
    * Clients render a redacted message blurred, the way they render a
    * blurhash, and must not offer to copy, quote, download or otherwise
    * surface its content. The placeholder is a pure function of the
-   * message's identity and shape, so it is stable across pages and devices.
-   * A redacted copy is not a version of the message: event_sequence still
-   * describes the underlying message, and a client that later reads the
-   * same message unredacted replaces the placeholder on membership, not on
-   * a higher event_sequence.
+   * message's identity and shape, so it is stable across pages, devices and
+   * view modes. A redacted copy is not a version of the message:
+   * event_sequence still describes the underlying message, and a client
+   * that later reads the same message unredacted replaces the placeholder
+   * because the read was unredacted, not because of a higher
+   * event_sequence. Clients should keep redacted and unredacted copies of a
+   * chat apart (keyed by the ViewMode the read was made under) rather than
+   * merging them into one history.
    *
-   * Per-viewer, like EmojiReaction.self_reactor: never set on a copy
-   * returned to a member. Absent on every message from a server that does
-   * not redact.
+   * Per-viewer, like EmojiReaction.self_reactor. Absent on every message
+   * from a server that does not redact.
    *
    * @generated from field: bool redacted = 9;
    */

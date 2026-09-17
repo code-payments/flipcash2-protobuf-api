@@ -91,7 +91,10 @@ type Metadata struct {
 	// For large group chats, this is a subset of all members. Use
 	// RosterSummary.member_count to infer if there are more members.
 	Members []*Member `protobuf:"bytes,3,rep,name=members,proto3" json:"members,omitempty"`
-	// The last message in this chat
+	// The last message in this chat. Withheld, along with
+	// latest_event_sequence, from a viewer who may not read the chat. May be
+	// redacted (see messaging.v1.Message.redacted) when the read was made
+	// under a messaging.v1.ViewMode other than FULL.
 	LastMessage *v11.Message `protobuf:"bytes,4,opt,name=last_message,json=lastMessage,proto3" json:"last_message,omitempty"`
 	// The timestamp of the last activity in this chat
 	LastActivity *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=last_activity,json=lastActivity,proto3" json:"last_activity,omitempty"`
