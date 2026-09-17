@@ -69,7 +69,10 @@ export class Metadata extends Message<Metadata> {
   members: Member[] = [];
 
   /**
-   * The last message in this chat
+   * The last message in this chat. Withheld, along with
+   * latest_event_sequence, from a viewer who may not read the chat. May be
+   * redacted (see messaging.v1.Message.redacted) when the read was made
+   * under a messaging.v1.ViewMode other than FULL.
    *
    * @generated from field: flipcash.messaging.v1.Message last_message = 4;
    */

@@ -137,6 +137,17 @@ func (m *GetMessageRequest) validate(all bool) error {
 		}
 	}
 
+	if _, ok := _GetMessageRequest_ViewMode_InLookup[m.GetViewMode()]; !ok {
+		err := GetMessageRequestValidationError{
+			field:  "ViewMode",
+			reason: "value must be in list [FULL FULL_OR_REDACTED REDACTED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:
@@ -245,6 +256,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetMessageRequestValidationError{}
+
+var _GetMessageRequest_ViewMode_InLookup = map[ViewMode]struct{}{
+	0: {},
+	1: {},
+	2: {},
+}
 
 // Validate checks the field values on GetMessageResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -439,6 +456,17 @@ func (m *GetMessagesRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	if _, ok := _GetMessagesRequest_ViewMode_InLookup[m.GetViewMode()]; !ok {
+		err := GetMessagesRequestValidationError{
+			field:  "ViewMode",
+			reason: "value must be in list [FULL FULL_OR_REDACTED REDACTED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if all {
@@ -650,6 +678,12 @@ var _ interface {
 	ErrorName() string
 } = GetMessagesRequestValidationError{}
 
+var _GetMessagesRequest_ViewMode_InLookup = map[ViewMode]struct{}{
+	0: {},
+	1: {},
+	2: {},
+}
+
 // Validate checks the field values on GetMessagesResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -847,6 +881,17 @@ func (m *GetDeltaRequest) validate(all bool) error {
 
 	// no validation rules for AfterSequence
 
+	if _, ok := _GetDeltaRequest_ViewMode_InLookup[m.GetViewMode()]; !ok {
+		err := GetDeltaRequestValidationError{
+			field:  "ViewMode",
+			reason: "value must be in list [FULL FULL_OR_REDACTED REDACTED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if m.GetAuth() == nil {
 		err := GetDeltaRequestValidationError{
 			field:  "Auth",
@@ -964,6 +1009,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetDeltaRequestValidationError{}
+
+var _GetDeltaRequest_ViewMode_InLookup = map[ViewMode]struct{}{
+	0: {},
+	1: {},
+	2: {},
+}
 
 // Validate checks the field values on GetDeltaResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the

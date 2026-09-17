@@ -34,7 +34,10 @@ message Metadata {
     // RosterSummary.member_count to infer if there are more members.
     repeated Member members = 3;
 
-    // The last message in this chat
+    // The last message in this chat. Withheld, along with
+    // latest_event_sequence, from a viewer who may not read the chat. May be
+    // redacted (see messaging.v1.Message.redacted) when the read was made
+    // under a messaging.v1.ViewMode other than FULL.
     messaging.v1.Message last_message = 4;
 
     // The timestamp of the last activity in this chat

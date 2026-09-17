@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
+import { ViewMode } from "../../messaging/v1/model_pb";
 import { ChatType, IdempotencyKey, Metadata, Rules } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
@@ -18,6 +19,20 @@ export class GetChatRequest extends Message<GetChatRequest> {
    * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
   chatId?: ChatId;
+
+  /**
+   * What the client intends to render of the chat's messaging state — its
+   * last_message and latest_event_sequence — and so whether they may be
+   * returned redacted (see messaging.v1.ViewMode). A group's record (title,
+   * picture, rules, roster summary) is returned to every registered user
+   * whatever the mode; the mode decides only the messaging state, which is
+   * withheld from a viewer who may not read the chat under it. Unset (FULL)
+   * is the pre-redaction contract: messaging state for a viewer who may
+   * read the chat in full, the bare record for anyone else.
+   *
+   * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 2;
+   */
+  viewMode = ViewMode.FULL;
 
   /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
@@ -33,6 +48,7 @@ export class GetChatRequest extends Message<GetChatRequest> {
   static readonly typeName = "flipcash.chat.v1.GetChatRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 

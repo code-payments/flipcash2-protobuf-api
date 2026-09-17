@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
-import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, ReactionSummary, Reactor } from "./model_pb";
+import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, ReactionSummary, Reactor, ViewMode } from "./model_pb";
 
 /**
  * @generated from message flipcash.messaging.v1.GetMessageRequest
@@ -23,6 +23,15 @@ export class GetMessageRequest extends Message<GetMessageRequest> {
   messageId?: MessageId;
 
   /**
+   * What the client intends to render, and so whether the message may be
+   * returned redacted (see ViewMode). Unset (FULL) is the pre-redaction
+   * contract: full content, or DENIED.
+   *
+   * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 3;
+   */
+  viewMode = ViewMode.FULL;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -37,6 +46,7 @@ export class GetMessageRequest extends Message<GetMessageRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 3, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -153,6 +163,17 @@ export class GetMessagesRequest extends Message<GetMessagesRequest> {
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
+   * What the client intends to render, and so whether the messages may be
+   * returned redacted (see ViewMode). Applies to both query forms. Unset
+   * (FULL) is the pre-redaction contract: full content, or DENIED. Every
+   * message in a response is returned under the same mode: a page is
+   * either wholly full or wholly redacted, never mixed.
+   *
+   * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 4;
+   */
+  viewMode = ViewMode.FULL;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -168,6 +189,7 @@ export class GetMessagesRequest extends Message<GetMessagesRequest> {
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "options", kind: "message", T: QueryOptions, oneof: "query" },
     { no: 3, name: "message_ids", kind: "message", T: MessageIdBatch, oneof: "query" },
+    { no: 4, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -277,6 +299,19 @@ export class GetDeltaRequest extends Message<GetDeltaRequest> {
   afterSequence = protoInt64.zero;
 
   /**
+   * What the client intends to render, and so whether the messages may be
+   * returned redacted (see ViewMode). Unset (FULL) is the pre-redaction
+   * contract: full content, or DENIED. The mode is fixed at stream open,
+   * like latest_sequence: every batch in the stream is returned under the
+   * same mode, never mixed. A client catching up a redacted view must use
+   * the same mode it read the history under, so the delta it applies is
+   * shaped like the state it applies it to.
+   *
+   * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 3;
+   */
+  viewMode = ViewMode.FULL;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -291,6 +326,7 @@ export class GetDeltaRequest extends Message<GetDeltaRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "after_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 

@@ -24,6 +24,92 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ViewMode is what a client intends to render from a read of a chat's
+// messages, and so how much of them the server may return. It is set on
+// every read that returns a Message (GetMessage, GetMessages, GetDelta and
+// chat.v1.GetChat, for last_message) and is combined with the viewer's
+// standing in the chat:
+//
+//   - A member, or a non-member of a group who satisfies its listener rules,
+//     may read the chat in full.
+//   - A non-member of a group who does not satisfy its listener rules may
+//     read it redacted, provided the group has at least one listener rule.
+//   - Anyone else — a non-member of a DM, or of a group with no listener
+//     rules — may not read it at all.
+//
+// The mode never widens what the standing allows: it can turn a full read
+// into a redacted one, or a refusal into a redacted read, but never a
+// redacted read into a full one. Redaction is the server's, not the
+// client's; blurring full content on the device is not a substitute, since
+// the content is still on the device.
+//
+// The default, FULL, is the contract that predates redaction, so a client
+// that does not set the field behaves exactly as before.
+type ViewMode int32
+
+const (
+	// Full content or nothing. A viewer who may read the chat in full gets
+	// it; every other viewer is DENIED. Never returns a redacted message, so
+	// a client that does not understand Message.redacted is never handed one.
+	ViewMode_FULL ViewMode = 0
+	// The most the viewer's standing allows. A viewer who may read the chat
+	// in full gets it; a viewer who may only read it redacted gets it
+	// redacted, with Message.redacted set on every message; every other
+	// viewer is DENIED. The server evaluates the group's listener rules to
+	// decide which, so this mode costs what a full read costs.
+	ViewMode_FULL_OR_REDACTED ViewMode = 1
+	// Redacted content, always. Every viewer who may read the chat at all —
+	// in full or redacted — gets it redacted, with Message.redacted set on
+	// every message; every other viewer is DENIED. A member asking for
+	// REDACTED gets placeholders too. The server does not evaluate the
+	// group's listener rules, only that it carries one, so this is the cheap
+	// way to render a group blurred, and the mode to use whenever the client
+	// intends to render it blurred regardless of whether the viewer could
+	// read it in full.
+	ViewMode_REDACTED ViewMode = 2
+)
+
+// Enum value maps for ViewMode.
+var (
+	ViewMode_name = map[int32]string{
+		0: "FULL",
+		1: "FULL_OR_REDACTED",
+		2: "REDACTED",
+	}
+	ViewMode_value = map[string]int32{
+		"FULL":             0,
+		"FULL_OR_REDACTED": 1,
+		"REDACTED":         2,
+	}
+)
+
+func (x ViewMode) Enum() *ViewMode {
+	p := new(ViewMode)
+	*p = x
+	return p
+}
+
+func (x ViewMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ViewMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_messaging_v1_model_proto_enumTypes[0].Descriptor()
+}
+
+func (ViewMode) Type() protoreflect.EnumType {
+	return &file_messaging_v1_model_proto_enumTypes[0]
+}
+
+func (x ViewMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ViewMode.Descriptor instead.
+func (ViewMode) EnumDescriptor() ([]byte, []int) {
+	return file_messaging_v1_model_proto_rawDescGZIP(), []int{0}
+}
+
 // Verb for how the cash was sent. Clietns should always show SENT as a
 // fallback.
 type CashContent_Verb int32
@@ -56,11 +142,11 @@ func (x CashContent_Verb) String() string {
 }
 
 func (CashContent_Verb) Descriptor() protoreflect.EnumDescriptor {
-	return file_messaging_v1_model_proto_enumTypes[0].Descriptor()
+	return file_messaging_v1_model_proto_enumTypes[1].Descriptor()
 }
 
 func (CashContent_Verb) Type() protoreflect.EnumType {
-	return &file_messaging_v1_model_proto_enumTypes[0]
+	return &file_messaging_v1_model_proto_enumTypes[1]
 }
 
 func (x CashContent_Verb) Number() protoreflect.EnumNumber {
@@ -105,11 +191,11 @@ func (x ReactionUpdate_Action) String() string {
 }
 
 func (ReactionUpdate_Action) Descriptor() protoreflect.EnumDescriptor {
-	return file_messaging_v1_model_proto_enumTypes[1].Descriptor()
+	return file_messaging_v1_model_proto_enumTypes[2].Descriptor()
 }
 
 func (ReactionUpdate_Action) Type() protoreflect.EnumType {
-	return &file_messaging_v1_model_proto_enumTypes[1]
+	return &file_messaging_v1_model_proto_enumTypes[2]
 }
 
 func (x ReactionUpdate_Action) Number() protoreflect.EnumNumber {
@@ -157,11 +243,11 @@ func (x Pointer_Type) String() string {
 }
 
 func (Pointer_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_messaging_v1_model_proto_enumTypes[2].Descriptor()
+	return file_messaging_v1_model_proto_enumTypes[3].Descriptor()
 }
 
 func (Pointer_Type) Type() protoreflect.EnumType {
-	return &file_messaging_v1_model_proto_enumTypes[2]
+	return &file_messaging_v1_model_proto_enumTypes[3]
 }
 
 func (x Pointer_Type) Number() protoreflect.EnumNumber {
@@ -212,11 +298,11 @@ func (x IsTypingNotification_State) String() string {
 }
 
 func (IsTypingNotification_State) Descriptor() protoreflect.EnumDescriptor {
-	return file_messaging_v1_model_proto_enumTypes[3].Descriptor()
+	return file_messaging_v1_model_proto_enumTypes[4].Descriptor()
 }
 
 func (IsTypingNotification_State) Type() protoreflect.EnumType {
-	return &file_messaging_v1_model_proto_enumTypes[3]
+	return &file_messaging_v1_model_proto_enumTypes[4]
 }
 
 func (x IsTypingNotification_State) Number() protoreflect.EnumNumber {
@@ -381,26 +467,35 @@ type Message struct {
 	// clients refresh it on view and via live reaction updates rather than
 	// through the event log.
 	Reactions *ReactionSummary `protobuf:"bytes,8,opt,name=reactions,proto3" json:"reactions,omitempty"`
-	// Set when this copy of the message was redacted for the viewer: a
-	// non-member browsing a group whose listener rules they do not satisfy
-	// sees that the message exists and its shape, never what it says. The
-	// content keeps its kind and structure but holds placeholders — text of
-	// the same script, length and line structure; media with its dimensions
-	// and blurhash but no download_url; a reply to the same message with a
-	// placeholder body. Cash, system and deleted content are not redacted.
+	// Set when this copy of the message was redacted for the viewer: the
+	// viewer sees that the message exists and its shape, never what it says.
+	// The content keeps its kind and structure but holds placeholders — text
+	// of the same script, length and line structure; media with its
+	// dimensions and blurhash but no download_url; a reply to the same
+	// message with a placeholder body. Cash, system and deleted content are
+	// not redacted.
+	//
+	// A copy is redacted for one of two reasons, and the client cannot tell
+	// which from the message alone (see ViewMode on the read request):
+	//   - The viewer asked for FULL_OR_REDACTED and is a non-member of a group
+	//     whose listener rules they do not satisfy. Full content would have
+	//     been DENIED.
+	//   - The viewer asked for REDACTED, whatever their standing.
 	//
 	// Clients render a redacted message blurred, the way they render a
 	// blurhash, and must not offer to copy, quote, download or otherwise
 	// surface its content. The placeholder is a pure function of the
-	// message's identity and shape, so it is stable across pages and devices.
-	// A redacted copy is not a version of the message: event_sequence still
-	// describes the underlying message, and a client that later reads the
-	// same message unredacted replaces the placeholder on membership, not on
-	// a higher event_sequence.
+	// message's identity and shape, so it is stable across pages, devices and
+	// view modes. A redacted copy is not a version of the message:
+	// event_sequence still describes the underlying message, and a client
+	// that later reads the same message unredacted replaces the placeholder
+	// because the read was unredacted, not because of a higher
+	// event_sequence. Clients should keep redacted and unredacted copies of a
+	// chat apart (keyed by the ViewMode the read was made under) rather than
+	// merging them into one history.
 	//
-	// Per-viewer, like EmojiReaction.self_reactor: never set on a copy
-	// returned to a member. Absent on every message from a server that does
-	// not redact.
+	// Per-viewer, like EmojiReaction.self_reactor. Absent on every message
+	// from a server that does not redact.
 	Redacted bool `protobuf:"varint,9,opt,name=redacted,proto3" json:"redacted,omitempty"`
 }
 
@@ -2300,16 +2395,20 @@ var file_messaging_v1_model_proto_rawDesc = []byte{
 	0x6e, 0x67, 0x4e, 0x6f, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x0a,
 	0xfa, 0x42, 0x07, 0x92, 0x01, 0x04, 0x08, 0x01, 0x10, 0x64, 0x52, 0x15, 0x69, 0x73, 0x54, 0x79,
 	0x70, 0x69, 0x6e, 0x67, 0x4e, 0x6f, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x73, 0x42, 0x8f, 0x01, 0x0a, 0x25, 0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e,
-	0x63, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x6d,
-	0x65, 0x73, 0x73, 0x61, 0x67, 0x69, 0x6e, 0x67, 0x2e, 0x76, 0x31, 0x5a, 0x55, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70, 0x61, 0x79,
-	0x6d, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x32, 0x2d,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e,
-	0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x69, 0x6e, 0x67, 0x2f, 0x76, 0x31, 0x3b, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x69, 0x6e, 0x67,
-	0x70, 0x62, 0xa2, 0x02, 0x0e, 0x46, 0x50, 0x42, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x69, 0x6e,
-	0x67, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x2a, 0x38, 0x0a, 0x08, 0x56, 0x69, 0x65, 0x77, 0x4d, 0x6f, 0x64, 0x65, 0x12, 0x08, 0x0a,
+	0x04, 0x46, 0x55, 0x4c, 0x4c, 0x10, 0x00, 0x12, 0x14, 0x0a, 0x10, 0x46, 0x55, 0x4c, 0x4c, 0x5f,
+	0x4f, 0x52, 0x5f, 0x52, 0x45, 0x44, 0x41, 0x43, 0x54, 0x45, 0x44, 0x10, 0x01, 0x12, 0x0c, 0x0a,
+	0x08, 0x52, 0x45, 0x44, 0x41, 0x43, 0x54, 0x45, 0x44, 0x10, 0x02, 0x42, 0x8f, 0x01, 0x0a, 0x25,
+	0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e, 0x66, 0x6c, 0x69, 0x70,
+	0x63, 0x61, 0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x69,
+	0x6e, 0x67, 0x2e, 0x76, 0x31, 0x5a, 0x55, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x2f,
+	0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x32, 0x2d, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64,
+	0x2f, 0x67, 0x6f, 0x2f, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x69, 0x6e, 0x67, 0x2f, 0x76, 0x31,
+	0x3b, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x69, 0x6e, 0x67, 0x70, 0x62, 0xa2, 0x02, 0x0e, 0x46,
+	0x50, 0x42, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x69, 0x6e, 0x67, 0x56, 0x31, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2324,95 +2423,96 @@ func file_messaging_v1_model_proto_rawDescGZIP() []byte {
 	return file_messaging_v1_model_proto_rawDescData
 }
 
-var file_messaging_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_messaging_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_messaging_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_messaging_v1_model_proto_goTypes = []any{
-	(CashContent_Verb)(0),             // 0: flipcash.messaging.v1.CashContent.Verb
-	(ReactionUpdate_Action)(0),        // 1: flipcash.messaging.v1.ReactionUpdate.Action
-	(Pointer_Type)(0),                 // 2: flipcash.messaging.v1.Pointer.Type
-	(IsTypingNotification_State)(0),   // 3: flipcash.messaging.v1.IsTypingNotification.State
-	(*MessageId)(nil),                 // 4: flipcash.messaging.v1.MessageId
-	(*ClientMessageId)(nil),           // 5: flipcash.messaging.v1.ClientMessageId
-	(*Message)(nil),                   // 6: flipcash.messaging.v1.Message
-	(*Content)(nil),                   // 7: flipcash.messaging.v1.Content
-	(*TextContent)(nil),               // 8: flipcash.messaging.v1.TextContent
-	(*CashContent)(nil),               // 9: flipcash.messaging.v1.CashContent
-	(*ReplyContent)(nil),              // 10: flipcash.messaging.v1.ReplyContent
-	(*MediaContent)(nil),              // 11: flipcash.messaging.v1.MediaContent
-	(*SystemContent)(nil),             // 12: flipcash.messaging.v1.SystemContent
-	(*DeletedContent)(nil),            // 13: flipcash.messaging.v1.DeletedContent
-	(*Emoji)(nil),                     // 14: flipcash.messaging.v1.Emoji
-	(*Reactor)(nil),                   // 15: flipcash.messaging.v1.Reactor
-	(*ReactionSummary)(nil),           // 16: flipcash.messaging.v1.ReactionSummary
-	(*EmojiReaction)(nil),             // 17: flipcash.messaging.v1.EmojiReaction
-	(*ReactionUpdate)(nil),            // 18: flipcash.messaging.v1.ReactionUpdate
-	(*ReactionUpdateBatch)(nil),       // 19: flipcash.messaging.v1.ReactionUpdateBatch
-	(*Pointer)(nil),                   // 20: flipcash.messaging.v1.Pointer
-	(*MessageIdBatch)(nil),            // 21: flipcash.messaging.v1.MessageIdBatch
-	(*MessageBatch)(nil),              // 22: flipcash.messaging.v1.MessageBatch
-	(*PointerBatch)(nil),              // 23: flipcash.messaging.v1.PointerBatch
-	(*Event)(nil),                     // 24: flipcash.messaging.v1.Event
-	(*Mutation)(nil),                  // 25: flipcash.messaging.v1.Mutation
-	(*EventBatch)(nil),                // 26: flipcash.messaging.v1.EventBatch
-	(*IsTypingNotification)(nil),      // 27: flipcash.messaging.v1.IsTypingNotification
-	(*IsTypingNotificationBatch)(nil), // 28: flipcash.messaging.v1.IsTypingNotificationBatch
-	(*v1.UserId)(nil),                 // 29: flipcash.common.v1.UserId
-	(*timestamppb.Timestamp)(nil),     // 30: google.protobuf.Timestamp
-	(*v1.IntentId)(nil),               // 31: flipcash.common.v1.IntentId
-	(*v1.CryptoPaymentAmount)(nil),    // 32: flipcash.common.v1.CryptoPaymentAmount
-	(*v11.Media)(nil),                 // 33: flipcash.blob.v1.Media
+	(ViewMode)(0),                     // 0: flipcash.messaging.v1.ViewMode
+	(CashContent_Verb)(0),             // 1: flipcash.messaging.v1.CashContent.Verb
+	(ReactionUpdate_Action)(0),        // 2: flipcash.messaging.v1.ReactionUpdate.Action
+	(Pointer_Type)(0),                 // 3: flipcash.messaging.v1.Pointer.Type
+	(IsTypingNotification_State)(0),   // 4: flipcash.messaging.v1.IsTypingNotification.State
+	(*MessageId)(nil),                 // 5: flipcash.messaging.v1.MessageId
+	(*ClientMessageId)(nil),           // 6: flipcash.messaging.v1.ClientMessageId
+	(*Message)(nil),                   // 7: flipcash.messaging.v1.Message
+	(*Content)(nil),                   // 8: flipcash.messaging.v1.Content
+	(*TextContent)(nil),               // 9: flipcash.messaging.v1.TextContent
+	(*CashContent)(nil),               // 10: flipcash.messaging.v1.CashContent
+	(*ReplyContent)(nil),              // 11: flipcash.messaging.v1.ReplyContent
+	(*MediaContent)(nil),              // 12: flipcash.messaging.v1.MediaContent
+	(*SystemContent)(nil),             // 13: flipcash.messaging.v1.SystemContent
+	(*DeletedContent)(nil),            // 14: flipcash.messaging.v1.DeletedContent
+	(*Emoji)(nil),                     // 15: flipcash.messaging.v1.Emoji
+	(*Reactor)(nil),                   // 16: flipcash.messaging.v1.Reactor
+	(*ReactionSummary)(nil),           // 17: flipcash.messaging.v1.ReactionSummary
+	(*EmojiReaction)(nil),             // 18: flipcash.messaging.v1.EmojiReaction
+	(*ReactionUpdate)(nil),            // 19: flipcash.messaging.v1.ReactionUpdate
+	(*ReactionUpdateBatch)(nil),       // 20: flipcash.messaging.v1.ReactionUpdateBatch
+	(*Pointer)(nil),                   // 21: flipcash.messaging.v1.Pointer
+	(*MessageIdBatch)(nil),            // 22: flipcash.messaging.v1.MessageIdBatch
+	(*MessageBatch)(nil),              // 23: flipcash.messaging.v1.MessageBatch
+	(*PointerBatch)(nil),              // 24: flipcash.messaging.v1.PointerBatch
+	(*Event)(nil),                     // 25: flipcash.messaging.v1.Event
+	(*Mutation)(nil),                  // 26: flipcash.messaging.v1.Mutation
+	(*EventBatch)(nil),                // 27: flipcash.messaging.v1.EventBatch
+	(*IsTypingNotification)(nil),      // 28: flipcash.messaging.v1.IsTypingNotification
+	(*IsTypingNotificationBatch)(nil), // 29: flipcash.messaging.v1.IsTypingNotificationBatch
+	(*v1.UserId)(nil),                 // 30: flipcash.common.v1.UserId
+	(*timestamppb.Timestamp)(nil),     // 31: google.protobuf.Timestamp
+	(*v1.IntentId)(nil),               // 32: flipcash.common.v1.IntentId
+	(*v1.CryptoPaymentAmount)(nil),    // 33: flipcash.common.v1.CryptoPaymentAmount
+	(*v11.Media)(nil),                 // 34: flipcash.blob.v1.Media
 }
 var file_messaging_v1_model_proto_depIdxs = []int32{
-	4,  // 0: flipcash.messaging.v1.Message.message_id:type_name -> flipcash.messaging.v1.MessageId
-	29, // 1: flipcash.messaging.v1.Message.sender_id:type_name -> flipcash.common.v1.UserId
-	7,  // 2: flipcash.messaging.v1.Message.content:type_name -> flipcash.messaging.v1.Content
-	30, // 3: flipcash.messaging.v1.Message.ts:type_name -> google.protobuf.Timestamp
-	30, // 4: flipcash.messaging.v1.Message.last_edited_ts:type_name -> google.protobuf.Timestamp
-	16, // 5: flipcash.messaging.v1.Message.reactions:type_name -> flipcash.messaging.v1.ReactionSummary
-	8,  // 6: flipcash.messaging.v1.Content.text:type_name -> flipcash.messaging.v1.TextContent
-	9,  // 7: flipcash.messaging.v1.Content.cash:type_name -> flipcash.messaging.v1.CashContent
-	10, // 8: flipcash.messaging.v1.Content.reply:type_name -> flipcash.messaging.v1.ReplyContent
-	11, // 9: flipcash.messaging.v1.Content.media:type_name -> flipcash.messaging.v1.MediaContent
-	12, // 10: flipcash.messaging.v1.Content.system:type_name -> flipcash.messaging.v1.SystemContent
-	13, // 11: flipcash.messaging.v1.Content.deleted:type_name -> flipcash.messaging.v1.DeletedContent
-	31, // 12: flipcash.messaging.v1.CashContent.intent_id:type_name -> flipcash.common.v1.IntentId
-	32, // 13: flipcash.messaging.v1.CashContent.amount:type_name -> flipcash.common.v1.CryptoPaymentAmount
-	0,  // 14: flipcash.messaging.v1.CashContent.verb:type_name -> flipcash.messaging.v1.CashContent.Verb
-	4,  // 15: flipcash.messaging.v1.ReplyContent.replied_message_id:type_name -> flipcash.messaging.v1.MessageId
-	7,  // 16: flipcash.messaging.v1.ReplyContent.content:type_name -> flipcash.messaging.v1.Content
-	33, // 17: flipcash.messaging.v1.MediaContent.items:type_name -> flipcash.blob.v1.Media
-	8,  // 18: flipcash.messaging.v1.MediaContent.caption:type_name -> flipcash.messaging.v1.TextContent
-	30, // 19: flipcash.messaging.v1.DeletedContent.deleted_ts:type_name -> google.protobuf.Timestamp
-	29, // 20: flipcash.messaging.v1.DeletedContent.deleted_by:type_name -> flipcash.common.v1.UserId
-	29, // 21: flipcash.messaging.v1.Reactor.user_id:type_name -> flipcash.common.v1.UserId
-	30, // 22: flipcash.messaging.v1.Reactor.reacted_ts:type_name -> google.protobuf.Timestamp
-	4,  // 23: flipcash.messaging.v1.ReactionSummary.message_id:type_name -> flipcash.messaging.v1.MessageId
-	17, // 24: flipcash.messaging.v1.ReactionSummary.reactions:type_name -> flipcash.messaging.v1.EmojiReaction
-	14, // 25: flipcash.messaging.v1.EmojiReaction.emoji:type_name -> flipcash.messaging.v1.Emoji
-	15, // 26: flipcash.messaging.v1.EmojiReaction.self_reactor:type_name -> flipcash.messaging.v1.Reactor
-	15, // 27: flipcash.messaging.v1.EmojiReaction.sample_reactors:type_name -> flipcash.messaging.v1.Reactor
-	4,  // 28: flipcash.messaging.v1.ReactionUpdate.message_id:type_name -> flipcash.messaging.v1.MessageId
-	14, // 29: flipcash.messaging.v1.ReactionUpdate.emoji:type_name -> flipcash.messaging.v1.Emoji
-	29, // 30: flipcash.messaging.v1.ReactionUpdate.actor:type_name -> flipcash.common.v1.UserId
-	1,  // 31: flipcash.messaging.v1.ReactionUpdate.action:type_name -> flipcash.messaging.v1.ReactionUpdate.Action
-	30, // 32: flipcash.messaging.v1.ReactionUpdate.reacted_ts:type_name -> google.protobuf.Timestamp
-	18, // 33: flipcash.messaging.v1.ReactionUpdateBatch.reaction_updates:type_name -> flipcash.messaging.v1.ReactionUpdate
-	2,  // 34: flipcash.messaging.v1.Pointer.type:type_name -> flipcash.messaging.v1.Pointer.Type
-	29, // 35: flipcash.messaging.v1.Pointer.user_id:type_name -> flipcash.common.v1.UserId
-	4,  // 36: flipcash.messaging.v1.Pointer.value:type_name -> flipcash.messaging.v1.MessageId
-	30, // 37: flipcash.messaging.v1.Pointer.ts:type_name -> google.protobuf.Timestamp
-	4,  // 38: flipcash.messaging.v1.MessageIdBatch.message_ids:type_name -> flipcash.messaging.v1.MessageId
-	6,  // 39: flipcash.messaging.v1.MessageBatch.messages:type_name -> flipcash.messaging.v1.Message
-	20, // 40: flipcash.messaging.v1.PointerBatch.pointers:type_name -> flipcash.messaging.v1.Pointer
-	30, // 41: flipcash.messaging.v1.Event.ts:type_name -> google.protobuf.Timestamp
-	25, // 42: flipcash.messaging.v1.Event.mutations:type_name -> flipcash.messaging.v1.Mutation
-	6,  // 43: flipcash.messaging.v1.Mutation.message_sent:type_name -> flipcash.messaging.v1.Message
-	6,  // 44: flipcash.messaging.v1.Mutation.message_edited:type_name -> flipcash.messaging.v1.Message
-	6,  // 45: flipcash.messaging.v1.Mutation.message_deleted:type_name -> flipcash.messaging.v1.Message
-	24, // 46: flipcash.messaging.v1.EventBatch.events:type_name -> flipcash.messaging.v1.Event
-	29, // 47: flipcash.messaging.v1.IsTypingNotification.user_id:type_name -> flipcash.common.v1.UserId
-	3,  // 48: flipcash.messaging.v1.IsTypingNotification.state:type_name -> flipcash.messaging.v1.IsTypingNotification.State
-	27, // 49: flipcash.messaging.v1.IsTypingNotificationBatch.is_typing_notifications:type_name -> flipcash.messaging.v1.IsTypingNotification
+	5,  // 0: flipcash.messaging.v1.Message.message_id:type_name -> flipcash.messaging.v1.MessageId
+	30, // 1: flipcash.messaging.v1.Message.sender_id:type_name -> flipcash.common.v1.UserId
+	8,  // 2: flipcash.messaging.v1.Message.content:type_name -> flipcash.messaging.v1.Content
+	31, // 3: flipcash.messaging.v1.Message.ts:type_name -> google.protobuf.Timestamp
+	31, // 4: flipcash.messaging.v1.Message.last_edited_ts:type_name -> google.protobuf.Timestamp
+	17, // 5: flipcash.messaging.v1.Message.reactions:type_name -> flipcash.messaging.v1.ReactionSummary
+	9,  // 6: flipcash.messaging.v1.Content.text:type_name -> flipcash.messaging.v1.TextContent
+	10, // 7: flipcash.messaging.v1.Content.cash:type_name -> flipcash.messaging.v1.CashContent
+	11, // 8: flipcash.messaging.v1.Content.reply:type_name -> flipcash.messaging.v1.ReplyContent
+	12, // 9: flipcash.messaging.v1.Content.media:type_name -> flipcash.messaging.v1.MediaContent
+	13, // 10: flipcash.messaging.v1.Content.system:type_name -> flipcash.messaging.v1.SystemContent
+	14, // 11: flipcash.messaging.v1.Content.deleted:type_name -> flipcash.messaging.v1.DeletedContent
+	32, // 12: flipcash.messaging.v1.CashContent.intent_id:type_name -> flipcash.common.v1.IntentId
+	33, // 13: flipcash.messaging.v1.CashContent.amount:type_name -> flipcash.common.v1.CryptoPaymentAmount
+	1,  // 14: flipcash.messaging.v1.CashContent.verb:type_name -> flipcash.messaging.v1.CashContent.Verb
+	5,  // 15: flipcash.messaging.v1.ReplyContent.replied_message_id:type_name -> flipcash.messaging.v1.MessageId
+	8,  // 16: flipcash.messaging.v1.ReplyContent.content:type_name -> flipcash.messaging.v1.Content
+	34, // 17: flipcash.messaging.v1.MediaContent.items:type_name -> flipcash.blob.v1.Media
+	9,  // 18: flipcash.messaging.v1.MediaContent.caption:type_name -> flipcash.messaging.v1.TextContent
+	31, // 19: flipcash.messaging.v1.DeletedContent.deleted_ts:type_name -> google.protobuf.Timestamp
+	30, // 20: flipcash.messaging.v1.DeletedContent.deleted_by:type_name -> flipcash.common.v1.UserId
+	30, // 21: flipcash.messaging.v1.Reactor.user_id:type_name -> flipcash.common.v1.UserId
+	31, // 22: flipcash.messaging.v1.Reactor.reacted_ts:type_name -> google.protobuf.Timestamp
+	5,  // 23: flipcash.messaging.v1.ReactionSummary.message_id:type_name -> flipcash.messaging.v1.MessageId
+	18, // 24: flipcash.messaging.v1.ReactionSummary.reactions:type_name -> flipcash.messaging.v1.EmojiReaction
+	15, // 25: flipcash.messaging.v1.EmojiReaction.emoji:type_name -> flipcash.messaging.v1.Emoji
+	16, // 26: flipcash.messaging.v1.EmojiReaction.self_reactor:type_name -> flipcash.messaging.v1.Reactor
+	16, // 27: flipcash.messaging.v1.EmojiReaction.sample_reactors:type_name -> flipcash.messaging.v1.Reactor
+	5,  // 28: flipcash.messaging.v1.ReactionUpdate.message_id:type_name -> flipcash.messaging.v1.MessageId
+	15, // 29: flipcash.messaging.v1.ReactionUpdate.emoji:type_name -> flipcash.messaging.v1.Emoji
+	30, // 30: flipcash.messaging.v1.ReactionUpdate.actor:type_name -> flipcash.common.v1.UserId
+	2,  // 31: flipcash.messaging.v1.ReactionUpdate.action:type_name -> flipcash.messaging.v1.ReactionUpdate.Action
+	31, // 32: flipcash.messaging.v1.ReactionUpdate.reacted_ts:type_name -> google.protobuf.Timestamp
+	19, // 33: flipcash.messaging.v1.ReactionUpdateBatch.reaction_updates:type_name -> flipcash.messaging.v1.ReactionUpdate
+	3,  // 34: flipcash.messaging.v1.Pointer.type:type_name -> flipcash.messaging.v1.Pointer.Type
+	30, // 35: flipcash.messaging.v1.Pointer.user_id:type_name -> flipcash.common.v1.UserId
+	5,  // 36: flipcash.messaging.v1.Pointer.value:type_name -> flipcash.messaging.v1.MessageId
+	31, // 37: flipcash.messaging.v1.Pointer.ts:type_name -> google.protobuf.Timestamp
+	5,  // 38: flipcash.messaging.v1.MessageIdBatch.message_ids:type_name -> flipcash.messaging.v1.MessageId
+	7,  // 39: flipcash.messaging.v1.MessageBatch.messages:type_name -> flipcash.messaging.v1.Message
+	21, // 40: flipcash.messaging.v1.PointerBatch.pointers:type_name -> flipcash.messaging.v1.Pointer
+	31, // 41: flipcash.messaging.v1.Event.ts:type_name -> google.protobuf.Timestamp
+	26, // 42: flipcash.messaging.v1.Event.mutations:type_name -> flipcash.messaging.v1.Mutation
+	7,  // 43: flipcash.messaging.v1.Mutation.message_sent:type_name -> flipcash.messaging.v1.Message
+	7,  // 44: flipcash.messaging.v1.Mutation.message_edited:type_name -> flipcash.messaging.v1.Message
+	7,  // 45: flipcash.messaging.v1.Mutation.message_deleted:type_name -> flipcash.messaging.v1.Message
+	25, // 46: flipcash.messaging.v1.EventBatch.events:type_name -> flipcash.messaging.v1.Event
+	30, // 47: flipcash.messaging.v1.IsTypingNotification.user_id:type_name -> flipcash.common.v1.UserId
+	4,  // 48: flipcash.messaging.v1.IsTypingNotification.state:type_name -> flipcash.messaging.v1.IsTypingNotification.State
+	28, // 49: flipcash.messaging.v1.IsTypingNotificationBatch.is_typing_notifications:type_name -> flipcash.messaging.v1.IsTypingNotification
 	50, // [50:50] is the sub-list for method output_type
 	50, // [50:50] is the sub-list for method input_type
 	50, // [50:50] is the sub-list for extension type_name
@@ -2443,7 +2543,7 @@ func file_messaging_v1_model_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_messaging_v1_model_proto_rawDesc,
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   0,

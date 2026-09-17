@@ -18,6 +18,8 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
+	messagingpb "github.com/code-payments/flipcash2-protobuf-api/generated/go/messaging/v1"
+
 	moderationpb "github.com/code-payments/flipcash2-protobuf-api/generated/go/moderation/v1"
 )
 
@@ -35,6 +37,8 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = anypb.Any{}
 	_ = sort.Sort
+
+	_ = messagingpb.ViewMode(0)
 
 	_ = moderationpb.FlaggedCategory(0)
 )
@@ -88,6 +92,17 @@ func (m *GetChatRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	if _, ok := _GetChatRequest_ViewMode_InLookup[m.GetViewMode()]; !ok {
+		err := GetChatRequestValidationError{
+			field:  "ViewMode",
+			reason: "value must be in list [FULL FULL_OR_REDACTED REDACTED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if all {
@@ -196,6 +211,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetChatRequestValidationError{}
+
+var _GetChatRequest_ViewMode_InLookup = map[messagingpb.ViewMode]struct{}{
+	0: {},
+	1: {},
+	2: {},
+}
 
 // Validate checks the field values on GetChatResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the

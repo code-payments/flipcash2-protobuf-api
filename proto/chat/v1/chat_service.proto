@@ -9,6 +9,7 @@ option objc_class_prefix = "FPBChatV1";
 import "blob/v1/model.proto";
 import "chat/v1/model.proto";
 import "common/v1/common.proto";
+import "messaging/v1/model.proto";
 import "moderation/v1/model.proto";
 import "validate/validate.proto";
 
@@ -76,6 +77,18 @@ service Chat {
 
 message GetChatRequest {
     common.v1.ChatId chat_id = 1;
+
+    // What the client intends to render of the chat's messaging state — its
+    // last_message and latest_event_sequence — and so whether they may be
+    // returned redacted (see messaging.v1.ViewMode). A group's record (title,
+    // picture, rules, roster summary) is returned to every registered user
+    // whatever the mode; the mode decides only the messaging state, which is
+    // withheld from a viewer who may not read the chat under it. Unset (FULL)
+    // is the pre-redaction contract: messaging state for a viewer who may
+    // read the chat in full, the bare record for anyone else.
+    messaging.v1.ViewMode view_mode = 2 [(validate.rules).enum = {
+        in: [0, 1, 2] // FULL, FULL_OR_REDACTED, REDACTED
+    }];
 
     common.v1.Auth auth = 10;
 }
