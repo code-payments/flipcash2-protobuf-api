@@ -260,6 +260,15 @@ export class ChatMetadata extends Message<ChatMetadata> {
    */
   message?: Message$1;
 
+  /**
+   * Whether the recipient had this chat muted when the push was sent.
+   * The push is still delivered so the client can store the message,
+   * but the client must not present a notification for it.
+   *
+   * @generated from field: bool muted = 4;
+   */
+  muted = false;
+
   constructor(data?: PartialMessage<ChatMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -271,6 +280,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
     { no: 1, name: "sending_user_id", kind: "message", T: UserId },
     { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(ChatType) },
     { no: 3, name: "message", kind: "message", T: Message$1 },
+    { no: 4, name: "muted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {

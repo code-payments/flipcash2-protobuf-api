@@ -138,6 +138,13 @@ export class Metadata extends Message<Metadata> {
    */
   rules?: Rules;
 
+  /**
+   * Per-viewer chat state, absent when the chat holds nothing about them.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 12;
+   */
+  viewerState?: ViewerState;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -157,6 +164,7 @@ export class Metadata extends Message<Metadata> {
     { no: 9, name: "picture", kind: "message", T: Media },
     { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
     { no: 11, name: "rules", kind: "message", T: Rules },
+    { no: 12, name: "viewer_state", kind: "message", T: ViewerState },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {
@@ -507,7 +515,9 @@ export class RosterSummary extends Message<RosterSummary> {
    * Version of the roster: advanced by exactly one on every change to the
    * membership records — a member joining, a member leaving, and in future
    * any change to what the chat records about a member (e.g. a role) — and
-   * never by an idempotent no-op or a profile change.
+   * never by an idempotent no-op or a profile change. A viewer's own state
+   * (see ViewerState) is not part of the roster: it is private to that
+   * viewer, carries its own version, and never moves this one.
    *
    * Opaque to clients. Compare it against the last value seen: a different
    * value means the cached member list may be stale and should be refetched.
@@ -568,6 +578,12 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
      */
     value: MetadataUpdate_LastActivityChanged;
     case: "lastActivityChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.ViewerStateChanged viewer_state_changed = 3;
+     */
+    value: MetadataUpdate_ViewerStateChanged;
+    case: "viewerStateChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -580,6 +596,7 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "full_refresh", kind: "message", T: MetadataUpdate_FullRefresh, oneof: "kind" },
     { no: 2, name: "last_activity_changed", kind: "message", T: MetadataUpdate_LastActivityChanged, oneof: "kind" },
+    { no: 3, name: "viewer_state_changed", kind: "message", T: MetadataUpdate_ViewerStateChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -674,6 +691,45 @@ export class MetadataUpdate_LastActivityChanged extends Message<MetadataUpdate_L
 
   static equals(a: MetadataUpdate_LastActivityChanged | PlainMessage<MetadataUpdate_LastActivityChanged> | undefined, b: MetadataUpdate_LastActivityChanged | PlainMessage<MetadataUpdate_LastActivityChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_LastActivityChanged, a, b);
+  }
+}
+
+/**
+ * The receiving user's own state for the chat has changed
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
+ */
+export class MetadataUpdate_ViewerStateChanged extends Message<MetadataUpdate_ViewerStateChanged> {
+  /**
+   * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 1;
+   */
+  viewerState?: ViewerState;
+
+  constructor(data?: PartialMessage<MetadataUpdate_ViewerStateChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.ViewerStateChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "viewer_state", kind: "message", T: ViewerState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_ViewerStateChanged {
+    return new MetadataUpdate_ViewerStateChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_ViewerStateChanged {
+    return new MetadataUpdate_ViewerStateChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_ViewerStateChanged {
+    return new MetadataUpdate_ViewerStateChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_ViewerStateChanged | PlainMessage<MetadataUpdate_ViewerStateChanged> | undefined, b: MetadataUpdate_ViewerStateChanged | PlainMessage<MetadataUpdate_ViewerStateChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_ViewerStateChanged, a, b);
   }
 }
 
@@ -885,6 +941,187 @@ export class RosterUpdateBatch extends Message<RosterUpdateBatch> {
 
   static equals(a: RosterUpdateBatch | PlainMessage<RosterUpdateBatch> | undefined, b: RosterUpdateBatch | PlainMessage<RosterUpdateBatch> | undefined): boolean {
     return proto3.util.equals(RosterUpdateBatch, a, b);
+  }
+}
+
+/**
+ * ViewerState is what this chat holds about the requesting user,
+ * independent of whether they are a member. It is per-viewer and never
+ * shared with other members.
+ *
+ * @generated from message flipcash.chat.v1.ViewerState
+ */
+export class ViewerState extends Message<ViewerState> {
+  /**
+   * State the viewer set for themselves through their own RPCs.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState.Settings settings = 1;
+   */
+  settings?: ViewerState_Settings;
+
+  /**
+   * Advanced by exactly one on every real change to any field of this
+   * message, never by a no-op. Compared like RosterSummary.version: apply
+   * the greater value and drop the rest, so delivery order does not matter.
+   * It is not the chat event sequence and has no delta.
+   *
+   * @generated from field: uint64 version = 10;
+   */
+  version = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ViewerState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ViewerState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "settings", kind: "message", T: ViewerState_Settings },
+    { no: 10, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState {
+    return new ViewerState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ViewerState {
+    return new ViewerState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ViewerState {
+    return new ViewerState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ViewerState | PlainMessage<ViewerState> | undefined, b: ViewerState | PlainMessage<ViewerState> | undefined): boolean {
+    return proto3.util.equals(ViewerState, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.ViewerState.Settings
+ */
+export class ViewerState_Settings extends Message<ViewerState_Settings> {
+  /**
+   * Present if and only if the chat is muted for the viewer. Muted pushes
+   * are still delivered, flagged with push.v1.ChatMetadata.muted, and the
+   * client suppresses the notification.
+   *
+   * @generated from field: flipcash.chat.v1.MuteState mute = 1;
+   */
+  mute?: MuteState;
+
+  constructor(data?: PartialMessage<ViewerState_Settings>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ViewerState.Settings";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mute", kind: "message", T: MuteState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Settings {
+    return new ViewerState_Settings().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ViewerState_Settings {
+    return new ViewerState_Settings().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ViewerState_Settings {
+    return new ViewerState_Settings().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ViewerState_Settings | PlainMessage<ViewerState_Settings> | undefined, b: ViewerState_Settings | PlainMessage<ViewerState_Settings> | undefined): boolean {
+    return proto3.util.equals(ViewerState_Settings, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.MuteState
+ */
+export class MuteState extends Message<MuteState> {
+  /**
+   * @generated from oneof flipcash.chat.v1.MuteState.duration
+   */
+  duration: {
+    /**
+     * Muted until this time, after which the mute lapses. Nothing is
+     * sent when it does, so the client owns the countdown.
+     *
+     * @generated from field: google.protobuf.Timestamp until = 1;
+     */
+    value: Timestamp;
+    case: "until";
+  } | {
+    /**
+     * Muted forever until explicitly unmuted.
+     *
+     * @generated from field: flipcash.chat.v1.MuteState.Forever forever = 2;
+     */
+    value: MuteState_Forever;
+    case: "forever";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<MuteState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MuteState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "until", kind: "message", T: Timestamp, oneof: "duration" },
+    { no: 2, name: "forever", kind: "message", T: MuteState_Forever, oneof: "duration" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MuteState {
+    return new MuteState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MuteState {
+    return new MuteState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MuteState {
+    return new MuteState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MuteState | PlainMessage<MuteState> | undefined, b: MuteState | PlainMessage<MuteState> | undefined): boolean {
+    return proto3.util.equals(MuteState, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.MuteState.Forever
+ */
+export class MuteState_Forever extends Message<MuteState_Forever> {
+  constructor(data?: PartialMessage<MuteState_Forever>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MuteState.Forever";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MuteState_Forever {
+    return new MuteState_Forever().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MuteState_Forever {
+    return new MuteState_Forever().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MuteState_Forever {
+    return new MuteState_Forever().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MuteState_Forever | PlainMessage<MuteState_Forever> | undefined, b: MuteState_Forever | PlainMessage<MuteState_Forever> | undefined): boolean {
+    return proto3.util.equals(MuteState_Forever, a, b);
   }
 }
 
