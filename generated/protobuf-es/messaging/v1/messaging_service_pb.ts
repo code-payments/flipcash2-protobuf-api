@@ -1157,11 +1157,13 @@ export class GetReactorsRequest extends Message<GetReactorsRequest> {
   emoji?: Emoji;
 
   /**
-   * Paging over the reactor list (server-ordered, typically most-recent
-   * first). Leave options.paging_token unset on the first request; on every
-   * subsequent request, set it to the paging_token from the most recent
-   * response to advance through the list. The token is opaque and
-   * server-generated; do not construct it.
+   * Paging over the reactor list. The order is fixed: reaction order, newest
+   * first — descending Reactor.version, never reacted_ts. Leave
+   * options.paging_token unset on the first request; on every subsequent
+   * request, set it to the paging_token from the most recent response to
+   * advance through the list. The token is opaque and server-generated; do
+   * not construct it. options.page_size above 100 is clamped to 100, the most
+   * a response carries; options.order is ignored.
    *
    * @generated from field: flipcash.common.v1.QueryOptions options = 4;
    */
@@ -1214,8 +1216,9 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
   result = GetReactorsResponse_Result.OK;
 
   /**
-   * A page of users who reacted with the requested emoji, with their reaction
-   * timestamps. Empty when the message exists but has no reactors for the emoji.
+   * A page of users who reacted with the requested emoji, newest first (see
+   * Reactor.version). Empty when the message exists but has no reactors for
+   * the emoji.
    *
    * @generated from field: repeated flipcash.messaging.v1.Reactor reactors = 2;
    */
@@ -1240,6 +1243,20 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
    */
   hasMore = false;
 
+  /**
+   * The emoji aggregate's version (EmojiReaction.version) the page is current
+   * to: the server reads it BEFORE the page, so the page reflects every add
+   * and remove up to this version and possibly some after it. A client
+   * keeping an open reactor list live applies ReactionUpdates for this
+   * (message, emoji) whose version exceeds this value; any it re-applies are
+   * idempotent (an ADDED actor already listed dedupes, a REMOVED actor already
+   * absent is a no-op). 0 when the emoji has never been reacted with on the
+   * message. Set when result is OK.
+   *
+   * @generated from field: uint64 version = 5;
+   */
+  version = protoInt64.zero;
+
   constructor(data?: PartialMessage<GetReactorsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1252,6 +1269,7 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
     { no: 2, name: "reactors", kind: "message", T: Reactor, repeated: true },
     { no: 3, name: "paging_token", kind: "message", T: PagingToken },
     { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetReactorsResponse {
@@ -1358,7 +1376,7 @@ export class GetReactionSummaryResponse extends Message<GetReactionSummaryRespon
   /**
    * The aggregate reaction state for the message. reacted_by_self is computed
    * for the caller; clients still apply per (message, emoji) by
-   * EmojiReaction.sequence, so a summary that is slightly behind a live update
+   * EmojiReaction.version, so a summary that is slightly behind a live update
    * is harmlessly ignored rather than regressing state.
    *
    * @generated from field: flipcash.messaging.v1.ReactionSummary summary = 2;
@@ -1494,8 +1512,8 @@ export class GetReactionSummariesResponse extends Message<GetReactionSummariesRe
   /**
    * One summary per requested message, keyed by ReactionSummary.message_id.
    * reacted_by_self in each summary is computed for the caller; clients still
-   * apply per (message, emoji) by EmojiReaction.sequence,  so a summary that
-   * is slightly behind a live update is harmlessly ignored rather than regressing
+   * apply per (message, emoji) by EmojiReaction.version, so a summary that is
+   * slightly behind a live update is harmlessly ignored rather than regressing
    * state.
    *
    * @generated from field: repeated flipcash.messaging.v1.ReactionSummary summaries = 2;

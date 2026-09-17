@@ -234,12 +234,23 @@ message Emoji {
     }];
 }
 
-// Reactor identifies a user who reacted to a message and when they did so.
+// Reactor identifies a user who reacted to a message with a given emoji, and
+// when they did so.
 message Reactor {
     common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
 
-    // Timestamp the user added this reaction.
+    // Timestamp the user added this reaction. Display only: reactors are never
+    // ordered by it (see version).
     google.protobuf.Timestamp reacted_ts = 2 [(validate.rules).timestamp.required = true];
+
+    // The emoji aggregate's version at which this reaction was added — the
+    // EmojiReaction.version the add produced. Unique among an emoji's reactors,
+    // so it is the reactor list's order: descending version is reaction order,
+    // newest first, with no clock involved. A reactor who removes and re-adds
+    // comes back under a fresh, higher version, at the top. A client slotting a
+    // ReactionUpdate's actor into sample_reactors records the update's version
+    // here.
+    uint64 version = 3 [(validate.rules).uint64.gte = 1];
 }
 
 // ReactionSummary is the aggregate reaction state attached to a message. It is
@@ -269,9 +280,10 @@ message EmojiReaction {
     // the caller.
     bool reacted_by_self = 3;
 
-    // A small sample of reactors, with their reaction timestamps (e.g. for
-    // rendering a few avatars), capped well below count. The complete, paged
-    // reactor list is fetched on demand via GetReactors.
+    // A small sample of reactors (e.g. for rendering a few avatars), capped
+    // well below count: the most recent reactors by Reactor.version, newest
+    // first. The complete, paged reactor list is fetched on demand via
+    // GetReactors, in the same order.
     repeated Reactor sample_reactors = 4 [(validate.rules).repeated = {
         max_items: 8 // Sample only; not the full list
     }];
@@ -327,9 +339,10 @@ message ReactionUpdate {
     uint64 version = 6 [(validate.rules).uint64.gte = 1];
 
     // When the actor reacted. On ADDED, clients record this as the actor's
-    // Reactor.reacted_ts (e.g. when slotting them into sample_reactors); ignored
-    // for REMOVED. This is a display timestamp, distinct from `sequence`, which
-    // is the ordering key.
+    // Reactor.reacted_ts, and `version` above as their Reactor.version, when
+    // slotting them into sample_reactors or an open reactor list; ignored for
+    // REMOVED. This is a display timestamp, distinct from `version`, which is
+    // the ordering key.
     google.protobuf.Timestamp reacted_ts = 7 [(validate.rules).timestamp.required = true];
 }
 

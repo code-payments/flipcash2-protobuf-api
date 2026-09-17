@@ -357,11 +357,13 @@ message GetReactorsRequest {
     // The emoji whose reactors to list.
     Emoji emoji = 3 [(validate.rules).message.required = true];
 
-    // Paging over the reactor list (server-ordered, typically most-recent
-    // first). Leave options.paging_token unset on the first request; on every
-    // subsequent request, set it to the paging_token from the most recent
-    // response to advance through the list. The token is opaque and
-    // server-generated; do not construct it.
+    // Paging over the reactor list. The order is fixed: reaction order, newest
+    // first — descending Reactor.version, never reacted_ts. Leave
+    // options.paging_token unset on the first request; on every subsequent
+    // request, set it to the paging_token from the most recent response to
+    // advance through the list. The token is opaque and server-generated; do
+    // not construct it. options.page_size above 100 is clamped to 100, the most
+    // a response carries; options.order is ignored.
     common.v1.QueryOptions options = 4;
 
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
@@ -375,8 +377,9 @@ message GetReactorsResponse {
         MESSAGE_NOT_FOUND = 2;
     }
 
-    // A page of users who reacted with the requested emoji, with their reaction
-    // timestamps. Empty when the message exists but has no reactors for the emoji.
+    // A page of users who reacted with the requested emoji, newest first (see
+    // Reactor.version). Empty when the message exists but has no reactors for
+    // the emoji.
     repeated Reactor reactors = 2 [(validate.rules).repeated = {
         max_items: 100
     }];
@@ -391,6 +394,16 @@ message GetReactorsResponse {
     // the reactor list has been fully read. When true, the client should issue
     // another GetReactorsRequest with the returned paging_token.
     bool has_more = 4;
+
+    // The emoji aggregate's version (EmojiReaction.version) the page is current
+    // to: the server reads it BEFORE the page, so the page reflects every add
+    // and remove up to this version and possibly some after it. A client
+    // keeping an open reactor list live applies ReactionUpdates for this
+    // (message, emoji) whose version exceeds this value; any it re-applies are
+    // idempotent (an ADDED actor already listed dedupes, a REMOVED actor already
+    // absent is a no-op). 0 when the emoji has never been reacted with on the
+    // message. Set when result is OK.
+    uint64 version = 5;
 }
 
 message GetReactionSummaryRequest {
@@ -411,7 +424,7 @@ message GetReactionSummaryResponse {
 
     // The aggregate reaction state for the message. reacted_by_self is computed
     // for the caller; clients still apply per (message, emoji) by
-    // EmojiReaction.sequence, so a summary that is slightly behind a live update
+    // EmojiReaction.version, so a summary that is slightly behind a live update
     // is harmlessly ignored rather than regressing state.
     ReactionSummary summary = 2;
 }
@@ -438,8 +451,8 @@ message GetReactionSummariesResponse {
 
     // One summary per requested message, keyed by ReactionSummary.message_id.
     // reacted_by_self in each summary is computed for the caller; clients still
-    // apply per (message, emoji) by EmojiReaction.sequence,  so a summary that
-    // is slightly behind a live update is harmlessly ignored rather than regressing
+    // apply per (message, emoji) by EmojiReaction.version, so a summary that is
+    // slightly behind a live update is harmlessly ignored rather than regressing
     // state.
     repeated ReactionSummary summaries = 2 [(validate.rules).repeated = {
         max_items: 100

@@ -699,7 +699,8 @@ export class Emoji extends Message$1<Emoji> {
 }
 
 /**
- * Reactor identifies a user who reacted to a message and when they did so.
+ * Reactor identifies a user who reacted to a message with a given emoji, and
+ * when they did so.
  *
  * @generated from message flipcash.messaging.v1.Reactor
  */
@@ -710,11 +711,25 @@ export class Reactor extends Message$1<Reactor> {
   userId?: UserId;
 
   /**
-   * Timestamp the user added this reaction.
+   * Timestamp the user added this reaction. Display only: reactors are never
+   * ordered by it (see version).
    *
    * @generated from field: google.protobuf.Timestamp reacted_ts = 2;
    */
   reactedTs?: Timestamp;
+
+  /**
+   * The emoji aggregate's version at which this reaction was added — the
+   * EmojiReaction.version the add produced. Unique among an emoji's reactors,
+   * so it is the reactor list's order: descending version is reaction order,
+   * newest first, with no clock involved. A reactor who removes and re-adds
+   * comes back under a fresh, higher version, at the top. A client slotting a
+   * ReactionUpdate's actor into sample_reactors records the update's version
+   * here.
+   *
+   * @generated from field: uint64 version = 3;
+   */
+  version = protoInt64.zero;
 
   constructor(data?: PartialMessage<Reactor>) {
     super();
@@ -726,6 +741,7 @@ export class Reactor extends Message$1<Reactor> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "user_id", kind: "message", T: UserId },
     { no: 2, name: "reacted_ts", kind: "message", T: Timestamp },
+    { no: 3, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Reactor {
@@ -829,9 +845,10 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
   reactedBySelf = false;
 
   /**
-   * A small sample of reactors, with their reaction timestamps (e.g. for
-   * rendering a few avatars), capped well below count. The complete, paged
-   * reactor list is fetched on demand via GetReactors.
+   * A small sample of reactors (e.g. for rendering a few avatars), capped
+   * well below count: the most recent reactors by Reactor.version, newest
+   * first. The complete, paged reactor list is fetched on demand via
+   * GetReactors, in the same order.
    *
    * @generated from field: repeated flipcash.messaging.v1.Reactor sample_reactors = 4;
    */
@@ -944,9 +961,10 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
 
   /**
    * When the actor reacted. On ADDED, clients record this as the actor's
-   * Reactor.reacted_ts (e.g. when slotting them into sample_reactors); ignored
-   * for REMOVED. This is a display timestamp, distinct from `sequence`, which
-   * is the ordering key.
+   * Reactor.reacted_ts, and `version` above as their Reactor.version, when
+   * slotting them into sample_reactors or an open reactor list; ignored for
+   * REMOVED. This is a display timestamp, distinct from `version`, which is
+   * the ordering key.
    *
    * @generated from field: google.protobuf.Timestamp reacted_ts = 7;
    */

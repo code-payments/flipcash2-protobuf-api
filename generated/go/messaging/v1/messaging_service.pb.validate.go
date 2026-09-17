@@ -3458,6 +3458,8 @@ func (m *GetReactorsResponse) validate(all bool) error {
 
 	// no validation rules for HasMore
 
+	// no validation rules for Version
+
 	if len(errors) > 0 {
 		return GetReactorsResponseMultiError(errors)
 	}

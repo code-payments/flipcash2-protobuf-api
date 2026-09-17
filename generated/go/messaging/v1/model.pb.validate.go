@@ -2009,6 +2009,17 @@ func (m *Reactor) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if m.GetVersion() < 1 {
+		err := ReactorValidationError{
+			field:  "Version",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ReactorMultiError(errors)
 	}
