@@ -17,17 +17,20 @@ service EventStreaming {
     // message on the stream, selects what is streamed:
     //
     //   - With no target set, every event addressed to the signing user, across
-    //     all of their events.
-    //   - With chat set, ChatUpdate for that single chat, under a
-    //     messaging.v1.ViewMode, and nothing else. This is how a viewer who is
-    //     not a member of a group — and so is not addressed by its events —
-    //     follows it live, and how any viewer follows a chat redacted.
+    //     all of their events. This stream lives until either side closes it.
+    //   - With chat_preview set, ChatUpdate for that single group chat, under
+    //     a messaging.v1.ViewMode, and nothing else, for a bounded window of
+    //     time. This is how a viewer who is not a member of a group — and so is
+    //     not addressed by its events — previews it live before joining, and
+    //     how any viewer previews a group redacted. It is the only
+    //     chat-targeted stream; there is no open-ended stream for a single
+    //     chat, and no stream of any kind targeted at a DM.
     //
     // The two are independent. A client may hold several streams at once, e.g.
-    // a user stream plus a chat stream for the group it is currently reading
-    // as a non-member. Nothing is deduplicated across streams: a member who
-    // opens a chat stream for one of their own chats receives that chat's
-    // updates on both.
+    // a user stream plus a preview stream for the group it is currently
+    // previewing as a non-member. Nothing is deduplicated across streams: a
+    // member who opens a preview stream for one of their own chats receives
+    // that chat's updates on both.
     rpc StreamEvents(stream StreamEventsRequest) returns (stream StreamEventsResponse);
 
     // ForwardEvents is an internal RPC for forwarding events to another server.
@@ -56,13 +59,38 @@ message StreamEventsRequest {
         // contract that predates this field. When set, it takes over, and the
         // stream carries only what the target describes.
         oneof target {
-            ChatParams chat = 3;
+            ChatPreviewParams chat_preview = 3;
         }
     }
 
-    // ChatParams targets a stream at a single chat: ChatUpdate for chat_id,
-    // under view_mode, and nothing else. No BlobUpdate, and no update for any
-    // other chat, is ever delivered on it.
+    // ChatPreviewParams targets a stream at a preview of a single group chat:
+    // ChatUpdate for chat_id, under view_mode, and nothing else, for a bounded
+    // window of time. No update for any other chat, is ever delivered on it.
+    //
+    // Only group chats can be previewed. A DM has no one to preview it — a
+    // non-member of a DM may not read it under any mode — so a chat_id naming
+    // a DM is DENIED, whatever the viewer's standing and whatever the mode,
+    // by the same rule that denies every other read of it. A DM's members
+    // follow it on their user stream.
+    //
+    // The stream is time-bounded. The server fixes the lifetime of a preview
+    // at open — the bound is the server's, not the client's, and there is no
+    // way to request a longer one — and ends the stream with STREAM_EXPIRED
+    // when it elapses, whether or not anything was delivered. Pings and pongs
+    // keep the stream healthy, not alive: a pong does not extend the window.
+    // A client still previewing the chat when the window closes opens a new
+    // preview stream, and reconciles anything it missed in between the way it
+    // would after any reconnect (GetDelta for the event log, a refresh of the
+    // overlays). The server may refuse to open a preview, with DENIED, to a
+    // viewer who opens too many in too short a time.
+    //
+    // A preview is for a viewer who is not (yet) a member of the chat. A
+    // member's own chats are already carried on their user stream, which is
+    // not time-bounded, and a client should not preview a chat it is a member
+    // of; the server does not refuse it, but delivers the chat's updates on
+    // both streams. A viewer who joins the chat while previewing it switches
+    // to their user stream: the preview keeps delivering until its window
+    // closes, but is not extended by the join.
     //
     // The stream opens only if the viewer may read the chat under the mode,
     // by the same rule as any other read under a messaging.v1.ViewMode: a
@@ -70,9 +98,9 @@ message StreamEventsRequest {
     // may read in full; a non-member of a group with listener rules they do
     // not satisfy may read redacted; anyone else is DENIED. A chat that does
     // not exist is NOT_FOUND. Standing is evaluated at stream open, and the
-    // server may end the stream with DENIED if the viewer later may not read
-    // the chat under the mode — e.g. the rules changed, or they were removed
-    // from the roster.
+    // server may end the stream with DENIED before the window closes if the
+    // viewer later may not read the chat under the mode — e.g. the rules
+    // changed, or they were removed from the roster.
     //
     // Within a ChatUpdate, the mode decides only the messages: those carried
     // by events, and last_message in metadata_updates. Every message on the
@@ -80,12 +108,13 @@ message StreamEventsRequest {
     // mixed, with Message.redacted set on each when redacted. Pointer,
     // typing, reaction and roster overlays are delivered whatever the mode.
     //
-    // A client reading a chat redacted keeps this stream and its
+    // A client previewing a chat redacted keeps this stream and its
     // GetMessages/GetDelta reads under the same mode, so the events it
     // applies are shaped like the state it applies them to (see
     // messaging.v1.Message.redacted).
-    message ChatParams {
-        // The one chat whose updates are streamed.
+    message ChatPreviewParams {
+        // The one chat whose updates are streamed. Must be a group chat; a DM
+        // is DENIED.
         common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
         // What the client intends to render of the chat, and so whether its
@@ -112,9 +141,8 @@ message StreamEventsResponse {
         enum Code {
             DENIED            = 0;
             INVALID_TIMESTAMP = 1;
-            // The chat named by Params.chat does not exist. Never sent on a
-            // stream for the signing user.
             NOT_FOUND         = 2;
+            STREAM_EXPIRED    = 3;
         }
     }
 }

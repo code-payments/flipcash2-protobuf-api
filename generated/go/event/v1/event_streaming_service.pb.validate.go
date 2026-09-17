@@ -865,7 +865,7 @@ func (m *StreamEventsRequest_Params) validate(all bool) error {
 	}
 
 	switch v := m.Target.(type) {
-	case *StreamEventsRequest_Params_Chat:
+	case *StreamEventsRequest_Params_ChatPreview:
 		if v == nil {
 			err := StreamEventsRequest_ParamsValidationError{
 				field:  "Target",
@@ -878,11 +878,11 @@ func (m *StreamEventsRequest_Params) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetChat()).(type) {
+			switch v := interface{}(m.GetChatPreview()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, StreamEventsRequest_ParamsValidationError{
-						field:  "Chat",
+						field:  "ChatPreview",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -890,16 +890,16 @@ func (m *StreamEventsRequest_Params) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, StreamEventsRequest_ParamsValidationError{
-						field:  "Chat",
+						field:  "ChatPreview",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetChat()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetChatPreview()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return StreamEventsRequest_ParamsValidationError{
-					field:  "Chat",
+					field:  "ChatPreview",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -990,22 +990,23 @@ var _ interface {
 	ErrorName() string
 } = StreamEventsRequest_ParamsValidationError{}
 
-// Validate checks the field values on StreamEventsRequest_ChatParams with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *StreamEventsRequest_ChatParams) Validate() error {
+// Validate checks the field values on StreamEventsRequest_ChatPreviewParams
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *StreamEventsRequest_ChatPreviewParams) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on StreamEventsRequest_ChatParams with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// StreamEventsRequest_ChatParamsMultiError, or nil if none found.
-func (m *StreamEventsRequest_ChatParams) ValidateAll() error {
+// ValidateAll checks the field values on StreamEventsRequest_ChatPreviewParams
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// StreamEventsRequest_ChatPreviewParamsMultiError, or nil if none found.
+func (m *StreamEventsRequest_ChatPreviewParams) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
+func (m *StreamEventsRequest_ChatPreviewParams) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1013,7 +1014,7 @@ func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
 	var errors []error
 
 	if m.GetChatId() == nil {
-		err := StreamEventsRequest_ChatParamsValidationError{
+		err := StreamEventsRequest_ChatPreviewParamsValidationError{
 			field:  "ChatId",
 			reason: "value is required",
 		}
@@ -1027,7 +1028,7 @@ func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
 		switch v := interface{}(m.GetChatId()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, StreamEventsRequest_ChatParamsValidationError{
+				errors = append(errors, StreamEventsRequest_ChatPreviewParamsValidationError{
 					field:  "ChatId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1035,7 +1036,7 @@ func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, StreamEventsRequest_ChatParamsValidationError{
+				errors = append(errors, StreamEventsRequest_ChatPreviewParamsValidationError{
 					field:  "ChatId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1044,7 +1045,7 @@ func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return StreamEventsRequest_ChatParamsValidationError{
+			return StreamEventsRequest_ChatPreviewParamsValidationError{
 				field:  "ChatId",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1052,8 +1053,8 @@ func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
 		}
 	}
 
-	if _, ok := _StreamEventsRequest_ChatParams_ViewMode_InLookup[m.GetViewMode()]; !ok {
-		err := StreamEventsRequest_ChatParamsValidationError{
+	if _, ok := _StreamEventsRequest_ChatPreviewParams_ViewMode_InLookup[m.GetViewMode()]; !ok {
+		err := StreamEventsRequest_ChatPreviewParamsValidationError{
 			field:  "ViewMode",
 			reason: "value must be in list [FULL FULL_OR_REDACTED REDACTED]",
 		}
@@ -1064,19 +1065,20 @@ func (m *StreamEventsRequest_ChatParams) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return StreamEventsRequest_ChatParamsMultiError(errors)
+		return StreamEventsRequest_ChatPreviewParamsMultiError(errors)
 	}
 
 	return nil
 }
 
-// StreamEventsRequest_ChatParamsMultiError is an error wrapping multiple
-// validation errors returned by StreamEventsRequest_ChatParams.ValidateAll()
-// if the designated constraints aren't met.
-type StreamEventsRequest_ChatParamsMultiError []error
+// StreamEventsRequest_ChatPreviewParamsMultiError is an error wrapping
+// multiple validation errors returned by
+// StreamEventsRequest_ChatPreviewParams.ValidateAll() if the designated
+// constraints aren't met.
+type StreamEventsRequest_ChatPreviewParamsMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m StreamEventsRequest_ChatParamsMultiError) Error() string {
+func (m StreamEventsRequest_ChatPreviewParamsMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1085,12 +1087,12 @@ func (m StreamEventsRequest_ChatParamsMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m StreamEventsRequest_ChatParamsMultiError) AllErrors() []error { return m }
+func (m StreamEventsRequest_ChatPreviewParamsMultiError) AllErrors() []error { return m }
 
-// StreamEventsRequest_ChatParamsValidationError is the validation error
-// returned by StreamEventsRequest_ChatParams.Validate if the designated
-// constraints aren't met.
-type StreamEventsRequest_ChatParamsValidationError struct {
+// StreamEventsRequest_ChatPreviewParamsValidationError is the validation error
+// returned by StreamEventsRequest_ChatPreviewParams.Validate if the
+// designated constraints aren't met.
+type StreamEventsRequest_ChatPreviewParamsValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1098,24 +1100,24 @@ type StreamEventsRequest_ChatParamsValidationError struct {
 }
 
 // Field function returns field value.
-func (e StreamEventsRequest_ChatParamsValidationError) Field() string { return e.field }
+func (e StreamEventsRequest_ChatPreviewParamsValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e StreamEventsRequest_ChatParamsValidationError) Reason() string { return e.reason }
+func (e StreamEventsRequest_ChatPreviewParamsValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e StreamEventsRequest_ChatParamsValidationError) Cause() error { return e.cause }
+func (e StreamEventsRequest_ChatPreviewParamsValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e StreamEventsRequest_ChatParamsValidationError) Key() bool { return e.key }
+func (e StreamEventsRequest_ChatPreviewParamsValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e StreamEventsRequest_ChatParamsValidationError) ErrorName() string {
-	return "StreamEventsRequest_ChatParamsValidationError"
+func (e StreamEventsRequest_ChatPreviewParamsValidationError) ErrorName() string {
+	return "StreamEventsRequest_ChatPreviewParamsValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e StreamEventsRequest_ChatParamsValidationError) Error() string {
+func (e StreamEventsRequest_ChatPreviewParamsValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1127,14 +1129,14 @@ func (e StreamEventsRequest_ChatParamsValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sStreamEventsRequest_ChatParams.%s: %s%s",
+		"invalid %sStreamEventsRequest_ChatPreviewParams.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = StreamEventsRequest_ChatParamsValidationError{}
+var _ error = StreamEventsRequest_ChatPreviewParamsValidationError{}
 
 var _ interface {
 	Field() string
@@ -1142,9 +1144,9 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = StreamEventsRequest_ChatParamsValidationError{}
+} = StreamEventsRequest_ChatPreviewParamsValidationError{}
 
-var _StreamEventsRequest_ChatParams_ViewMode_InLookup = map[messagingpb.ViewMode]struct{}{
+var _StreamEventsRequest_ChatPreviewParams_ViewMode_InLookup = map[messagingpb.ViewMode]struct{}{
 	0: {},
 	1: {},
 	2: {},

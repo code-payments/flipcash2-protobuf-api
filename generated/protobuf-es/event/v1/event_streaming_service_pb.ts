@@ -88,10 +88,10 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
    */
   target: {
     /**
-     * @generated from field: flipcash.event.v1.StreamEventsRequest.ChatParams chat = 3;
+     * @generated from field: flipcash.event.v1.StreamEventsRequest.ChatPreviewParams chat_preview = 3;
      */
-    value: StreamEventsRequest_ChatParams;
-    case: "chat";
+    value: StreamEventsRequest_ChatPreviewParams;
+    case: "chatPreview";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<StreamEventsRequest_Params>) {
@@ -104,7 +104,7 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "ts", kind: "message", T: Timestamp },
-    { no: 3, name: "chat", kind: "message", T: StreamEventsRequest_ChatParams, oneof: "target" },
+    { no: 3, name: "chat_preview", kind: "message", T: StreamEventsRequest_ChatPreviewParams, oneof: "target" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest_Params {
@@ -125,9 +125,34 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
 }
 
 /**
- * ChatParams targets a stream at a single chat: ChatUpdate for chat_id,
- * under view_mode, and nothing else. No BlobUpdate, and no update for any
- * other chat, is ever delivered on it.
+ * ChatPreviewParams targets a stream at a preview of a single group chat:
+ * ChatUpdate for chat_id, under view_mode, and nothing else, for a bounded
+ * window of time. No update for any other chat, is ever delivered on it.
+ *
+ * Only group chats can be previewed. A DM has no one to preview it — a
+ * non-member of a DM may not read it under any mode — so a chat_id naming
+ * a DM is DENIED, whatever the viewer's standing and whatever the mode,
+ * by the same rule that denies every other read of it. A DM's members
+ * follow it on their user stream.
+ *
+ * The stream is time-bounded. The server fixes the lifetime of a preview
+ * at open — the bound is the server's, not the client's, and there is no
+ * way to request a longer one — and ends the stream with STREAM_EXPIRED
+ * when it elapses, whether or not anything was delivered. Pings and pongs
+ * keep the stream healthy, not alive: a pong does not extend the window.
+ * A client still previewing the chat when the window closes opens a new
+ * preview stream, and reconciles anything it missed in between the way it
+ * would after any reconnect (GetDelta for the event log, a refresh of the
+ * overlays). The server may refuse to open a preview, with DENIED, to a
+ * viewer who opens too many in too short a time.
+ *
+ * A preview is for a viewer who is not (yet) a member of the chat. A
+ * member's own chats are already carried on their user stream, which is
+ * not time-bounded, and a client should not preview a chat it is a member
+ * of; the server does not refuse it, but delivers the chat's updates on
+ * both streams. A viewer who joins the chat while previewing it switches
+ * to their user stream: the preview keeps delivering until its window
+ * closes, but is not extended by the join.
  *
  * The stream opens only if the viewer may read the chat under the mode,
  * by the same rule as any other read under a messaging.v1.ViewMode: a
@@ -135,9 +160,9 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
  * may read in full; a non-member of a group with listener rules they do
  * not satisfy may read redacted; anyone else is DENIED. A chat that does
  * not exist is NOT_FOUND. Standing is evaluated at stream open, and the
- * server may end the stream with DENIED if the viewer later may not read
- * the chat under the mode — e.g. the rules changed, or they were removed
- * from the roster.
+ * server may end the stream with DENIED before the window closes if the
+ * viewer later may not read the chat under the mode — e.g. the rules
+ * changed, or they were removed from the roster.
  *
  * Within a ChatUpdate, the mode decides only the messages: those carried
  * by events, and last_message in metadata_updates. Every message on the
@@ -145,16 +170,17 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
  * mixed, with Message.redacted set on each when redacted. Pointer,
  * typing, reaction and roster overlays are delivered whatever the mode.
  *
- * A client reading a chat redacted keeps this stream and its
+ * A client previewing a chat redacted keeps this stream and its
  * GetMessages/GetDelta reads under the same mode, so the events it
  * applies are shaped like the state it applies them to (see
  * messaging.v1.Message.redacted).
  *
- * @generated from message flipcash.event.v1.StreamEventsRequest.ChatParams
+ * @generated from message flipcash.event.v1.StreamEventsRequest.ChatPreviewParams
  */
-export class StreamEventsRequest_ChatParams extends Message<StreamEventsRequest_ChatParams> {
+export class StreamEventsRequest_ChatPreviewParams extends Message<StreamEventsRequest_ChatPreviewParams> {
   /**
-   * The one chat whose updates are streamed.
+   * The one chat whose updates are streamed. Must be a group chat; a DM
+   * is DENIED.
    *
    * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
@@ -170,32 +196,32 @@ export class StreamEventsRequest_ChatParams extends Message<StreamEventsRequest_
    */
   viewMode = ViewMode.FULL;
 
-  constructor(data?: PartialMessage<StreamEventsRequest_ChatParams>) {
+  constructor(data?: PartialMessage<StreamEventsRequest_ChatPreviewParams>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.event.v1.StreamEventsRequest.ChatParams";
+  static readonly typeName = "flipcash.event.v1.StreamEventsRequest.ChatPreviewParams";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest_ChatParams {
-    return new StreamEventsRequest_ChatParams().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest_ChatPreviewParams {
+    return new StreamEventsRequest_ChatPreviewParams().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreamEventsRequest_ChatParams {
-    return new StreamEventsRequest_ChatParams().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreamEventsRequest_ChatPreviewParams {
+    return new StreamEventsRequest_ChatPreviewParams().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreamEventsRequest_ChatParams {
-    return new StreamEventsRequest_ChatParams().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreamEventsRequest_ChatPreviewParams {
+    return new StreamEventsRequest_ChatPreviewParams().fromJsonString(jsonString, options);
   }
 
-  static equals(a: StreamEventsRequest_ChatParams | PlainMessage<StreamEventsRequest_ChatParams> | undefined, b: StreamEventsRequest_ChatParams | PlainMessage<StreamEventsRequest_ChatParams> | undefined): boolean {
-    return proto3.util.equals(StreamEventsRequest_ChatParams, a, b);
+  static equals(a: StreamEventsRequest_ChatPreviewParams | PlainMessage<StreamEventsRequest_ChatPreviewParams> | undefined, b: StreamEventsRequest_ChatPreviewParams | PlainMessage<StreamEventsRequest_ChatPreviewParams> | undefined): boolean {
+    return proto3.util.equals(StreamEventsRequest_ChatPreviewParams, a, b);
   }
 }
 
@@ -308,18 +334,21 @@ export enum StreamEventsResponse_StreamError_Code {
   INVALID_TIMESTAMP = 1,
 
   /**
-   * The chat named by Params.chat does not exist. Never sent on a
-   * stream for the signing user.
-   *
    * @generated from enum value: NOT_FOUND = 2;
    */
   NOT_FOUND = 2,
+
+  /**
+   * @generated from enum value: STREAM_EXPIRED = 3;
+   */
+  STREAM_EXPIRED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(StreamEventsResponse_StreamError_Code)
 proto3.util.setEnumType(StreamEventsResponse_StreamError_Code, "flipcash.event.v1.StreamEventsResponse.StreamError.Code", [
   { no: 0, name: "DENIED" },
   { no: 1, name: "INVALID_TIMESTAMP" },
   { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "STREAM_EXPIRED" },
 ]);
 
 /**
