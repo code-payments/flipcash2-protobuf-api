@@ -205,7 +205,7 @@ export class Message extends Message$1<Message> {
    * same message unredacted replaces the placeholder on membership, not on
    * a higher event_sequence.
    *
-   * Per-viewer, like ReactionSummary.reacted_by_self: never set on a copy
+   * Per-viewer, like EmojiReaction.self_reactor: never set on a copy
    * returned to a member. Absent on every message from a server that does
    * not redact.
    *
@@ -836,16 +836,28 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
   count = protoInt64.zero;
 
   /**
-   * Whether the requesting user reacted with this emoji. Per-viewer: count and
-   * sample_reactors are shareable across users, but this bit is computed for
-   * the caller.
+   * The requesting user's own Reactor entry for this emoji: set exactly when
+   * they currently react with it, absent when they do not. Per-viewer: count
+   * and sample_reactors are shareable across users, but this is computed for
+   * the caller. It is the same entry the reactor list carries, whether or
+   * not the viewer still sits in sample_reactors, so a client can render
+   * itself among the reactors, or place itself in a partially loaded reactor
+   * list by its version, without paging GetReactors to find its own row.
    *
-   * It is guaranteed to be computed at least at version returned for this
-   * aggregate.
+   * Its presence answers "did I react"; its version is NOT the watermark for
+   * that toggle. An EmojiReaction is a snapshot at `version`, and every
+   * transition of the viewer's at or below it is already reflected here, so
+   * live ReactionUpdates for the viewer are applied against `version` as for
+   * any other actor. In an AddReactionResponse the entry's version equals
+   * `version`. In a summary read it is normally at most `version`, but can
+   * exceed it by one: the viewer's own add landing between the server's
+   * aggregate read and its per-viewer read. Then this entry is the newer
+   * truth and the aggregate is one transition behind, which the add's own
+   * ReactionUpdate or the next refresh reconciles.
    *
-   * @generated from field: bool reacted_by_self = 3;
+   * @generated from field: flipcash.messaging.v1.Reactor self_reactor = 3;
    */
-  reactedBySelf = false;
+  selfReactor?: Reactor;
 
   /**
    * A small sample of reactors (e.g. for rendering a few avatars), capped
@@ -863,7 +875,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
    *
    * Opaque to clients, and for ordering only. Apply reaction updates
    * last-writer-wins by this value per (message, emoji) — and per actor for
-   * reacted_by_self — and treat a loaded summary as stale when a higher
+   * self_reactor — and treat a loaded summary as stale when a higher
    * version arrives. It is compared the same way as chat.v1.RosterSummary.
    * version. It is NOT the chat event sequence (reactions never advance
    * that), and it is NOT gapless: a skipped value means nothing, and there is
@@ -884,7 +896,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "emoji", kind: "message", T: Emoji },
     { no: 2, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 3, name: "reacted_by_self", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "self_reactor", kind: "message", T: Reactor },
     { no: 4, name: "sample_reactors", kind: "message", T: Reactor, repeated: true },
     { no: 5, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
@@ -931,9 +943,10 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
   emoji?: Emoji;
 
   /**
-   * The user who added or removed the reaction. A client renders
-   * reacted_by_self by comparing this to itself, so a reaction made on the
-   * user's other device is reflected.
+   * The user who added or removed the reaction. A client maintains its own
+   * EmojiReaction.self_reactor by comparing this to itself (ADDED sets it
+   * from this actor, `version` and `reacted_ts` below; REMOVED clears it),
+   * so a reaction made on the user's other device is reflected.
    *
    * @generated from field: flipcash.common.v1.UserId actor = 3;
    */
@@ -955,7 +968,7 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
   /**
    * The emoji aggregate's version after this change. Clients apply
    * last-writer-wins by this value: ignore the count if version <= the count
-   * watermark held, and ignore the actor's reacted_by_self toggle if
+   * watermark held, and ignore the actor's self_reactor toggle if
    * version <= the per-actor watermark held. Matches EmojiReaction.version.
    *
    * @generated from field: uint64 version = 6;
