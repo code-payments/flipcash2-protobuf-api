@@ -882,6 +882,16 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
    * no delta to fetch against it — a missed update is reconciled by
    * refreshing the summary on view.
    *
+   * Keep the watermark after the emoji empties. The server retains the
+   * version across an emoji's count reaching 0 and being re-added, so a
+   * re-add always arrives with a higher version than the removal; a client
+   * that forgets the (message, emoji) version when it stops rendering the
+   * emoji has no way to reject a delayed, lower-versioned ADDED for it, and
+   * would resurrect an emoji the server has already emptied. Hide the entry,
+   * keep its version, at least for the session. A summary omits emptied
+   * emoji entirely — their versions are not surfaced — so a refresh cannot
+   * restore a watermark once forgotten.
+   *
    * @generated from field: uint64 version = 5;
    */
   version = protoInt64.zero;
@@ -959,7 +969,9 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
 
   /**
    * The emoji's total reactor count after this change. 0 means no reactors
-   * remain and the client should drop the entry from the summary.
+   * remain: stop rendering the emoji, but keep its version watermark (see
+   * EmojiReaction.version) so a delayed, lower-versioned ADDED for it is
+   * still ignored rather than resurrecting it.
    *
    * @generated from field: uint64 count = 5;
    */
