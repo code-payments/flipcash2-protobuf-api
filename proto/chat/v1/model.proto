@@ -74,6 +74,9 @@ message Metadata {
     // Rules governing participation in this chat. Only supported for group
     // chats. If not set, the chat has no participation requirements.
     Rules rules = 11;
+
+    // Per-viewer chat state, absent when the chat holds nothing about them.
+    ViewerState viewer_state = 12;
 }
 
 // Rules define the requirements a user must satisfy to participate in a chat.
@@ -174,7 +177,9 @@ message RosterSummary {
     // Version of the roster: advanced by exactly one on every change to the
     // membership records — a member joining, a member leaving, and in future
     // any change to what the chat records about a member (e.g. a role) — and
-    // never by an idempotent no-op or a profile change.
+    // never by an idempotent no-op or a profile change. A viewer's own state
+    // (see ViewerState) is not part of the roster: it is private to that
+    // viewer, carries its own version, and never moves this one.
     //
     // Opaque to clients. Compare it against the last value seen: a different
     // value means the cached member list may be stale and should be refetched.
@@ -191,6 +196,7 @@ message MetadataUpdate {
 
         FullRefresh         full_refresh          = 1;
         LastActivityChanged last_activity_changed = 2;
+        ViewerStateChanged  viewer_state_changed  = 3;
     }
 
     // Refreshes the entire chat metadata
@@ -201,6 +207,11 @@ message MetadataUpdate {
     // The last activity timestamp has changed to a newer value
     message LastActivityChanged {
         google.protobuf.Timestamp new_last_activity = 1 [(validate.rules).timestamp.required = true];
+    }
+
+    // The receiving user's own state for the chat has changed
+    message ViewerStateChanged {
+        ViewerState viewer_state = 1 [(validate.rules).message.required = true];
     }
 }
 
@@ -261,6 +272,42 @@ message RosterUpdateBatch {
         min_items: 1
         max_items: 100
     }];
+}
+
+// ViewerState is what this chat holds about the requesting user,
+// independent of whether they are a member. It is per-viewer and never
+// shared with other members.
+message ViewerState {
+    // State the viewer set for themselves through their own RPCs.
+    Settings settings = 1;
+
+    // Advanced by exactly one on every real change to any field of this
+    // message, never by a no-op. Compared like RosterSummary.version: apply
+    // the greater value and drop the rest, so delivery order does not matter.
+    // It is not the chat event sequence and has no delta.
+    uint64 version = 10;
+
+    message Settings {
+        // Present if and only if the chat is muted for the viewer. Muted pushes
+        // are still delivered, flagged with push.v1.ChatMetadata.muted, and the
+        // client suppresses the notification.
+        MuteState mute = 1;
+    }
+}
+
+message MuteState {
+    oneof duration {
+        option (validate.required) = true;
+
+        // Muted until this time, after which the mute lapses. Nothing is
+        // sent when it does, so the client owns the countdown.
+        google.protobuf.Timestamp until = 1;
+
+        // Muted forever until explicitly unmuted.
+        Forever forever = 2;
+    }
+
+    message Forever {}
 }
 
 // IdempotencyKey lets a client safely retry a request that creates something.

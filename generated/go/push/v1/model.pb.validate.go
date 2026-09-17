@@ -608,6 +608,8 @@ func (m *ChatMetadata) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Muted
+
 	if len(errors) > 0 {
 		return ChatMetadataMultiError(errors)
 	}

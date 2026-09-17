@@ -73,6 +73,22 @@ service Chat {
 
     // LeaveChat removes the caller from a chat's roster.
     rpc LeaveChat(LeaveChatRequest) returns (LeaveChatResponse);
+
+    // MuteChat mutes a chat for the caller, until a time or indefinitely.
+    //
+    // Only a member may mute. Muting does not affect the event stream or
+    // message delivery: pushes for a muted chat are still sent, flagged with
+    // push.v1.ChatMetadata.muted, and the client suppresses the notification.
+    // Calling it again with a different duration replaces the mute. An
+    // identical request is a no-op. A mute is cleared when the caller leaves
+    // the chat. Every real change reaches the caller's other devices as a
+    // MetadataUpdate.ViewerStateChanged on the event stream.
+    rpc MuteChat(MuteChatRequest) returns (MuteChatResponse);
+
+    // UnmuteChat clears the caller's mute on a chat. Unmuting a chat that is
+    // not muted is a no-op. Every real change reaches the caller's other devices
+    // as a MetadataUpdate.ViewerStateChanged on the event stream.
+    rpc UnmuteChat(UnmuteChatRequest) returns (UnmuteChatResponse);
 }
 
 message GetChatRequest {
@@ -290,4 +306,45 @@ message LeaveChatResponse {
         DENIED    = 1;
         NOT_FOUND = 2;
     }
+}
+
+message MuteChatRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // How long to mute for. A timed mute must end in the future; the server
+    // rejects one that does not.
+    MuteState mute = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message MuteChatResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // Caller is not a member
+        NOT_FOUND = 2;
+    }
+
+    // The caller's state for the chat after the write, so the client can
+    // apply it at its version. Set only when result == OK.
+    ViewerState viewer_state = 2;
+}
+
+message UnmuteChatRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message UnmuteChatResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
+
+    // As for MuteChatResponse.viewer_state.
+    ViewerState viewer_state = 2;
 }

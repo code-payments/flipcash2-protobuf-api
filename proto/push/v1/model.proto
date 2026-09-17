@@ -82,4 +82,9 @@ message ChatMetadata {
 
     // The chat message that was sent, if the push is for a message
     messaging.v1.Message message = 3;
+
+    // Whether the recipient had this chat muted when the push was sent.
+    // The push is still delivered so the client can store the message,
+    // but the client must not present a notification for it.
+    bool muted = 4;
 }

@@ -25,6 +25,8 @@ const (
 	Chat_StartChat_FullMethodName        = "/flipcash.chat.v1.Chat/StartChat"
 	Chat_JoinChat_FullMethodName         = "/flipcash.chat.v1.Chat/JoinChat"
 	Chat_LeaveChat_FullMethodName        = "/flipcash.chat.v1.Chat/LeaveChat"
+	Chat_MuteChat_FullMethodName         = "/flipcash.chat.v1.Chat/MuteChat"
+	Chat_UnmuteChat_FullMethodName       = "/flipcash.chat.v1.Chat/UnmuteChat"
 )
 
 // ChatClient is the client API for Chat service.
@@ -85,6 +87,20 @@ type ChatClient interface {
 	JoinChat(ctx context.Context, in *JoinChatRequest, opts ...grpc.CallOption) (*JoinChatResponse, error)
 	// LeaveChat removes the caller from a chat's roster.
 	LeaveChat(ctx context.Context, in *LeaveChatRequest, opts ...grpc.CallOption) (*LeaveChatResponse, error)
+	// MuteChat mutes a chat for the caller, until a time or indefinitely.
+	//
+	// Only a member may mute. Muting does not affect the event stream or
+	// message delivery: pushes for a muted chat are still sent, flagged with
+	// push.v1.ChatMetadata.muted, and the client suppresses the notification.
+	// Calling it again with a different duration replaces the mute. An
+	// identical request is a no-op. A mute is cleared when the caller leaves
+	// the chat. Every real change reaches the caller's other devices as a
+	// MetadataUpdate.ViewerStateChanged on the event stream.
+	MuteChat(ctx context.Context, in *MuteChatRequest, opts ...grpc.CallOption) (*MuteChatResponse, error)
+	// UnmuteChat clears the caller's mute on a chat. Unmuting a chat that is
+	// not muted is a no-op. Every real change reaches the caller's other devices
+	// as a MetadataUpdate.ViewerStateChanged on the event stream.
+	UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts ...grpc.CallOption) (*UnmuteChatResponse, error)
 }
 
 type chatClient struct {
@@ -155,6 +171,26 @@ func (c *chatClient) LeaveChat(ctx context.Context, in *LeaveChatRequest, opts .
 	return out, nil
 }
 
+func (c *chatClient) MuteChat(ctx context.Context, in *MuteChatRequest, opts ...grpc.CallOption) (*MuteChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MuteChatResponse)
+	err := c.cc.Invoke(ctx, Chat_MuteChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts ...grpc.CallOption) (*UnmuteChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnmuteChatResponse)
+	err := c.cc.Invoke(ctx, Chat_UnmuteChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility.
@@ -213,6 +249,20 @@ type ChatServer interface {
 	JoinChat(context.Context, *JoinChatRequest) (*JoinChatResponse, error)
 	// LeaveChat removes the caller from a chat's roster.
 	LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error)
+	// MuteChat mutes a chat for the caller, until a time or indefinitely.
+	//
+	// Only a member may mute. Muting does not affect the event stream or
+	// message delivery: pushes for a muted chat are still sent, flagged with
+	// push.v1.ChatMetadata.muted, and the client suppresses the notification.
+	// Calling it again with a different duration replaces the mute. An
+	// identical request is a no-op. A mute is cleared when the caller leaves
+	// the chat. Every real change reaches the caller's other devices as a
+	// MetadataUpdate.ViewerStateChanged on the event stream.
+	MuteChat(context.Context, *MuteChatRequest) (*MuteChatResponse, error)
+	// UnmuteChat clears the caller's mute on a chat. Unmuting a chat that is
+	// not muted is a no-op. Every real change reaches the caller's other devices
+	// as a MetadataUpdate.ViewerStateChanged on the event stream.
+	UnmuteChat(context.Context, *UnmuteChatRequest) (*UnmuteChatResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -240,6 +290,12 @@ func (UnimplementedChatServer) JoinChat(context.Context, *JoinChatRequest) (*Joi
 }
 func (UnimplementedChatServer) LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LeaveChat not implemented")
+}
+func (UnimplementedChatServer) MuteChat(context.Context, *MuteChatRequest) (*MuteChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MuteChat not implemented")
+}
+func (UnimplementedChatServer) UnmuteChat(context.Context, *UnmuteChatRequest) (*UnmuteChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnmuteChat not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -370,6 +426,42 @@ func _Chat_LeaveChat_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_MuteChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MuteChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).MuteChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_MuteChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).MuteChat(ctx, req.(*MuteChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_UnmuteChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnmuteChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).UnmuteChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_UnmuteChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).UnmuteChat(ctx, req.(*UnmuteChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -400,6 +492,14 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LeaveChat",
 			Handler:    _Chat_LeaveChat_Handler,
+		},
+		{
+			MethodName: "MuteChat",
+			Handler:    _Chat_MuteChat_Handler,
+		},
+		{
+			MethodName: "UnmuteChat",
+			Handler:    _Chat_UnmuteChat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

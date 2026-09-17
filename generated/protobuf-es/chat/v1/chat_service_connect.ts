@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, StartChatRequest, StartChatResponse } from "./chat_service_pb";
+import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -118,6 +118,38 @@ export const Chat = {
       name: "LeaveChat",
       I: LeaveChatRequest,
       O: LeaveChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * MuteChat mutes a chat for the caller, until a time or indefinitely.
+     *
+     * Only a member may mute. Muting does not affect the event stream or
+     * message delivery: pushes for a muted chat are still sent, flagged with
+     * push.v1.ChatMetadata.muted, and the client suppresses the notification.
+     * Calling it again with a different duration replaces the mute. An
+     * identical request is a no-op. A mute is cleared when the caller leaves
+     * the chat. Every real change reaches the caller's other devices as a
+     * MetadataUpdate.ViewerStateChanged on the event stream.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.MuteChat
+     */
+    muteChat: {
+      name: "MuteChat",
+      I: MuteChatRequest,
+      O: MuteChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * UnmuteChat clears the caller's mute on a chat. Unmuting a chat that is
+     * not muted is a no-op. Every real change reaches the caller's other devices
+     * as a MetadataUpdate.ViewerStateChanged on the event stream.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.UnmuteChat
+     */
+    unmuteChat: {
+      name: "UnmuteChat",
+      I: UnmuteChatRequest,
+      O: UnmuteChatResponse,
       kind: MethodKind.Unary,
     },
   }

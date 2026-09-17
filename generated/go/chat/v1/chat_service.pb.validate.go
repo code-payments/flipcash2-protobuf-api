@@ -2036,6 +2036,672 @@ var _ interface {
 	ErrorName() string
 } = LeaveChatResponseValidationError{}
 
+// Validate checks the field values on MuteChatRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MuteChatRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MuteChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MuteChatRequestMultiError, or nil if none found.
+func (m *MuteChatRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MuteChatRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := MuteChatRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MuteChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MuteChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MuteChatRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMute() == nil {
+		err := MuteChatRequestValidationError{
+			field:  "Mute",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMute()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MuteChatRequestValidationError{
+					field:  "Mute",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MuteChatRequestValidationError{
+					field:  "Mute",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMute()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MuteChatRequestValidationError{
+				field:  "Mute",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := MuteChatRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MuteChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MuteChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MuteChatRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MuteChatRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// MuteChatRequestMultiError is an error wrapping multiple validation errors
+// returned by MuteChatRequest.ValidateAll() if the designated constraints
+// aren't met.
+type MuteChatRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MuteChatRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MuteChatRequestMultiError) AllErrors() []error { return m }
+
+// MuteChatRequestValidationError is the validation error returned by
+// MuteChatRequest.Validate if the designated constraints aren't met.
+type MuteChatRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MuteChatRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MuteChatRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MuteChatRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MuteChatRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MuteChatRequestValidationError) ErrorName() string { return "MuteChatRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MuteChatRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMuteChatRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MuteChatRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MuteChatRequestValidationError{}
+
+// Validate checks the field values on MuteChatResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MuteChatResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MuteChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MuteChatResponseMultiError, or nil if none found.
+func (m *MuteChatResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MuteChatResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetViewerState()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MuteChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MuteChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetViewerState()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MuteChatResponseValidationError{
+				field:  "ViewerState",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MuteChatResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// MuteChatResponseMultiError is an error wrapping multiple validation errors
+// returned by MuteChatResponse.ValidateAll() if the designated constraints
+// aren't met.
+type MuteChatResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MuteChatResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MuteChatResponseMultiError) AllErrors() []error { return m }
+
+// MuteChatResponseValidationError is the validation error returned by
+// MuteChatResponse.Validate if the designated constraints aren't met.
+type MuteChatResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MuteChatResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MuteChatResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MuteChatResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MuteChatResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MuteChatResponseValidationError) ErrorName() string { return "MuteChatResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MuteChatResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMuteChatResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MuteChatResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MuteChatResponseValidationError{}
+
+// Validate checks the field values on UnmuteChatRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *UnmuteChatRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnmuteChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UnmuteChatRequestMultiError, or nil if none found.
+func (m *UnmuteChatRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnmuteChatRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := UnmuteChatRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnmuteChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnmuteChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnmuteChatRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := UnmuteChatRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnmuteChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnmuteChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnmuteChatRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UnmuteChatRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UnmuteChatRequestMultiError is an error wrapping multiple validation errors
+// returned by UnmuteChatRequest.ValidateAll() if the designated constraints
+// aren't met.
+type UnmuteChatRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnmuteChatRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnmuteChatRequestMultiError) AllErrors() []error { return m }
+
+// UnmuteChatRequestValidationError is the validation error returned by
+// UnmuteChatRequest.Validate if the designated constraints aren't met.
+type UnmuteChatRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnmuteChatRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnmuteChatRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnmuteChatRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnmuteChatRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnmuteChatRequestValidationError) ErrorName() string {
+	return "UnmuteChatRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UnmuteChatRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnmuteChatRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnmuteChatRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnmuteChatRequestValidationError{}
+
+// Validate checks the field values on UnmuteChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UnmuteChatResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnmuteChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UnmuteChatResponseMultiError, or nil if none found.
+func (m *UnmuteChatResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnmuteChatResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetViewerState()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnmuteChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnmuteChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetViewerState()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnmuteChatResponseValidationError{
+				field:  "ViewerState",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UnmuteChatResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UnmuteChatResponseMultiError is an error wrapping multiple validation errors
+// returned by UnmuteChatResponse.ValidateAll() if the designated constraints
+// aren't met.
+type UnmuteChatResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnmuteChatResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnmuteChatResponseMultiError) AllErrors() []error { return m }
+
+// UnmuteChatResponseValidationError is the validation error returned by
+// UnmuteChatResponse.Validate if the designated constraints aren't met.
+type UnmuteChatResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnmuteChatResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnmuteChatResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnmuteChatResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnmuteChatResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnmuteChatResponseValidationError) ErrorName() string {
+	return "UnmuteChatResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UnmuteChatResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnmuteChatResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnmuteChatResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnmuteChatResponseValidationError{}
+
 // Validate checks the field values on StartChatRequest_GroupChatParameters
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

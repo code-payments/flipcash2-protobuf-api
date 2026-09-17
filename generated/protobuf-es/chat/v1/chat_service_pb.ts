@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, Metadata, Rules } from "./model_pb";
+import { ChatType, IdempotencyKey, Metadata, MuteState, Rules, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -888,6 +888,246 @@ export enum LeaveChatResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(LeaveChatResponse_Result)
 proto3.util.setEnumType(LeaveChatResponse_Result, "flipcash.chat.v1.LeaveChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.MuteChatRequest
+ */
+export class MuteChatRequest extends Message<MuteChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * How long to mute for. A timed mute must end in the future; the server
+   * rejects one that does not.
+   *
+   * @generated from field: flipcash.chat.v1.MuteState mute = 2;
+   */
+  mute?: MuteState;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<MuteChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MuteChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "mute", kind: "message", T: MuteState },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MuteChatRequest {
+    return new MuteChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MuteChatRequest {
+    return new MuteChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MuteChatRequest {
+    return new MuteChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MuteChatRequest | PlainMessage<MuteChatRequest> | undefined, b: MuteChatRequest | PlainMessage<MuteChatRequest> | undefined): boolean {
+    return proto3.util.equals(MuteChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.MuteChatResponse
+ */
+export class MuteChatResponse extends Message<MuteChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.MuteChatResponse.Result result = 1;
+   */
+  result = MuteChatResponse_Result.OK;
+
+  /**
+   * The caller's state for the chat after the write, so the client can
+   * apply it at its version. Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 2;
+   */
+  viewerState?: ViewerState;
+
+  constructor(data?: PartialMessage<MuteChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MuteChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(MuteChatResponse_Result) },
+    { no: 2, name: "viewer_state", kind: "message", T: ViewerState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MuteChatResponse {
+    return new MuteChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MuteChatResponse {
+    return new MuteChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MuteChatResponse {
+    return new MuteChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MuteChatResponse | PlainMessage<MuteChatResponse> | undefined, b: MuteChatResponse | PlainMessage<MuteChatResponse> | undefined): boolean {
+    return proto3.util.equals(MuteChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.MuteChatResponse.Result
+ */
+export enum MuteChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not a member
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(MuteChatResponse_Result)
+proto3.util.setEnumType(MuteChatResponse_Result, "flipcash.chat.v1.MuteChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.UnmuteChatRequest
+ */
+export class UnmuteChatRequest extends Message<UnmuteChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<UnmuteChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnmuteChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnmuteChatRequest {
+    return new UnmuteChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnmuteChatRequest {
+    return new UnmuteChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnmuteChatRequest {
+    return new UnmuteChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnmuteChatRequest | PlainMessage<UnmuteChatRequest> | undefined, b: UnmuteChatRequest | PlainMessage<UnmuteChatRequest> | undefined): boolean {
+    return proto3.util.equals(UnmuteChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.UnmuteChatResponse
+ */
+export class UnmuteChatResponse extends Message<UnmuteChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.UnmuteChatResponse.Result result = 1;
+   */
+  result = UnmuteChatResponse_Result.OK;
+
+  /**
+   * As for MuteChatResponse.viewer_state.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 2;
+   */
+  viewerState?: ViewerState;
+
+  constructor(data?: PartialMessage<UnmuteChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnmuteChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(UnmuteChatResponse_Result) },
+    { no: 2, name: "viewer_state", kind: "message", T: ViewerState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnmuteChatResponse {
+    return new UnmuteChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnmuteChatResponse {
+    return new UnmuteChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnmuteChatResponse {
+    return new UnmuteChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnmuteChatResponse | PlainMessage<UnmuteChatResponse> | undefined, b: UnmuteChatResponse | PlainMessage<UnmuteChatResponse> | undefined): boolean {
+    return proto3.util.equals(UnmuteChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.UnmuteChatResponse.Result
+ */
+export enum UnmuteChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UnmuteChatResponse_Result)
+proto3.util.setEnumType(UnmuteChatResponse_Result, "flipcash.chat.v1.UnmuteChatResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
