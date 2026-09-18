@@ -69,6 +69,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | phone | `flipcash.phone.v1` | `PhoneVerification` | Send/check verification codes, unlink, link for payment |
 | profile | `flipcash.profile.v1` | `Profile` | Display name, username, profile picture, tip card, min DM init fee, social account linking |
 | push | `flipcash.push.v1` | `Push` | Push token registration; `Payload` models for push content |
+| reporting | `flipcash.reporting.v1` | `Reporting` | Report a user, chat, message, or blob for review, with optional free-form description |
 | resolver | `flipcash.resolver.v1` | `Resolver` | Resolves real-world identifiers (phone number, username) to payment destinations |
 | settings | `flipcash.settings.v1` | `Settings` | UpdateSettings |
 | thirdparty | `flipcash.thirdparty.v1` | `ThirdParty` | Third-party integrations (GetJwt) |
@@ -76,10 +77,10 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 Cross-domain model dependencies form these layers (each imports the ones before it):
 
 ```
-common → moderation → blob → { profile, messaging } → chat → { event, push }
+common → moderation → blob → { profile, messaging } → { chat, reporting } → { event, push }
 ```
 
-Concretely: `blob` imports `moderation`; `profile` and `messaging` import `blob`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `event` and `push` import `chat` and `messaging`. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
+Concretely: `blob` imports `moderation`; `profile` and `messaging` import `blob`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `reporting` imports `blob` and `messaging`; `event` and `push` import `chat` and `messaging`. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
 
 ## Proto Conventions
 
@@ -103,7 +104,7 @@ Known inconsistencies that exist in shipped code and must be left alone (changin
 
 ### Authentication
 
-Authenticated requests carry `common.v1.Auth auth` with `[(validate.rules).message.required = true]`. The signature is over the serialized request with the `auth` field unset. By convention, the chat, blocklist, messaging, profile, and settings services put `auth` at **field number 10**, leaving 1–9 for payload fields. Other domains (blob, contact, event, resolver, activity, account, and the rest) place it wherever it fell, usually field 1 or the next free number. Follow whichever convention the file already uses; for a new domain, use 10.
+Authenticated requests carry `common.v1.Auth auth` with `[(validate.rules).message.required = true]`. The signature is over the serialized request with the `auth` field unset. By convention, the chat, blocklist, messaging, profile, reporting, and settings services put `auth` at **field number 10**, leaving 1–9 for payload fields. Other domains (blob, contact, event, resolver, activity, account, and the rest) place it wherever it fell, usually field 1 or the next free number. Follow whichever convention the file already uses; for a new domain, use 10.
 
 Streaming RPCs authenticate on the first message: `StreamEventsRequest.Params` carries `auth` plus a `ts` timestamp used as a nonce (server rejects timestamps too far from now).
 
