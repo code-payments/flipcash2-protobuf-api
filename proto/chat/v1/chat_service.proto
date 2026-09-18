@@ -65,6 +65,34 @@ service Chat {
     // pages is dropped, and its removal arrives on the stream.
     rpc GetGroupChatFeed(GetGroupChatFeedRequest) returns (GetGroupChatFeedResponse);
 
+    // GetRoster pages a chat's roster, most recently joined first. Every
+    // page carries the chat's RosterSummary, and every member carries the
+    // roster version that placed them (see Member.version).
+    //
+    // A DM's roster is its participants, and a small group's is read whole:
+    // for these the page is the roster at exactly roster_summary.version,
+    // and once has_more is false member_count is the number of members
+    // returned. A large group's roster is paged from an index that trails
+    // membership writes briefly, so a page may lag roster_summary — a member
+    // who just joined may be absent, one who just left may be present.
+    // Clients do not see which case they are in and must follow the weaker
+    // contract: treat roster_summary.version as the staleness watermark
+    // described on RosterSummary, and merge each page against what the
+    // event stream has told them per member by Member.version, the greater
+    // winning. A cached member absent from a fully read roster is gone
+    // unless the client holds their join at a version above the page's
+    // roster_summary.version. A join during the walk lands ahead of the
+    // cursor and arrives only as a RosterUpdate.
+    //
+    // Pointers are hydrated for a DM's participants only. A group's members
+    // carry none: group pointer advances are never broadcast, so a page of
+    // them would be stale as soon as it was served.
+    //
+    // Requires that the caller may read the chat: a member, or a non-member
+    // a group's listener rules admit. A viewer who may only preview the chat
+    // is DENIED.
+    rpc GetRoster(GetRosterRequest) returns (GetRosterResponse);
+
     // StartChat starts a new chat.
     rpc StartChat(StartChatRequest) returns (StartChatResponse);
 
@@ -214,6 +242,56 @@ message GetGroupChatFeedResponse {
     // true, the client should issue another GetGroupChatFeedRequest with the
     // returned paging_token.
     bool has_more = 4;
+}
+
+message GetRosterRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // QueryOptions controls page_size, capped at 100. Ordering is fixed to
+    // most recently joined first and is not client-selectable.
+    //
+    // Leave query_options.paging_token unset on the first request. On every
+    // subsequent request, set it to the paging_token from the most recent
+    // response. The token is opaque and server-generated; do not construct
+    // it. It is bound to chat_id and refused with another chat.
+    common.v1.QueryOptions query_options = 2;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetRosterResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
+
+    // The page, most recently joined first, each with user_profile,
+    // joined_at and version set, and pointers for a DM. Set when result is
+    // OK.
+    repeated Member members = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // The chat's roster summary as of this page's read. Set when result is
+    // OK. Applied by version as described on RosterSummary; see GetRoster
+    // for how the page relates to it.
+    RosterSummary roster_summary = 3;
+
+    // PagingToken carries the cursor over (joined_at, user_id) after the last
+    // member returned. The client MUST send it back in
+    // query_options.paging_token on the next GetRosterRequest. Set when
+    // result is OK and has_more is true.
+    common.v1.PagingToken paging_token = 4;
+
+    // HasMore indicates whether further pages remain. When false, the roster
+    // has been fully read as of this page; the complete member list is this
+    // set reconciled with the event stream (see GetRoster). When true, the
+    // client should issue another GetRosterRequest with the returned
+    // paging_token.
+    bool has_more = 5;
 }
 
 message StartChatRequest {

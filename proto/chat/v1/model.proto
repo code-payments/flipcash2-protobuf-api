@@ -156,10 +156,34 @@ message Member {
     //
     // If set, the list may contain DELIVERED and READ pointers. SENT pointers
     // are only shared between the sender and server, to indicate persistence.
+    // Hydrated for a DM's participants; a group member's are never carried.
     repeated messaging.v1.Pointer pointers = 3 [(validate.rules).repeated = {
         min_items: 0
         max_items: 2
     }];
+
+    // When the member most recently joined the chat. A member who left and
+    // rejoined carries the rejoin time.
+    //
+    // Set for a group's members on a Chat.GetRoster page and on a
+    // RosterUpdate.MemberJoined — the carriers a client builds its member
+    // list from. Unset on Metadata.members, which carries only the viewer's
+    // own entry, and never set for a DM's participants, whose roster is fixed
+    // at creation.
+    google.protobuf.Timestamp joined_at = 4;
+
+    // The roster version at which the member most recently joined: the
+    // version RosterSummary.version moved to on that transition, so it equals
+    // roster_summary.version on the RosterUpdate.MemberJoined that announced
+    // it. Zero for a member joined at the chat's creation and for every DM
+    // participant. In future it moves with any change to what the chat
+    // records about the member (e.g. a role), as RosterSummary.version does.
+    //
+    // A client merges what it holds for a user by this version: the greater
+    // wins, so a GetRoster page that trails the stream (see GetRoster)
+    // cannot resurrect a member the stream has already removed. Set wherever
+    // joined_at is; a DM participant's is zero by that rule too.
+    uint64 version = 5;
 }
 
 // RosterSummary describes a chat's roster — its member list — without
@@ -171,7 +195,8 @@ message Member {
 // this summary.
 message RosterSummary {
     // Number of currently joined members. For a large group chat,
-    // Metadata.members is a subset of the roster; this is its true size.
+    // Metadata.members is a subset of the roster; this is its true size, and
+    // Chat.GetRoster pages the roster itself.
     uint64 member_count = 1;
 
     // Version of the roster: advanced by exactly one on every change to the
@@ -243,8 +268,9 @@ message RosterUpdate {
     // has just become a member of the chat and should insert it into their
     // chat list using metadata.
     message MemberJoined {
-        // The member that joined, with their profile hydrated, so a client
-        // can update its cached member list without a refetch.
+        // The member that joined, with their profile hydrated and joined_at and
+        // version set, so a client can update its cached member list without
+        // a refetch and merge later Chat.GetRoster pages against it.
         Member member = 1 [(validate.rules).message.required = true];
 
         // The full metadata for the chat, so the recipient can insert it into

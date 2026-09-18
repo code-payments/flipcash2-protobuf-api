@@ -1068,6 +1068,424 @@ var _ interface {
 	ErrorName() string
 } = GetGroupChatFeedResponseValidationError{}
 
+// Validate checks the field values on GetRosterRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetRosterRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetRosterRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetRosterRequestMultiError, or nil if none found.
+func (m *GetRosterRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetRosterRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetRosterRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRosterRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetQueryOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "QueryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "QueryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetQueryOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRosterRequestValidationError{
+				field:  "QueryOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := GetRosterRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRosterRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetRosterRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetRosterRequestMultiError is an error wrapping multiple validation errors
+// returned by GetRosterRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetRosterRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetRosterRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetRosterRequestMultiError) AllErrors() []error { return m }
+
+// GetRosterRequestValidationError is the validation error returned by
+// GetRosterRequest.Validate if the designated constraints aren't met.
+type GetRosterRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetRosterRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetRosterRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetRosterRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetRosterRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetRosterRequestValidationError) ErrorName() string { return "GetRosterRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GetRosterRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetRosterRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetRosterRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetRosterRequestValidationError{}
+
+// Validate checks the field values on GetRosterResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GetRosterResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetRosterResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetRosterResponseMultiError, or nil if none found.
+func (m *GetRosterResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetRosterResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetMembers()) > 100 {
+		err := GetRosterResponseValidationError{
+			field:  "Members",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetMembers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetRosterResponseValidationError{
+						field:  fmt.Sprintf("Members[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetRosterResponseValidationError{
+						field:  fmt.Sprintf("Members[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetRosterResponseValidationError{
+					field:  fmt.Sprintf("Members[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetRosterSummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRosterResponseValidationError{
+					field:  "RosterSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRosterResponseValidationError{
+					field:  "RosterSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRosterSummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRosterResponseValidationError{
+				field:  "RosterSummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagingToken()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRosterResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRosterResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagingToken()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRosterResponseValidationError{
+				field:  "PagingToken",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for HasMore
+
+	if len(errors) > 0 {
+		return GetRosterResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetRosterResponseMultiError is an error wrapping multiple validation errors
+// returned by GetRosterResponse.ValidateAll() if the designated constraints
+// aren't met.
+type GetRosterResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetRosterResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetRosterResponseMultiError) AllErrors() []error { return m }
+
+// GetRosterResponseValidationError is the validation error returned by
+// GetRosterResponse.Validate if the designated constraints aren't met.
+type GetRosterResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetRosterResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetRosterResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetRosterResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetRosterResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetRosterResponseValidationError) ErrorName() string {
+	return "GetRosterResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetRosterResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetRosterResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetRosterResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetRosterResponseValidationError{}
+
 // Validate checks the field values on StartChatRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

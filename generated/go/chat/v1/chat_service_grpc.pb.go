@@ -22,6 +22,7 @@ const (
 	Chat_GetChat_FullMethodName          = "/flipcash.chat.v1.Chat/GetChat"
 	Chat_GetDmChatFeed_FullMethodName    = "/flipcash.chat.v1.Chat/GetDmChatFeed"
 	Chat_GetGroupChatFeed_FullMethodName = "/flipcash.chat.v1.Chat/GetGroupChatFeed"
+	Chat_GetRoster_FullMethodName        = "/flipcash.chat.v1.Chat/GetRoster"
 	Chat_StartChat_FullMethodName        = "/flipcash.chat.v1.Chat/StartChat"
 	Chat_JoinChat_FullMethodName         = "/flipcash.chat.v1.Chat/JoinChat"
 	Chat_LeaveChat_FullMethodName        = "/flipcash.chat.v1.Chat/LeaveChat"
@@ -81,6 +82,33 @@ type ChatClient interface {
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
 	GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedRequest, opts ...grpc.CallOption) (*GetGroupChatFeedResponse, error)
+	// GetRoster pages a chat's roster, most recently joined first. Every
+	// page carries the chat's RosterSummary, and every member carries the
+	// roster version that placed them (see Member.version).
+	//
+	// A DM's roster is its participants, and a small group's is read whole:
+	// for these the page is the roster at exactly roster_summary.version,
+	// and once has_more is false member_count is the number of members
+	// returned. A large group's roster is paged from an index that trails
+	// membership writes briefly, so a page may lag roster_summary — a member
+	// who just joined may be absent, one who just left may be present.
+	// Clients do not see which case they are in and must follow the weaker
+	// contract: treat roster_summary.version as the staleness watermark
+	// described on RosterSummary, and merge each page against what the
+	// event stream has told them per member by Member.version, the greater
+	// winning. A cached member absent from a fully read roster is gone
+	// unless the client holds their join at a version above the page's
+	// roster_summary.version. A join during the walk lands ahead of the
+	// cursor and arrives only as a RosterUpdate.
+	//
+	// Pointers are hydrated for a DM's participants only. A group's members
+	// carry none: group pointer advances are never broadcast, so a page of
+	// them would be stale as soon as it was served.
+	//
+	// Requires that the caller may read the chat: a member, or a non-member
+	// a group's listener rules admit. A viewer who may only preview the chat
+	// is DENIED.
+	GetRoster(ctx context.Context, in *GetRosterRequest, opts ...grpc.CallOption) (*GetRosterResponse, error)
 	// StartChat starts a new chat.
 	StartChat(ctx context.Context, in *StartChatRequest, opts ...grpc.CallOption) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
@@ -135,6 +163,16 @@ func (c *chatClient) GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetGroupChatFeedResponse)
 	err := c.cc.Invoke(ctx, Chat_GetGroupChatFeed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetRoster(ctx context.Context, in *GetRosterRequest, opts ...grpc.CallOption) (*GetRosterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRosterResponse)
+	err := c.cc.Invoke(ctx, Chat_GetRoster_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -243,6 +281,33 @@ type ChatServer interface {
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
 	GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error)
+	// GetRoster pages a chat's roster, most recently joined first. Every
+	// page carries the chat's RosterSummary, and every member carries the
+	// roster version that placed them (see Member.version).
+	//
+	// A DM's roster is its participants, and a small group's is read whole:
+	// for these the page is the roster at exactly roster_summary.version,
+	// and once has_more is false member_count is the number of members
+	// returned. A large group's roster is paged from an index that trails
+	// membership writes briefly, so a page may lag roster_summary — a member
+	// who just joined may be absent, one who just left may be present.
+	// Clients do not see which case they are in and must follow the weaker
+	// contract: treat roster_summary.version as the staleness watermark
+	// described on RosterSummary, and merge each page against what the
+	// event stream has told them per member by Member.version, the greater
+	// winning. A cached member absent from a fully read roster is gone
+	// unless the client holds their join at a version above the page's
+	// roster_summary.version. A join during the walk lands ahead of the
+	// cursor and arrives only as a RosterUpdate.
+	//
+	// Pointers are hydrated for a DM's participants only. A group's members
+	// carry none: group pointer advances are never broadcast, so a page of
+	// them would be stale as soon as it was served.
+	//
+	// Requires that the caller may read the chat: a member, or a non-member
+	// a group's listener rules admit. A viewer who may only preview the chat
+	// is DENIED.
+	GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error)
 	// StartChat starts a new chat.
 	StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
@@ -281,6 +346,9 @@ func (UnimplementedChatServer) GetDmChatFeed(context.Context, *GetDmChatFeedRequ
 }
 func (UnimplementedChatServer) GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGroupChatFeed not implemented")
+}
+func (UnimplementedChatServer) GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoster not implemented")
 }
 func (UnimplementedChatServer) StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartChat not implemented")
@@ -368,6 +436,24 @@ func _Chat_GetGroupChatFeed_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChatServer).GetGroupChatFeed(ctx, req.(*GetGroupChatFeedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetRoster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRosterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetRoster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetRoster_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetRoster(ctx, req.(*GetRosterRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -480,6 +566,10 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGroupChatFeed",
 			Handler:    _Chat_GetGroupChatFeed_Handler,
+		},
+		{
+			MethodName: "GetRoster",
+			Handler:    _Chat_GetRoster_Handler,
 		},
 		{
 			MethodName: "StartChat",

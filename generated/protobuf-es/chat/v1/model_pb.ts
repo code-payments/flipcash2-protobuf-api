@@ -456,10 +456,42 @@ export class Member extends Message<Member> {
    *
    * If set, the list may contain DELIVERED and READ pointers. SENT pointers
    * are only shared between the sender and server, to indicate persistence.
+   * Hydrated for a DM's participants; a group member's are never carried.
    *
    * @generated from field: repeated flipcash.messaging.v1.Pointer pointers = 3;
    */
   pointers: Pointer[] = [];
+
+  /**
+   * When the member most recently joined the chat. A member who left and
+   * rejoined carries the rejoin time.
+   *
+   * Set for a group's members on a Chat.GetRoster page and on a
+   * RosterUpdate.MemberJoined — the carriers a client builds its member
+   * list from. Unset on Metadata.members, which carries only the viewer's
+   * own entry, and never set for a DM's participants, whose roster is fixed
+   * at creation.
+   *
+   * @generated from field: google.protobuf.Timestamp joined_at = 4;
+   */
+  joinedAt?: Timestamp;
+
+  /**
+   * The roster version at which the member most recently joined: the
+   * version RosterSummary.version moved to on that transition, so it equals
+   * roster_summary.version on the RosterUpdate.MemberJoined that announced
+   * it. Zero for a member joined at the chat's creation and for every DM
+   * participant. In future it moves with any change to what the chat
+   * records about the member (e.g. a role), as RosterSummary.version does.
+   *
+   * A client merges what it holds for a user by this version: the greater
+   * wins, so a GetRoster page that trails the stream (see GetRoster)
+   * cannot resurrect a member the stream has already removed. Set wherever
+   * joined_at is; a DM participant's is zero by that rule too.
+   *
+   * @generated from field: uint64 version = 5;
+   */
+  version = protoInt64.zero;
 
   constructor(data?: PartialMessage<Member>) {
     super();
@@ -472,6 +504,8 @@ export class Member extends Message<Member> {
     { no: 1, name: "user_id", kind: "message", T: UserId },
     { no: 2, name: "user_profile", kind: "message", T: UserProfile },
     { no: 3, name: "pointers", kind: "message", T: Pointer, repeated: true },
+    { no: 4, name: "joined_at", kind: "message", T: Timestamp },
+    { no: 5, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Member {
@@ -505,7 +539,8 @@ export class Member extends Message<Member> {
 export class RosterSummary extends Message<RosterSummary> {
   /**
    * Number of currently joined members. For a large group chat,
-   * Metadata.members is a subset of the roster; this is its true size.
+   * Metadata.members is a subset of the roster; this is its true size, and
+   * Chat.GetRoster pages the roster itself.
    *
    * @generated from field: uint64 member_count = 1;
    */
@@ -814,8 +849,9 @@ export class RosterUpdate extends Message<RosterUpdate> {
  */
 export class RosterUpdate_MemberJoined extends Message<RosterUpdate_MemberJoined> {
   /**
-   * The member that joined, with their profile hydrated, so a client
-   * can update its cached member list without a refetch.
+   * The member that joined, with their profile hydrated and joined_at and
+   * version set, so a client can update its cached member list without
+   * a refetch and merge later Chat.GetRoster pages against it.
    *
    * @generated from field: flipcash.chat.v1.Member member = 1;
    */
