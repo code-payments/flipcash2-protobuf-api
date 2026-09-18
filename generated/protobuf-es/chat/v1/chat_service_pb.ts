@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, Metadata, MuteState, Rules, ViewerState } from "./model_pb";
+import { ChatType, IdempotencyKey, Member, Metadata, MuteState, RosterSummary, Rules, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -438,6 +438,169 @@ export enum GetGroupChatFeedResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetGroupChatFeedResponse_Result)
 proto3.util.setEnumType(GetGroupChatFeedResponse_Result, "flipcash.chat.v1.GetGroupChatFeedResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetRosterRequest
+ */
+export class GetRosterRequest extends Message<GetRosterRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * QueryOptions controls page_size, capped at 100. Ordering is fixed to
+   * most recently joined first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request. On every
+   * subsequent request, set it to the paging_token from the most recent
+   * response. The token is opaque and server-generated; do not construct
+   * it. It is bound to chat_id and refused with another chat.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 2;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetRosterRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetRosterRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRosterRequest {
+    return new GetRosterRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRosterRequest {
+    return new GetRosterRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRosterRequest {
+    return new GetRosterRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRosterRequest | PlainMessage<GetRosterRequest> | undefined, b: GetRosterRequest | PlainMessage<GetRosterRequest> | undefined): boolean {
+    return proto3.util.equals(GetRosterRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetRosterResponse
+ */
+export class GetRosterResponse extends Message<GetRosterResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetRosterResponse.Result result = 1;
+   */
+  result = GetRosterResponse_Result.OK;
+
+  /**
+   * The page, most recently joined first, each with user_profile,
+   * joined_at and version set, and pointers for a DM. Set when result is
+   * OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.Member members = 2;
+   */
+  members: Member[] = [];
+
+  /**
+   * The chat's roster summary as of this page's read. Set when result is
+   * OK. Applied by version as described on RosterSummary; see GetRoster
+   * for how the page relates to it.
+   *
+   * @generated from field: flipcash.chat.v1.RosterSummary roster_summary = 3;
+   */
+  rosterSummary?: RosterSummary;
+
+  /**
+   * PagingToken carries the cursor over (joined_at, user_id) after the last
+   * member returned. The client MUST send it back in
+   * query_options.paging_token on the next GetRosterRequest. Set when
+   * result is OK and has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 4;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain. When false, the roster
+   * has been fully read as of this page; the complete member list is this
+   * set reconciled with the event stream (see GetRoster). When true, the
+   * client should issue another GetRosterRequest with the returned
+   * paging_token.
+   *
+   * @generated from field: bool has_more = 5;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetRosterResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetRosterResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetRosterResponse_Result) },
+    { no: 2, name: "members", kind: "message", T: Member, repeated: true },
+    { no: 3, name: "roster_summary", kind: "message", T: RosterSummary },
+    { no: 4, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 5, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRosterResponse {
+    return new GetRosterResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRosterResponse {
+    return new GetRosterResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRosterResponse {
+    return new GetRosterResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRosterResponse | PlainMessage<GetRosterResponse> | undefined, b: GetRosterResponse | PlainMessage<GetRosterResponse> | undefined): boolean {
+    return proto3.util.equals(GetRosterResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetRosterResponse.Result
+ */
+export enum GetRosterResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetRosterResponse_Result)
+proto3.util.setEnumType(GetRosterResponse_Result, "flipcash.chat.v1.GetRosterResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

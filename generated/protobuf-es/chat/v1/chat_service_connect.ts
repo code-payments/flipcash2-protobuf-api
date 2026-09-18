@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -85,6 +85,42 @@ export const Chat = {
       name: "GetGroupChatFeed",
       I: GetGroupChatFeedRequest,
       O: GetGroupChatFeedResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetRoster pages a chat's roster, most recently joined first. Every
+     * page carries the chat's RosterSummary, and every member carries the
+     * roster version that placed them (see Member.version).
+     *
+     * A DM's roster is its participants, and a small group's is read whole:
+     * for these the page is the roster at exactly roster_summary.version,
+     * and once has_more is false member_count is the number of members
+     * returned. A large group's roster is paged from an index that trails
+     * membership writes briefly, so a page may lag roster_summary — a member
+     * who just joined may be absent, one who just left may be present.
+     * Clients do not see which case they are in and must follow the weaker
+     * contract: treat roster_summary.version as the staleness watermark
+     * described on RosterSummary, and merge each page against what the
+     * event stream has told them per member by Member.version, the greater
+     * winning. A cached member absent from a fully read roster is gone
+     * unless the client holds their join at a version above the page's
+     * roster_summary.version. A join during the walk lands ahead of the
+     * cursor and arrives only as a RosterUpdate.
+     *
+     * Pointers are hydrated for a DM's participants only. A group's members
+     * carry none: group pointer advances are never broadcast, so a page of
+     * them would be stale as soon as it was served.
+     *
+     * Requires that the caller may read the chat: a member, or a non-member
+     * a group's listener rules admit. A viewer who may only preview the chat
+     * is DENIED.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetRoster
+     */
+    getRoster: {
+      name: "GetRoster",
+      I: GetRosterRequest,
+      O: GetRosterResponse,
       kind: MethodKind.Unary,
     },
     /**
