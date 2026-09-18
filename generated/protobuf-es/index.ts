@@ -1,4 +1,5 @@
 export * as Settings from './settings/v1';
+export * as Reporting from './reporting/v1';
 export * as Contact from './contact/v1';
 export * as Contact from './contact/v1';
 export * as Chat from './chat/v1';

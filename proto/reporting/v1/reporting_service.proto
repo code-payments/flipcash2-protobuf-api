@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package flipcash.reporting.v1;
+
+import "blob/v1/model.proto";
+import "common/v1/common.proto";
+import "messaging/v1/model.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/reporting/v1;reportingpb";
+option java_package = "com.codeinc.flipcash.gen.reporting.v1";
+option objc_class_prefix = "FPBReportingV1";
+
+// Reporting lets users flag content or other users for review.
+service Reporting {
+    // Report files a report against a user, chat, message, or blob. Reports
+    // are advisory: filing one has no immediate client-visible effect and
+    // outcomes are not surfaced back to the reporter. Reporting the same
+    // target more than once is a no-op and returns OK.
+    rpc Report(ReportRequest) returns (ReportResponse);
+}
+
+message ReportRequest {
+    // The target being reported
+    oneof target {
+        option (validate.required) = true;
+
+        // A user
+        common.v1.UserId user_id = 1;
+
+        // A chat
+        common.v1.ChatId chat_id = 2;
+
+        // A message within a chat
+        ReportedMessage message = 3;
+
+        // A blob
+        blob.v1.BlobId blob_id = 4;
+    }
+
+    // Optional free-form text from the reporter describing the reason for
+    // the report. Not moderated or shown to other users.
+    string description = 5 [(validate.rules).string = {
+        max_len: 8192
+    }];
+
+    // ReportedMessage identifies a message. MessageId is a per-chat sequence
+    // number, so the chat it belongs to must be provided alongside it.
+    message ReportedMessage {
+        common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+        messaging.v1.MessageId message_id = 2 [(validate.rules).message.required = true];
+    }
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message ReportResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
+}
