@@ -70,10 +70,11 @@ service Chat {
     // roster version that placed them (see Member.version).
     //
     // A DM's roster is its participants, and a small group's is read whole:
-    // for these the page is the roster at exactly roster_summary.version,
-    // and once has_more is false member_count is the number of members
-    // returned. A large group's roster is paged from an index that trails
-    // membership writes briefly, so a page may lag roster_summary — a member
+    // for these a page is the roster at exactly roster_summary.version — a
+    // roster that fits one page is member_count members, and a later page
+    // is a fresh snapshot at its own summary. A large group's roster is
+    // paged from an index that trails membership writes briefly, so a page
+    // may lag roster_summary — a member
     // who just joined may be absent, one who just left may be present.
     // Clients do not see which case they are in and must follow the weaker
     // contract: treat roster_summary.version as the staleness watermark
