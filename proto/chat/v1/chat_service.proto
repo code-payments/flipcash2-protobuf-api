@@ -103,6 +103,24 @@ service Chat {
     // LeaveChat removes the caller from a chat's roster.
     rpc LeaveChat(LeaveChatRequest) returns (LeaveChatResponse);
 
+    // EditChat edits a group chat's record. Every editable field is optional;
+    // only the ones set in the request are changed, and the edit is atomic:
+    // if any part is refused, nothing is applied.
+    //
+    // Only a group chat may be edited, and only by a member the server permits
+    // to edit it; anyone else is DENIED. A new title is moderated like
+    // StartChat's. A new picture is a blob the caller has already uploaded via
+    // BlobStorage: the client uploads only the ORIGINAL and passes the
+    // resulting BlobId once the blob is READY, and the server derives the
+    // remaining renditions. Setting a field to the value the chat already has
+    // is a no-op for that field, and a request that sets nothing is a no-op
+    // that returns OK.
+    //
+    // Every real change reaches the chat's members, including the caller's
+    // other devices, on the event stream as one MetadataUpdate per field
+    // changed: TitleChanged for the title, PictureChanged for the picture.
+    rpc EditChat(EditChatRequest) returns (EditChatResponse);
+
     // MuteChat mutes a chat for the caller, until a time or indefinitely.
     //
     // Only a member may mute. Muting does not affect the event stream or
@@ -385,6 +403,53 @@ message LeaveChatResponse {
         DENIED    = 1;
         NOT_FOUND = 2;
     }
+}
+
+message EditChatRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The new title. Left unchanged when unset.
+    Title title = 2;
+
+    // The new picture. Left unchanged when unset.
+    Picture picture = 3;
+
+    message Title {
+        string value = 1 [(validate.rules).string = {
+            min_len: 1
+            max_len: 64
+        }];
+    }
+
+    message Picture {
+        // The blob holding the ORIGINAL picture the caller uploaded. It must be
+        // owned by the caller and READY; the server derives the remaining
+        // renditions from it.
+        blob.v1.BlobId blob_id = 1 [(validate.rules).message.required = true];
+    }
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message EditChatResponse {
+    Result result = 1;
+    enum Result {
+        OK                        = 0;
+        DENIED                    = 1;
+        NOT_FOUND                 = 2;
+        TITLE_MODERATED           = 3;
+        PICTURE_BLOB_NOT_ACCEPTED = 4;
+    }
+
+    // The metadata for the chat after the edit, as seen by the caller,
+    // including any picture renditions the server derived. Set only when
+    // result == OK.
+    Metadata chat = 2;
+
+    // The best-fit category that tripped moderation, mirroring the Moderation
+    // service's vocabulary. Set only when result == TITLE_MODERATED; NONE
+    // otherwise.
+    moderation.v1.FlaggedCategory flagged_category = 3;
 }
 
 message MuteChatRequest {

@@ -222,6 +222,8 @@ message MetadataUpdate {
         FullRefresh         full_refresh          = 1;
         LastActivityChanged last_activity_changed = 2;
         ViewerStateChanged  viewer_state_changed  = 3;
+        TitleChanged        title_changed         = 4;
+        PictureChanged      picture_changed       = 5;
     }
 
     // Refreshes the entire chat metadata
@@ -237,6 +239,28 @@ message MetadataUpdate {
     // The receiving user's own state for the chat has changed
     message ViewerStateChanged {
         ViewerState viewer_state = 1 [(validate.rules).message.required = true];
+    }
+
+    // The chat's title has changed (e.g. via Chat.EditChat). Delivered to the
+    // chat's members, including the editor's other devices. Best-effort and
+    // applied as received; a client that suspects a miss refetches the chat
+    // via Chat.GetChat.
+    message TitleChanged {
+        // The new title, replacing Metadata.title.
+        string new_title = 1 [(validate.rules).string = {
+            min_len: 1
+            max_len: 64
+        }];
+    }
+
+    // The chat's picture has changed (e.g. via Chat.EditChat). Delivered to
+    // the chat's members, including the editor's other devices. Best-effort
+    // and applied as received; a client that suspects a miss refetches the
+    // chat via Chat.GetChat.
+    message PictureChanged {
+        // The new picture, with the renditions the server derived, replacing
+        // Metadata.picture.
+        blob.v1.Media new_picture = 1 [(validate.rules).message.required = true];
     }
 }
 

@@ -26,6 +26,7 @@ const (
 	Chat_StartChat_FullMethodName        = "/flipcash.chat.v1.Chat/StartChat"
 	Chat_JoinChat_FullMethodName         = "/flipcash.chat.v1.Chat/JoinChat"
 	Chat_LeaveChat_FullMethodName        = "/flipcash.chat.v1.Chat/LeaveChat"
+	Chat_EditChat_FullMethodName         = "/flipcash.chat.v1.Chat/EditChat"
 	Chat_MuteChat_FullMethodName         = "/flipcash.chat.v1.Chat/MuteChat"
 	Chat_UnmuteChat_FullMethodName       = "/flipcash.chat.v1.Chat/UnmuteChat"
 )
@@ -116,6 +117,23 @@ type ChatClient interface {
 	JoinChat(ctx context.Context, in *JoinChatRequest, opts ...grpc.CallOption) (*JoinChatResponse, error)
 	// LeaveChat removes the caller from a chat's roster.
 	LeaveChat(ctx context.Context, in *LeaveChatRequest, opts ...grpc.CallOption) (*LeaveChatResponse, error)
+	// EditChat edits a group chat's record. Every editable field is optional;
+	// only the ones set in the request are changed, and the edit is atomic:
+	// if any part is refused, nothing is applied.
+	//
+	// Only a group chat may be edited, and only by a member the server permits
+	// to edit it; anyone else is DENIED. A new title is moderated like
+	// StartChat's. A new picture is a blob the caller has already uploaded via
+	// BlobStorage: the client uploads only the ORIGINAL and passes the
+	// resulting BlobId once the blob is READY, and the server derives the
+	// remaining renditions. Setting a field to the value the chat already has
+	// is a no-op for that field, and a request that sets nothing is a no-op
+	// that returns OK.
+	//
+	// Every real change reaches the chat's members, including the caller's
+	// other devices, on the event stream as one MetadataUpdate per field
+	// changed: TitleChanged for the title, PictureChanged for the picture.
+	EditChat(ctx context.Context, in *EditChatRequest, opts ...grpc.CallOption) (*EditChatResponse, error)
 	// MuteChat mutes a chat for the caller, until a time or indefinitely.
 	//
 	// Only a member may mute. Muting does not affect the event stream or
@@ -204,6 +222,16 @@ func (c *chatClient) LeaveChat(ctx context.Context, in *LeaveChatRequest, opts .
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LeaveChatResponse)
 	err := c.cc.Invoke(ctx, Chat_LeaveChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) EditChat(ctx context.Context, in *EditChatRequest, opts ...grpc.CallOption) (*EditChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EditChatResponse)
+	err := c.cc.Invoke(ctx, Chat_EditChat_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -316,6 +344,23 @@ type ChatServer interface {
 	JoinChat(context.Context, *JoinChatRequest) (*JoinChatResponse, error)
 	// LeaveChat removes the caller from a chat's roster.
 	LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error)
+	// EditChat edits a group chat's record. Every editable field is optional;
+	// only the ones set in the request are changed, and the edit is atomic:
+	// if any part is refused, nothing is applied.
+	//
+	// Only a group chat may be edited, and only by a member the server permits
+	// to edit it; anyone else is DENIED. A new title is moderated like
+	// StartChat's. A new picture is a blob the caller has already uploaded via
+	// BlobStorage: the client uploads only the ORIGINAL and passes the
+	// resulting BlobId once the blob is READY, and the server derives the
+	// remaining renditions. Setting a field to the value the chat already has
+	// is a no-op for that field, and a request that sets nothing is a no-op
+	// that returns OK.
+	//
+	// Every real change reaches the chat's members, including the caller's
+	// other devices, on the event stream as one MetadataUpdate per field
+	// changed: TitleChanged for the title, PictureChanged for the picture.
+	EditChat(context.Context, *EditChatRequest) (*EditChatResponse, error)
 	// MuteChat mutes a chat for the caller, until a time or indefinitely.
 	//
 	// Only a member may mute. Muting does not affect the event stream or
@@ -360,6 +405,9 @@ func (UnimplementedChatServer) JoinChat(context.Context, *JoinChatRequest) (*Joi
 }
 func (UnimplementedChatServer) LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LeaveChat not implemented")
+}
+func (UnimplementedChatServer) EditChat(context.Context, *EditChatRequest) (*EditChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditChat not implemented")
 }
 func (UnimplementedChatServer) MuteChat(context.Context, *MuteChatRequest) (*MuteChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MuteChat not implemented")
@@ -514,6 +562,24 @@ func _Chat_LeaveChat_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_EditChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).EditChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_EditChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).EditChat(ctx, req.(*EditChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Chat_MuteChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MuteChatRequest)
 	if err := dec(in); err != nil {
@@ -584,6 +650,10 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LeaveChat",
 			Handler:    _Chat_LeaveChat_Handler,
+		},
+		{
+			MethodName: "EditChat",
+			Handler:    _Chat_EditChat_Handler,
 		},
 		{
 			MethodName: "MuteChat",

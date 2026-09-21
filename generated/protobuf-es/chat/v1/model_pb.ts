@@ -619,6 +619,18 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
      */
     value: MetadataUpdate_ViewerStateChanged;
     case: "viewerStateChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.TitleChanged title_changed = 4;
+     */
+    value: MetadataUpdate_TitleChanged;
+    case: "titleChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.PictureChanged picture_changed = 5;
+     */
+    value: MetadataUpdate_PictureChanged;
+    case: "pictureChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -632,6 +644,8 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     { no: 1, name: "full_refresh", kind: "message", T: MetadataUpdate_FullRefresh, oneof: "kind" },
     { no: 2, name: "last_activity_changed", kind: "message", T: MetadataUpdate_LastActivityChanged, oneof: "kind" },
     { no: 3, name: "viewer_state_changed", kind: "message", T: MetadataUpdate_ViewerStateChanged, oneof: "kind" },
+    { no: 4, name: "title_changed", kind: "message", T: MetadataUpdate_TitleChanged, oneof: "kind" },
+    { no: 5, name: "picture_changed", kind: "message", T: MetadataUpdate_PictureChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -765,6 +779,95 @@ export class MetadataUpdate_ViewerStateChanged extends Message<MetadataUpdate_Vi
 
   static equals(a: MetadataUpdate_ViewerStateChanged | PlainMessage<MetadataUpdate_ViewerStateChanged> | undefined, b: MetadataUpdate_ViewerStateChanged | PlainMessage<MetadataUpdate_ViewerStateChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_ViewerStateChanged, a, b);
+  }
+}
+
+/**
+ * The chat's title has changed (e.g. via Chat.EditChat). Delivered to the
+ * chat's members, including the editor's other devices. Best-effort and
+ * applied as received; a client that suspects a miss refetches the chat
+ * via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.TitleChanged
+ */
+export class MetadataUpdate_TitleChanged extends Message<MetadataUpdate_TitleChanged> {
+  /**
+   * The new title, replacing Metadata.title.
+   *
+   * @generated from field: string new_title = 1;
+   */
+  newTitle = "";
+
+  constructor(data?: PartialMessage<MetadataUpdate_TitleChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.TitleChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_TitleChanged {
+    return new MetadataUpdate_TitleChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_TitleChanged {
+    return new MetadataUpdate_TitleChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_TitleChanged {
+    return new MetadataUpdate_TitleChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_TitleChanged | PlainMessage<MetadataUpdate_TitleChanged> | undefined, b: MetadataUpdate_TitleChanged | PlainMessage<MetadataUpdate_TitleChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_TitleChanged, a, b);
+  }
+}
+
+/**
+ * The chat's picture has changed (e.g. via Chat.EditChat). Delivered to
+ * the chat's members, including the editor's other devices. Best-effort
+ * and applied as received; a client that suspects a miss refetches the
+ * chat via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.PictureChanged
+ */
+export class MetadataUpdate_PictureChanged extends Message<MetadataUpdate_PictureChanged> {
+  /**
+   * The new picture, with the renditions the server derived, replacing
+   * Metadata.picture.
+   *
+   * @generated from field: flipcash.blob.v1.Media new_picture = 1;
+   */
+  newPicture?: Media;
+
+  constructor(data?: PartialMessage<MetadataUpdate_PictureChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.PictureChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_picture", kind: "message", T: Media },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_PictureChanged {
+    return new MetadataUpdate_PictureChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_PictureChanged {
+    return new MetadataUpdate_PictureChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_PictureChanged {
+    return new MetadataUpdate_PictureChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined, b: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_PictureChanged, a, b);
   }
 }
 

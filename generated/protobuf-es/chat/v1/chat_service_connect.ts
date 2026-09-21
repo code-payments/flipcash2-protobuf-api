@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { EditChatRequest, EditChatResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -155,6 +155,32 @@ export const Chat = {
       name: "LeaveChat",
       I: LeaveChatRequest,
       O: LeaveChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * EditChat edits a group chat's record. Every editable field is optional;
+     * only the ones set in the request are changed, and the edit is atomic:
+     * if any part is refused, nothing is applied.
+     *
+     * Only a group chat may be edited, and only by a member the server permits
+     * to edit it; anyone else is DENIED. A new title is moderated like
+     * StartChat's. A new picture is a blob the caller has already uploaded via
+     * BlobStorage: the client uploads only the ORIGINAL and passes the
+     * resulting BlobId once the blob is READY, and the server derives the
+     * remaining renditions. Setting a field to the value the chat already has
+     * is a no-op for that field, and a request that sets nothing is a no-op
+     * that returns OK.
+     *
+     * Every real change reaches the chat's members, including the caller's
+     * other devices, on the event stream as one MetadataUpdate per field
+     * changed: TitleChanged for the title, PictureChanged for the picture.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.EditChat
+     */
+    editChat: {
+      name: "EditChat",
+      I: EditChatRequest,
+      O: EditChatResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -1787,6 +1787,90 @@ func (m *MetadataUpdate) validate(all bool) error {
 			}
 		}
 
+	case *MetadataUpdate_TitleChanged_:
+		if v == nil {
+			err := MetadataUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetTitleChanged()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MetadataUpdateValidationError{
+						field:  "TitleChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MetadataUpdateValidationError{
+						field:  "TitleChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetTitleChanged()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataUpdateValidationError{
+					field:  "TitleChanged",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *MetadataUpdate_PictureChanged_:
+		if v == nil {
+			err := MetadataUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetPictureChanged()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MetadataUpdateValidationError{
+						field:  "PictureChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MetadataUpdateValidationError{
+						field:  "PictureChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPictureChanged()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataUpdateValidationError{
+					field:  "PictureChanged",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -3107,6 +3191,263 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MetadataUpdate_ViewerStateChangedValidationError{}
+
+// Validate checks the field values on MetadataUpdate_TitleChanged with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MetadataUpdate_TitleChanged) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MetadataUpdate_TitleChanged with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MetadataUpdate_TitleChangedMultiError, or nil if none found.
+func (m *MetadataUpdate_TitleChanged) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MetadataUpdate_TitleChanged) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetNewTitle()); l < 1 || l > 64 {
+		err := MetadataUpdate_TitleChangedValidationError{
+			field:  "NewTitle",
+			reason: "value length must be between 1 and 64 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return MetadataUpdate_TitleChangedMultiError(errors)
+	}
+
+	return nil
+}
+
+// MetadataUpdate_TitleChangedMultiError is an error wrapping multiple
+// validation errors returned by MetadataUpdate_TitleChanged.ValidateAll() if
+// the designated constraints aren't met.
+type MetadataUpdate_TitleChangedMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MetadataUpdate_TitleChangedMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MetadataUpdate_TitleChangedMultiError) AllErrors() []error { return m }
+
+// MetadataUpdate_TitleChangedValidationError is the validation error returned
+// by MetadataUpdate_TitleChanged.Validate if the designated constraints
+// aren't met.
+type MetadataUpdate_TitleChangedValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MetadataUpdate_TitleChangedValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MetadataUpdate_TitleChangedValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MetadataUpdate_TitleChangedValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MetadataUpdate_TitleChangedValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MetadataUpdate_TitleChangedValidationError) ErrorName() string {
+	return "MetadataUpdate_TitleChangedValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MetadataUpdate_TitleChangedValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMetadataUpdate_TitleChanged.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MetadataUpdate_TitleChangedValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MetadataUpdate_TitleChangedValidationError{}
+
+// Validate checks the field values on MetadataUpdate_PictureChanged with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MetadataUpdate_PictureChanged) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MetadataUpdate_PictureChanged with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// MetadataUpdate_PictureChangedMultiError, or nil if none found.
+func (m *MetadataUpdate_PictureChanged) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MetadataUpdate_PictureChanged) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetNewPicture() == nil {
+		err := MetadataUpdate_PictureChangedValidationError{
+			field:  "NewPicture",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetNewPicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MetadataUpdate_PictureChangedValidationError{
+					field:  "NewPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MetadataUpdate_PictureChangedValidationError{
+					field:  "NewPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetNewPicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MetadataUpdate_PictureChangedValidationError{
+				field:  "NewPicture",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MetadataUpdate_PictureChangedMultiError(errors)
+	}
+
+	return nil
+}
+
+// MetadataUpdate_PictureChangedMultiError is an error wrapping multiple
+// validation errors returned by MetadataUpdate_PictureChanged.ValidateAll()
+// if the designated constraints aren't met.
+type MetadataUpdate_PictureChangedMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MetadataUpdate_PictureChangedMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MetadataUpdate_PictureChangedMultiError) AllErrors() []error { return m }
+
+// MetadataUpdate_PictureChangedValidationError is the validation error
+// returned by MetadataUpdate_PictureChanged.Validate if the designated
+// constraints aren't met.
+type MetadataUpdate_PictureChangedValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MetadataUpdate_PictureChangedValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MetadataUpdate_PictureChangedValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MetadataUpdate_PictureChangedValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MetadataUpdate_PictureChangedValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MetadataUpdate_PictureChangedValidationError) ErrorName() string {
+	return "MetadataUpdate_PictureChangedValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MetadataUpdate_PictureChangedValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMetadataUpdate_PictureChanged.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MetadataUpdate_PictureChangedValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MetadataUpdate_PictureChangedValidationError{}
 
 // Validate checks the field values on RosterUpdate_MemberJoined with the rules
 // defined in the proto definition for this message. If any rules are
