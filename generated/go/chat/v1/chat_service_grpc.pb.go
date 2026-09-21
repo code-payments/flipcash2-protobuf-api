@@ -122,7 +122,8 @@ type ChatClient interface {
 	// if any part is refused, nothing is applied.
 	//
 	// Only a group chat may be edited, and only by a member the server permits
-	// to edit it; anyone else is DENIED. A new title is moderated like
+	// to edit it, as reported by ViewerState.Permissions.can_edit; anyone else
+	// is DENIED. A new title is moderated like
 	// StartChat's. A new picture is a blob the caller has already uploaded via
 	// BlobStorage: the client uploads only the ORIGINAL and passes the
 	// resulting BlobId once the blob is READY, and the server derives the
@@ -349,7 +350,8 @@ type ChatServer interface {
 	// if any part is refused, nothing is applied.
 	//
 	// Only a group chat may be edited, and only by a member the server permits
-	// to edit it; anyone else is DENIED. A new title is moderated like
+	// to edit it, as reported by ViewerState.Permissions.can_edit; anyone else
+	// is DENIED. A new title is moderated like
 	// StartChat's. A new picture is a blob the caller has already uploaded via
 	// BlobStorage: the client uploads only the ORIGINAL and passes the
 	// resulting BlobId once the blob is READY, and the server derives the

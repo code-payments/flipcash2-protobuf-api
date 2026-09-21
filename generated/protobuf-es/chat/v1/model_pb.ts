@@ -139,7 +139,8 @@ export class Metadata extends Message<Metadata> {
   rules?: Rules;
 
   /**
-   * Per-viewer chat state, absent when the chat holds nothing about them.
+   * Per-viewer chat state, including what the viewer may do in the chat.
+   * Absent when the chat holds nothing about them; always set for a member.
    *
    * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 12;
    */
@@ -1086,7 +1087,8 @@ export class RosterUpdateBatch extends Message<RosterUpdateBatch> {
 /**
  * ViewerState is what this chat holds about the requesting user,
  * independent of whether they are a member. It is per-viewer and never
- * shared with other members.
+ * shared with other members. Absent when the chat holds nothing about the
+ * viewer; always present for a member, whose permissions it carries.
  *
  * @generated from message flipcash.chat.v1.ViewerState
  */
@@ -1097,6 +1099,18 @@ export class ViewerState extends Message<ViewerState> {
    * @generated from field: flipcash.chat.v1.ViewerState.Settings settings = 1;
    */
   settings?: ViewerState_Settings;
+
+  /**
+   * What the viewer may do in this chat. Server-computed from the viewer's
+   * standing in the chat and its rules, and never derivable by the client:
+   * a client shows an affordance if and only if its flag is set. A change
+   * to any flag (e.g. the viewer being granted or losing the ability to
+   * edit) advances version and reaches the viewer's devices as a
+   * MetadataUpdate.ViewerStateChanged.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState.Permissions permissions = 2;
+   */
+  permissions?: ViewerState_Permissions;
 
   /**
    * Advanced by exactly one on every real change to any field of this
@@ -1117,6 +1131,7 @@ export class ViewerState extends Message<ViewerState> {
   static readonly typeName = "flipcash.chat.v1.ViewerState";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "settings", kind: "message", T: ViewerState_Settings },
+    { no: 2, name: "permissions", kind: "message", T: ViewerState_Permissions },
     { no: 10, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
@@ -1175,6 +1190,51 @@ export class ViewerState_Settings extends Message<ViewerState_Settings> {
 
   static equals(a: ViewerState_Settings | PlainMessage<ViewerState_Settings> | undefined, b: ViewerState_Settings | PlainMessage<ViewerState_Settings> | undefined): boolean {
     return proto3.util.equals(ViewerState_Settings, a, b);
+  }
+}
+
+/**
+ * Permissions are the actions the viewer may take in the chat. Each flag
+ * is named for the RPC it gates and defaults to false, so an unset flag
+ * always means the action is not permitted.
+ *
+ * @generated from message flipcash.chat.v1.ViewerState.Permissions
+ */
+export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
+  /**
+   * Whether the viewer may call Chat.EditChat on this chat. False for
+   * every DM, and for a group member the server does not permit to
+   * edit it.
+   *
+   * @generated from field: bool can_edit = 1;
+   */
+  canEdit = false;
+
+  constructor(data?: PartialMessage<ViewerState_Permissions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ViewerState.Permissions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "can_edit", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Permissions {
+    return new ViewerState_Permissions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ViewerState_Permissions {
+    return new ViewerState_Permissions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ViewerState_Permissions {
+    return new ViewerState_Permissions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ViewerState_Permissions | PlainMessage<ViewerState_Permissions> | undefined, b: ViewerState_Permissions | PlainMessage<ViewerState_Permissions> | undefined): boolean {
+    return proto3.util.equals(ViewerState_Permissions, a, b);
   }
 }
 
