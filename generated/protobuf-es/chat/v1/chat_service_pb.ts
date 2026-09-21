@@ -1057,6 +1057,238 @@ proto3.util.setEnumType(LeaveChatResponse_Result, "flipcash.chat.v1.LeaveChatRes
 ]);
 
 /**
+ * @generated from message flipcash.chat.v1.EditChatRequest
+ */
+export class EditChatRequest extends Message<EditChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The new title. Left unchanged when unset.
+   *
+   * @generated from field: flipcash.chat.v1.EditChatRequest.Title title = 2;
+   */
+  title?: EditChatRequest_Title;
+
+  /**
+   * The new picture. Left unchanged when unset.
+   *
+   * @generated from field: flipcash.chat.v1.EditChatRequest.Picture picture = 3;
+   */
+  picture?: EditChatRequest_Picture;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<EditChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EditChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "title", kind: "message", T: EditChatRequest_Title },
+    { no: 3, name: "picture", kind: "message", T: EditChatRequest_Picture },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest {
+    return new EditChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest {
+    return new EditChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest {
+    return new EditChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EditChatRequest | PlainMessage<EditChatRequest> | undefined, b: EditChatRequest | PlainMessage<EditChatRequest> | undefined): boolean {
+    return proto3.util.equals(EditChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.EditChatRequest.Title
+ */
+export class EditChatRequest_Title extends Message<EditChatRequest_Title> {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<EditChatRequest_Title>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EditChatRequest.Title";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest_Title {
+    return new EditChatRequest_Title().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest_Title {
+    return new EditChatRequest_Title().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest_Title {
+    return new EditChatRequest_Title().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EditChatRequest_Title | PlainMessage<EditChatRequest_Title> | undefined, b: EditChatRequest_Title | PlainMessage<EditChatRequest_Title> | undefined): boolean {
+    return proto3.util.equals(EditChatRequest_Title, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.EditChatRequest.Picture
+ */
+export class EditChatRequest_Picture extends Message<EditChatRequest_Picture> {
+  /**
+   * The blob holding the ORIGINAL picture the caller uploaded. It must be
+   * owned by the caller and READY; the server derives the remaining
+   * renditions from it.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
+   */
+  blobId?: BlobId;
+
+  constructor(data?: PartialMessage<EditChatRequest_Picture>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EditChatRequest.Picture";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blob_id", kind: "message", T: BlobId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest_Picture {
+    return new EditChatRequest_Picture().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest_Picture {
+    return new EditChatRequest_Picture().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest_Picture {
+    return new EditChatRequest_Picture().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EditChatRequest_Picture | PlainMessage<EditChatRequest_Picture> | undefined, b: EditChatRequest_Picture | PlainMessage<EditChatRequest_Picture> | undefined): boolean {
+    return proto3.util.equals(EditChatRequest_Picture, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.EditChatResponse
+ */
+export class EditChatResponse extends Message<EditChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.EditChatResponse.Result result = 1;
+   */
+  result = EditChatResponse_Result.OK;
+
+  /**
+   * The metadata for the chat after the edit, as seen by the caller,
+   * including any picture renditions the server derived. Set only when
+   * result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Metadata chat = 2;
+   */
+  chat?: Metadata;
+
+  /**
+   * The best-fit category that tripped moderation, mirroring the Moderation
+   * service's vocabulary. Set only when result == TITLE_MODERATED; NONE
+   * otherwise.
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 3;
+   */
+  flaggedCategory = FlaggedCategory.NONE;
+
+  constructor(data?: PartialMessage<EditChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EditChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(EditChatResponse_Result) },
+    { no: 2, name: "chat", kind: "message", T: Metadata },
+    { no: 3, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatResponse {
+    return new EditChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatResponse {
+    return new EditChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatResponse {
+    return new EditChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EditChatResponse | PlainMessage<EditChatResponse> | undefined, b: EditChatResponse | PlainMessage<EditChatResponse> | undefined): boolean {
+    return proto3.util.equals(EditChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.EditChatResponse.Result
+ */
+export enum EditChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * @generated from enum value: TITLE_MODERATED = 3;
+   */
+  TITLE_MODERATED = 3,
+
+  /**
+   * @generated from enum value: PICTURE_BLOB_NOT_ACCEPTED = 4;
+   */
+  PICTURE_BLOB_NOT_ACCEPTED = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(EditChatResponse_Result)
+proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "TITLE_MODERATED" },
+  { no: 4, name: "PICTURE_BLOB_NOT_ACCEPTED" },
+]);
+
+/**
  * @generated from message flipcash.chat.v1.MuteChatRequest
  */
 export class MuteChatRequest extends Message<MuteChatRequest> {

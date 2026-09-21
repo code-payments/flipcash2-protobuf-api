@@ -139,7 +139,8 @@ export class Metadata extends Message<Metadata> {
   rules?: Rules;
 
   /**
-   * Per-viewer chat state, absent when the chat holds nothing about them.
+   * Per-viewer chat state, including what the viewer may do in the chat.
+   * Absent when the chat holds nothing about them; always set for a member.
    *
    * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 12;
    */
@@ -619,6 +620,18 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
      */
     value: MetadataUpdate_ViewerStateChanged;
     case: "viewerStateChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.TitleChanged title_changed = 4;
+     */
+    value: MetadataUpdate_TitleChanged;
+    case: "titleChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.PictureChanged picture_changed = 5;
+     */
+    value: MetadataUpdate_PictureChanged;
+    case: "pictureChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -632,6 +645,8 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     { no: 1, name: "full_refresh", kind: "message", T: MetadataUpdate_FullRefresh, oneof: "kind" },
     { no: 2, name: "last_activity_changed", kind: "message", T: MetadataUpdate_LastActivityChanged, oneof: "kind" },
     { no: 3, name: "viewer_state_changed", kind: "message", T: MetadataUpdate_ViewerStateChanged, oneof: "kind" },
+    { no: 4, name: "title_changed", kind: "message", T: MetadataUpdate_TitleChanged, oneof: "kind" },
+    { no: 5, name: "picture_changed", kind: "message", T: MetadataUpdate_PictureChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -765,6 +780,95 @@ export class MetadataUpdate_ViewerStateChanged extends Message<MetadataUpdate_Vi
 
   static equals(a: MetadataUpdate_ViewerStateChanged | PlainMessage<MetadataUpdate_ViewerStateChanged> | undefined, b: MetadataUpdate_ViewerStateChanged | PlainMessage<MetadataUpdate_ViewerStateChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_ViewerStateChanged, a, b);
+  }
+}
+
+/**
+ * The chat's title has changed (e.g. via Chat.EditChat). Delivered to the
+ * chat's members, including the editor's other devices. Best-effort and
+ * applied as received; a client that suspects a miss refetches the chat
+ * via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.TitleChanged
+ */
+export class MetadataUpdate_TitleChanged extends Message<MetadataUpdate_TitleChanged> {
+  /**
+   * The new title, replacing Metadata.title.
+   *
+   * @generated from field: string new_title = 1;
+   */
+  newTitle = "";
+
+  constructor(data?: PartialMessage<MetadataUpdate_TitleChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.TitleChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_TitleChanged {
+    return new MetadataUpdate_TitleChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_TitleChanged {
+    return new MetadataUpdate_TitleChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_TitleChanged {
+    return new MetadataUpdate_TitleChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_TitleChanged | PlainMessage<MetadataUpdate_TitleChanged> | undefined, b: MetadataUpdate_TitleChanged | PlainMessage<MetadataUpdate_TitleChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_TitleChanged, a, b);
+  }
+}
+
+/**
+ * The chat's picture has changed (e.g. via Chat.EditChat). Delivered to
+ * the chat's members, including the editor's other devices. Best-effort
+ * and applied as received; a client that suspects a miss refetches the
+ * chat via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.PictureChanged
+ */
+export class MetadataUpdate_PictureChanged extends Message<MetadataUpdate_PictureChanged> {
+  /**
+   * The new picture, with the renditions the server derived, replacing
+   * Metadata.picture.
+   *
+   * @generated from field: flipcash.blob.v1.Media new_picture = 1;
+   */
+  newPicture?: Media;
+
+  constructor(data?: PartialMessage<MetadataUpdate_PictureChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.PictureChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_picture", kind: "message", T: Media },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_PictureChanged {
+    return new MetadataUpdate_PictureChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_PictureChanged {
+    return new MetadataUpdate_PictureChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_PictureChanged {
+    return new MetadataUpdate_PictureChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined, b: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_PictureChanged, a, b);
   }
 }
 
@@ -983,7 +1087,8 @@ export class RosterUpdateBatch extends Message<RosterUpdateBatch> {
 /**
  * ViewerState is what this chat holds about the requesting user,
  * independent of whether they are a member. It is per-viewer and never
- * shared with other members.
+ * shared with other members. Absent when the chat holds nothing about the
+ * viewer; always present for a member, whose permissions it carries.
  *
  * @generated from message flipcash.chat.v1.ViewerState
  */
@@ -994,6 +1099,18 @@ export class ViewerState extends Message<ViewerState> {
    * @generated from field: flipcash.chat.v1.ViewerState.Settings settings = 1;
    */
   settings?: ViewerState_Settings;
+
+  /**
+   * What the viewer may do in this chat. Server-computed from the viewer's
+   * standing in the chat and its rules, and never derivable by the client:
+   * a client shows an affordance if and only if its flag is set. A change
+   * to any flag (e.g. the viewer being granted or losing the ability to
+   * edit) advances version and reaches the viewer's devices as a
+   * MetadataUpdate.ViewerStateChanged.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState.Permissions permissions = 2;
+   */
+  permissions?: ViewerState_Permissions;
 
   /**
    * Advanced by exactly one on every real change to any field of this
@@ -1014,6 +1131,7 @@ export class ViewerState extends Message<ViewerState> {
   static readonly typeName = "flipcash.chat.v1.ViewerState";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "settings", kind: "message", T: ViewerState_Settings },
+    { no: 2, name: "permissions", kind: "message", T: ViewerState_Permissions },
     { no: 10, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
@@ -1072,6 +1190,51 @@ export class ViewerState_Settings extends Message<ViewerState_Settings> {
 
   static equals(a: ViewerState_Settings | PlainMessage<ViewerState_Settings> | undefined, b: ViewerState_Settings | PlainMessage<ViewerState_Settings> | undefined): boolean {
     return proto3.util.equals(ViewerState_Settings, a, b);
+  }
+}
+
+/**
+ * Permissions are the actions the viewer may take in the chat. Each flag
+ * is named for the RPC it gates and defaults to false, so an unset flag
+ * always means the action is not permitted.
+ *
+ * @generated from message flipcash.chat.v1.ViewerState.Permissions
+ */
+export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
+  /**
+   * Whether the viewer may call Chat.EditChat on this chat. False for
+   * every DM, and for a group member the server does not permit to
+   * edit it.
+   *
+   * @generated from field: bool can_edit = 1;
+   */
+  canEdit = false;
+
+  constructor(data?: PartialMessage<ViewerState_Permissions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ViewerState.Permissions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "can_edit", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Permissions {
+    return new ViewerState_Permissions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ViewerState_Permissions {
+    return new ViewerState_Permissions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ViewerState_Permissions {
+    return new ViewerState_Permissions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ViewerState_Permissions | PlainMessage<ViewerState_Permissions> | undefined, b: ViewerState_Permissions | PlainMessage<ViewerState_Permissions> | undefined): boolean {
+    return proto3.util.equals(ViewerState_Permissions, a, b);
   }
 }
 

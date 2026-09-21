@@ -2454,6 +2454,377 @@ var _ interface {
 	ErrorName() string
 } = LeaveChatResponseValidationError{}
 
+// Validate checks the field values on EditChatRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *EditChatRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditChatRequestMultiError, or nil if none found.
+func (m *EditChatRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditChatRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := EditChatRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetTitle()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Title",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Title",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTitle()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequestValidationError{
+				field:  "Title",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Picture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Picture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequestValidationError{
+				field:  "Picture",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := EditChatRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EditChatRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditChatRequestMultiError is an error wrapping multiple validation errors
+// returned by EditChatRequest.ValidateAll() if the designated constraints
+// aren't met.
+type EditChatRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditChatRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditChatRequestMultiError) AllErrors() []error { return m }
+
+// EditChatRequestValidationError is the validation error returned by
+// EditChatRequest.Validate if the designated constraints aren't met.
+type EditChatRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditChatRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditChatRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditChatRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditChatRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditChatRequestValidationError) ErrorName() string { return "EditChatRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EditChatRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditChatRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditChatRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditChatRequestValidationError{}
+
+// Validate checks the field values on EditChatResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *EditChatResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditChatResponseMultiError, or nil if none found.
+func (m *EditChatResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditChatResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetChat()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatResponseValidationError{
+					field:  "Chat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatResponseValidationError{
+					field:  "Chat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChat()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatResponseValidationError{
+				field:  "Chat",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for FlaggedCategory
+
+	if len(errors) > 0 {
+		return EditChatResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditChatResponseMultiError is an error wrapping multiple validation errors
+// returned by EditChatResponse.ValidateAll() if the designated constraints
+// aren't met.
+type EditChatResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditChatResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditChatResponseMultiError) AllErrors() []error { return m }
+
+// EditChatResponseValidationError is the validation error returned by
+// EditChatResponse.Validate if the designated constraints aren't met.
+type EditChatResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditChatResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditChatResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditChatResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditChatResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditChatResponseValidationError) ErrorName() string { return "EditChatResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e EditChatResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditChatResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditChatResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditChatResponseValidationError{}
+
 // Validate checks the field values on MuteChatRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -3293,3 +3664,258 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StartChatRequest_GroupChatParametersValidationError{}
+
+// Validate checks the field values on EditChatRequest_Title with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditChatRequest_Title) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditChatRequest_Title with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditChatRequest_TitleMultiError, or nil if none found.
+func (m *EditChatRequest_Title) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditChatRequest_Title) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := utf8.RuneCountInString(m.GetValue()); l < 1 || l > 64 {
+		err := EditChatRequest_TitleValidationError{
+			field:  "Value",
+			reason: "value length must be between 1 and 64 runes, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EditChatRequest_TitleMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditChatRequest_TitleMultiError is an error wrapping multiple validation
+// errors returned by EditChatRequest_Title.ValidateAll() if the designated
+// constraints aren't met.
+type EditChatRequest_TitleMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditChatRequest_TitleMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditChatRequest_TitleMultiError) AllErrors() []error { return m }
+
+// EditChatRequest_TitleValidationError is the validation error returned by
+// EditChatRequest_Title.Validate if the designated constraints aren't met.
+type EditChatRequest_TitleValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditChatRequest_TitleValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditChatRequest_TitleValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditChatRequest_TitleValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditChatRequest_TitleValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditChatRequest_TitleValidationError) ErrorName() string {
+	return "EditChatRequest_TitleValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditChatRequest_TitleValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditChatRequest_Title.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditChatRequest_TitleValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditChatRequest_TitleValidationError{}
+
+// Validate checks the field values on EditChatRequest_Picture with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditChatRequest_Picture) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditChatRequest_Picture with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditChatRequest_PictureMultiError, or nil if none found.
+func (m *EditChatRequest_Picture) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditChatRequest_Picture) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetBlobId() == nil {
+		err := EditChatRequest_PictureValidationError{
+			field:  "BlobId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlobId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequest_PictureValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequest_PictureValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequest_PictureValidationError{
+				field:  "BlobId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EditChatRequest_PictureMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditChatRequest_PictureMultiError is an error wrapping multiple validation
+// errors returned by EditChatRequest_Picture.ValidateAll() if the designated
+// constraints aren't met.
+type EditChatRequest_PictureMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditChatRequest_PictureMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditChatRequest_PictureMultiError) AllErrors() []error { return m }
+
+// EditChatRequest_PictureValidationError is the validation error returned by
+// EditChatRequest_Picture.Validate if the designated constraints aren't met.
+type EditChatRequest_PictureValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditChatRequest_PictureValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditChatRequest_PictureValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditChatRequest_PictureValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditChatRequest_PictureValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditChatRequest_PictureValidationError) ErrorName() string {
+	return "EditChatRequest_PictureValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditChatRequest_PictureValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditChatRequest_Picture.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditChatRequest_PictureValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditChatRequest_PictureValidationError{}
