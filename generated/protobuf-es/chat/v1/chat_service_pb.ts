@@ -30,11 +30,16 @@ export class GetChatRequest extends Message<GetChatRequest> {
    * is the pre-redaction contract: messaging state for a viewer who may
    * read the chat in full, the bare record for anyone else.
    *
+   * Must be REDACTED when auth is unset; any other mode is DENIED.
+   *
    * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 2;
    */
   viewMode = ViewMode.FULL;
 
   /**
+   * Optional. Unset requests the chat's public view (see Chat.GetChat),
+   * which requires view_mode REDACTED.
+   *
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;

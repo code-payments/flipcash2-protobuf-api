@@ -547,8 +547,12 @@ type GetChatRequest struct {
 	// withheld from a viewer who may not read the chat under it. Unset (FULL)
 	// is the pre-redaction contract: messaging state for a viewer who may
 	// read the chat in full, the bare record for anyone else.
+	//
+	// Must be REDACTED when auth is unset; any other mode is DENIED.
 	ViewMode v11.ViewMode `protobuf:"varint,2,opt,name=view_mode,json=viewMode,proto3,enum=flipcash.messaging.v1.ViewMode" json:"view_mode,omitempty"`
-	Auth     *v1.Auth     `protobuf:"bytes,10,opt,name=auth,proto3" json:"auth,omitempty"`
+	// Optional. Unset requests the chat's public view (see Chat.GetChat),
+	// which requires view_mode REDACTED.
+	Auth *v1.Auth `protobuf:"bytes,10,opt,name=auth,proto3" json:"auth,omitempty"`
 }
 
 func (x *GetChatRequest) Reset() {

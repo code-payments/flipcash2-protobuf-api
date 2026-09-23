@@ -15,6 +15,12 @@ import "validate/validate.proto";
 
 service Chat {
     // GetChat returns the metadata for a specific chat
+    //
+    // Auth is optional. An unauthenticated caller gets the chat's public view:
+    // the same group record a registered non-member previewing it receives,
+    // with view_mode REDACTED and none of the per-viewer fields (is_hidden,
+    // viewer_state). An unauthenticated read under any other view_mode, or of
+    // a DM, is DENIED.
     rpc GetChat(GetChatRequest) returns (GetChatResponse);
 
     // GetDmChatFeed gets the set of DM chats for an owner account using
@@ -150,10 +156,14 @@ message GetChatRequest {
     // withheld from a viewer who may not read the chat under it. Unset (FULL)
     // is the pre-redaction contract: messaging state for a viewer who may
     // read the chat in full, the bare record for anyone else.
+    //
+    // Must be REDACTED when auth is unset; any other mode is DENIED.
     messaging.v1.ViewMode view_mode = 2 [(validate.rules).enum = {
         in: [0, 1, 2] // FULL, FULL_OR_REDACTED, REDACTED
     }];
 
+    // Optional. Unset requests the chat's public view (see Chat.GetChat),
+    // which requires view_mode REDACTED.
     common.v1.Auth auth = 10;
 }
 
