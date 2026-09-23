@@ -54,10 +54,15 @@ message Auth {
     }
 }
 
+// UserId identifies a Flipcash account: 16 bytes, issued by the account
+// service as a UUID in RFC 9562 binary form. What other domains rely on is
+// the length, not the UUID version: e2ee derives the Signal protocol
+// address by formatting the 16 bytes as a canonical UUID string, which any
+// 16 bytes can be.
 message UserId {
     bytes value = 1 [(validate.rules).bytes = {
-        min_len: 1
-        max_len: 32
+        min_len: 16
+        max_len: 16
     }];
 }
 

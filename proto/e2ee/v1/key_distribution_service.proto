@@ -1,0 +1,520 @@
+syntax = "proto3";
+
+package flipcash.e2ee.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/e2ee/v1;e2eepb";
+option java_package = "com.codeinc.flipcash.gen.e2ee.v1";
+option objc_class_prefix = "FPBE2eeV1";
+
+import "chat/v1/model.proto";
+import "common/v1/common.proto";
+import "e2ee/v1/model.proto";
+import "google/protobuf/duration.proto";
+import "validate/validate.proto";
+
+// KeyDistribution is the server side of PQXDH and Sesame: it keeps, per
+// device, the public keys PQXDH has a device publish (identity key, signed
+// prekey, one-time prekeys, last-resort and one-time KEM prekeys), serves
+// them as prekey bundles to devices that want to start a session, and keeps
+// the record of which devices each user has.
+//
+// The server holds only public keys and never derives a session from them.
+// It does verify, on upload, that the identity key is signed by the
+// caller's account key and that every signed prekey is signed by the
+// identity key, so a bundle it serves is one the sender's own verification
+// will accept.
+//
+// A user has one device per app install. Registration is per device, so a
+// user's second phone registers a second device with its own keys, and the
+// two receive every message separately (Sesame's per-device mailboxes).
+// Every RPC here except GetDevices and GetPreKeyBundles is device-scoped:
+// the caller names its DeviceId, and the server checks it belongs to the
+// authenticated user. Authentication is the account's, so any of a user's
+// devices may act for any other; the DeviceId says which one is acting.
+// What keeps that from letting one device impersonate another is the
+// identity key: it is per device, its private half never leaves the device,
+// and every prekey a device uploads must be signed by it (see model.proto).
+service KeyDistribution {
+    // RegisterDevice creates a device for the caller and stores its identity
+    // key with the account's signature over it, its registration ID, signed
+    // prekey and last-resort KEM prekey, plus any one-time prekeys supplied.
+    // The server verifies the identity key signature against the account key
+    // the request is authenticated with, and the prekey signatures against
+    // the identity key, and refuses the registration if any fails. It also
+    // refuses an identity key already registered to another of the caller's
+    // devices (DUPLICATE_IDENTITY_KEY): a key is generated per install and
+    // never copied between devices. The device is a valid recipient from
+    // this moment: senders fanning a message out to the caller are held to
+    // include it (see Mailbox.SendEnvelopes).
+    //
+    // A device that loses its keys (a reinstall, a restore without the key
+    // store) generates a fresh identity key and registers again as a new
+    // device, which may receive an old device's id once that device is gone
+    // (see DeviceId). The old device
+    // remains on the user's record, and in every sender's, until it is
+    // unregistered or the server expires it for never opening its mailbox;
+    // a client that can still name its old DeviceId should UnregisterDevice
+    // it. A sender holding a session with a device whose id was reused
+    // learns of it as a stale device on its next send.
+    //
+    // Only a registered account may register a device (DENIED otherwise):
+    // a device is reachable from the moment it registers, and an account
+    // that has not completed registration is not one to reach.
+    // UnregisterDevice is not gated, so an account that loses its
+    // registration can still remove its devices.
+    //
+    // A registration also declares what the device is: the capabilities
+    // its client build supports, served to senders on Device and
+    // PreKeyBundle so they encrypt in a form the device can read, and the
+    // app install it runs in, which is where its push tokens are
+    // registered (push.v1), so the server can wake this device and no
+    // other of the user's. The app install is fixed for the life of the
+    // device; the capabilities grow with the build (see SetCapabilities).
+    rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse);
+
+    // UnregisterDevice removes one of the caller's devices: its keys, its
+    // mailbox, and its place in the user's device list. Senders learn of the
+    // removal as an extra device on their next send.
+    rpc UnregisterDevice(UnregisterDeviceRequest) returns (UnregisterDeviceResponse);
+
+    // GetDevices lists users' devices: the caller's own, or other users',
+    // with their identity keys, the account's signatures over them, and
+    // registration IDs. A sender uses it to resolve a chat's roster into the
+    // device set it must encrypt for before a send, and to check a device's
+    // identity key against the one its session was built on. It takes a
+    // whole roster at once, since a first group send, and every fresh
+    // install, needs every member's device set and must not learn it from
+    // GetPreKeyBundles, which spends prekeys.
+    //
+    // No prekeys are consumed by this call; it is safe to make freely.
+    rpc GetDevices(GetDevicesRequest) returns (GetDevicesResponse);
+
+    // SetKeys replaces some or all of a device's prekeys: a new signed
+    // prekey, a new last-resort KEM prekey, a new pool of one-time prekeys,
+    // a new pool of one-time KEM prekeys. Each part is optional and
+    // independent; what is not supplied is left as it is. A supplied pool
+    // REPLACES the pool the server holds, so a client replenishing uploads a
+    // fresh pool, never a delta, and afterwards holds private keys only for
+    // the pool it just uploaded plus, for some period of time, any it
+    // recently replaced.
+    //
+    // The identity key, its account signature and the registration ID are
+    // not settable: they are fixed at RegisterDevice for the life of the
+    // device. Every signed prekey supplied must verify against the named
+    // device's own identity key, which is what stops a sibling device, though
+    // it authenticates as the same account, from replacing this device's
+    // prekeys with keys of its own.
+    rpc SetKeys(SetKeysRequest) returns (SetKeysResponse);
+
+    // SetCapabilities adds to what a device declares it can handle (see
+    // Device.capabilities), for a build that has gained a capability since
+    // the device registered. Additive only: a capability once declared is
+    // never withdrawn, because a sender that learned it may already hold a
+    // session built on it, and a build that has lost one registers anew.
+    // Idempotent; declaring what is already declared changes nothing. Signal
+    // refreshes a device's capability set the same way, in place, on every
+    // attributes update; without this, an app update that adds a capability
+    // would force every device to re-register, resetting every session its
+    // peers hold with it.
+    rpc SetCapabilities(SetCapabilitiesRequest) returns (SetCapabilitiesResponse);
+
+    // GetPreKeyCounts returns how many one-time prekeys of each kind the
+    // server still holds for a device, so the device can decide whether to
+    // replenish. Clients call it on every foreground and after every
+    // mailbox drain; the counts are also returned by SetKeys.
+    rpc GetPreKeyCounts(GetPreKeyCountsRequest) returns (GetPreKeyCountsResponse);
+
+    // GetPreKeyBundles returns a PQXDH prekey bundle for each device of each
+    // named user, or for one named device, consuming a one-time prekey and a
+    // one-time KEM prekey of each device it returns where any remain. It
+    // takes many users at once so that joining a group, which needs a
+    // session with every member device before the first sender key
+    // distribution, is a few calls rather than one per member.
+    //
+    // Consumption is the point: PQXDH's forward secrecy for the first
+    // messages of a session rests on the one-time prekeys being used once,
+    // so every call to this RPC spends them, and a client calls it only when
+    // it is about to start a session: with a device it has none with, or to
+    // repair one after a DecryptionErrorMessage or EndSession. It never
+    // calls it to look up a key; GetDevices does that.
+    //
+    // One-time prekeys are spent by the group as much as by a peer. When a
+    // member joins, it distributes its sender key at once, which opens a
+    // session with every member device, and members reply with their own
+    // distribution inside that session (see content.proto
+    // SenderKeyDistribution) rather than fetching the joiner's bundle; a
+    // member that fetches anyway spends one of the joiner's one-time
+    // prekeys per device of its own, so a pool can be gone after one join
+    // if members ignore that rule. Later sessions to a device with an empty
+    // pool begin on its signed prekey and last-resort KEM prekey alone until
+    // it replenishes. Signal has the same property. Clients replenish
+    // promptly (GetPreKeyCounts) and upload a full pool after a join.
+    //
+    // Because a caller could drain a user's one-time prekeys, which PQXDH
+    // warns "the server should attempt to prevent", the server rate-limits
+    // this RPC, answering RATE_LIMITED with retry_after, and may refuse
+    // (DENIED) a caller who shares no chat with a target or whom a target
+    // has blocked. The limit is a bucket per (caller device, target device,
+    // target registration ID), as Signal-Server's is: a few bundles at
+    // once, refilled slowly. Keying on the target's registration ID means
+    // a device that registers anew is a fresh target with a fresh budget,
+    // without the limiter having to learn of the re-registration. There
+    // is a limit per caller device across all targets as well, sized so
+    // that a caller who has just joined a chat can fetch that chat's whole
+    // roster, at most 50 members, in one call. Signal bypasses its limiter
+    // for sealed sender fetches; there is no such bypass here, and the
+    // shared-chat rule has no counterpart in Signal at all, whose server
+    // does not know who shares a group. A RATE_LIMITED answer consumes
+    // nothing, and the caller retries after retry_after with the users it
+    // still lacks.
+    rpc GetPreKeyBundles(GetPreKeyBundlesRequest) returns (GetPreKeyBundlesResponse);
+}
+
+message RegisterDeviceRequest {
+    // IK, the device's identity key. Generated at random by this device at
+    // install, held only by it, and fixed for the life of the device. Not
+    // the account key, and not derived from the account's seed (see
+    // model.proto).
+    EcPublicKey identity_key = 1 [(validate.rules).message.required = true];
+
+    // Signature by the account key that signs auth over the domain-separated
+    // message
+    //
+    //     "flipcash-e2ee-identity-key-v1" || identity_key.value
+    //
+    // (the ASCII prefix, no separator, then the 33 key bytes). The prefix
+    // keeps this signature from ever being confused with any other message
+    // the account key signs, such as an authenticated request. Verified by
+    // the server against auth.key_pair.pub_key, then stored and served with
+    // the device (Device.identity_key_signature,
+    // PreKeyBundle.identity_key_signature) so peers can verify it the same
+    // way.
+    common.v1.Signature identity_key_signature = 2 [(validate.rules).message.required = true];
+
+    // The registration ID the device chose. Fixed for the life of the
+    // device.
+    RegistrationId registration_id = 3 [(validate.rules).message.required = true];
+
+    // SPK with its signature by identity_key. Verified by the server.
+    SignedPreKey signed_prekey = 4 [(validate.rules).message.required = true];
+
+    // PQSPK, the last-resort KEM prekey, with its signature by identity_key.
+    // Verified by the server.
+    KemSignedPreKey kem_last_resort_prekey = 5 [(validate.rules).message.required = true];
+
+    // An initial pool of one-time prekeys. Optional; a device may register
+    // without any and upload a pool with SetKeys, but until it does, every
+    // session started with it lacks PQXDH's DH4.
+    OneTimePreKeyBatch one_time_prekeys = 6;
+
+    // An initial pool of one-time KEM prekeys. Optional; until a device has
+    // some, every session started with it uses the last-resort KEM prekey.
+    // No id may equal kem_last_resort_prekey's or another's in the pool
+    // (see PreKeyId).
+    KemSignedPreKeyBatch kem_one_time_prekeys = 7;
+
+    // What this device's client build can handle (see Device.capabilities).
+    // Extended later with SetCapabilities, never reduced.
+    repeated Device.Capability capabilities = 8 [(validate.rules).repeated = {
+        unique: true
+        items: {
+            enum: {
+                not_in: [0]
+            }
+        }
+    }];
+
+    // Key for retrying this request safely. A retry with the same key from
+    // the same caller returns the device the first attempt registered, with
+    // result OK, even if the parameters differ. A client that crashes
+    // between registering and persisting the DeviceId retries with the same
+    // key rather than registering a second device.
+    chat.v1.IdempotencyKey idempotency_key = 9 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+
+    // The app install this device runs in: the one its push tokens are
+    // registered under (push.v1.Push.AddToken). A device is one app
+    // install, so the server pushes this device through this install's
+    // tokens and no other of the user's. Never served to anyone.
+    common.v1.AppInstallId app_install = 11 [(validate.rules).message.required = true];
+}
+
+message RegisterDeviceResponse {
+    Result result = 1;
+    enum Result {
+        OK                     = 0;
+        // The caller's account is not registered. Nothing was stored.
+        DENIED                 = 1;
+        // identity_key_signature does not verify against the account key,
+        // or a prekey's signature does not verify against identity_key.
+        INVALID_SIGNATURE      = 2;
+        // The caller already has 5 devices, the most a user may hold.
+        // Unregister one first. Every device-count cap in this package is
+        // derived from this number and the 50-member group cap.
+        TOO_MANY_DEVICES       = 3;
+        // Two KEM prekeys in the request share an id, or two one-time
+        // curve prekeys do (see PreKeyId).
+        DUPLICATE_PREKEY_ID    = 4;
+        // identity_key is already registered to another of the caller's
+        // devices. Identity keys are per device; generate a fresh one.
+        DUPLICATE_IDENTITY_KEY = 5;
+        // capabilities lacks one the server requires of every new device
+        // (see Device.capabilities). The client build is too old to
+        // register; nothing was stored.
+        MISSING_REQUIRED_CAPABILITY = 6;
+    }
+
+    // The registered device, including its server-assigned DeviceId. Set
+    // only when result == OK.
+    Device device = 2;
+}
+
+message UnregisterDeviceRequest {
+    // The device to remove. Must belong to the caller.
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message UnregisterDeviceResponse {
+    Result result = 1;
+    enum Result {
+        OK             = 0;
+        DENIED         = 1;
+        UNKNOWN_DEVICE = 2;
+    }
+}
+
+message GetDevicesRequest {
+    // The users whose devices to list, without duplicates: up to a full
+    // E2EE group's roster of 50. Empty lists the caller's own.
+    repeated common.v1.UserId user_ids = 1 [(validate.rules).repeated = {
+        max_items: 50
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetDevicesResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        DENIED = 1;
+    }
+
+    // One entry per user found, in no particular order. Set only when
+    // result == OK. Capped loosely, as every response field is (see
+    // GetPreKeyBundlesResponse.bundles).
+    repeated UserDevices users = 2 [(validate.rules).repeated = {
+        max_items: 1000
+    }];
+
+    // The named users that do not exist, if any. Set only when result == OK.
+    repeated common.v1.UserId not_found = 3 [(validate.rules).repeated = {
+        max_items: 1000
+    }];
+
+    message UserDevices {
+        common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+        // The user's devices, at most 5 today (see RegisterDevice's
+        // TOO_MANY_DEVICES). Empty when the user exists but has registered
+        // none, in which case nothing can be sent to them. last_seen is set
+        // only on the caller's own devices. The validation cap is the
+        // DeviceId space, not the policy.
+        repeated Device devices = 2 [(validate.rules).repeated = {
+            max_items: 127
+        }];
+    }
+}
+
+message SetKeysRequest {
+    // The device whose keys to set. Must belong to the caller.
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    // If set, replaces the device's signed prekey. Verified against the
+    // device's identity key.
+    SignedPreKey signed_prekey = 2;
+
+    // If set, replaces the device's last-resort KEM prekey. Verified against
+    // the device's identity key.
+    KemSignedPreKey kem_last_resort_prekey = 3;
+
+    // If set, replaces the device's pool of one-time prekeys.
+    OneTimePreKeyBatch one_time_prekeys = 4;
+
+    // If set, replaces the device's pool of one-time KEM prekeys. Every key
+    // is verified against the device's identity key, and no id may equal
+    // the last-resort KEM prekey's (as it stands after this request) or
+    // another key's in the pool (see PreKeyId).
+    KemSignedPreKeyBatch kem_one_time_prekeys = 5;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetKeysResponse {
+    Result result = 1;
+    enum Result {
+        OK                  = 0;
+        DENIED              = 1;
+        UNKNOWN_DEVICE      = 2;
+        // A prekey's signature does not verify against the device's identity
+        // key. Nothing in the request was applied.
+        INVALID_SIGNATURE   = 3;
+        // Two KEM prekeys would share an id, or two one-time curve prekeys
+        // of the uploaded pool do (see PreKeyId). Nothing in the request
+        // was applied.
+        DUPLICATE_PREKEY_ID = 4;
+    }
+
+    // The device's one-time prekey counts after the write. Set only when
+    // result == OK.
+    PreKeyCounts counts = 2;
+
+    // The digest of the device's repeated-use keys after the write (see
+    // GetPreKeyCountsResponse.repeated_use_digest), so the client can
+    // confirm the upload landed as sent. Set only when result == OK.
+    bytes repeated_use_digest = 3 [(validate.rules).bytes = {
+        len: 32
+        ignore_empty: true
+    }];
+}
+
+message SetCapabilitiesRequest {
+    // The device whose capabilities to extend. Must belong to the caller.
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    // The capabilities to add. Ones the device already declares are
+    // ignored.
+    repeated Device.Capability capabilities = 2 [(validate.rules).repeated = {
+        min_items: 1
+        unique: true
+        items: {
+            enum: {
+                not_in: [0]
+            }
+        }
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetCapabilitiesResponse {
+    Result result = 1;
+    enum Result {
+        OK             = 0;
+        DENIED         = 1;
+        UNKNOWN_DEVICE = 2;
+    }
+
+    // The device as it now stands, its capabilities included. Set only
+    // when result == OK.
+    Device device = 2;
+}
+
+message GetPreKeyCountsRequest {
+    // The device whose counts to fetch. Must belong to the caller.
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetPreKeyCountsResponse {
+    Result result = 1;
+    enum Result {
+        OK             = 0;
+        DENIED         = 1;
+        UNKNOWN_DEVICE = 2;
+    }
+
+    // Set only when result == OK.
+    PreKeyCounts counts = 2;
+
+    // A digest of the repeated-use keys the server holds for the device:
+    //
+    //     SHA-256(identity_key.value
+    //             || signed_prekey.id (uint64, big-endian, 8 bytes)
+    //             || signed_prekey.public_key.value
+    //             || kem_last_resort_prekey.id (uint64, big-endian, 8 bytes)
+    //             || kem_last_resort_prekey.public_key.value)
+    //
+    // over the serialized key forms (EcPublicKey and KemPublicKey, type
+    // byte included), each id widened to 8 bytes. That is byte for byte
+    // the digest of Signal-Server's POST /v2/keys/check (a Java long per
+    // id), so a client built on Signal's code computes it unchanged. The
+    // client computes the same over the keys it believes it uploaded and
+    // compares; a mismatch means the server's view diverged from the
+    // device's, whether by a lost SetKeys or by a sibling replacing this
+    // device's keys, and the device uploads afresh. Signal's clients make
+    // the check on a schedule; here it rides on the counts read the client
+    // already makes on every foreground. Set only when result == OK.
+    bytes repeated_use_digest = 3 [(validate.rules).bytes = {
+        len: 32
+        ignore_empty: true
+    }];
+}
+
+message GetPreKeyBundlesRequest {
+    // The users to start sessions with, without duplicates: up to a full
+    // E2EE group's roster of 50. May include the caller, to start sessions
+    // with its own other devices.
+    repeated common.v1.UserId user_ids = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 50
+    }];
+
+    // If set, a bundle for this one device of the one user named in
+    // user_ids only; setting it with more than one user is invalid. Unset
+    // returns a bundle for every device each user has, excluding the
+    // caller's own device when a user is the caller (a device holds no
+    // session with itself).
+    DeviceId device_id = 2;
+
+    // The caller's own device: the one that will hold the sessions. Required
+    // so that a self-fetch can exclude it, and so the server can rate-limit
+    // per device.
+    DeviceId caller_device_id = 3 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetPreKeyBundlesResponse {
+    Result result = 1;
+    enum Result {
+        OK             = 0;
+        DENIED         = 1;
+        // device_id was set and that device of the named user does not
+        // exist. A user that does not exist is not an error; see not_found.
+        NOT_FOUND      = 2;
+        UNKNOWN_DEVICE = 3;
+        // The caller has fetched too many bundles too recently, for a
+        // target or overall. Nothing was consumed.
+        RATE_LIMITED   = 4;
+    }
+
+    // One bundle per device of every user found, each with its one-time
+    // prekeys consumed. A user with no devices contributes nothing. Set only
+    // when result == OK.
+    //
+    // A full E2EE group is 50 members at 5 devices each (see
+    // RegisterDevice's TOO_MANY_DEVICES), so 250 bundles; at about 1.9 KB
+    // per bundle with its KEM prekey that is under 0.5 MiB, well within
+    // the server's 4 MiB message size. The validation cap is looser than
+    // that on purpose: a cap on a response binds every client already
+    // shipped, so it is set to what a response could ever carry, not to
+    // today's policy, and the request-side caps are the ones sized to it.
+    repeated PreKeyBundle bundles = 2 [(validate.rules).repeated = {
+        max_items: 2000
+    }];
+
+    // The named users that do not exist, if any. Set only when result == OK;
+    // the other users' bundles are in `bundles`.
+    repeated common.v1.UserId not_found = 3 [(validate.rules).repeated = {
+        max_items: 1000
+    }];
+
+    // How long the caller waits before fetching bundles again. Set only
+    // when result == RATE_LIMITED.
+    google.protobuf.Duration retry_after = 4;
+}

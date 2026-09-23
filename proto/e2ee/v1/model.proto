@@ -1,0 +1,764 @@
+syntax = "proto3";
+
+package flipcash.e2ee.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/e2ee/v1;e2eepb";
+option java_package = "com.codeinc.flipcash.gen.e2ee.v1";
+option objc_class_prefix = "FPBE2eeV1";
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// This file holds the server-visible types of the end-to-end encrypted (E2EE)
+// messaging system, which implements the Signal protocol suite as published
+// at https://signal.org/docs/: XEdDSA, PQXDH (the successor to X3DH), the
+// Double Ratchet, and Sesame. The server's role under those specifications is
+// narrow and fixed: it stores each device's identity key and prekeys, hands
+// out prekey bundles, keeps a mailbox per device, and relays ciphertext it
+// cannot read. Everything a client learns from what it decrypts is described
+// separately in content.proto.
+//
+// Terminology follows Sesame. A user (a Flipcash account, common.v1.UserId)
+// has one or more devices; each device has a DeviceId unique within the user,
+// an identity key pair, and its own mailbox. A session is a Double Ratchet
+// state held between two devices. The server never holds a session.
+//
+// The identity key is per device and anchored to the account. Each device
+// generates its own identity key pair at install, at random, and the
+// private half never leaves it. Every registration carries a signature over
+// the identity key by the account's own key (the one behind common.v1.Auth,
+// and the one the user is paid at), the server verifies it before accepting
+// the device, and serves it with every prekey bundle. A peer therefore
+// verifies a two-link chain, account key over identity key and identity key
+// over prekeys, and the root is a key it can learn without trusting this
+// server. That root is also the user's one fingerprint: a peer that has
+// verified the account key has verified every device that chains to it, so
+// per-device identity keys cost nothing in safety numbers.
+//
+// The account key rides along on Device and PreKeyBundle so a peer has it
+// to check the chain with, but riding along is not what makes it trusted:
+// a server that serves the key can serve a key of its own and certify a
+// device of its own with it. A peer holds one account key per user, and
+// treats the served one in one of two ways. If it already knows the user's
+// key from somewhere this server did not control (a payment to or from
+// them, a prior contact, a fingerprint compared in person), it compares,
+// and a mismatch is a hard failure. If it does not, it pins the served key
+// on first sight and rejects any later change; that is trust on first use,
+// but on the account key, which changes only when the account does, not
+// on a device key that changes with every reinstall. Either way, a change
+// in a user's account key is surfaced to the user, as Signal surfaces a
+// changed safety number. This is Sesame's
+// per-device identity key variant, and the certification answers Sesame's
+// note that DeviceID reuse is an attack unless registration proves
+// possession.
+//
+// Per-device keys are chosen over one key derived from the account's seed
+// for a reason stated here so it need not be inferred. Authentication is
+// the account's, so any of a user's devices may call KeyDistribution.SetKeys
+// or UnregisterDevice for a sibling. Were the identity key shared, a
+// compromised device could replace a sibling's prekeys with keys it holds,
+// sign them with the shared identity key, and read every new session a
+// peer opened to that sibling. With a key per device it cannot: SetKeys
+// verifies each prekey's signature against THAT device's identity key,
+// whose private half a sibling does not hold, and RegisterDevice refuses a
+// key already registered to another of the user's devices. What a
+// compromised device can still do is unregister a sibling and register a
+// replacement in its place, which is visible: a new identity key and
+// registration ID under the user, reported to every sender as a stale or
+// extra device. Compromise of the seed remains compromise of the account,
+// and so of the certification of every device; that is the trust root's
+// nature, not this contract's to mitigate.
+//
+// Address binding. Recent libsignal carries the sender's and recipient's
+// addresses as a field of the SignalMessage, inside the bytes its MAC
+// covers. On the current (triple ratchet) session path it sets the field
+// on every message; on its legacy path only on the message inside a
+// PreKeySignalMessage. It sets it only when both protocol address names
+// parse as Signal service ids, i.e. UUID strings. On receipt, a message
+// that lacks the field is accepted, but a message that carries it is
+// checked against the receiver's own names, and if those do not parse as
+// service ids the check cannot be made and the MAC fails: decryption
+// errors out. So the naming rule is a hard interoperability requirement,
+// not a nicety. A common.v1.UserId is a 16-byte UUID (enforced on the type
+// itself), and clients MUST use its canonical lowercase hyphenated string
+// form as the protocol address name, with DeviceId.value as the device id,
+// on both sides of every session. A client that uses any other name
+// cannot decrypt what a conforming client sends it.
+//
+// Divergences from Signal, stated once. The server sees the sender, the
+// recipient devices and the chat of every envelope: there is no sealed
+// sender, so sender key messages travel as a bare SENDER_KEY_MESSAGE, a
+// type Signal's own envelope has reserved and no longer uses. Chat
+// membership and metadata are plaintext, held by chat.v1 alongside
+// unencrypted chats. Identity keys are per device, certified by the
+// account key, where Signal shares one ACI identity key across a user's
+// devices by provisioning; the user-level fingerprint here is the account
+// key. Content is text only and PLAINTEXT_CONTENT is a bare Content, not
+// libsignal's PlaintextContent.
+
+// DeviceId identifies one of a user's devices. It is assigned by the server
+// at KeyDistribution.RegisterDevice and is unique among the user's current
+// devices. It is bounded to 1..127 because libsignal and Signal's own
+// server hold device ids in a byte, and the value is baked into protocol
+// addresses and the message MAC. That bound forces reuse: once a device is
+// unregistered or expired, its id may be assigned again to a later
+// registration by the same user. Sesame's guard against a new device
+// inheriting an old one's records is therefore not the id, but the
+// registration ID a sender names for each device on every send, which a
+// re-registration under a reused id changes (see RegistrationId). An app
+// install is a device: a user running Flipcash on two phones has two
+// devices, each with its own keys and mailbox, and a reinstall is a new
+// device, possibly under an old id.
+message DeviceId {
+    uint32 value = 1 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 127
+    }];
+}
+
+// RegistrationId is a random value a device picks once at registration and
+// includes in every PQXDH initial message it sends (PreKeySignalMessage.
+// registration_id in libsignal). A sender also names the registration ID it
+// holds for each recipient device on Mailbox.SendEnvelopes, and the server
+// compares it to the device's current one: because a DeviceId can be reused,
+// a fresh registration ID is what tells a sender that the device under an
+// old id is not the one it has a session with, before it ever encrypts to
+// it. A reinstalled device also has a new identity key, which the sender
+// sees when it fetches the bundle; the registration ID is the check that
+// runs on every send without a fetch. Signal detects "stale" devices the
+// same way. 14-bit, as in libsignal.
+message RegistrationId {
+    uint32 value = 1 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 16383
+    }];
+}
+
+// EcPublicKey is a Curve25519 public key in libsignal's serialized form: a
+// single type byte (0x05) followed by the 32-byte little-endian u-coordinate.
+// This is the PQXDH EncodeEC(PK) encoding and is the form clients sign,
+// verify, and hash (e.g. into a safety number), so it is carried verbatim.
+// Used for identity keys, signed prekeys, one-time prekeys and the ephemeral
+// keys inside ciphertext. The type byte is enforced, so a key of any other
+// curve is rejected at validation.
+message EcPublicKey {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 33
+        max_len: 33
+        prefix: "\x05"
+    }];
+}
+
+// KemPublicKey is a CRYSTALS-Kyber-1024 public key in libsignal's
+// serialized form: libsignal's type byte for Kyber-1024 (0x08) followed by
+// the 1568-byte encapsulation key. This is the PQXDH EncodeKEM(PK)
+// encoding, the pqkem PQXDH names as its example parameter, and what the
+// prekey signature covers.
+//
+// The KEM is pinned to one algorithm, and the type byte is enforced, so
+// that every client build produces bundles every other can use: a fleet
+// mixing Kyber-1024 with ML-KEM-1024 (libsignal type byte 0x0A, the same
+// size) would upload keys the other build cannot encapsulate to, with no
+// error until the first message fails. Kyber-1024 is pinned because it is
+// what libsignal's published Java, Swift and Node APIs generate: the
+// bridge's KEMKeyPair.generate is fixed to Kyber-1024, and ML-KEM-1024,
+// though defined in libsignal's Rust, is not reachable from them. Moving
+// to ML-KEM-1024 when it is, is a new type byte, which is a new contract
+// version.
+message KemPublicKey {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 1569
+        max_len: 1569
+        prefix: "\x08"
+    }];
+}
+
+// PreKeyId is the identifier a device assigns to one of its prekeys: PQXDH's
+// IdEC(K) for a curve prekey and IdKEM(K) for a KEM prekey. It is chosen by
+// the device and is what the initial message names so the recipient can
+// "use the key identifiers to load the private key(s)". Uniqueness follows
+// how libsignal's initial message names them: the signed prekey and the
+// one-time curve prekeys travel in separate fields and may share values,
+// but every KEM prekey, last-resort or one-time, travels in the one
+// kyber_pre_key_id field and is loaded from one store, so KEM prekey ids
+// MUST be unique per device across both roles, and for the device's
+// lifetime, not merely among the keys the server currently holds: a device
+// keeps retired last-resort and replaced one-time KEM private keys in that
+// store for some period of time, and an id reused while an old key is still
+// held collides locally, where the server cannot help. PQXDH: an identifier
+// "uniquely identifies this key on Bob's device". Clients use monotonically
+// increasing ids, as libsignal's do. The server rejects a KEM id collision
+// among the keys it holds on upload; it cannot detect the rest. Otherwise
+// opaque to the server.
+//
+// Bounded to a positive signed 32-bit integer, not the full uint32 range,
+// because libsignal's Java and Kotlin surface holds prekey ids in an int:
+// an id above 2^31 - 1 is one the server would accept and serve and an
+// Android client could not load. Signal-Server enforces the same bound on
+// upload for the same reason.
+message PreKeyId {
+    uint32 value = 1 [(validate.rules).uint32 = {
+        lte: 2147483647
+    }];
+}
+
+// SignedPreKey is PQXDH's signed curve prekey SPK_B: a medium-term Curve25519
+// key with its identifier and the XEdDSA signature
+// Sig(IK_B, EncodeEC(SPK_B), Z_SPK) made with the device's identity key. The
+// server verifies the signature on upload and hands the three out together in
+// every PreKeyBundle. A device replaces it "at some interval (e.g. once a
+// week or once a month)" via KeyDistribution.SetKeys, keeping the old
+// private key "for some period of time to handle messages using it that may
+// have been delayed in transit" before deleting it for forward secrecy.
+message SignedPreKey {
+    PreKeyId id = 1 [(validate.rules).message.required = true];
+
+    EcPublicKey public_key = 2 [(validate.rules).message.required = true];
+
+    // XEdDSA signature over public_key.value by the device's identity key.
+    common.v1.Signature signature = 3 [(validate.rules).message.required = true];
+}
+
+// OneTimePreKey is one of PQXDH's one-time curve prekeys OPK_Bn. Not signed.
+// The server serves each at most once, inside one PreKeyBundle, and deletes
+// it as it does so.
+message OneTimePreKey {
+    PreKeyId id = 1 [(validate.rules).message.required = true];
+
+    EcPublicKey public_key = 2 [(validate.rules).message.required = true];
+}
+
+// KemSignedPreKey is a signed post-quantum KEM prekey with the XEdDSA
+// signature Sig(IK_B, EncodeKEM(PK), Z) made with the device's identity key.
+// PQXDH uses the same shape for two roles, and the server keeps them apart:
+//
+//   - The last-resort KEM prekey PQSPK_B. Exactly one per device, replaced
+//     on the signed prekey's cadence, served whenever no one-time KEM prekey
+//     remains, never deleted by being served.
+//   - The one-time KEM prekeys PQOPK_Bn. A pool per device; each served at
+//     most once and deleted as it is served, like a OneTimePreKey.
+//
+// Their ids share one space: a recipient loads whichever was used by id
+// alone, so a last-resort key and a one-time key must never carry the same
+// id (see PreKeyId). The server verifies every signature on upload and
+// rejects an id collision across the two roles.
+message KemSignedPreKey {
+    PreKeyId id = 1 [(validate.rules).message.required = true];
+
+    KemPublicKey public_key = 2 [(validate.rules).message.required = true];
+
+    // XEdDSA signature over public_key.value by the device's identity key.
+    common.v1.Signature signature = 3 [(validate.rules).message.required = true];
+}
+
+// A pool is at most 100 keys, Signal's batch size. Since an upload replaces
+// the pool (see KeyDistribution.SetKeys), that is also the most a device
+// holds. It is sized to a device's ordinary rate of new sessions with room
+// to spare, not to a large group's join, which can spend it in one go (see
+// KeyDistribution.GetPreKeyBundles): the device then serves bundles on its
+// last-resort keys until it replenishes, as it would on Signal. The cap
+// also keeps one upload of both pools well inside what a single storage
+// partition writes in a second.
+message OneTimePreKeyBatch {
+    repeated OneTimePreKey prekeys = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+message KemSignedPreKeyBatch {
+    repeated KemSignedPreKey prekeys = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+// PreKeyCounts is how many one-time prekeys of each kind the server still
+// holds for a device. Approximate: keys are consumed concurrently by bundle
+// fetches. A device replenishes when either count runs low; PQXDH says a
+// device "may upload new one-time prekeys ... when the server informs Bob
+// that the server's store of one-time prekeys is getting low", and this is
+// how it is informed.
+message PreKeyCounts {
+    uint32 one_time_prekeys = 1;
+
+    uint32 kem_one_time_prekeys = 2;
+}
+
+// Device is the server's record of one of a user's devices: the public half
+// of what Sesame calls the device's identity, plus the registration ID a
+// sender must name to reach it.
+message Device {
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    // The device's current registration ID. A sender caches it alongside
+    // its session with the device and names it on every send.
+    RegistrationId registration_id = 2 [(validate.rules).message.required = true];
+
+    // The device's long-term identity key IK. Generated by the device at
+    // install, fixed for the life of the device, and unique among the
+    // user's devices. Clients compare it against the one their session was
+    // built on to detect a changed identity.
+    EcPublicKey identity_key = 3 [(validate.rules).message.required = true];
+
+    // Signature by the user's account key over the domain-separated
+    // identity key (see KeyDistribution.RegisterDeviceRequest.
+    // identity_key_signature), as supplied at registration and verified by
+    // the server then. A peer verifies it against the account key it holds
+    // for the user (see account_key) before trusting identity_key; a device
+    // whose identity key the account has not certified is never served.
+    common.v1.Signature identity_key_signature = 4 [(validate.rules).message.required = true];
+
+    // When the device registered.
+    google.protobuf.Timestamp registered_at = 5 [(validate.rules).timestamp.required = true];
+
+    // The day the device was last active on its mailbox (a send, a drain
+    // or an acknowledgement), at day granularity: a UTC day start, never a
+    // finer time. Days are reckoned per user, shifted from UTC by an
+    // offset fixed by the user ID, so that the server's once-a-day record
+    // of every device is spread over the day rather than made all at once
+    // after midnight; the value may therefore trail a real sighting by
+    // less than a day, as Signal's last-seen does for the same reason. It
+    // is a liveness signal for device expiry and for the user's own device
+    // list, not presence. Returned only to the device's own user; withheld
+    // from everyone else.
+    google.protobuf.Timestamp last_seen = 6;
+
+    // The user's account key: the Ed25519 key behind common.v1.Auth for the
+    // user, which made identity_key_signature. Served for convenience so
+    // the peer can check the chain; the peer compares it to the account key
+    // it already holds for the user, or pins it on first sight (see the
+    // file header). It is a property of the user, the same on every device.
+    common.v1.PublicKey account_key = 7 [(validate.rules).message.required = true];
+
+    // What the device's client build can handle, declared at registration
+    // (KeyDistribution.RegisterDeviceRequest.capabilities) and extended in
+    // place as the build gains capabilities (KeyDistribution.
+    // SetCapabilities), never reduced. A sender consults them before it builds a
+    // session with, or sends a kind of content to, the device: a message
+    // the device cannot parse is a message it cannot read, and the server
+    // cannot tell one from the other. This is how a client build ships a
+    // protocol or content change without a new contract version, as
+    // Signal's device capabilities do. The server may require some of them
+    // of every new device (RegisterDeviceResponse.
+    // MISSING_REQUIRED_CAPABILITY); SPARSE_POST_QUANTUM_RATCHET is
+    // required of every new device, as Signal requires it of every newly
+    // linked one.
+    repeated Capability capabilities = 8 [(validate.rules).repeated = {
+        unique: true
+        items: {
+            enum: {
+                not_in: [0]
+            }
+        }
+    }];
+    enum Capability {
+        UNKNOWN                     = 0;
+
+        // The device decrypts CIPHERTEXT that carries Sparse Post-Quantum
+        // Ratchet data (see Envelope.Type.CIPHERTEXT). A sender builds its
+        // session with such a device with the post-quantum ratchet
+        // enabled, and without it otherwise.
+        SPARSE_POST_QUANTUM_RATCHET = 1;
+    }
+}
+
+// DeviceAddress names a specific device of a specific user: Sesame's
+// (UserID, DeviceID) pair. It is the address a session is held with and an
+// envelope is delivered to.
+message DeviceAddress {
+    common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+    DeviceId device_id = 2 [(validate.rules).message.required = true];
+}
+
+// PreKeyBundle is what PQXDH says the server returns when a sender asks to
+// start a session with a device: the device's identity key, its signed
+// prekey with signature, a KEM prekey with signature (a one-time one if any
+// remains, otherwise the last-resort one), and, if any remains, a one-time
+// curve prekey. The sender verifies identity_key_signature against the
+// user's account key (the one it holds or pins; see account_key and the
+// file header), then both prekey signatures against identity_key, before
+// using anything, and aborts if any fails.
+message PreKeyBundle {
+    // The device this bundle starts a session with.
+    DeviceAddress address = 1 [(validate.rules).message.required = true];
+
+    // The device's registration ID. libsignal stores it in the session it
+    // builds from this bundle as the remote registration ID (the initial
+    // message carries the sender's own, not this), and the sender names it
+    // on every send to the device.
+    RegistrationId registration_id = 2 [(validate.rules).message.required = true];
+
+    // IK_B, the device's identity key.
+    EcPublicKey identity_key = 3 [(validate.rules).message.required = true];
+
+    // The account's certification of identity_key: see
+    // Device.identity_key_signature.
+    common.v1.Signature identity_key_signature = 4 [(validate.rules).message.required = true];
+
+    // SPK_B with IdEC(SPK_B) and Sig(IK_B, EncodeEC(SPK_B), Z_SPK).
+    SignedPreKey signed_prekey = 5 [(validate.rules).message.required = true];
+
+    // PQPK_B: one of the device's one-time KEM prekeys PQOPK_Bn, consumed and
+    // deleted by this fetch, or the last-resort PQSPK_B "if no signed
+    // one-time pqkem prekey remains". The sender cannot tell which, and does
+    // not need to: it is used the same way either way.
+    KemSignedPreKey kem_prekey = 6 [(validate.rules).message.required = true];
+
+    // OPK_Bn with IdEC(OPK_Bn), consumed and deleted by this fetch. Absent
+    // when "all of Bob's curve one-time prekeys on the server have been
+    // deleted". A sender proceeds without it (PQXDH's optional DH4), with
+    // initial forward secrecy then resting on the signed prekey's lifetime.
+    OneTimePreKey one_time_prekey = 7;
+
+    // The user's account key, as on Device.account_key: what the sender
+    // compares to, or pins as, the account key it holds for the user
+    // before verifying identity_key_signature with it.
+    common.v1.PublicKey account_key = 8 [(validate.rules).message.required = true];
+
+    // The device's capabilities, as on Device.capabilities: carried here
+    // because the bundle is where a session is built, and how it is built
+    // depends on them.
+    repeated Device.Capability capabilities = 9 [(validate.rules).repeated = {
+        unique: true
+        items: {
+            enum: {
+                not_in: [0]
+            }
+        }
+    }];
+}
+
+// EnvelopeId is the server-assigned identity of one envelope in one mailbox:
+// what a device acknowledges to have the server delete it. Distinct from any
+// identity the plaintext carries (content.proto MessageId), which the server
+// never sees.
+message EnvelopeId {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}
+
+// Envelope is one item in a device's mailbox: a ciphertext one device sent
+// to another, wrapped in the routing metadata the server needs and is
+// therefore allowed to see. Sesame: "The server stores a mailbox for each
+// device", storing "the sending device's UserID and DeviceID alongside the
+// message", which in Sesame is removed when fetched; here it is held until
+// acknowledged (see Mailbox.AckEnvelopes), a stronger delivery guarantee
+// than the spec's.
+//
+// What the server knows about an envelope is exactly what is in this
+// message: who sent it, to which chat, when, and how many bytes. What it says
+// is `content`, which the recipient device decrypts under its session with
+// the source device (PREKEY_MESSAGE, CIPHERTEXT), under the source device's
+// sender key for the chat (SENDER_KEY_MESSAGE), or not at all
+// (PLAINTEXT_CONTENT, SERVER_DELIVERY_RECEIPT).
+message Envelope {
+    EnvelopeId id = 1 [(validate.rules).message.required = true];
+
+    // The envelope's position in this device's mailbox: assigned in
+    // arrival order from 1, strictly increasing, never reused, and always
+    // set. It is the cursor Mailbox.GetEnvelopes pages by and the order
+    // envelopes are delivered in. Not comparable across devices.
+    //
+    // The sequence is not gapless. A position is reserved before its
+    // envelope is written, and a send that fails after the reservation, or
+    // an `online` envelope that lapsed before anyone drained it (see
+    // ephemeral), leaves a hole that is never filled. A client that sees a
+    // gap on the live stream therefore treats it as "possibly missed" and
+    // drains from the last sequence it holds, as it does on every stream
+    // open: the drain either returns what was missed or returns past the
+    // gap with nothing at it, and either way the client is current when
+    // has_more is false. A client never waits for a position to arrive.
+    // Signal exposes no per-mailbox sequence at all and relies on the same
+    // drain-on-open rule; the sequence here is the cursor, not a proof of
+    // completeness.
+    uint64 sequence = 2;
+
+    // The chat the envelope was sent to. The recipient device holds its
+    // sessions per source device, not per chat; this tells it which
+    // conversation the decrypted content belongs to.
+    common.v1.ChatId chat_id = 3 [(validate.rules).message.required = true];
+
+    // The device that sent the envelope. Unset on a SERVER_DELIVERY_RECEIPT,
+    // which the server generated. A recipient device that finds its own user
+    // here is reading a message one of its sibling devices sent (see
+    // Mailbox.SendEnvelopes): it records it as an outgoing message.
+    DeviceAddress source = 4;
+
+    Type type = 5 [(validate.rules).enum = {
+        not_in: [0]
+    }];
+    enum Type {
+        UNKNOWN                 = 0;
+
+        // A PQXDH initial message: the sender's identity key and ephemeral
+        // key, the identifiers of the recipient prekeys it used, the KEM
+        // ciphertext, and a first Double Ratchet message, all in libsignal's
+        // PreKeySignalMessage encoding. The recipient establishes a session
+        // from it. The Double Ratchet spec has a sender keep using this type
+        // "until she receives Bob's first ratchet protocol response
+        // message".
+        //
+        // The identity key inside is the sender's own claim, uncertified.
+        // Before trusting a session begun by one, the recipient checks
+        // that the source device's certified identity_key, which the
+        // server stamps onto the envelope as source_device, matches the
+        // one in the message, and verifies its identity_key_signature
+        // against the account key it holds for that user, or pins
+        // source_device.account_key if it holds none (see the file
+        // header). The stamp is there so the check needs no network call:
+        // it runs in a notification extension, and it still runs after
+        // the source device has been unregistered. It is the same record
+        // GetDevices would return, held by the same server, so it grants
+        // no more trust and no less; the account key pin is what anchors
+        // it. Without that check the session is trust on first use of a
+        // device key, which this contract does not intend. A key already
+        // verified for that device is compared, not re-verified.
+        PREKEY_MESSAGE          = 1;
+
+        // A Double Ratchet message under an established session, in
+        // libsignal's SignalMessage encoding: the ratchet public key, the
+        // chain length pn and message number n, the AEAD ciphertext, and any
+        // Sparse Post-Quantum Ratchet (SPQR) data, the ML-KEM-768 based
+        // ratchet that with the Double Ratchet forms Signal's Triple
+        // Ratchet. (SPQR's KEM is ML-KEM-768; the PQXDH handshake's is
+        // Kyber-1024, see KemPublicKey. They are independent.)
+        CIPHERTEXT              = 2;
+
+        // A group message encrypted once under the sender's sender key for
+        // the chat, in libsignal's SenderKeyMessage encoding, and fanned out
+        // by the server to every recipient device named on the send. A
+        // recipient that holds no sender key for (source, chat) cannot read
+        // it and asks the source for a redistribution (see
+        // content.proto SenderKeyDistribution and DecryptionErrorMessage).
+        SENDER_KEY_MESSAGE      = 3;
+
+        // A serialized content.proto Content sent in the clear, because the
+        // sender has no session it can use to encrypt it. The only Content
+        // variant permitted is DecryptionErrorMessage: a device telling the
+        // source that it could not decrypt an envelope, so the source can
+        // re-establish the session. The server does not inspect it; clients
+        // MUST ignore any other variant received this way.
+        //
+        // The bytes are the bare Content serialization, nothing more.
+        // libsignal's PlaintextContent type frames Signal's own Content
+        // schema between a 0xC0 identifier byte and a 0x80 padding
+        // boundary; clients MUST NOT use it here. They construct the
+        // DecryptionErrorMessage fields themselves.
+        //
+        // A plaintext envelope is at most 1 KiB, a server rule (validation
+        // cannot vary by type): a DecryptionErrorMessage is under 100 bytes
+        // plus padding, and anything larger, unencrypted and injectable by
+        // any member, is refused rather than relayed.
+        PLAINTEXT_CONTENT       = 4;
+
+        // Generated by the server, not sent by a device: a recipient device
+        // acknowledged an envelope the receiving device sent. Carries
+        // delivery_receipt and no content or source.
+        SERVER_DELIVERY_RECEIPT = 5;
+    }
+
+    // The bytes the sender gave the server, unchanged. Ciphertext for
+    // PREKEY_MESSAGE, CIPHERTEXT and SENDER_KEY_MESSAGE; a serialized
+    // Content for PLAINTEXT_CONTENT, at most 1 KiB (see PLAINTEXT_CONTENT);
+    // empty for SERVER_DELIVERY_RECEIPT. Capped at 96 KiB, Signal-Server's
+    // own content limit.
+    bytes content = 6 [(validate.rules).bytes = {
+        max_len: 98304
+    }];
+
+    // The sender's own timestamp for the send, set by the sending device and
+    // relayed unchanged. It is the sender's correlation handle: a
+    // DeliveryReceipt names it, and a DecryptionErrorMessage names it, so a
+    // sender must give each send from a device a distinct value. It has
+    // millisecond precision (nanos a multiple of 1,000,000) and is strictly
+    // increasing across a device's sends, so it survives a round trip
+    // through libsignal's millisecond u64 timestamps and stays distinct
+    // when two sends fall in one millisecond. A device keeps the value it
+    // last sent and sends the later of now and that value plus one
+    // millisecond, so two sends in one millisecond, or a clock stepped
+    // backwards, never block a send or repeat a value. Unset on a
+    // SERVER_DELIVERY_RECEIPT.
+    //
+    // The server trusts it. It checks the precision and refuses a value
+    // absurdly far in the future, and otherwise relays what it was given,
+    // as Signal-Server does: it is the sender's handle, not the server's
+    // clock, and a device whose clock is wrong must still be able to send.
+    // It is not a deduplication key: the server does not promise to
+    // deduplicate a retried send (see Mailbox.SendEnvelopes), and a client
+    // may see the same client_ts twice.
+    google.protobuf.Timestamp client_ts = 7;
+
+    // When the server accepted the envelope. Authoritative for ordering the
+    // chat's activity; clients that render by client_ts must tolerate skew.
+    google.protobuf.Timestamp server_ts = 8 [(validate.rules).timestamp.required = true];
+
+    // Whether the sender asked for the recipient to be woken at the
+    // platform's convenience rather than promptly (a push at high priority).
+    // Relayed for the client's own handling; the server has already acted
+    // on it. See SendEnvelopesRequest.low_priority.
+    bool low_priority = 9;
+
+    // How the recipient should handle an envelope it cannot decrypt. Set by
+    // the sender in the clear and relayed unchanged. From Signal's sealed
+    // sender message format, where it plays the same role.
+    ContentHint content_hint = 10;
+    enum ContentHint {
+        // Show the recipient an error and do not ask for a resend: the
+        // sender holds nothing to resend.
+        DEFAULT    = 0;
+
+        // The sender kept the plaintext and can resend it if asked; send a
+        // DecryptionErrorMessage and show nothing until the resend arrives.
+        RESENDABLE = 1;
+
+        // Not worth a resend or an error: a typing indicator, a receipt.
+        // Drop it silently.
+        IMPLICIT   = 2;
+    }
+
+    // Set only when type == SERVER_DELIVERY_RECEIPT.
+    DeliveryReceipt delivery_receipt = 11;
+
+    // The server's record of the source device at the time of the send:
+    // its certified identity key, the account's signature over it, the
+    // account key, and its registration ID. Set only when
+    // type == PREKEY_MESSAGE, so the recipient can verify the session the
+    // message opens without a call (see PREKEY_MESSAGE); last_seen is never
+    // set here. A recipient that already holds a verified record for the
+    // source device compares to it and ignores any difference in favour of
+    // what it holds, reporting a changed identity to the user.
+    Device source_device = 12;
+
+    // Whether the envelope was an `online` send (see
+    // SendEnvelopesRequest.online): held only briefly, delivered only to a
+    // device that drains or is streaming within that window, and lapsed
+    // otherwise. A client applies it and need not persist it; a typing
+    // indicator is the model. It is acknowledged like any other envelope
+    // when it is delivered, and it holds a sequence, so a lapsed one is a
+    // gap (see sequence). Signal carries the same flag as `ephemeral`.
+    bool ephemeral = 13;
+}
+
+// DeliveryReceipt is the server telling a sending user's devices that
+// recipient devices acknowledged envelopes they sent: the E2EE counterpart
+// of the plaintext system's DELIVERED pointer, and the one receipt the
+// server can issue on its own, since it can see acknowledgements. READ
+// receipts are between clients, inside the encrypted channel
+// (content.proto ReceiptMessage), and this message mirrors that one's
+// shape: a list of parties, each with the messages it concerns. There the
+// party is an author and the message a MessageId; here the party is an
+// acknowledging device and the message a client_ts, the one handle the
+// server can see. The chat is the enclosing Envelope's chat_id, as it is
+// for a ReceiptMessage.
+//
+// A receipt is a set of facts, never a watermark: a send not named is not
+// acknowledged, whatever its client_ts, because the server has no order
+// over a device's sends it can promise is complete (a recipient
+// acknowledges only what it stored, and re-receives the rest later). The
+// server folds: every acknowledgement one device makes in one call, and
+// acknowledgements of the same sends that arrive within a short window,
+// become one receipt per sender device rather than one envelope each, so a
+// device draining a day's messages earns each sender one receipt, and a
+// large group's acknowledgements of a message arrive as a few receipts,
+// not one per member device. A send already reported may appear again
+// after a retry; clients treat the set as monotonic and aggregate per
+// user. Issued for PREKEY_MESSAGE, CIPHERTEXT and SENDER_KEY_MESSAGE
+// envelopes; never for PLAINTEXT_CONTENT, never for an envelope delivered
+// to one of the sender's own devices, never for an `online` send, and never
+// when the sender set no_delivery_receipt, which it does for everything but
+// a DataMessage.
+message DeliveryReceipt {
+    // One entry per acknowledging device. Capped loosely, as every
+    // server-to-client field is (see GetPreKeyBundlesResponse.bundles): a
+    // full group's device set is 250.
+    repeated Acknowledgement acknowledgements = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 2000
+    }];
+
+    message Acknowledgement {
+        // The device that acknowledged.
+        DeviceAddress recipient = 1 [(validate.rules).message.required = true];
+
+        // The client_ts of every send from the receiving device that this
+        // device acknowledged: the sender's correlation handles (see
+        // Envelope.client_ts). At most an AckEnvelopes call's worth.
+        repeated google.protobuf.Timestamp client_ts = 2 [(validate.rules).repeated = {
+            min_items: 1
+            max_items: 1000
+        }];
+    }
+}
+
+message EnvelopeBatch {
+    repeated Envelope envelopes = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+// DeviceMismatch is the server's answer when a send's view of a recipient's
+// devices disagrees with the server's, per Sesame: the server "informs the
+// sending device of the old DeviceIDs and new DeviceIDs needed to make the
+// sending device's records current". One per recipient user affected. The
+// sender marks extra and stale devices' records stale, fetches prekey
+// bundles for missing and stale devices, re-encrypts, and retries.
+//
+// A sender resolves missing_devices and extra_devices before
+// stale_devices: the first two are the roster being wrong, the third is a
+// session being wrong, and a roster fix may remove a device the stale list
+// names. Signal-Server answers the two classes as separate errors, roster
+// first, for the same reason; here they arrive together and the order is
+// the client's to keep. The sender's own user may appear here: a sender
+// with other devices that omitted any of them is answered with its own
+// user_id and those devices as missing_devices (see Mailbox.SendEnvelopes).
+//
+// Sesame has this reply also carry the new devices' identity keys. It is
+// omitted here because the prekey bundle the sender must fetch for each
+// missing or stale device carries that device's identity key, with the
+// account's certification of it, so the sender learns it on the path it
+// has to take anyway.
+message DeviceMismatch {
+    common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+    // Devices the recipient has that the send did not address. The sender
+    // has no session with them yet. At most the 5 devices a user may hold
+    // today; capped at the DeviceId space so the policy can move.
+    repeated DeviceId missing_devices = 2 [(validate.rules).repeated = {
+        max_items: 127
+    }];
+
+    // Devices the send addressed that the recipient no longer has. The
+    // sender's records for them are stale. Bounded by the DeviceId space,
+    // since a sender with old records may name ids the user has cycled
+    // through.
+    repeated DeviceId extra_devices = 3 [(validate.rules).repeated = {
+        max_items: 127
+    }];
+
+    // Devices the send addressed under a registration ID that is no longer
+    // theirs: the id was reused by a re-registration, and the sender's
+    // session with it is stale. Capped at the DeviceId space, as
+    // missing_devices is.
+    repeated DeviceId stale_devices = 4 [(validate.rules).repeated = {
+        max_items: 127
+    }];
+}
+
+// AttachmentId is the server-assigned handle to an encrypted attachment's
+// stored bytes. The bytes are ciphertext the server cannot read; the key to
+// them travels inside the encrypted message that references the attachment.
+// No RPC issues or resolves one yet: encrypted attachment storage is to be
+// provided by blob.v1.BlobStorage, and this is the handle a message will
+// carry for it.
+message AttachmentId {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}

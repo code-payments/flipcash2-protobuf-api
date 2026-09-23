@@ -43,7 +43,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 
 ## Repository Layout
 
-- `proto/{domain}/v1/` – one directory per domain. Services live in `{name}_service.proto`; shared message types live in `model.proto`. Some domains only have one or the other.
+- `proto/{domain}/v1/` – one directory per domain. Services live in `{name}_service.proto`; shared message types live in `model.proto`. Some domains only have one or the other. `e2ee` has two service files plus `content.proto`, the client-to-client plaintext schema that is encrypted before it reaches the server.
 - `generated/go/{domain}/v1/` – Go package `{domain}pb`.
 - `generated/protobuf-es/{domain}/v1/` – TypeScript, plus barrel `index.ts` files.
 - `build/go/`, `build/protobuf-es/` – Dockerfile + `generate.sh` for each generator.
@@ -60,6 +60,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | chat | `flipcash.chat.v1` | `Chat` | Chat metadata, DM and group chat feeds, Start/Join/Leave group chats, chat rules |
 | common | `flipcash.common.v1` | none | Shared types: Auth, PublicKey, Signature, UserId, Username, ChatId, IntentId, PhoneNumber, EmailAddress, payment amounts, PagingToken, QueryOptions, Locale, Region, Color, Substitution |
 | contact | `flipcash.contact.v1` | `ContactList` | Contact sync (CheckSync, DeltaUpload, streaming FullUpload) and Flipcash contact discovery |
+| e2ee | `flipcash.e2ee.v1` | `KeyDistribution`, `Mailbox` | Signal-protocol end-to-end encrypted messaging: the key distribution and ciphertext relay layer for E2EE chats, which share the `chat` domain's chat records, feeds and rosters with plaintext chats. `KeyDistribution`: per-device identity key certified by the account key, signed/one-time/KEM prekeys (PQXDH), prekey bundles, device list (Sesame). `Mailbox`: SendEnvelopes (ciphertext fan-out with device-mismatch enforcement) plus per-device mailbox drain and ack; live delivery is meant to ride `event.v1.StreamEvents`. `content.proto` is the client-to-client plaintext schema the server never sees, with its own content kinds (text and replies today) |
 | email | `flipcash.email.v1` | `EmailVerification` | Send/check verification codes, unlink |
 | event | `flipcash.event.v1` | `EventStreaming` | Bidirectional `StreamEvents` for real-time updates (ChatUpdate, BlobUpdate); internal `ForwardEvents` for server-to-server fan-out |
 | iap | `flipcash.iap.v1` | `Iap` | In-app purchase completion |
@@ -77,10 +78,10 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 Cross-domain model dependencies form these layers (each imports the ones before it):
 
 ```
-common → moderation → blob → { profile, messaging } → { chat, reporting } → { event, push }
+common → moderation → blob → { profile, messaging } → { chat, reporting } → { event, push, e2ee }
 ```
 
-Concretely: `blob` imports `moderation`; `profile` and `messaging` import `blob`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `reporting` imports `blob` and `messaging`; `event` and `push` import `chat` and `messaging`. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
+Concretely: `blob` imports `moderation`; `profile` and `messaging` import `blob`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `reporting` imports `blob` and `messaging`; `event` and `push` import `chat` and `messaging`; `e2ee` imports `chat` (for `IdempotencyKey`) and `messaging` (for `Emoji` only; content kinds are defined in `e2ee`), but not `blob` or `event`. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
 
 ## Proto Conventions
 

@@ -242,6 +242,12 @@ export class Auth_KeyPair extends Message<Auth_KeyPair> {
 }
 
 /**
+ * UserId identifies a Flipcash account: 16 bytes, issued by the account
+ * service as a UUID in RFC 9562 binary form. What other domains rely on is
+ * the length, not the UUID version: e2ee derives the Signal protocol
+ * address by formatting the 16 bytes as a canonical UUID string, which any
+ * 16 bytes can be.
+ *
  * @generated from message flipcash.common.v1.UserId
  */
 export class UserId extends Message<UserId> {

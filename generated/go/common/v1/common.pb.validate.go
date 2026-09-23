@@ -541,10 +541,10 @@ func (m *UserId) validate(all bool) error {
 
 	var errors []error
 
-	if l := len(m.GetValue()); l < 1 || l > 32 {
+	if len(m.GetValue()) != 16 {
 		err := UserIdValidationError{
 			field:  "Value",
-			reason: "value length must be between 1 and 32 bytes, inclusive",
+			reason: "value length must be 16 bytes",
 		}
 		if !all {
 			return err

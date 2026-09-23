@@ -1,0 +1,414 @@
+syntax = "proto3";
+
+package flipcash.e2ee.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/e2ee/v1;e2eepb";
+option java_package = "com.codeinc.flipcash.gen.e2ee.v1";
+option objc_class_prefix = "FPBE2eeV1";
+
+import "common/v1/common.proto";
+import "e2ee/v1/model.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// Mailbox is the relay Sesame describes: "the server stores a mailbox for
+// each device" and holds what is sent to it until fetched; here, until
+// acknowledged, which is stricter (Sesame removes on fetch). This service
+// fills those mailboxes (SendEnvelopes), drains them (GetEnvelopes) and
+// empties them (AckEnvelopes). Live delivery is not here:
+// envelopes are meant to reach a connected device on the same stream as
+// everything else, event.v1.EventStreaming.StreamEvents, and this service
+// is the catch-up and acknowledgement path beside it, as Messaging.GetDelta
+// is beside the plaintext event log. That stream does not yet carry them:
+// event.v1 has no envelope Event variant and no device target on its
+// Params, and both are future additive changes there (event may import
+// e2ee; e2ee does not import event). Until they land, live delivery is the
+// push described under SendEnvelopes, and a device drains with GetEnvelopes
+// on every push and every foreground. Everything below that speaks of the
+// stream describes the intended contract once it exists. It is the E2EE
+// counterpart of messaging.v1.Messaging, and differs from it in the one way
+// an encrypted system must:
+//
+//   The server has no messages, only envelopes. It cannot serve history
+//   (GetMessages), a state delta (GetDelta), a reaction summary, a pointer,
+//   or a typing state, because every one of those is inside ciphertext.
+//   What the plaintext system computes on the server, this system's clients
+//   compute from what they decrypt, and hold: a device's own store is the
+//   only history there is, and a new device starts with none.
+//
+// What a client does with a decrypted envelope is defined in content.proto.
+// Edits, deletions, reactions, read receipts and typing are all Contents,
+// sent through SendEnvelopes like anything else; only the server-issued
+// delivery receipt is a first-class server concept here.
+//
+// Every RPC is device-scoped: the caller names the DeviceId it is acting
+// as, and the server checks it belongs to the authenticated user.
+service Mailbox {
+    // SendEnvelopes relays ciphertext to the devices of a chat's members.
+    //
+    // A send is one plaintext, encrypted for each recipient device: either
+    // separately, under the sender's pairwise session with each device
+    // (PREKEY_MESSAGE, CIPHERTEXT, or PLAINTEXT_CONTENT), or once, under the
+    // sender's sender key for the chat, with the one ciphertext addressed to
+    // every recipient device (SENDER_KEY_MESSAGE). The first form is how a
+    // DM is sent and how sender keys are distributed; the
+    // second is how a group message is sent.
+    //
+    // The recipients are devices, and the sender names each with the
+    // registration ID it holds for it. The server applies Sesame's rule: for
+    // every recipient user the call names, it compares the devices named
+    // against the user's current devices, and accepts the call only if they
+    // match exactly, with matching registration IDs. When the recipient
+    // user is the sender's own, the sending device itself is left out of
+    // the comparison: a device never addresses itself, and is not reported
+    // missing. Otherwise the server stores nothing and returns
+    // MISMATCHED_DEVICES with, per user, the devices the call is missing,
+    // the ones it named that no longer exist, and the ones whose
+    // registration ID has changed. The sender updates its records, fetches
+    // bundles for what it lacks, re-encrypts, and retries. Nothing is
+    // stored unless every check passes. The write itself is not atomic
+    // across devices: a call that fails partway, on the server or on the
+    // wire, may have stored its envelope in some mailboxes and not others,
+    // as Signal-Server's per-device queue inserts may, and the sender
+    // retries the whole call, which stores a second copy where the first
+    // landed (see the paragraph on deduplication below). A failed call is
+    // therefore never "sent" and never "unsent" from the sender's side; it
+    // is retried until it is OK.
+    //
+    // One send is one call. An E2EE group holds at most 50 members, a cap
+    // the server enforces when the chat is started and joined in chat.v1,
+    // and a member has at most 5 devices (RegisterDevice's
+    // TOO_MANY_DEVICES), so a whole group is at most 250 devices, and a
+    // send to all of them fits in one call within the caps below and
+    // within the server's 4 MiB message size, because of what each form
+    // carries. A sender key send is one ciphertext however many devices it
+    // names. A pairwise send to a whole group is a sender key distribution
+    // (see content.proto SenderKeyDistribution), whose envelopes are small:
+    // a PREKEY_MESSAGE is about 2 KB with its KEM ciphertext, so a
+    // distribution to a full group is under 1 MiB. The other pairwise
+    // sends in a group go to one user (a decryption error report, a
+    // resend after one, a session reset), at most 5 devices, and a DM's
+    // go to at most 9, so even at the 96 KiB content cap those are under
+    // 1 MiB. What would not fit is a group's data message fanned out
+    // pairwise at that cap, 250 envelopes of 96 KiB, and clients never
+    // send one: a group's data traffic goes under the sender key, and a
+    // client has no pairwise fallback for it, unlike Signal's, which keep
+    // one for recipients too old for sender keys. Splitting a send across
+    // calls is neither needed nor defined.
+    //
+    // Delivery is at-least-once and the server does not deduplicate. A call
+    // retried after a timeout may store a second copy of every envelope,
+    // and a recipient may therefore see the same (source, client_ts) twice.
+    // That is the recipient's to absorb, and it already can: libsignal
+    // refuses a replayed Double Ratchet or sender key message as a
+    // duplicate, and a DataMessage arriving under a (author, MessageId) the
+    // client holds is an idempotent upsert (see content.proto MessageId).
+    // Signal-Server makes the same choice; a server-side dedupe key would
+    // double the write cost of every envelope to protect against a case
+    // the client handles anyway. A resend of a message, after a
+    // DecryptionErrorMessage or a failed call, is still a NEW send with a
+    // fresh client_ts carrying the same MessageId, so that receipts and
+    // error reports name one attempt unambiguously.
+    //
+    // Every recipient user must be a member of the chat, and the sender must
+    // be a member allowed to speak by the chat's rules. Beyond that the
+    // server does not check WHICH USERS are named: a DataMessage should go
+    // to every member, a decryption error report to one user, a receipt to
+    // one user in a DM or to the whole group under the sender key, a sender
+    // key distribution to whichever members lack it, and that is the
+    // sender's business. What it does hold is that a named user is
+    // named whole: there is no sending to one of a user's devices, so a
+    // Content meant for one device goes to all of them and the others
+    // discard it. The sender's own other devices are ordinary recipients: a
+    // device names its siblings alongside everyone else, and they record
+    // what arrives from their own user as sent (see Envelope.source).
+    //
+    // The sender's own user is held to that rule whether or not the call
+    // names it: a sender with other devices names every one of them on
+    // every send, or is answered MISMATCHED_DEVICES with its own user_id
+    // and the omitted devices as missing_devices. A send that reaches the
+    // peer but not the sender's own other devices leaves those devices
+    // with a conversation missing its own side, which is Signal's reason
+    // for holding a sync message to "every other device of mine, exactly".
+    // A sender with no other devices names its own user or not, as it
+    // likes; there is nothing to omit.
+    //
+    // A send is stored in each recipient device's mailbox until that device
+    // acknowledges it or the server's retention lapses, and is also handed
+    // to any recipient device with an open event stream at once. If
+    // `online` is set, the send is held for a few seconds only: it is
+    // handed to devices with an open stream, drained by a device that
+    // happens to read within that window, and lapsed for the rest (typing
+    // indicators). It earns no push and no DeliveryReceipt, and its
+    // envelopes are marked ephemeral (see Envelope.ephemeral). The server
+    // pushes each recipient device of a stored send that has no open
+    // stream, at high priority unless `low_priority` is set, with nothing
+    // but the chat to wake for. A stored send earns the sender a
+    // DeliveryReceipt as its recipient devices acknowledge it, unless
+    // `no_delivery_receipt` is set.
+    //
+    // The server rate-limits sends per (sending user, recipient user) and
+    // bounds the bytes a recipient user takes in over a window, answering
+    // RATE_LIMITED with retry_after and storing nothing. The limits are
+    // sized for people, not for a client in a retry loop: a device that is
+    // answered RATE_LIMITED waits out retry_after before any send to that
+    // recipient.
+    rpc SendEnvelopes(SendEnvelopesRequest) returns (SendEnvelopesResponse);
+
+    // GetEnvelopes pages a device's mailbox: every envelope it has not yet
+    // acknowledged, in sequence order after a cursor. It does not remove
+    // anything; the client acknowledges with AckEnvelopes.
+    //
+    // This is the catch-up read. A device calls it on every event stream
+    // open, after a push, and whenever a gap in Envelope.sequence on the
+    // live stream shows it may have missed one, under the same contract as
+    // the plaintext system's GetDelta: open the stream first, drain with
+    // this, and merge live deliveries onto the drained set by sequence.
+    // Because an envelope stays in the mailbox until acknowledged, nothing
+    // missed live is lost; it is simply here until the next drain. A gap
+    // may also be a position nothing will ever fill (see
+    // Envelope.sequence); the drain tells the two apart by returning past
+    // it, and a client is current once has_more is false, whatever the
+    // gaps behind the cursor. An ephemeral envelope whose window has
+    // lapsed is never returned.
+    rpc GetEnvelopes(GetEnvelopesRequest) returns (GetEnvelopesResponse);
+
+    // AckEnvelopes removes envelopes from a device's mailbox, and issues a
+    // DeliveryReceipt to each sender the call acknowledged envelopes from,
+    // naming every one of that sender's envelopes it covered (see
+    // DeliveryReceipt). Idempotent: acknowledging an envelope already
+    // removed is a no-op.
+    //
+    // Delivery is at-least-once, and the client owns the acknowledgement:
+    // an envelope stays in the mailbox, and is delivered again on every
+    // drain, until acknowledged, however it was delivered. Clients
+    // acknowledge only after the envelope's content is durably stored
+    // (decrypted or not), and never before, because the ratchet state that
+    // decrypts it advances as it does so and there is no second chance.
+    rpc AckEnvelopes(AckEnvelopesRequest) returns (AckEnvelopesResponse);
+}
+
+message SendEnvelopesRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The sending device. Must belong to the caller.
+    DeviceId device_id = 2 [(validate.rules).message.required = true];
+
+    oneof payload {
+        option (validate.required) = true;
+
+        // One ciphertext per recipient device, each under the sender's
+        // pairwise session with that device.
+        PairwiseEnvelopes      pairwise        = 3;
+
+        // One ciphertext under the sender's sender key, addressed to many
+        // recipient devices.
+        MultiRecipientEnvelope multi_recipient = 4;
+    }
+
+    // The sender's timestamp for the send: relayed as Envelope.client_ts
+    // and named by the DeliveryReceipt for it, so it must be distinct
+    // across the device's sends. Millisecond precision and strictly
+    // increasing per device, as the later of now and the last value sent
+    // plus one millisecond (see Envelope.client_ts). The server rejects
+    // sub-millisecond nanos, and a value absurdly far in the future, with
+    // INVALID_TIMESTAMP, and otherwise trusts it: there is no window
+    // around the server's clock, because a device whose clock is wrong
+    // must still be able to send, and nothing on the server keys on the
+    // value. A client that wants its clock right corrects it from the
+    // server_ts in the response, or from any envelope's server_ts.
+    google.protobuf.Timestamp client_ts = 5 [(validate.rules).timestamp.required = true];
+
+    // Hold the send for a few seconds only, for devices with an open event
+    // stream or that drain within that window, and let it lapse for the
+    // rest: for typing indicators and anything else not worth a mailbox.
+    // A send with this set yields no DeliveryReceipt and no push, and its
+    // envelopes are marked ephemeral (see Envelope.ephemeral). Signal
+    // handles its `online` sends the same way, as a short-lived queue
+    // entry rather than a separate never-stored path, so that presence
+    // need not be checked before the write.
+    bool online = 6;
+
+    // Do not wake recipient devices promptly: push at the platform's
+    // convenience rather than at high priority. Set for a receipt, a
+    // reaction, a distribution, or anything the recipient need not be woken
+    // for; leave clear for a new message. Inverted from Signal's `urgent`
+    // so that the zero value is the safe one: a client that forgets it gets
+    // prompt delivery, as Signal-Server's default of urgent=true gives.
+    bool low_priority = 7;
+
+    // Do not issue a DeliveryReceipt for this send. Set for a receipt, a
+    // reaction, a typing state, a distribution, a decryption error report,
+    // and anything else whose delivery the sender has no use in knowing;
+    // leave clear for a DataMessage. Without it, every acknowledgement of
+    // every envelope becomes a receipt to every device of the sender, and a
+    // group's reactions alone would fill the sender's mailbox.
+    bool no_delivery_receipt = 9;
+
+    // Relayed as Envelope.content_hint.
+    Envelope.ContentHint content_hint = 8 [(validate.rules).enum = {
+        in: [0, 1, 2] // DEFAULT, RESENDABLE, IMPLICIT
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+
+    // A ciphertext for one recipient device.
+    message PairwiseEnvelope {
+        // The device to deliver to.
+        DeviceAddress recipient = 1 [(validate.rules).message.required = true];
+
+        // The registration ID the sender holds for the device. Compared to
+        // the device's current one; a mismatch is a stale device.
+        RegistrationId registration_id = 2 [(validate.rules).message.required = true];
+
+        // PREKEY_MESSAGE, CIPHERTEXT or PLAINTEXT_CONTENT.
+        Envelope.Type type = 3 [(validate.rules).enum = {
+            in: [1, 2, 4] // PREKEY_MESSAGE, CIPHERTEXT, PLAINTEXT_CONTENT
+        }];
+
+        bytes content = 4 [(validate.rules).bytes = {
+            min_len: 1
+            max_len: 98304
+        }];
+    }
+
+    message PairwiseEnvelopes {
+        // At most one per recipient device. Sized for a full group: 50
+        // members at 5 devices each; see SendEnvelopes.
+        repeated PairwiseEnvelope envelopes = 1 [(validate.rules).repeated = {
+            min_items: 1
+            max_items: 250
+        }];
+    }
+
+    message MultiRecipientEnvelope {
+        // SENDER_KEY_MESSAGE ciphertext, delivered unchanged to every
+        // recipient.
+        bytes content = 1 [(validate.rules).bytes = {
+            min_len: 1
+            max_len: 98304
+        }];
+
+        // The devices to deliver to, at most one entry per device, each
+        // with the registration ID the sender holds for it. Sized as
+        // PairwiseEnvelopes.envelopes is.
+        repeated Recipient recipients = 2 [(validate.rules).repeated = {
+            min_items: 1
+            max_items: 250
+        }];
+
+        message Recipient {
+            DeviceAddress address = 1 [(validate.rules).message.required = true];
+
+            RegistrationId registration_id = 2 [(validate.rules).message.required = true];
+        }
+    }
+}
+
+message SendEnvelopesResponse {
+    Result result = 1;
+    enum Result {
+        OK                  = 0;
+        DENIED              = 1;
+        NOT_FOUND           = 2;
+        UNKNOWN_DEVICE      = 3;
+        // A named recipient is not a member of the chat. Nothing was
+        // stored; the sender re-reads the roster.
+        INVALID_RECIPIENT   = 4;
+        // The devices named for at least one recipient do not match the
+        // recipient's current devices, or a named device's registration ID
+        // has changed. Nothing was stored; see mismatched_devices.
+        MISMATCHED_DEVICES  = 5;
+        // The chat's speaker rules do not admit the sender.
+        RULES_NOT_SATISFIED = 6;
+        // client_ts has sub-millisecond precision or is absurdly far in the
+        // future. Nothing was stored; the client fixes the value and
+        // retries under a new client_ts.
+        INVALID_TIMESTAMP   = 7;
+        // The sender has sent too much to a recipient, or a recipient has
+        // taken in too much, too recently. Nothing was stored; see
+        // retry_after.
+        RATE_LIMITED        = 8;
+    }
+
+    // One entry per recipient user whose device set disagreed with the
+    // call. Set only when result == MISMATCHED_DEVICES. Capped loosely, as
+    // every response field is (see GetPreKeyBundlesResponse.bundles).
+    repeated DeviceMismatch mismatched_devices = 2 [(validate.rules).repeated = {
+        max_items: 1000
+    }];
+
+    // When the server accepted the send: the server_ts of every envelope it
+    // stored. Set only when result == OK.
+    google.protobuf.Timestamp server_ts = 3;
+
+    // How long the sender waits before any send to the same recipients.
+    // Set only when result == RATE_LIMITED.
+    google.protobuf.Duration retry_after = 4;
+}
+
+message GetEnvelopesRequest {
+    // The device whose mailbox to read. Must belong to the caller.
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    // Return envelopes with sequence greater than this. 0 reads from the
+    // start of the mailbox.
+    uint64 after_sequence = 2;
+
+    // QueryOptions controls page_size, capped at 100. A page may hold
+    // fewer envelopes than that whatever page_size says: the server also
+    // bounds a page by content bytes, so that a run of large envelopes
+    // (Envelope.content is up to 96 KiB) never makes a page the transport
+    // cannot carry, and answers has_more for what it held back. A client
+    // therefore pages until has_more is false and never reads a short page
+    // as the end. Ordering is fixed to ascending sequence and is not
+    // client-selectable; paging_token is not used, after_sequence is the
+    // cursor.
+    common.v1.QueryOptions query_options = 3;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetEnvelopesResponse {
+    Result result = 1;
+    enum Result {
+        OK             = 0;
+        DENIED         = 1;
+        UNKNOWN_DEVICE = 2;
+    }
+
+    // Unacknowledged envelopes after the cursor, ascending by sequence.
+    // Omitted (not an empty batch) when there are none.
+    EnvelopeBatch envelopes = 2;
+
+    // Whether unacknowledged envelopes remain beyond this page. When true,
+    // the client calls again with after_sequence set to the last sequence
+    // returned. It may be true once more than there are envelopes: a page
+    // cut short by bytes at the mailbox's last envelope is followed by an
+    // empty page, which is the end.
+    bool has_more = 3;
+}
+
+message AckEnvelopesRequest {
+    // The device whose mailbox to acknowledge in. Must belong to the caller.
+    DeviceId device_id = 1 [(validate.rules).message.required = true];
+
+    // Larger than a GetEnvelopes page so several drained pages can be
+    // acknowledged in one call.
+    repeated EnvelopeId envelope_ids = 2 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 1000
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message AckEnvelopesResponse {
+    Result result = 1;
+    enum Result {
+        OK             = 0;
+        DENIED         = 1;
+        UNKNOWN_DEVICE = 2;
+    }
+}
