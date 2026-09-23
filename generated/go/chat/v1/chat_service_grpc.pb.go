@@ -36,6 +36,12 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatClient interface {
 	// GetChat returns the metadata for a specific chat
+	//
+	// Auth is optional. An unauthenticated caller gets the chat's public view:
+	// the same group record a registered non-member previewing it receives,
+	// with view_mode REDACTED and none of the per-viewer fields (is_hidden,
+	// viewer_state). An unauthenticated read under any other view_mode, or of
+	// a DM, is DENIED.
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*GetChatResponse, error)
 	// GetDmChatFeed gets the set of DM chats for an owner account using
 	// a paged API, ordered by last activity with the most recent first.
@@ -264,6 +270,12 @@ func (c *chatClient) UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts
 // for forward compatibility.
 type ChatServer interface {
 	// GetChat returns the metadata for a specific chat
+	//
+	// Auth is optional. An unauthenticated caller gets the chat's public view:
+	// the same group record a registered non-member previewing it receives,
+	// with view_mode REDACTED and none of the per-viewer fields (is_hidden,
+	// viewer_state). An unauthenticated read under any other view_mode, or of
+	// a DM, is DENIED.
 	GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error)
 	// GetDmChatFeed gets the set of DM chats for an owner account using
 	// a paged API, ordered by last activity with the most recent first.
