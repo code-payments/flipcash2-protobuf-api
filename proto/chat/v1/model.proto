@@ -78,6 +78,9 @@ message Metadata {
     // Per-viewer chat state, including what the viewer may do in the chat.
     // Absent when the chat holds nothing about them; always set for a member.
     ViewerState viewer_state = 12;
+
+    // The user that created this chat. Set only for group chats.
+    common.v1.UserId creator = 13;
 }
 
 // Rules define the requirements a user must satisfy to participate in a chat.
