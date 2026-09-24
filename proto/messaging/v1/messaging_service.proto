@@ -237,6 +237,7 @@ message SendMessageRequest {
     //  - TextContent
     //  - ReplyContent
     //  - MediaContent
+    //  - EncryptedContent, in DMs only
     repeated Content content = 2 [(validate.rules).repeated = {
         min_items: 1
         max_items: 1
@@ -253,8 +254,10 @@ message SendMessageRequest {
 message SendMessageResponse {
     Result result = 1;
     enum Result {
-        OK     = 0;
-        DENIED = 1;
+        OK                     = 0;
+        DENIED                 = 1;
+        // The content is EncryptedContent and the chat is not a DM.
+        ENCRYPTION_NOT_ALLOWED = 2;
     }
 
     // The chat message that was sent if the RPC was succesful, which includes
@@ -271,6 +274,7 @@ message EditMessageRequest {
     //  - TextContent
     //  - ReplyContent
     //  - MediaContent
+    //  - EncryptedContent, in DMs only
     repeated Content content = 3 [(validate.rules).repeated = {
         min_items: 1
         max_items: 1
@@ -290,14 +294,16 @@ message EditMessageRequest {
 message EditMessageResponse {
     Result result = 1;
     enum Result {
-        OK                = 0;
-        DENIED            = 1;
-        MESSAGE_NOT_FOUND = 2;
-        CANNOT_EDIT       = 3;
+        OK                     = 0;
+        DENIED                 = 1;
+        MESSAGE_NOT_FOUND      = 2;
+        CANNOT_EDIT            = 3;
         // The message changed since expected_event_sequence (a concurrent
         // edit/delete won). The edit was not applied; `message` carries the
         // current state for the client to reconcile against and retry.
-        CONFLICT          = 4;
+        CONFLICT               = 4;
+        // The content is EncryptedContent and the chat is not a DM.
+        ENCRYPTION_NOT_ALLOWED = 5;
     }
 
     // On OK, the updated materialized message (advanced event_sequence,

@@ -370,6 +370,12 @@ export class Content extends Message$1<Content> {
      */
     value: DeletedContent;
     case: "deleted";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.EncryptedContent encrypted = 7;
+     */
+    value: EncryptedContent;
+    case: "encrypted";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -386,6 +392,7 @@ export class Content extends Message$1<Content> {
     { no: 4, name: "media", kind: "message", T: MediaContent, oneof: "type" },
     { no: 5, name: "system", kind: "message", T: SystemContent, oneof: "type" },
     { no: 6, name: "deleted", kind: "message", T: DeletedContent, oneof: "type" },
+    { no: 7, name: "encrypted", kind: "message", T: EncryptedContent, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -725,6 +732,153 @@ export class DeletedContent extends Message$1<DeletedContent> {
     return proto3.util.equals(DeletedContent, a, b);
   }
 }
+
+/**
+ * End-to-end encrypted content, sent only in DMs (chat.v1.ChatType
+ * CONTACT_DM or TIP_DM). SendMessage and EditMessage reject it in a group
+ * chat. The server stores and relays the ciphertext as-is and cannot read it,
+ * so it cannot moderate it, render a push preview from it, or produce a
+ * placeholder for it.
+ *
+ * The plaintext is a serialized Content message. The allowed plaintext types
+ * are:
+ *  - TextContent
+ *  - ReplyContent, whose own content is a TextContent
+ * The server cannot enforce this. A client that decrypts any other type, or
+ * cannot decrypt the payload at all, renders the message as unsupported. A
+ * decrypted Content never itself holds EncryptedContent.
+ *
+ * Encryption is between the Ed25519 public keys the two DM members registered
+ * their accounts with, which each member already knows. Neither key is carried
+ * in the message: the sender is Message.sender_id and the recipient is the
+ * other member. For scheme X25519_XCHACHA20POLY1305:
+ *
+ *  1. Convert keys to X25519. The sender converts its Ed25519 private key to
+ *     an X25519 private key, and the recipient's Ed25519 public key to an
+ *     X25519 public key, using the standard birational map (libsodium's
+ *     crypto_sign_ed25519_sk_to_curve25519 and
+ *     crypto_sign_ed25519_pk_to_curve25519). The recipient does the same with
+ *     the roles reversed. Reject a public key that is not a valid point, or
+ *     that converts to a low-order X25519 point.
+ *
+ *  2. Compute the shared secret: ss = X25519(own_x25519_priv, peer_x25519_pub).
+ *     Abort if ss is all zeros.
+ *
+ *  3. Derive the chat key with HKDF-SHA256 (RFC 5869):
+ *       salt = min(pk_a, pk_b) || max(pk_a, pk_b)
+ *       ikm  = ss
+ *       info = "flipcash-dm-e2ee-v1" || chat_id
+ *       L    = 32
+ *     pk_a and pk_b are the two members' 32-byte Ed25519 public keys, ordered
+ *     bytewise so that both members derive the same key, and chat_id is the
+ *     raw bytes of common.v1.ChatId.value. The key depends only on the two
+ *     keys and the chat, so it can be derived once per chat and cached.
+ *
+ *  4. Encrypt with XChaCha20-Poly1305 (the IETF construction in libsodium's
+ *     crypto_aead_xchacha20poly1305_ietf_encrypt):
+ *       key       = the chat key from step 3
+ *       nonce     = 24 fresh random bytes, set in `nonce` below
+ *       plaintext = the serialized Content
+ *       aad       = "flipcash-dm-e2ee-v1" || chat_id
+ *                   || sender_pk || recipient_pk
+ *     The ciphertext, with its 16-byte Poly1305 tag appended, is set in
+ *     `ciphertext` below. Both directions use the same key, which is safe
+ *     because the nonce is random and 24 bytes long. Never reuse a nonce, and
+ *     do not substitute a 12-byte-nonce AEAD.
+ *
+ * sender_pk and recipient_pk are the 32-byte Ed25519 public keys of
+ * Message.sender_id and of the other member. The recipient decrypts with the
+ * key from step 3 and the same aad. Both keys are bound into the aad in
+ * sender-then-recipient order, so a ciphertext cannot be replayed as if the
+ * other member sent it, or moved to another chat.
+ *
+ * Because both members derive the same key, the sender can also decrypt its
+ * own messages, including on its other devices. Nothing binds the ciphertext
+ * to its MessageId, so a ciphertext re-posted in the same chat by the server
+ * decrypts as a valid message there.
+ *
+ * This scheme has no forward secrecy: anyone who later obtains either
+ * member's private key can decrypt every message in the chat, past and
+ * future. A scheme with ephemeral keys or a ratchet can be added as a new
+ * Scheme value without changing this message.
+ *
+ * @generated from message flipcash.messaging.v1.EncryptedContent
+ */
+export class EncryptedContent extends Message$1<EncryptedContent> {
+  /**
+   * The encryption scheme used, which determines how every other field is
+   * interpreted. Clients render an unrecognized scheme as unsupported.
+   *
+   * @generated from field: flipcash.messaging.v1.EncryptedContent.Scheme scheme = 1;
+   */
+  scheme = EncryptedContent_Scheme.UNKNOWN;
+
+  /**
+   * The random XChaCha20-Poly1305 nonce, unique per encryption.
+   *
+   * @generated from field: bytes nonce = 2;
+   */
+  nonce = new Uint8Array(0);
+
+  /**
+   * The encrypted, serialized Content with the 16-byte Poly1305 tag
+   * appended. The upper bound fits a maximum-length TextContent (4096
+   * characters of up to 4 bytes each) wrapped in a ReplyContent, plus the
+   * tag.
+   *
+   * @generated from field: bytes ciphertext = 3;
+   */
+  ciphertext = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<EncryptedContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.EncryptedContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "scheme", kind: "enum", T: proto3.getEnumType(EncryptedContent_Scheme) },
+    { no: 2, name: "nonce", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: "ciphertext", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EncryptedContent {
+    return new EncryptedContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EncryptedContent {
+    return new EncryptedContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EncryptedContent {
+    return new EncryptedContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EncryptedContent | PlainMessage<EncryptedContent> | undefined, b: EncryptedContent | PlainMessage<EncryptedContent> | undefined): boolean {
+    return proto3.util.equals(EncryptedContent, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.EncryptedContent.Scheme
+ */
+export enum EncryptedContent_Scheme {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: X25519_XCHACHA20POLY1305 = 1;
+   */
+  X25519_XCHACHA20POLY1305 = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(EncryptedContent_Scheme)
+proto3.util.setEnumType(EncryptedContent_Scheme, "flipcash.messaging.v1.EncryptedContent.Scheme", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "X25519_XCHACHA20POLY1305" },
+]);
 
 /**
  * Emoji identifies an emoji used in a reaction. The value is a unicode emoji
