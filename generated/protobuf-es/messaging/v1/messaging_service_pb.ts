@@ -473,6 +473,7 @@ export class SendMessageRequest extends Message<SendMessageRequest> {
    *  - TextContent
    *  - ReplyContent
    *  - MediaContent
+   *  - EncryptedContent, in DMs only
    *
    * @generated from field: repeated flipcash.messaging.v1.Content content = 2;
    */
@@ -582,11 +583,19 @@ export enum SendMessageResponse_Result {
    * @generated from enum value: DENIED = 1;
    */
   DENIED = 1,
+
+  /**
+   * The content is EncryptedContent and the chat is not a DM.
+   *
+   * @generated from enum value: ENCRYPTION_NOT_ALLOWED = 2;
+   */
+  ENCRYPTION_NOT_ALLOWED = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SendMessageResponse_Result)
 proto3.util.setEnumType(SendMessageResponse_Result, "flipcash.messaging.v1.SendMessageResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
+  { no: 2, name: "ENCRYPTION_NOT_ALLOWED" },
 ]);
 
 /**
@@ -608,6 +617,7 @@ export class EditMessageRequest extends Message<EditMessageRequest> {
    *  - TextContent
    *  - ReplyContent
    *  - MediaContent
+   *  - EncryptedContent, in DMs only
    *
    * @generated from field: repeated flipcash.messaging.v1.Content content = 3;
    */
@@ -740,6 +750,13 @@ export enum EditMessageResponse_Result {
    * @generated from enum value: CONFLICT = 4;
    */
   CONFLICT = 4,
+
+  /**
+   * The content is EncryptedContent and the chat is not a DM.
+   *
+   * @generated from enum value: ENCRYPTION_NOT_ALLOWED = 5;
+   */
+  ENCRYPTION_NOT_ALLOWED = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EditMessageResponse_Result)
 proto3.util.setEnumType(EditMessageResponse_Result, "flipcash.messaging.v1.EditMessageResponse.Result", [
@@ -748,6 +765,7 @@ proto3.util.setEnumType(EditMessageResponse_Result, "flipcash.messaging.v1.EditM
   { no: 2, name: "MESSAGE_NOT_FOUND" },
   { no: 3, name: "CANNOT_EDIT" },
   { no: 4, name: "CONFLICT" },
+  { no: 5, name: "ENCRYPTION_NOT_ALLOWED" },
 ]);
 
 /**
