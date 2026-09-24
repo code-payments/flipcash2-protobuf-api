@@ -67,12 +67,12 @@ message Navigation {
 }
 // Additional metadata provided for chat pushes
 message ChatMetadata {
-    // The user ID that sent a chat message
+    // The user ID that sent a chat message. Set whether the push carries the
+    // full message or only its ID, so a push without the message can still be
+    // attributed to its sender.
     //
     // Note: This will not be set for system messages OR for notifications that
     //       don't relate to a user
-    //
-    // Deprecated: Infer from message instead
     common.v1.UserId sending_user_id = 1;
 
     // The type of chat
@@ -80,8 +80,22 @@ message ChatMetadata {
         not_in: [0] // UNKNOWN
     }];
 
-    // The chat message that was sent, if the push is for a message
-    messaging.v1.Message message = 3;
+    // The chat message that was sent, if the push is for a message. Neither is
+    // set for a chat push that isn't for a message. The push's title and body
+    // are set either way, so the notification can be presented without the
+    // message.
+    oneof message_ref {
+        // The full message, when it fits in the push.
+        messaging.v1.Message message = 3;
+
+        // Only the message's ID, when the full message would put the push over
+        // the push provider's payload size limit (4KB for both FCM and APNs),
+        // which a long message can reach. A client that needs the message
+        // (e.g. to decrypt EncryptedContent, or to store the message for a
+        // muted chat) fetches it with Messaging.GetMessage, using this ID and
+        // the chat ID in Payload.navigation.
+        messaging.v1.MessageId message_id = 5;
+    }
 
     // Whether the recipient had this chat muted when the push was sent.
     // The push is still delivered so the client can store the message,
