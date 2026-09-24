@@ -749,6 +749,47 @@ func (m *BlobMetadata) validate(all bool) error {
 			}
 		}
 
+	case *BlobMetadata_Encrypted:
+		if v == nil {
+			err := BlobMetadataValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetEncrypted()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BlobMetadataValidationError{
+						field:  "Encrypted",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BlobMetadataValidationError{
+						field:  "Encrypted",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetEncrypted()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BlobMetadataValidationError{
+					field:  "Encrypted",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -829,6 +870,108 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BlobMetadataValidationError{}
+
+// Validate checks the field values on EncryptedBlobMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EncryptedBlobMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EncryptedBlobMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EncryptedBlobMetadataMultiError, or nil if none found.
+func (m *EncryptedBlobMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EncryptedBlobMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return EncryptedBlobMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// EncryptedBlobMetadataMultiError is an error wrapping multiple validation
+// errors returned by EncryptedBlobMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type EncryptedBlobMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EncryptedBlobMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EncryptedBlobMetadataMultiError) AllErrors() []error { return m }
+
+// EncryptedBlobMetadataValidationError is the validation error returned by
+// EncryptedBlobMetadata.Validate if the designated constraints aren't met.
+type EncryptedBlobMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EncryptedBlobMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EncryptedBlobMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EncryptedBlobMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EncryptedBlobMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EncryptedBlobMetadataValidationError) ErrorName() string {
+	return "EncryptedBlobMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EncryptedBlobMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEncryptedBlobMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EncryptedBlobMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EncryptedBlobMetadataValidationError{}
 
 // Validate checks the field values on ImageMetadata with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -1407,6 +1550,35 @@ func (m *UploadPolicy) validate(all bool) error {
 
 	}
 
+	if all {
+		switch v := interface{}(m.GetEncrypted()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UploadPolicyValidationError{
+					field:  "Encrypted",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UploadPolicyValidationError{
+					field:  "Encrypted",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEncrypted()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UploadPolicyValidationError{
+				field:  "Encrypted",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return UploadPolicyMultiError(errors)
 	}
@@ -1483,6 +1655,148 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UploadPolicyValidationError{}
+
+// Validate checks the field values on EncryptedConstraints with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EncryptedConstraints) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EncryptedConstraints with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EncryptedConstraintsMultiError, or nil if none found.
+func (m *EncryptedConstraints) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EncryptedConstraints) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMaxSizeBytes() < 1 {
+		err := EncryptedConstraintsValidationError{
+			field:  "MaxSizeBytes",
+			reason: "value must be greater than or equal to 1",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetImage()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EncryptedConstraintsValidationError{
+					field:  "Image",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EncryptedConstraintsValidationError{
+					field:  "Image",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetImage()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EncryptedConstraintsValidationError{
+				field:  "Image",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EncryptedConstraintsMultiError(errors)
+	}
+
+	return nil
+}
+
+// EncryptedConstraintsMultiError is an error wrapping multiple validation
+// errors returned by EncryptedConstraints.ValidateAll() if the designated
+// constraints aren't met.
+type EncryptedConstraintsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EncryptedConstraintsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EncryptedConstraintsMultiError) AllErrors() []error { return m }
+
+// EncryptedConstraintsValidationError is the validation error returned by
+// EncryptedConstraints.Validate if the designated constraints aren't met.
+type EncryptedConstraintsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EncryptedConstraintsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EncryptedConstraintsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EncryptedConstraintsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EncryptedConstraintsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EncryptedConstraintsValidationError) ErrorName() string {
+	return "EncryptedConstraintsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EncryptedConstraintsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEncryptedConstraints.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EncryptedConstraintsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EncryptedConstraintsValidationError{}
 
 // Validate checks the field values on PolicyVersion with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

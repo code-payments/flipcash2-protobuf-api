@@ -594,6 +594,8 @@ export class MediaContent extends Message$1<MediaContent> {
    *
    * On SendMessage the client supplies exactly one ORIGINAL rendition per
    * item; the server fills its metadata and appends the derived renditions.
+   * Inside EncryptedContent, the sender sets the ORIGINAL's metadata itself
+   * and there are no derived renditions; see EncryptedContent.
    *
    * @generated from field: repeated flipcash.blob.v1.Media items = 1;
    */
@@ -743,7 +745,8 @@ export class DeletedContent extends Message$1<DeletedContent> {
  * The plaintext is a serialized Content message. The allowed plaintext types
  * are:
  *  - TextContent
- *  - ReplyContent, whose own content is a TextContent
+ *  - MediaContent, as described under "Media" below
+ *  - ReplyContent, whose own content is a TextContent or a MediaContent
  * The server cannot enforce this. A client that decrypts any other type, or
  * cannot decrypt the payload at all, renders the message as unsupported. A
  * decrypted Content never itself holds EncryptedContent.
@@ -802,12 +805,60 @@ export class DeletedContent extends Message$1<DeletedContent> {
  * future. A scheme with ephemeral keys or a ratchet can be added as a new
  * Scheme value without changing this message.
  *
+ * Media
+ *
+ * A MediaContent plaintext references blobs the sender uploaded for this chat
+ * with blob.v1.InitiateExternalUploadRequest.end_to_end_encrypted_for. The
+ * scheme also determines the format of every blob the plaintext references.
+ * Clients never take the format from the blob's server-side metadata, which
+ * the server could alter. For scheme X25519_XCHACHA20POLY1305, each blob is
+ * encrypted with the chat key from step 3, using its own aad so that a blob
+ * can never be passed off as a message ciphertext, or the reverse:
+ *   nonce = 24 fresh random bytes
+ *   aad   = "flipcash-dm-e2ee-blob-v1" || chat_id
+ *           || sender_pk || recipient_pk || blob_id
+ *   blob  = nonce || XChaCha20-Poly1305(chat key, nonce, image bytes, aad)
+ * blob_id is the raw bytes of blob.v1.BlobId.value, which is known from
+ * InitiateExternalUpload before the bytes are uploaded. Binding it stops the
+ * server from serving one blob's bytes in place of another's. sender_pk is the
+ * key of the member who uploaded the blob, which is always Message.sender_id.
+ *
+ * The server never sees the image, so it cannot derive renditions or
+ * metadata, strip privacy metadata, or moderate. Before encrypting, the sender
+ * downscales the image, strips privacy metadata such as EXIF and location,
+ * and computes its dimensions and blurhash. It waits for the blob to be READY
+ * before sending the message.
+ *
+ * Each Media item carries exactly one ORIGINAL rendition. Its blob_id is set,
+ * and its BlobMetadata is set by the sender to describe the plaintext image:
+ * mime_type, the plaintext size_bytes, and ImageMetadata. download_url is left
+ * unset. Only image MIME types are allowed; a recipient renders any other as
+ * unsupported.
+ *
+ * Decrypting proves the sender wrote this metadata, but nothing checks it
+ * against the image. A recipient validates it with the blob.v1.BlobMetadata
+ * rules after decrypting, renders the message as unsupported if it is invalid,
+ * and treats the decoded image as authoritative: it uses the image's actual
+ * dimensions, and renders an image that fails to decode or whose decrypted
+ * length differs from size_bytes as unsupported.
+ *
+ * To display the image, the recipient:
+ *  1. Calls blob.v1.GetBlobs with AccessContext.chat to mint a download_url.
+ *     The metadata GetBlobs returns describes the ciphertext, so it is used
+ *     only for the URL. A blob still PROCESSING is retried later.
+ *  2. Downloads the blob, splits off the 24-byte nonce, and decrypts it with
+ *     the chat key and the aad above.
+ *  3. Renders the image using the metadata from the plaintext, showing the
+ *     blurhash until the download completes.
+ * A blob that is missing or fails to decrypt is rendered as unsupported.
+ *
  * @generated from message flipcash.messaging.v1.EncryptedContent
  */
 export class EncryptedContent extends Message$1<EncryptedContent> {
   /**
-   * The encryption scheme used, which determines how every other field is
-   * interpreted. Clients render an unrecognized scheme as unsupported.
+   * The encryption scheme used, which determines how every other field, and
+   * every blob the plaintext references, is interpreted. Clients render an
+   * unrecognized scheme as unsupported.
    *
    * @generated from field: flipcash.messaging.v1.EncryptedContent.Scheme scheme = 1;
    */
@@ -822,9 +873,9 @@ export class EncryptedContent extends Message$1<EncryptedContent> {
 
   /**
    * The encrypted, serialized Content with the 16-byte Poly1305 tag
-   * appended. The upper bound fits a maximum-length TextContent (4096
-   * characters of up to 4 bytes each) wrapped in a ReplyContent, plus the
-   * tag.
+   * appended. The upper bound fits a MediaContent with a maximum-length
+   * caption (4096 characters of up to 4 bytes each) wrapped in a
+   * ReplyContent, plus the tag.
    *
    * @generated from field: bytes ciphertext = 3;
    */

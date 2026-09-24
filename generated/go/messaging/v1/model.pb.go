@@ -969,6 +969,8 @@ type MediaContent struct {
 	//
 	// On SendMessage the client supplies exactly one ORIGINAL rendition per
 	// item; the server fills its metadata and appends the derived renditions.
+	// Inside EncryptedContent, the sender sets the ORIGINAL's metadata itself
+	// and there are no derived renditions; see EncryptedContent.
 	Items []*v11.Media `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	// Optional caption rendered alongside the media
 	Caption *TextContent `protobuf:"bytes,2,opt,name=caption,proto3" json:"caption,omitempty"`
@@ -1138,7 +1140,8 @@ func (x *DeletedContent) GetDeletedBy() *v1.UserId {
 // The plaintext is a serialized Content message. The allowed plaintext types
 // are:
 //   - TextContent
-//   - ReplyContent, whose own content is a TextContent
+//   - MediaContent, as described under "Media" below
+//   - ReplyContent, whose own content is a TextContent or a MediaContent
 //
 // The server cannot enforce this. A client that decrypts any other type, or
 // cannot decrypt the payload at all, renders the message as unsupported. A
@@ -1197,20 +1200,71 @@ func (x *DeletedContent) GetDeletedBy() *v1.UserId {
 // member's private key can decrypt every message in the chat, past and
 // future. A scheme with ephemeral keys or a ratchet can be added as a new
 // Scheme value without changing this message.
+//
+// # Media
+//
+// A MediaContent plaintext references blobs the sender uploaded for this chat
+// with blob.v1.InitiateExternalUploadRequest.end_to_end_encrypted_for. The
+// scheme also determines the format of every blob the plaintext references.
+// Clients never take the format from the blob's server-side metadata, which
+// the server could alter. For scheme X25519_XCHACHA20POLY1305, each blob is
+// encrypted with the chat key from step 3, using its own aad so that a blob
+// can never be passed off as a message ciphertext, or the reverse:
+//
+//	nonce = 24 fresh random bytes
+//	aad   = "flipcash-dm-e2ee-blob-v1" || chat_id
+//	        || sender_pk || recipient_pk || blob_id
+//	blob  = nonce || XChaCha20-Poly1305(chat key, nonce, image bytes, aad)
+//
+// blob_id is the raw bytes of blob.v1.BlobId.value, which is known from
+// InitiateExternalUpload before the bytes are uploaded. Binding it stops the
+// server from serving one blob's bytes in place of another's. sender_pk is the
+// key of the member who uploaded the blob, which is always Message.sender_id.
+//
+// The server never sees the image, so it cannot derive renditions or
+// metadata, strip privacy metadata, or moderate. Before encrypting, the sender
+// downscales the image, strips privacy metadata such as EXIF and location,
+// and computes its dimensions and blurhash. It waits for the blob to be READY
+// before sending the message.
+//
+// Each Media item carries exactly one ORIGINAL rendition. Its blob_id is set,
+// and its BlobMetadata is set by the sender to describe the plaintext image:
+// mime_type, the plaintext size_bytes, and ImageMetadata. download_url is left
+// unset. Only image MIME types are allowed; a recipient renders any other as
+// unsupported.
+//
+// Decrypting proves the sender wrote this metadata, but nothing checks it
+// against the image. A recipient validates it with the blob.v1.BlobMetadata
+// rules after decrypting, renders the message as unsupported if it is invalid,
+// and treats the decoded image as authoritative: it uses the image's actual
+// dimensions, and renders an image that fails to decode or whose decrypted
+// length differs from size_bytes as unsupported.
+//
+// To display the image, the recipient:
+//  1. Calls blob.v1.GetBlobs with AccessContext.chat to mint a download_url.
+//     The metadata GetBlobs returns describes the ciphertext, so it is used
+//     only for the URL. A blob still PROCESSING is retried later.
+//  2. Downloads the blob, splits off the 24-byte nonce, and decrypts it with
+//     the chat key and the aad above.
+//  3. Renders the image using the metadata from the plaintext, showing the
+//     blurhash until the download completes.
+//
+// A blob that is missing or fails to decrypt is rendered as unsupported.
 type EncryptedContent struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The encryption scheme used, which determines how every other field is
-	// interpreted. Clients render an unrecognized scheme as unsupported.
+	// The encryption scheme used, which determines how every other field, and
+	// every blob the plaintext references, is interpreted. Clients render an
+	// unrecognized scheme as unsupported.
 	Scheme EncryptedContent_Scheme `protobuf:"varint,1,opt,name=scheme,proto3,enum=flipcash.messaging.v1.EncryptedContent_Scheme" json:"scheme,omitempty"`
 	// The random XChaCha20-Poly1305 nonce, unique per encryption.
 	Nonce []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	// The encrypted, serialized Content with the 16-byte Poly1305 tag
-	// appended. The upper bound fits a maximum-length TextContent (4096
-	// characters of up to 4 bytes each) wrapped in a ReplyContent, plus the
-	// tag.
+	// appended. The upper bound fits a MediaContent with a maximum-length
+	// caption (4096 characters of up to 4 bytes each) wrapped in a
+	// ReplyContent, plus the tag.
 	Ciphertext []byte `protobuf:"bytes,3,opt,name=ciphertext,proto3" json:"ciphertext,omitempty"`
 }
 
@@ -2431,7 +2485,7 @@ var file_messaging_v1_model_proto_rawDesc = []byte{
 	0x42, 0x09, 0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x18, 0x18, 0x18, 0x52, 0x05, 0x6e, 0x6f, 0x6e,
 	0x63, 0x65, 0x12, 0x2b, 0x0a, 0x0a, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74,
 	0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x0b, 0xfa, 0x42, 0x08, 0x7a, 0x06, 0x10, 0x11, 0x18,
-	0x80, 0x82, 0x01, 0x52, 0x0a, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x22,
+	0x80, 0x88, 0x01, 0x52, 0x0a, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x22,
 	0x33, 0x0a, 0x06, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b,
 	0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x1c, 0x0a, 0x18, 0x58, 0x32, 0x35, 0x35, 0x31, 0x39,
 	0x5f, 0x58, 0x43, 0x48, 0x41, 0x43, 0x48, 0x41, 0x32, 0x30, 0x50, 0x4f, 0x4c, 0x59, 0x31, 0x33,

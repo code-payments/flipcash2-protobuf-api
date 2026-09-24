@@ -13,7 +13,10 @@ import "validate/validate.proto";
 // BlobStorage manages direct-to-storage uploads and authorized, time-limited reads
 // of the bytes behind MediaItem renditions (and other blobs). Clients upload bytes
 // straight to object storage via a presigned target — the server never proxies
-// them — and all blob metadata is server-derived from the stored bytes.
+// them — and all blob metadata is server-derived from the stored bytes. The
+// exception is end-to-end encrypted blobs (see
+// InitiateExternalUploadRequest.end_to_end_encrypted_for), whose bytes the
+// server cannot read.
 service BlobStorage {
     // GetUploadPolicy returns the current upload constraints — which MIME types
     // are accepted and the per-type ceilings the server enforces — so the client
@@ -24,7 +27,8 @@ service BlobStorage {
 
     // InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
     // target the client uploads the bytes to directly. Clients only ever upload
-    // ORIGINALs; the server derives any additional renditions itself.
+    // ORIGINALs; the server derives any additional renditions itself, except
+    // for end-to-end encrypted blobs, which have none.
     rpc InitiateExternalUpload(InitiateExternalUploadRequest) returns (InitiateExternalUploadResponse);
 
     // CompleteExternalUpload is an ADVISORY signal that the client finished uploading,
@@ -73,6 +77,28 @@ message InitiateExternalUploadRequest {
     // Declared byte size. The server bakes it into the policy's
     // content-length-range so storage rejects an upload that exceeds it.
     uint64 size_bytes = 3 [(validate.rules).uint64.gte = 1];
+
+    // Set when the bytes are end-to-end encrypted, naming the surface they are
+    // encrypted for. Unset for an ordinary upload. mime_type must be
+    // "application/octet-stream", or the upload is denied with
+    // UNSUPPORTED_TYPE. size_bytes is the size of the whole encrypted blob and
+    // is checked against UploadPolicy.encrypted.
+    //
+    // The server cannot read the bytes, so it checks only their size. It
+    // derives no metadata or renditions, does not moderate, and does not check
+    // for privacy metadata. The blob can be referenced only from the surface
+    // named here, and is rejected anywhere else (unencrypted MediaContent,
+    // profile or chat pictures).
+    oneof end_to_end_encrypted_for {
+        // The bytes are encrypted for this DM, as described in
+        // messaging.v1.EncryptedContent: the 24-byte nonce followed by the
+        // ciphertext and its 16-byte tag. The caller must be a member of the
+        // chat and the chat must be a DM, or the upload is DENIED. Once READY,
+        // the blob is granted to the chat, so the other member can read it
+        // through AccessContext.chat, and it can be referenced only from
+        // EncryptedContent in that chat.
+        common.v1.ChatId chat = 4;
+    }
 }
 
 message InitiateExternalUploadResponse {

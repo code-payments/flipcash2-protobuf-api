@@ -32,7 +32,10 @@ const (
 // BlobStorage manages direct-to-storage uploads and authorized, time-limited reads
 // of the bytes behind MediaItem renditions (and other blobs). Clients upload bytes
 // straight to object storage via a presigned target — the server never proxies
-// them — and all blob metadata is server-derived from the stored bytes.
+// them — and all blob metadata is server-derived from the stored bytes. The
+// exception is end-to-end encrypted blobs (see
+// InitiateExternalUploadRequest.end_to_end_encrypted_for), whose bytes the
+// server cannot read.
 type BlobStorageClient interface {
 	// GetUploadPolicy returns the current upload constraints — which MIME types
 	// are accepted and the per-type ceilings the server enforces — so the client
@@ -42,7 +45,8 @@ type BlobStorageClient interface {
 	GetUploadPolicy(ctx context.Context, in *GetUploadPolicyRequest, opts ...grpc.CallOption) (*GetUploadPolicyResponse, error)
 	// InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
 	// target the client uploads the bytes to directly. Clients only ever upload
-	// ORIGINALs; the server derives any additional renditions itself.
+	// ORIGINALs; the server derives any additional renditions itself, except
+	// for end-to-end encrypted blobs, which have none.
 	InitiateExternalUpload(ctx context.Context, in *InitiateExternalUploadRequest, opts ...grpc.CallOption) (*InitiateExternalUploadResponse, error)
 	// CompleteExternalUpload is an ADVISORY signal that the client finished uploading,
 	// letting the server finalize (validate, derive metadata, transcode
@@ -114,7 +118,10 @@ func (c *blobStorageClient) GetBlobs(ctx context.Context, in *GetBlobsRequest, o
 // BlobStorage manages direct-to-storage uploads and authorized, time-limited reads
 // of the bytes behind MediaItem renditions (and other blobs). Clients upload bytes
 // straight to object storage via a presigned target — the server never proxies
-// them — and all blob metadata is server-derived from the stored bytes.
+// them — and all blob metadata is server-derived from the stored bytes. The
+// exception is end-to-end encrypted blobs (see
+// InitiateExternalUploadRequest.end_to_end_encrypted_for), whose bytes the
+// server cannot read.
 type BlobStorageServer interface {
 	// GetUploadPolicy returns the current upload constraints — which MIME types
 	// are accepted and the per-type ceilings the server enforces — so the client
@@ -124,7 +131,8 @@ type BlobStorageServer interface {
 	GetUploadPolicy(context.Context, *GetUploadPolicyRequest) (*GetUploadPolicyResponse, error)
 	// InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
 	// target the client uploads the bytes to directly. Clients only ever upload
-	// ORIGINALs; the server derives any additional renditions itself.
+	// ORIGINALs; the server derives any additional renditions itself, except
+	// for end-to-end encrypted blobs, which have none.
 	InitiateExternalUpload(context.Context, *InitiateExternalUploadRequest) (*InitiateExternalUploadResponse, error)
 	// CompleteExternalUpload is an ADVISORY signal that the client finished uploading,
 	// letting the server finalize (validate, derive metadata, transcode
