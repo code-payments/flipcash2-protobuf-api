@@ -146,6 +146,13 @@ export class Metadata extends Message<Metadata> {
    */
   viewerState?: ViewerState;
 
+  /**
+   * The user that created this chat. Set only for group chats.
+   *
+   * @generated from field: flipcash.common.v1.UserId creator = 13;
+   */
+  creator?: UserId;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -166,6 +173,7 @@ export class Metadata extends Message<Metadata> {
     { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
     { no: 11, name: "rules", kind: "message", T: Rules },
     { no: 12, name: "viewer_state", kind: "message", T: ViewerState },
+    { no: 13, name: "creator", kind: "message", T: UserId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {
