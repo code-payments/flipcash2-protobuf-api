@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Auth } from "../../common/v1/common_pb";
+import { Auth, ChatId } from "../../common/v1/common_pb";
 import { AccessContext, BlobBatch, BlobId, BlobIdBatch, BlobStatus, PolicyVersion, RejectionMetadata, UploadPolicy, UploadTarget } from "./model_pb";
 
 /**
@@ -137,6 +137,37 @@ export class InitiateExternalUploadRequest extends Message<InitiateExternalUploa
    */
   sizeBytes = protoInt64.zero;
 
+  /**
+   * Set when the bytes are end-to-end encrypted, naming the surface they are
+   * encrypted for. Unset for an ordinary upload. mime_type must be
+   * "application/octet-stream", or the upload is denied with
+   * UNSUPPORTED_TYPE. size_bytes is the size of the whole encrypted blob and
+   * is checked against UploadPolicy.encrypted.
+   *
+   * The server cannot read the bytes, so it checks only their size. It
+   * derives no metadata or renditions, does not moderate, and does not check
+   * for privacy metadata. The blob can be referenced only from the surface
+   * named here, and is rejected anywhere else (unencrypted MediaContent,
+   * profile or chat pictures).
+   *
+   * @generated from oneof flipcash.blob.v1.InitiateExternalUploadRequest.end_to_end_encrypted_for
+   */
+  endToEndEncryptedFor: {
+    /**
+     * The bytes are encrypted for this DM, as described in
+     * messaging.v1.EncryptedContent: the 24-byte nonce followed by the
+     * ciphertext and its 16-byte tag. The caller must be a member of the
+     * chat and the chat must be a DM, or the upload is DENIED. Once READY,
+     * the blob is granted to the chat, so the other member can read it
+     * through AccessContext.chat, and it can be referenced only from
+     * EncryptedContent in that chat.
+     *
+     * @generated from field: flipcash.common.v1.ChatId chat = 4;
+     */
+    value: ChatId;
+    case: "chat";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
   constructor(data?: PartialMessage<InitiateExternalUploadRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -148,6 +179,7 @@ export class InitiateExternalUploadRequest extends Message<InitiateExternalUploa
     { no: 1, name: "auth", kind: "message", T: Auth },
     { no: 2, name: "mime_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "chat", kind: "message", T: ChatId, oneof: "end_to_end_encrypted_for" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InitiateExternalUploadRequest {

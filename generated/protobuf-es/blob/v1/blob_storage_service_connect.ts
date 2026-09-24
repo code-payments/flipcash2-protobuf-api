@@ -10,7 +10,10 @@ import { MethodKind } from "@bufbuild/protobuf";
  * BlobStorage manages direct-to-storage uploads and authorized, time-limited reads
  * of the bytes behind MediaItem renditions (and other blobs). Clients upload bytes
  * straight to object storage via a presigned target — the server never proxies
- * them — and all blob metadata is server-derived from the stored bytes.
+ * them — and all blob metadata is server-derived from the stored bytes. The
+ * exception is end-to-end encrypted blobs (see
+ * InitiateExternalUploadRequest.end_to_end_encrypted_for), whose bytes the
+ * server cannot read.
  *
  * @generated from service flipcash.blob.v1.BlobStorage
  */
@@ -35,7 +38,8 @@ export const BlobStorage = {
     /**
      * InitiateExternalUpload reserves a BlobId and returns a short-lived presigned
      * target the client uploads the bytes to directly. Clients only ever upload
-     * ORIGINALs; the server derives any additional renditions itself.
+     * ORIGINALs; the server derives any additional renditions itself, except
+     * for end-to-end encrypted blobs, which have none.
      *
      * @generated from rpc flipcash.blob.v1.BlobStorage.InitiateExternalUpload
      */

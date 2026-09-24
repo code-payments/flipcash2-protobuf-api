@@ -394,6 +394,52 @@ func (m *InitiateExternalUploadRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	switch v := m.EndToEndEncryptedFor.(type) {
+	case *InitiateExternalUploadRequest_Chat:
+		if v == nil {
+			err := InitiateExternalUploadRequestValidationError{
+				field:  "EndToEndEncryptedFor",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetChat()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, InitiateExternalUploadRequestValidationError{
+						field:  "Chat",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, InitiateExternalUploadRequestValidationError{
+						field:  "Chat",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetChat()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return InitiateExternalUploadRequestValidationError{
+					field:  "Chat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
 	if len(errors) > 0 {
 		return InitiateExternalUploadRequestMultiError(errors)
 	}

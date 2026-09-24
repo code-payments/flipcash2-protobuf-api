@@ -34,7 +34,7 @@ export enum BlobStatus {
   PROCESSING = 2,
 
   /**
-   * available; metadata populated and moderation passed
+   * available; metadata populated and moderation passed (encrypted: size checked)
    *
    * @generated from enum value: BLOB_STATUS_READY = 3;
    */
@@ -59,7 +59,8 @@ proto3.util.setEnumType(BlobStatus, "flipcash.blob.v1.BlobStatus", [
 /**
  * Why a blob failed finalization, after its bytes were uploaded. Distinct from
  * the pre-upload denials in InitiateExternalUploadResponse.Result, which reject
- * before any bytes are stored.
+ * before any bytes are stored. An end-to-end encrypted blob is only ever
+ * rejected with TOO_LARGE or INTERNAL, since the server cannot read its bytes.
  *
  * @generated from enum flipcash.blob.v1.RejectionReason
  */
@@ -312,9 +313,11 @@ export class BlobBatch extends Message<BlobBatch> {
 }
 
 /**
- * Server-authoritative metadata describing a stored blob. Never set by clients.
- * With the exception of download_url, every field is intrinsic to the stored
- * bytes and immutable, derived once by the server.
+ * Server-authoritative metadata describing a stored blob. Never set by clients,
+ * except inside messaging.v1.EncryptedContent, where the sender sets it to
+ * describe the plaintext of an end-to-end encrypted blob and the server never
+ * sees it. With the exception of download_url, every field is intrinsic to the
+ * stored bytes and immutable, derived once by the server.
  *
  * @generated from message flipcash.blob.v1.BlobMetadata
  */
@@ -350,9 +353,9 @@ export class BlobMetadata extends Message<BlobMetadata> {
 
   /**
    * Kind-specific metadata the server derived from the bytes. Exactly one
-   * variant is set for a recognized media kind; left unset for opaque blobs.
-   * Only images are supported today; video/audio/etc. will be added as new
-   * variants.
+   * variant is set for a recognized media kind or an end-to-end encrypted
+   * blob; left unset for opaque blobs. Only images are supported today;
+   * video/audio/etc. will be added as new variants.
    *
    * @generated from oneof flipcash.blob.v1.BlobMetadata.kind
    */
@@ -362,6 +365,12 @@ export class BlobMetadata extends Message<BlobMetadata> {
      */
     value: ImageMetadata;
     case: "image";
+  } | {
+    /**
+     * @generated from field: flipcash.blob.v1.EncryptedBlobMetadata encrypted = 5;
+     */
+    value: EncryptedBlobMetadata;
+    case: "encrypted";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<BlobMetadata>) {
@@ -376,6 +385,7 @@ export class BlobMetadata extends Message<BlobMetadata> {
     { no: 2, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 3, name: "download_url", kind: "message", T: DownloadUrl },
     { no: 4, name: "image", kind: "message", T: ImageMetadata, oneof: "kind" },
+    { no: 5, name: "encrypted", kind: "message", T: EncryptedBlobMetadata, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BlobMetadata {
@@ -392,6 +402,44 @@ export class BlobMetadata extends Message<BlobMetadata> {
 
   static equals(a: BlobMetadata | PlainMessage<BlobMetadata> | undefined, b: BlobMetadata | PlainMessage<BlobMetadata> | undefined): boolean {
     return proto3.util.equals(BlobMetadata, a, b);
+  }
+}
+
+/**
+ * Marks a blob uploaded with
+ * InitiateExternalUploadRequest.end_to_end_encrypted_for. Its BlobMetadata
+ * describes the encrypted bytes: mime_type is "application/octet-stream" and
+ * size_bytes is the size of the encrypted blob. The plaintext's type, size and
+ * image metadata are set by the sender inside the messaging.v1.EncryptedContent
+ * that references the blob, and clients render from those instead.
+ *
+ * @generated from message flipcash.blob.v1.EncryptedBlobMetadata
+ */
+export class EncryptedBlobMetadata extends Message<EncryptedBlobMetadata> {
+  constructor(data?: PartialMessage<EncryptedBlobMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.EncryptedBlobMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EncryptedBlobMetadata {
+    return new EncryptedBlobMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EncryptedBlobMetadata {
+    return new EncryptedBlobMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EncryptedBlobMetadata {
+    return new EncryptedBlobMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EncryptedBlobMetadata | PlainMessage<EncryptedBlobMetadata> | undefined, b: EncryptedBlobMetadata | PlainMessage<EncryptedBlobMetadata> | undefined): boolean {
+    return proto3.util.equals(EncryptedBlobMetadata, a, b);
   }
 }
 
@@ -469,6 +517,10 @@ export class Media extends Message<Media> {
    * rendition's metadata and appends any derived renditions (e.g. a
    * downscaled DISPLAY and a THUMBNAIL).
    *
+   * Inside messaging.v1.EncryptedContent, the server never sees the media:
+   * the sender supplies the single ORIGINAL rendition with its metadata
+   * already set, and there are no derived renditions.
+   *
    * @generated from field: repeated flipcash.blob.v1.Rendition renditions = 1;
    */
   renditions: Rendition[] = [];
@@ -529,6 +581,9 @@ export class Rendition extends Message<Rendition> {
    *
    * If unavailable at the time the media is retrieved, the client can use
    * GetBlobs to query for the blob metadata.
+   *
+   * Inside messaging.v1.EncryptedContent, the sender sets this to describe
+   * the plaintext, without a download_url; see BlobMetadata.
    *
    * @generated from field: flipcash.blob.v1.BlobMetadata blob = 3;
    */
@@ -638,6 +693,16 @@ export class UploadPolicy extends Message<UploadPolicy> {
    */
   mimeTypeConstraints: MimeTypeConstraints[] = [];
 
+  /**
+   * Constraints on end-to-end encrypted uploads (see
+   * InitiateExternalUploadRequest.end_to_end_encrypted_for), which are
+   * governed by this instead of mime_type_constraints. Unset when the caller
+   * may not upload encrypted blobs.
+   *
+   * @generated from field: flipcash.blob.v1.EncryptedConstraints encrypted = 4;
+   */
+  encrypted?: EncryptedConstraints;
+
   constructor(data?: PartialMessage<UploadPolicy>) {
     super();
     proto3.util.initPartial(data, this);
@@ -649,6 +714,7 @@ export class UploadPolicy extends Message<UploadPolicy> {
     { no: 1, name: "version", kind: "message", T: PolicyVersion },
     { no: 2, name: "ttl", kind: "message", T: Duration },
     { no: 3, name: "mime_type_constraints", kind: "message", T: MimeTypeConstraints, repeated: true },
+    { no: 4, name: "encrypted", kind: "message", T: EncryptedConstraints },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UploadPolicy {
@@ -665,6 +731,57 @@ export class UploadPolicy extends Message<UploadPolicy> {
 
   static equals(a: UploadPolicy | PlainMessage<UploadPolicy> | undefined, b: UploadPolicy | PlainMessage<UploadPolicy> | undefined): boolean {
     return proto3.util.equals(UploadPolicy, a, b);
+  }
+}
+
+/**
+ * Upload constraints for end-to-end encrypted blobs.
+ *
+ * @generated from message flipcash.blob.v1.EncryptedConstraints
+ */
+export class EncryptedConstraints extends Message<EncryptedConstraints> {
+  /**
+   * Hard ceiling on the encrypted blob's byte size, including the 24-byte
+   * nonce and 16-byte tag. This is the only constraint the server enforces.
+   *
+   * @generated from field: uint64 max_size_bytes = 1;
+   */
+  maxSizeBytes = protoInt64.zero;
+
+  /**
+   * Bounds the sender should downscale an image to before encrypting it. The
+   * server cannot read the bytes, so these are advisory.
+   *
+   * @generated from field: flipcash.blob.v1.ImageConstraints image = 2;
+   */
+  image?: ImageConstraints;
+
+  constructor(data?: PartialMessage<EncryptedConstraints>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.blob.v1.EncryptedConstraints";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "max_size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "image", kind: "message", T: ImageConstraints },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EncryptedConstraints {
+    return new EncryptedConstraints().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EncryptedConstraints {
+    return new EncryptedConstraints().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EncryptedConstraints {
+    return new EncryptedConstraints().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EncryptedConstraints | PlainMessage<EncryptedConstraints> | undefined, b: EncryptedConstraints | PlainMessage<EncryptedConstraints> | undefined): boolean {
+    return proto3.util.equals(EncryptedConstraints, a, b);
   }
 }
 
@@ -1079,6 +1196,9 @@ export class AccessContext extends Message<AccessContext> {
     /**
      * The caller is accessing these blobs from within this chat. Authorized
      * iff the caller is a member of the chat and the blob was shared into it.
+     * An end-to-end encrypted blob is shared into the chat it was uploaded
+     * for (InitiateExternalUploadRequest.end_to_end_encrypted_for) once it
+     * is READY, not by the message that references it.
      *
      * @generated from field: flipcash.common.v1.ChatId chat = 1;
      */

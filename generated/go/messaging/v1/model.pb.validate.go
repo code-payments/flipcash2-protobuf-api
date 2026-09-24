@@ -1903,10 +1903,10 @@ func (m *EncryptedContent) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if l := len(m.GetCiphertext()); l < 17 || l > 16640 {
+	if l := len(m.GetCiphertext()); l < 17 || l > 17408 {
 		err := EncryptedContentValidationError{
 			field:  "Ciphertext",
-			reason: "value length must be between 17 and 16640 bytes, inclusive",
+			reason: "value length must be between 17 and 17408 bytes, inclusive",
 		}
 		if !all {
 			return err

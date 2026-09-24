@@ -34,7 +34,7 @@ enum BlobStatus {
     BLOB_STATUS_UNKNOWN    = 0;
     BLOB_STATUS_PENDING    = 1; // reserved; awaiting the client's upload
     BLOB_STATUS_PROCESSING = 2; // bytes present; deriving metadata / transcoding / moderating
-    BLOB_STATUS_READY      = 3; // available; metadata populated and moderation passed
+    BLOB_STATUS_READY      = 3; // available; metadata populated and moderation passed (encrypted: size checked)
     BLOB_STATUS_REJECTED   = 4; // failed validation or moderation; not servable
 }
 
@@ -61,9 +61,11 @@ message BlobBatch {
     }];
 }
 
-// Server-authoritative metadata describing a stored blob. Never set by clients.
-// With the exception of download_url, every field is intrinsic to the stored
-// bytes and immutable, derived once by the server.
+// Server-authoritative metadata describing a stored blob. Never set by clients,
+// except inside messaging.v1.EncryptedContent, where the sender sets it to
+// describe the plaintext of an end-to-end encrypted blob and the server never
+// sees it. With the exception of download_url, every field is intrinsic to the
+// stored bytes and immutable, derived once by the server.
 message BlobMetadata {
     // MIME type (e.g. "image/jpeg").
     string mime_type = 1 [(validate.rules).string = {
@@ -86,13 +88,22 @@ message BlobMetadata {
     DownloadUrl download_url = 3;
 
     // Kind-specific metadata the server derived from the bytes. Exactly one
-    // variant is set for a recognized media kind; left unset for opaque blobs.
-    // Only images are supported today; video/audio/etc. will be added as new
-    // variants.
+    // variant is set for a recognized media kind or an end-to-end encrypted
+    // blob; left unset for opaque blobs. Only images are supported today;
+    // video/audio/etc. will be added as new variants.
     oneof kind {
-        ImageMetadata image = 4;
+        ImageMetadata         image     = 4;
+        EncryptedBlobMetadata encrypted = 5;
     }
 }
+
+// Marks a blob uploaded with
+// InitiateExternalUploadRequest.end_to_end_encrypted_for. Its BlobMetadata
+// describes the encrypted bytes: mime_type is "application/octet-stream" and
+// size_bytes is the size of the encrypted blob. The plaintext's type, size and
+// image metadata are set by the sender inside the messaging.v1.EncryptedContent
+// that references the blob, and clients render from those instead.
+message EncryptedBlobMetadata {}
 
 // Intrinsic descriptors for a still image.
 message ImageMetadata {
@@ -117,6 +128,10 @@ message Media {
     // exactly one ORIGINAL rendition (its blob_id); the server fills that
     // rendition's metadata and appends any derived renditions (e.g. a
     // downscaled DISPLAY and a THUMBNAIL).
+    //
+    // Inside messaging.v1.EncryptedContent, the server never sees the media:
+    // the sender supplies the single ORIGINAL rendition with its metadata
+    // already set, and there are no derived renditions.
     repeated Rendition renditions = 1 [(validate.rules).repeated = {
         min_items: 1
     }];
@@ -145,6 +160,9 @@ message Rendition {
     //
     // If unavailable at the time the media is retrieved, the client can use
     // GetBlobs to query for the blob metadata.
+    //
+    // Inside messaging.v1.EncryptedContent, the sender sets this to describe
+    // the plaintext, without a download_url; see BlobMetadata.
     BlobMetadata blob = 3;
 }
 
@@ -170,6 +188,23 @@ message UploadPolicy {
         min_items: 1
         max_items: 1024
     }];
+
+    // Constraints on end-to-end encrypted uploads (see
+    // InitiateExternalUploadRequest.end_to_end_encrypted_for), which are
+    // governed by this instead of mime_type_constraints. Unset when the caller
+    // may not upload encrypted blobs.
+    EncryptedConstraints encrypted = 4;
+}
+
+// Upload constraints for end-to-end encrypted blobs.
+message EncryptedConstraints {
+    // Hard ceiling on the encrypted blob's byte size, including the 24-byte
+    // nonce and 16-byte tag. This is the only constraint the server enforces.
+    uint64 max_size_bytes = 1 [(validate.rules).uint64.gte = 1];
+
+    // Bounds the sender should downscale an image to before encrypting it. The
+    // server cannot read the bytes, so these are advisory.
+    ImageConstraints image = 2;
 }
 
 // Opaque generation token identifying a snapshot of an UploadPolicy. Compared
@@ -289,7 +324,8 @@ message RejectionMetadata {
 
 // Why a blob failed finalization, after its bytes were uploaded. Distinct from
 // the pre-upload denials in InitiateExternalUploadResponse.Result, which reject
-// before any bytes are stored.
+// before any bytes are stored. An end-to-end encrypted blob is only ever
+// rejected with TOO_LARGE or INTERNAL, since the server cannot read its bytes.
 enum RejectionReason {
     REJECTION_REASON_UNKNOWN          = 0;
     REJECTION_REASON_MODERATION       = 1; // tripped content moderation; see flagged_category
@@ -319,6 +355,9 @@ message AccessContext {
 
         // The caller is accessing these blobs from within this chat. Authorized
         // iff the caller is a member of the chat and the blob was shared into it.
+        // An end-to-end encrypted blob is shared into the chat it was uploaded
+        // for (InitiateExternalUploadRequest.end_to_end_encrypted_for) once it
+        // is READY, not by the message that references it.
         common.v1.ChatId chat = 1 [(validate.rules).message.required = true];
 
         // The caller is accessing these blobs from this user's public profile.
