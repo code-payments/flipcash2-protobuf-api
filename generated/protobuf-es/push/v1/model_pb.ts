@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { ChatId, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
 import { ChatType } from "../../chat/v1/model_pb";
-import { Message as Message$1 } from "../../messaging/v1/model_pb";
+import { Message as Message$1, MessageId } from "../../messaging/v1/model_pb";
 
 /**
  * @generated from enum flipcash.push.v1.TokenType
@@ -235,12 +235,12 @@ export class Navigation extends Message<Navigation> {
  */
 export class ChatMetadata extends Message<ChatMetadata> {
   /**
-   * The user ID that sent a chat message
+   * The user ID that sent a chat message. Set whether the push carries the
+   * full message or only its ID, so a push without the message can still be
+   * attributed to its sender.
    *
    * Note: This will not be set for system messages OR for notifications that
    *       don't relate to a user
-   *
-   * Deprecated: Infer from message instead
    *
    * @generated from field: flipcash.common.v1.UserId sending_user_id = 1;
    */
@@ -254,11 +254,35 @@ export class ChatMetadata extends Message<ChatMetadata> {
   type = ChatType.UNKNOWN;
 
   /**
-   * The chat message that was sent, if the push is for a message
+   * The chat message that was sent, if the push is for a message. Neither is
+   * set for a chat push that isn't for a message. The push's title and body
+   * are set either way, so the notification can be presented without the
+   * message.
    *
-   * @generated from field: flipcash.messaging.v1.Message message = 3;
+   * @generated from oneof flipcash.push.v1.ChatMetadata.message_ref
    */
-  message?: Message$1;
+  messageRef: {
+    /**
+     * The full message, when it fits in the push.
+     *
+     * @generated from field: flipcash.messaging.v1.Message message = 3;
+     */
+    value: Message$1;
+    case: "message";
+  } | {
+    /**
+     * Only the message's ID, when the full message would put the push over
+     * the push provider's payload size limit (4KB for both FCM and APNs),
+     * which a long message can reach. A client that needs the message
+     * (e.g. to decrypt EncryptedContent, or to store the message for a
+     * muted chat) fetches it with Messaging.GetMessage, using this ID and
+     * the chat ID in Payload.navigation.
+     *
+     * @generated from field: flipcash.messaging.v1.MessageId message_id = 5;
+     */
+    value: MessageId;
+    case: "messageId";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
    * Whether the recipient had this chat muted when the push was sent.
@@ -279,7 +303,8 @@ export class ChatMetadata extends Message<ChatMetadata> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "sending_user_id", kind: "message", T: UserId },
     { no: 2, name: "type", kind: "enum", T: proto3.getEnumType(ChatType) },
-    { no: 3, name: "message", kind: "message", T: Message$1 },
+    { no: 3, name: "message", kind: "message", T: Message$1, oneof: "message_ref" },
+    { no: 5, name: "message_id", kind: "message", T: MessageId, oneof: "message_ref" },
     { no: 4, name: "muted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
