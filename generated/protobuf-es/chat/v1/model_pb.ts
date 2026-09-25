@@ -153,6 +153,24 @@ export class Metadata extends Message<Metadata> {
    */
   creator?: UserId;
 
+  /**
+   * Whether messages in this chat are end-to-end encrypted (see
+   * messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or
+   * TIP_DM); always false for group chats.
+   *
+   * Used to migrate DMs to E2EE: when true, clients send all new content in
+   * the chat as EncryptedContent. When false, clients send content in the
+   * clear. Existing messages are not re-encrypted, so a chat may hold a mix
+   * of both.
+   *
+   * This is a transitional flag. Once E2EE has launched, clients should
+   * always end-to-end encrypt DMs regardless of this value, and it will be
+   * deprecated.
+   *
+   * @generated from field: bool use_e2ee = 100;
+   */
+  useE2ee = false;
+
   constructor(data?: PartialMessage<Metadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -174,6 +192,7 @@ export class Metadata extends Message<Metadata> {
     { no: 11, name: "rules", kind: "message", T: Rules },
     { no: 12, name: "viewer_state", kind: "message", T: ViewerState },
     { no: 13, name: "creator", kind: "message", T: UserId },
+    { no: 100, name: "use_e2ee", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Metadata {

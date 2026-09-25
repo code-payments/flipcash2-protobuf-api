@@ -353,6 +353,8 @@ func (m *Metadata) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for UseE2Ee
+
 	if len(errors) > 0 {
 		return MetadataMultiError(errors)
 	}
