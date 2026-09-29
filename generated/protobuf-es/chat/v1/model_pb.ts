@@ -343,6 +343,12 @@ export class SpeakerRules extends Message<SpeakerRules> {
      */
     value: StaffRequirement;
     case: "staff";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.Never never = 3;
+     */
+    value: Never;
+    case: "never";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SpeakerRules>) {
@@ -355,6 +361,7 @@ export class SpeakerRules extends Message<SpeakerRules> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "minimum_balance", kind: "message", T: MinimumBalanceRequirement, oneof: "kind" },
     { no: 2, name: "staff", kind: "message", T: StaffRequirement, oneof: "kind" },
+    { no: 3, name: "never", kind: "message", T: Never, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SpeakerRules {
@@ -405,6 +412,39 @@ export class StaffRequirement extends Message<StaffRequirement> {
 
   static equals(a: StaffRequirement | PlainMessage<StaffRequirement> | undefined, b: StaffRequirement | PlainMessage<StaffRequirement> | undefined): boolean {
     return proto3.util.equals(StaffRequirement, a, b);
+  }
+}
+
+/**
+ * A special rule indicating that an action can never be taken.
+ *
+ * @generated from message flipcash.chat.v1.Never
+ */
+export class Never extends Message<Never> {
+  constructor(data?: PartialMessage<Never>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.Never";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Never {
+    return new Never().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Never {
+    return new Never().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Never {
+    return new Never().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Never | PlainMessage<Never> | undefined, b: Never | PlainMessage<Never> | undefined): boolean {
+    return proto3.util.equals(Never, a, b);
   }
 }
 
