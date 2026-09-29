@@ -202,6 +202,16 @@ export class SetDisplayNameResponse extends Message<SetDisplayNameResponse> {
    */
   flaggedCategory = FlaggedCategory.NONE;
 
+  /**
+   * The caller's current username, if they have one. The server may
+   * auto-assign a username derived from the display name, so clients should
+   * use this value rather than assuming their username is unchanged. Set
+   * only when result == OK; unset if the caller has no username.
+   *
+   * @generated from field: flipcash.common.v1.Username username = 3;
+   */
+  username?: Username;
+
   constructor(data?: PartialMessage<SetDisplayNameResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -212,6 +222,7 @@ export class SetDisplayNameResponse extends Message<SetDisplayNameResponse> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetDisplayNameResponse_Result) },
     { no: 2, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
+    { no: 3, name: "username", kind: "message", T: Username },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetDisplayNameResponse {

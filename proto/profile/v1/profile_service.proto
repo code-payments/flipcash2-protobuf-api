@@ -96,6 +96,12 @@ message SetDisplayNameResponse {
     // service's vocabulary. Set only when result == FAILED_MODERATED; NONE
 	// otherwise.
     moderation.v1.FlaggedCategory flagged_category = 2;
+
+	// The caller's current username, if they have one. The server may
+	// auto-assign a username derived from the display name, so clients should
+	// use this value rather than assuming their username is unchanged. Set
+	// only when result == OK; unset if the caller has no username.
+	common.v1.Username username = 3;
 }
 
 message SetUsernameRequest {
