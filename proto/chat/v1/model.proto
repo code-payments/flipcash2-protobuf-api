@@ -138,12 +138,17 @@ message SpeakerRules {
 
         MinimumBalanceRequirement minimum_balance = 1;
         StaffRequirement          staff           = 2;
+        Never                     never           = 3;
     }
 }
 
 // StaffRequirement requires the user to be a Flipcash staff member, as
 // indicated by UserFlags.is_staff.
 message StaffRequirement {
+}
+
+// A special rule indicating that an action can never be taken.
+message Never {
 }
 
 // MinimumBalanceRequirement requires a user to hold a minimum balance,
