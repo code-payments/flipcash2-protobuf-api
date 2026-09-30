@@ -36,6 +36,18 @@ export class UserProfile extends Message<UserProfile> {
   username?: Username;
 
   /**
+   * Whether the user's current username was assigned by the server, derived
+   * from their display name, rather than chosen with SetUsername. Choosing a
+   * different username with SetUsername clears it; setting the username
+   * already held leaves it as it was. This is private and will only be
+   * returned when the requesting user asks for their own profile; false
+   * otherwise, and false when the user has no username.
+   *
+   * @generated from field: bool is_username_auto_assigned = 11;
+   */
+  isUsernameAutoAssigned = false;
+
+  /**
    * Social profiles are links to external social accounts
    *
    * @generated from field: repeated flipcash.profile.v1.SocialProfile social_profiles = 2;
@@ -110,6 +122,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 9, name: "user_id", kind: "message", T: UserId },
     { no: 1, name: "display_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "username", kind: "message", T: Username },
+    { no: 11, name: "is_username_auto_assigned", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "social_profiles", kind: "message", T: SocialProfile, repeated: true },
     { no: 3, name: "phone_number", kind: "message", T: PhoneNumber },
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
