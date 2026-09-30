@@ -181,6 +181,7 @@ message Content {
         SystemContent    system    = 5;
         DeletedContent   deleted   = 6;
         EncryptedContent encrypted = 7;
+        WidgetContent    widget    = 8;
     }
 }
 
@@ -259,6 +260,23 @@ message SystemContent {
     }];
 
     // todo: Define events once we have them
+}
+
+// Content that clients render as a native widget rather than as plain text
+// or media. Clients that don't recognize the variant render the message as
+// unsupported.
+message WidgetContent {
+    oneof type {
+        option (validate.required) = true;
+
+        ShareProfileWidget share_profile = 1;
+    }
+}
+
+// A widget with a button that shares the profile of the user with the given
+// username.
+message ShareProfileWidget {
+    common.v1.Username username = 1 [(validate.rules).message.required = true];
 }
 
 // Deleted message content

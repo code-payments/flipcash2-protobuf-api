@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message as Message$1, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { CryptoPaymentAmount, IntentId, UserId } from "../../common/v1/common_pb";
+import { CryptoPaymentAmount, IntentId, UserId, Username } from "../../common/v1/common_pb";
 import { Media } from "../../blob/v1/model_pb";
 
 /**
@@ -376,6 +376,12 @@ export class Content extends Message$1<Content> {
      */
     value: EncryptedContent;
     case: "encrypted";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.WidgetContent widget = 8;
+     */
+    value: WidgetContent;
+    case: "widget";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Content>) {
@@ -393,6 +399,7 @@ export class Content extends Message$1<Content> {
     { no: 5, name: "system", kind: "message", T: SystemContent, oneof: "type" },
     { no: 6, name: "deleted", kind: "message", T: DeletedContent, oneof: "type" },
     { no: 7, name: "encrypted", kind: "message", T: EncryptedContent, oneof: "type" },
+    { no: 8, name: "widget", kind: "message", T: WidgetContent, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Content {
@@ -679,6 +686,93 @@ export class SystemContent extends Message$1<SystemContent> {
 
   static equals(a: SystemContent | PlainMessage<SystemContent> | undefined, b: SystemContent | PlainMessage<SystemContent> | undefined): boolean {
     return proto3.util.equals(SystemContent, a, b);
+  }
+}
+
+/**
+ * Content that clients render as a native widget rather than as plain text
+ * or media. Clients that don't recognize the variant render the message as
+ * unsupported.
+ *
+ * @generated from message flipcash.messaging.v1.WidgetContent
+ */
+export class WidgetContent extends Message$1<WidgetContent> {
+  /**
+   * @generated from oneof flipcash.messaging.v1.WidgetContent.type
+   */
+  type: {
+    /**
+     * @generated from field: flipcash.messaging.v1.ShareProfileWidget share_profile = 1;
+     */
+    value: ShareProfileWidget;
+    case: "shareProfile";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<WidgetContent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.WidgetContent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "share_profile", kind: "message", T: ShareProfileWidget, oneof: "type" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WidgetContent {
+    return new WidgetContent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WidgetContent {
+    return new WidgetContent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WidgetContent {
+    return new WidgetContent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WidgetContent | PlainMessage<WidgetContent> | undefined, b: WidgetContent | PlainMessage<WidgetContent> | undefined): boolean {
+    return proto3.util.equals(WidgetContent, a, b);
+  }
+}
+
+/**
+ * A widget with a button that shares the profile of the user with the given
+ * username.
+ *
+ * @generated from message flipcash.messaging.v1.ShareProfileWidget
+ */
+export class ShareProfileWidget extends Message$1<ShareProfileWidget> {
+  /**
+   * @generated from field: flipcash.common.v1.Username username = 1;
+   */
+  username?: Username;
+
+  constructor(data?: PartialMessage<ShareProfileWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.ShareProfileWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "username", kind: "message", T: Username },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ShareProfileWidget {
+    return new ShareProfileWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ShareProfileWidget {
+    return new ShareProfileWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ShareProfileWidget {
+    return new ShareProfileWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ShareProfileWidget | PlainMessage<ShareProfileWidget> | undefined, b: ShareProfileWidget | PlainMessage<ShareProfileWidget> | undefined): boolean {
+    return proto3.util.equals(ShareProfileWidget, a, b);
   }
 }
 

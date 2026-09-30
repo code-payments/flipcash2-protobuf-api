@@ -869,6 +869,48 @@ func (m *Content) validate(all bool) error {
 			}
 		}
 
+	case *Content_Widget:
+		if v == nil {
+			err := ContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetWidget()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Widget",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ContentValidationError{
+						field:  "Widget",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetWidget()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ContentValidationError{
+					field:  "Widget",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1718,6 +1760,306 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SystemContentValidationError{}
+
+// Validate checks the field values on WidgetContent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *WidgetContent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WidgetContent with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in WidgetContentMultiError, or
+// nil if none found.
+func (m *WidgetContent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WidgetContent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofTypePresent := false
+	switch v := m.Type.(type) {
+	case *WidgetContent_ShareProfile:
+		if v == nil {
+			err := WidgetContentValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetShareProfile()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, WidgetContentValidationError{
+						field:  "ShareProfile",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, WidgetContentValidationError{
+						field:  "ShareProfile",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetShareProfile()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return WidgetContentValidationError{
+					field:  "ShareProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofTypePresent {
+		err := WidgetContentValidationError{
+			field:  "Type",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return WidgetContentMultiError(errors)
+	}
+
+	return nil
+}
+
+// WidgetContentMultiError is an error wrapping multiple validation errors
+// returned by WidgetContent.ValidateAll() if the designated constraints
+// aren't met.
+type WidgetContentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WidgetContentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WidgetContentMultiError) AllErrors() []error { return m }
+
+// WidgetContentValidationError is the validation error returned by
+// WidgetContent.Validate if the designated constraints aren't met.
+type WidgetContentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WidgetContentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WidgetContentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WidgetContentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WidgetContentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WidgetContentValidationError) ErrorName() string { return "WidgetContentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e WidgetContentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWidgetContent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WidgetContentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WidgetContentValidationError{}
+
+// Validate checks the field values on ShareProfileWidget with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ShareProfileWidget) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ShareProfileWidget with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ShareProfileWidgetMultiError, or nil if none found.
+func (m *ShareProfileWidget) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ShareProfileWidget) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetUsername() == nil {
+		err := ShareProfileWidgetValidationError{
+			field:  "Username",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUsername()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ShareProfileWidgetValidationError{
+					field:  "Username",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ShareProfileWidgetValidationError{
+					field:  "Username",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUsername()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ShareProfileWidgetValidationError{
+				field:  "Username",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ShareProfileWidgetMultiError(errors)
+	}
+
+	return nil
+}
+
+// ShareProfileWidgetMultiError is an error wrapping multiple validation errors
+// returned by ShareProfileWidget.ValidateAll() if the designated constraints
+// aren't met.
+type ShareProfileWidgetMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ShareProfileWidgetMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ShareProfileWidgetMultiError) AllErrors() []error { return m }
+
+// ShareProfileWidgetValidationError is the validation error returned by
+// ShareProfileWidget.Validate if the designated constraints aren't met.
+type ShareProfileWidgetValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ShareProfileWidgetValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ShareProfileWidgetValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ShareProfileWidgetValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ShareProfileWidgetValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ShareProfileWidgetValidationError) ErrorName() string {
+	return "ShareProfileWidgetValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ShareProfileWidgetValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sShareProfileWidget.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ShareProfileWidgetValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ShareProfileWidgetValidationError{}
 
 // Validate checks the field values on DeletedContent with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
