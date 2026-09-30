@@ -139,6 +139,7 @@ message SpeakerRules {
         MinimumBalanceRequirement minimum_balance = 1;
         StaffRequirement          staff           = 2;
         Never                     never           = 3;
+        CreatorRequirement        creator         = 4;
     }
 }
 
@@ -149,6 +150,11 @@ message StaffRequirement {
 
 // A special rule indicating that an action can never be taken.
 message Never {
+}
+
+// CreatorRequirement requires the user to be the chat's creator, as indicated
+// by Metadata.creator.
+message CreatorRequirement {
 }
 
 // MinimumBalanceRequirement requires a user to hold a minimum balance,
