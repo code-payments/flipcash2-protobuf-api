@@ -137,6 +137,8 @@ func (m *UserProfile) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for IsUsernameAutoAssigned
+
 	if len(m.GetSocialProfiles()) > 1 {
 		err := UserProfileValidationError{
 			field:  "SocialProfiles",
