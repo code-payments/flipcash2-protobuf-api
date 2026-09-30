@@ -55,10 +55,10 @@ message UserProfile {
     // Timestamp the user joined Flipcash
     google.protobuf.Timestamp join_ts = 6 [(validate.rules).timestamp.required = true];
 
-    // How the user has customized their Tip Card. Public, so it is returned for
+    // How the user has customized their Flipcard. Public, so it is returned for
     // any user, not just the caller. Always set — the server resolves defaults
-    // for anything the user hasn't customized. Update it with UpdateTipCard.
-    TipCardCustomization tip_card_customization = 7 [(validate.rules).message.required = true];
+    // for anything the user hasn't customized. Update it with UpdateFlipcard.
+    FlipcardCustomization flipcard_customization = 7 [(validate.rules).message.required = true];
 
     // The minimum fee another user must pay to initialize a DM chat with this
     // user. Public, so it is returned for any user, not just the caller. Unset
@@ -117,9 +117,9 @@ message XProfile {
     uint32 follower_count = 7;    
 }
 
-// Customization for a Tip Card
-message TipCardCustomization {
-    // The colour of the Tip Card. Always set — the server falls back to the
+// Customization for a Flipcard
+message FlipcardCustomization {
+    // The colour of the Flipcard. Always set — the server falls back to the
     // default colour when the user hasn't picked one.
     common.v1.Color color = 1 [(validate.rules).message.required = true];
 }

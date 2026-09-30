@@ -81,13 +81,13 @@ export class UserProfile extends Message<UserProfile> {
   joinTs?: Timestamp;
 
   /**
-   * How the user has customized their Tip Card. Public, so it is returned for
+   * How the user has customized their Flipcard. Public, so it is returned for
    * any user, not just the caller. Always set — the server resolves defaults
-   * for anything the user hasn't customized. Update it with UpdateTipCard.
+   * for anything the user hasn't customized. Update it with UpdateFlipcard.
    *
-   * @generated from field: flipcash.profile.v1.TipCardCustomization tip_card_customization = 7;
+   * @generated from field: flipcash.profile.v1.FlipcardCustomization flipcard_customization = 7;
    */
-  tipCardCustomization?: TipCardCustomization;
+  flipcardCustomization?: FlipcardCustomization;
 
   /**
    * The minimum fee another user must pay to initialize a DM chat with this
@@ -115,7 +115,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
     { no: 5, name: "profile_picture", kind: "message", T: Media },
     { no: 6, name: "join_ts", kind: "message", T: Timestamp },
-    { no: 7, name: "tip_card_customization", kind: "message", T: TipCardCustomization },
+    { no: 7, name: "flipcard_customization", kind: "message", T: FlipcardCustomization },
     { no: 10, name: "min_dm_chat_init_fee", kind: "message", T: FiatPaymentAmount },
   ]);
 
@@ -299,44 +299,44 @@ proto3.util.setEnumType(XProfile_VerifiedType, "flipcash.profile.v1.XProfile.Ver
 ]);
 
 /**
- * Customization for a Tip Card
+ * Customization for a Flipcard
  *
- * @generated from message flipcash.profile.v1.TipCardCustomization
+ * @generated from message flipcash.profile.v1.FlipcardCustomization
  */
-export class TipCardCustomization extends Message<TipCardCustomization> {
+export class FlipcardCustomization extends Message<FlipcardCustomization> {
   /**
-   * The colour of the Tip Card. Always set — the server falls back to the
+   * The colour of the Flipcard. Always set — the server falls back to the
    * default colour when the user hasn't picked one.
    *
    * @generated from field: flipcash.common.v1.Color color = 1;
    */
   color?: Color;
 
-  constructor(data?: PartialMessage<TipCardCustomization>) {
+  constructor(data?: PartialMessage<FlipcardCustomization>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.profile.v1.TipCardCustomization";
+  static readonly typeName = "flipcash.profile.v1.FlipcardCustomization";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "color", kind: "message", T: Color },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TipCardCustomization {
-    return new TipCardCustomization().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FlipcardCustomization {
+    return new FlipcardCustomization().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TipCardCustomization {
-    return new TipCardCustomization().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FlipcardCustomization {
+    return new FlipcardCustomization().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TipCardCustomization {
-    return new TipCardCustomization().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FlipcardCustomization {
+    return new FlipcardCustomization().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TipCardCustomization | PlainMessage<TipCardCustomization> | undefined, b: TipCardCustomization | PlainMessage<TipCardCustomization> | undefined): boolean {
-    return proto3.util.equals(TipCardCustomization, a, b);
+  static equals(a: FlipcardCustomization | PlainMessage<FlipcardCustomization> | undefined, b: FlipcardCustomization | PlainMessage<FlipcardCustomization> | undefined): boolean {
+    return proto3.util.equals(FlipcardCustomization, a, b);
   }
 }
 
