@@ -1261,7 +1261,7 @@ func (x *DeletedContent) GetDeletedBy() *v1.UserId {
 }
 
 // End-to-end encrypted content, sent only in DMs (chat.v1.ChatType
-// CONTACT_DM or TIP_DM). SendMessage and EditMessage reject it in a group
+// CONTACT_DM or DM). SendMessage and EditMessage reject it in a group
 // chat. The server stores and relays the ciphertext as-is and cannot read it,
 // so it cannot moderate it, render a push preview from it, or produce a
 // placeholder for it.

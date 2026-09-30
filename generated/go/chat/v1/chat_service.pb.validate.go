@@ -403,7 +403,7 @@ func (m *GetDmChatFeedRequest) validate(all bool) error {
 	if _, ok := _GetDmChatFeedRequest_DmChatType_InLookup[m.GetDmChatType()]; !ok {
 		err := GetDmChatFeedRequestValidationError{
 			field:  "DmChatType",
-			reason: "value must be in list [UNKNOWN CONTACT_DM TIP_DM]",
+			reason: "value must be in list [UNKNOWN CONTACT_DM DM]",
 		}
 		if !all {
 			return err

@@ -25,9 +25,9 @@ export enum ChatType {
   CONTACT_DM = 1,
 
   /**
-   * @generated from enum value: TIP_DM = 2;
+   * @generated from enum value: DM = 2;
    */
-  TIP_DM = 2,
+  DM = 2,
 
   /**
    * @generated from enum value: GROUP = 3;
@@ -38,7 +38,7 @@ export enum ChatType {
 proto3.util.setEnumType(ChatType, "flipcash.chat.v1.ChatType", [
   { no: 0, name: "UNKNOWN" },
   { no: 1, name: "CONTACT_DM" },
-  { no: 2, name: "TIP_DM" },
+  { no: 2, name: "DM" },
   { no: 3, name: "GROUP" },
 ]);
 
@@ -155,8 +155,8 @@ export class Metadata extends Message<Metadata> {
 
   /**
    * Whether messages in this chat are end-to-end encrypted (see
-   * messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or
-   * TIP_DM); always false for group chats.
+   * messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
+   * always false for group chats.
    *
    * Used to migrate DMs to E2EE: when true, clients send all new content in
    * the chat as EncryptedContent. When false, clients send content in the
