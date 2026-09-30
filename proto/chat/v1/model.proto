@@ -16,7 +16,7 @@ import "google/protobuf/timestamp.proto";
 enum ChatType {
     UNKNOWN    = 0;
     CONTACT_DM = 1;
-    TIP_DM     = 2;
+    DM         = 2;
     GROUP      = 3;
 }
 
@@ -83,8 +83,8 @@ message Metadata {
     common.v1.UserId creator = 13;
 
     // Whether messages in this chat are end-to-end encrypted (see
-    // messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or
-    // TIP_DM); always false for group chats.
+    // messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
+    // always false for group chats.
     //
     // Used to migrate DMs to E2EE: when true, clients send all new content in
     // the chat as EncryptedContent. When false, clients send content in the

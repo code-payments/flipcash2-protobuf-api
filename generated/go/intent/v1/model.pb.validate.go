@@ -298,7 +298,7 @@ func (m *ChatMetadata) validate(all bool) error {
 			}
 		}
 
-	case *ChatMetadata_TipDmPayment_:
+	case *ChatMetadata_DmPayment_:
 		if v == nil {
 			err := ChatMetadataValidationError{
 				field:  "Type",
@@ -312,11 +312,11 @@ func (m *ChatMetadata) validate(all bool) error {
 		oneofTypePresent = true
 
 		if all {
-			switch v := interface{}(m.GetTipDmPayment()).(type) {
+			switch v := interface{}(m.GetDmPayment()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, ChatMetadataValidationError{
-						field:  "TipDmPayment",
+						field:  "DmPayment",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -324,16 +324,16 @@ func (m *ChatMetadata) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, ChatMetadataValidationError{
-						field:  "TipDmPayment",
+						field:  "DmPayment",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTipDmPayment()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetDmPayment()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ChatMetadataValidationError{
-					field:  "TipDmPayment",
+					field:  "DmPayment",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -614,22 +614,22 @@ var _ interface {
 	ErrorName() string
 } = ChatMetadata_ContactDmPaymentValidationError{}
 
-// Validate checks the field values on ChatMetadata_TipDmPayment with the rules
+// Validate checks the field values on ChatMetadata_DmPayment with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ChatMetadata_TipDmPayment) Validate() error {
+func (m *ChatMetadata_DmPayment) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ChatMetadata_TipDmPayment with the
-// rules defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on ChatMetadata_DmPayment with the rules
+// defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ChatMetadata_TipDmPaymentMultiError, or nil if none found.
-func (m *ChatMetadata_TipDmPayment) ValidateAll() error {
+// ChatMetadata_DmPaymentMultiError, or nil if none found.
+func (m *ChatMetadata_DmPayment) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ChatMetadata_TipDmPayment) validate(all bool) error {
+func (m *ChatMetadata_DmPayment) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -641,19 +641,19 @@ func (m *ChatMetadata_TipDmPayment) validate(all bool) error {
 	// no validation rules for Action
 
 	if len(errors) > 0 {
-		return ChatMetadata_TipDmPaymentMultiError(errors)
+		return ChatMetadata_DmPaymentMultiError(errors)
 	}
 
 	return nil
 }
 
-// ChatMetadata_TipDmPaymentMultiError is an error wrapping multiple validation
-// errors returned by ChatMetadata_TipDmPayment.ValidateAll() if the
-// designated constraints aren't met.
-type ChatMetadata_TipDmPaymentMultiError []error
+// ChatMetadata_DmPaymentMultiError is an error wrapping multiple validation
+// errors returned by ChatMetadata_DmPayment.ValidateAll() if the designated
+// constraints aren't met.
+type ChatMetadata_DmPaymentMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ChatMetadata_TipDmPaymentMultiError) Error() string {
+func (m ChatMetadata_DmPaymentMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -662,11 +662,11 @@ func (m ChatMetadata_TipDmPaymentMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ChatMetadata_TipDmPaymentMultiError) AllErrors() []error { return m }
+func (m ChatMetadata_DmPaymentMultiError) AllErrors() []error { return m }
 
-// ChatMetadata_TipDmPaymentValidationError is the validation error returned by
-// ChatMetadata_TipDmPayment.Validate if the designated constraints aren't met.
-type ChatMetadata_TipDmPaymentValidationError struct {
+// ChatMetadata_DmPaymentValidationError is the validation error returned by
+// ChatMetadata_DmPayment.Validate if the designated constraints aren't met.
+type ChatMetadata_DmPaymentValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -674,24 +674,24 @@ type ChatMetadata_TipDmPaymentValidationError struct {
 }
 
 // Field function returns field value.
-func (e ChatMetadata_TipDmPaymentValidationError) Field() string { return e.field }
+func (e ChatMetadata_DmPaymentValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ChatMetadata_TipDmPaymentValidationError) Reason() string { return e.reason }
+func (e ChatMetadata_DmPaymentValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ChatMetadata_TipDmPaymentValidationError) Cause() error { return e.cause }
+func (e ChatMetadata_DmPaymentValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ChatMetadata_TipDmPaymentValidationError) Key() bool { return e.key }
+func (e ChatMetadata_DmPaymentValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ChatMetadata_TipDmPaymentValidationError) ErrorName() string {
-	return "ChatMetadata_TipDmPaymentValidationError"
+func (e ChatMetadata_DmPaymentValidationError) ErrorName() string {
+	return "ChatMetadata_DmPaymentValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ChatMetadata_TipDmPaymentValidationError) Error() string {
+func (e ChatMetadata_DmPaymentValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -703,14 +703,14 @@ func (e ChatMetadata_TipDmPaymentValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sChatMetadata_TipDmPayment.%s: %s%s",
+		"invalid %sChatMetadata_DmPayment.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ChatMetadata_TipDmPaymentValidationError{}
+var _ error = ChatMetadata_DmPaymentValidationError{}
 
 var _ interface {
 	Field() string
@@ -718,4 +718,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ChatMetadata_TipDmPaymentValidationError{}
+} = ChatMetadata_DmPaymentValidationError{}

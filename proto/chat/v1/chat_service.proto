@@ -193,7 +193,7 @@ message GetDmChatFeedRequest {
     //
     // For backwards compatiblity, UNKNOWN maps to CONTACT_DM for legacy clients
     ChatType dm_chat_type = 2 [(validate.rules).enum = {
-        in: [0, 1, 2] // UNKNOWN, CONTACT_DM, TIP_DM
+        in: [0, 1, 2] // UNKNOWN, CONTACT_DM, DM
     }];
 
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];

@@ -72,10 +72,10 @@ export class ChatMetadata extends Message<ChatMetadata> {
     case: "contactDmPayment";
   } | {
     /**
-     * @generated from field: flipcash.intent.v1.ChatMetadata.TipDmPayment tip_dm_payment = 3;
+     * @generated from field: flipcash.intent.v1.ChatMetadata.DmPayment dm_payment = 3;
      */
-    value: ChatMetadata_TipDmPayment;
-    case: "tipDmPayment";
+    value: ChatMetadata_DmPayment;
+    case: "dmPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatMetadata>) {
@@ -88,7 +88,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "contact_dm_payment", kind: "message", T: ChatMetadata_ContactDmPayment, oneof: "type" },
-    { no: 3, name: "tip_dm_payment", kind: "message", T: ChatMetadata_TipDmPayment, oneof: "type" },
+    { no: 3, name: "dm_payment", kind: "message", T: ChatMetadata_DmPayment, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
@@ -161,78 +161,78 @@ export class ChatMetadata_ContactDmPayment extends Message<ChatMetadata_ContactD
  * For sending a DM payment to someone using their user ID, which maps
  * directly to/from a public key.
  *
- * @generated from message flipcash.intent.v1.ChatMetadata.TipDmPayment
+ * @generated from message flipcash.intent.v1.ChatMetadata.DmPayment
  */
-export class ChatMetadata_TipDmPayment extends Message<ChatMetadata_TipDmPayment> {
+export class ChatMetadata_DmPayment extends Message<ChatMetadata_DmPayment> {
   /**
-   * @generated from field: flipcash.intent.v1.ChatMetadata.TipDmPayment.Location location = 1;
+   * @generated from field: flipcash.intent.v1.ChatMetadata.DmPayment.Location location = 1;
    */
-  location = ChatMetadata_TipDmPayment_Location.TIPCARD;
+  location = ChatMetadata_DmPayment_Location.FLIPCARD;
 
   /**
-   * @generated from field: flipcash.intent.v1.ChatMetadata.TipDmPayment.Action action = 2;
+   * @generated from field: flipcash.intent.v1.ChatMetadata.DmPayment.Action action = 2;
    */
-  action = ChatMetadata_TipDmPayment_Action.DEFAULT;
+  action = ChatMetadata_DmPayment_Action.DEFAULT;
 
-  constructor(data?: PartialMessage<ChatMetadata_TipDmPayment>) {
+  constructor(data?: PartialMessage<ChatMetadata_DmPayment>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.intent.v1.ChatMetadata.TipDmPayment";
+  static readonly typeName = "flipcash.intent.v1.ChatMetadata.DmPayment";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "location", kind: "enum", T: proto3.getEnumType(ChatMetadata_TipDmPayment_Location) },
-    { no: 2, name: "action", kind: "enum", T: proto3.getEnumType(ChatMetadata_TipDmPayment_Action) },
+    { no: 1, name: "location", kind: "enum", T: proto3.getEnumType(ChatMetadata_DmPayment_Location) },
+    { no: 2, name: "action", kind: "enum", T: proto3.getEnumType(ChatMetadata_DmPayment_Action) },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_TipDmPayment {
-    return new ChatMetadata_TipDmPayment().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_DmPayment {
+    return new ChatMetadata_DmPayment().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_TipDmPayment {
-    return new ChatMetadata_TipDmPayment().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_DmPayment {
+    return new ChatMetadata_DmPayment().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_TipDmPayment {
-    return new ChatMetadata_TipDmPayment().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_DmPayment {
+    return new ChatMetadata_DmPayment().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ChatMetadata_TipDmPayment | PlainMessage<ChatMetadata_TipDmPayment> | undefined, b: ChatMetadata_TipDmPayment | PlainMessage<ChatMetadata_TipDmPayment> | undefined): boolean {
-    return proto3.util.equals(ChatMetadata_TipDmPayment, a, b);
+  static equals(a: ChatMetadata_DmPayment | PlainMessage<ChatMetadata_DmPayment> | undefined, b: ChatMetadata_DmPayment | PlainMessage<ChatMetadata_DmPayment> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata_DmPayment, a, b);
   }
 }
 
 /**
  * Location in the app the payment was sent from
  *
- * @generated from enum flipcash.intent.v1.ChatMetadata.TipDmPayment.Location
+ * @generated from enum flipcash.intent.v1.ChatMetadata.DmPayment.Location
  */
-export enum ChatMetadata_TipDmPayment_Location {
+export enum ChatMetadata_DmPayment_Location {
   /**
-   * @generated from enum value: TIPCARD = 0;
+   * @generated from enum value: FLIPCARD = 0;
    */
-  TIPCARD = 0,
+  FLIPCARD = 0,
 
   /**
    * @generated from enum value: CHAT = 1;
    */
   CHAT = 1,
 }
-// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_TipDmPayment_Location)
-proto3.util.setEnumType(ChatMetadata_TipDmPayment_Location, "flipcash.intent.v1.ChatMetadata.TipDmPayment.Location", [
-  { no: 0, name: "TIPCARD" },
+// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_DmPayment_Location)
+proto3.util.setEnumType(ChatMetadata_DmPayment_Location, "flipcash.intent.v1.ChatMetadata.DmPayment.Location", [
+  { no: 0, name: "FLIPCARD" },
   { no: 1, name: "CHAT" },
 ]);
 
 /**
  * The action being performed for the payment
  *
- * @generated from enum flipcash.intent.v1.ChatMetadata.TipDmPayment.Action
+ * @generated from enum flipcash.intent.v1.ChatMetadata.DmPayment.Action
  */
-export enum ChatMetadata_TipDmPayment_Action {
+export enum ChatMetadata_DmPayment_Action {
   /**
-   * Default based on location
+   * Same as SEND: the payment is shown as "sent", not "tipped"
    *
    * @generated from enum value: DEFAULT = 0;
    */
@@ -248,8 +248,8 @@ export enum ChatMetadata_TipDmPayment_Action {
    */
   TIP = 2,
 }
-// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_TipDmPayment_Action)
-proto3.util.setEnumType(ChatMetadata_TipDmPayment_Action, "flipcash.intent.v1.ChatMetadata.TipDmPayment.Action", [
+// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_DmPayment_Action)
+proto3.util.setEnumType(ChatMetadata_DmPayment_Action, "flipcash.intent.v1.ChatMetadata.DmPayment.Action", [
   { no: 0, name: "DEFAULT" },
   { no: 1, name: "SEND" },
   { no: 2, name: "TIP" },
