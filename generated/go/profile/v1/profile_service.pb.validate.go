@@ -1294,22 +1294,22 @@ var _ interface {
 	ErrorName() string
 } = SetProfilePictureResponseValidationError{}
 
-// Validate checks the field values on UpdateTipCardRequest with the rules
+// Validate checks the field values on UpdateFlipcardRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateTipCardRequest) Validate() error {
+func (m *UpdateFlipcardRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateTipCardRequest with the rules
+// ValidateAll checks the field values on UpdateFlipcardRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateTipCardRequestMultiError, or nil if none found.
-func (m *UpdateTipCardRequest) ValidateAll() error {
+// UpdateFlipcardRequestMultiError, or nil if none found.
+func (m *UpdateFlipcardRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateTipCardRequest) validate(all bool) error {
+func (m *UpdateFlipcardRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1320,7 +1320,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 		switch v := interface{}(m.GetColor()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateTipCardRequestValidationError{
+				errors = append(errors, UpdateFlipcardRequestValidationError{
 					field:  "Color",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1328,7 +1328,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateTipCardRequestValidationError{
+				errors = append(errors, UpdateFlipcardRequestValidationError{
 					field:  "Color",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1337,7 +1337,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetColor()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateTipCardRequestValidationError{
+			return UpdateFlipcardRequestValidationError{
 				field:  "Color",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1346,7 +1346,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 	}
 
 	if m.GetAuth() == nil {
-		err := UpdateTipCardRequestValidationError{
+		err := UpdateFlipcardRequestValidationError{
 			field:  "Auth",
 			reason: "value is required",
 		}
@@ -1360,7 +1360,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateTipCardRequestValidationError{
+				errors = append(errors, UpdateFlipcardRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1368,7 +1368,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateTipCardRequestValidationError{
+				errors = append(errors, UpdateFlipcardRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1377,7 +1377,7 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateTipCardRequestValidationError{
+			return UpdateFlipcardRequestValidationError{
 				field:  "Auth",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1386,19 +1386,19 @@ func (m *UpdateTipCardRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateTipCardRequestMultiError(errors)
+		return UpdateFlipcardRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateTipCardRequestMultiError is an error wrapping multiple validation
-// errors returned by UpdateTipCardRequest.ValidateAll() if the designated
+// UpdateFlipcardRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateFlipcardRequest.ValidateAll() if the designated
 // constraints aren't met.
-type UpdateTipCardRequestMultiError []error
+type UpdateFlipcardRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateTipCardRequestMultiError) Error() string {
+func (m UpdateFlipcardRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1407,11 +1407,11 @@ func (m UpdateTipCardRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateTipCardRequestMultiError) AllErrors() []error { return m }
+func (m UpdateFlipcardRequestMultiError) AllErrors() []error { return m }
 
-// UpdateTipCardRequestValidationError is the validation error returned by
-// UpdateTipCardRequest.Validate if the designated constraints aren't met.
-type UpdateTipCardRequestValidationError struct {
+// UpdateFlipcardRequestValidationError is the validation error returned by
+// UpdateFlipcardRequest.Validate if the designated constraints aren't met.
+type UpdateFlipcardRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1419,24 +1419,24 @@ type UpdateTipCardRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateTipCardRequestValidationError) Field() string { return e.field }
+func (e UpdateFlipcardRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateTipCardRequestValidationError) Reason() string { return e.reason }
+func (e UpdateFlipcardRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateTipCardRequestValidationError) Cause() error { return e.cause }
+func (e UpdateFlipcardRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateTipCardRequestValidationError) Key() bool { return e.key }
+func (e UpdateFlipcardRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateTipCardRequestValidationError) ErrorName() string {
-	return "UpdateTipCardRequestValidationError"
+func (e UpdateFlipcardRequestValidationError) ErrorName() string {
+	return "UpdateFlipcardRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateTipCardRequestValidationError) Error() string {
+func (e UpdateFlipcardRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1448,14 +1448,14 @@ func (e UpdateTipCardRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateTipCardRequest.%s: %s%s",
+		"invalid %sUpdateFlipcardRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateTipCardRequestValidationError{}
+var _ error = UpdateFlipcardRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -1463,24 +1463,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateTipCardRequestValidationError{}
+} = UpdateFlipcardRequestValidationError{}
 
-// Validate checks the field values on UpdateTipCardResponse with the rules
+// Validate checks the field values on UpdateFlipcardResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateTipCardResponse) Validate() error {
+func (m *UpdateFlipcardResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateTipCardResponse with the rules
+// ValidateAll checks the field values on UpdateFlipcardResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateTipCardResponseMultiError, or nil if none found.
-func (m *UpdateTipCardResponse) ValidateAll() error {
+// UpdateFlipcardResponseMultiError, or nil if none found.
+func (m *UpdateFlipcardResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateTipCardResponse) validate(all bool) error {
+func (m *UpdateFlipcardResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1490,19 +1490,19 @@ func (m *UpdateTipCardResponse) validate(all bool) error {
 	// no validation rules for Result
 
 	if len(errors) > 0 {
-		return UpdateTipCardResponseMultiError(errors)
+		return UpdateFlipcardResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateTipCardResponseMultiError is an error wrapping multiple validation
-// errors returned by UpdateTipCardResponse.ValidateAll() if the designated
+// UpdateFlipcardResponseMultiError is an error wrapping multiple validation
+// errors returned by UpdateFlipcardResponse.ValidateAll() if the designated
 // constraints aren't met.
-type UpdateTipCardResponseMultiError []error
+type UpdateFlipcardResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateTipCardResponseMultiError) Error() string {
+func (m UpdateFlipcardResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1511,11 +1511,11 @@ func (m UpdateTipCardResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateTipCardResponseMultiError) AllErrors() []error { return m }
+func (m UpdateFlipcardResponseMultiError) AllErrors() []error { return m }
 
-// UpdateTipCardResponseValidationError is the validation error returned by
-// UpdateTipCardResponse.Validate if the designated constraints aren't met.
-type UpdateTipCardResponseValidationError struct {
+// UpdateFlipcardResponseValidationError is the validation error returned by
+// UpdateFlipcardResponse.Validate if the designated constraints aren't met.
+type UpdateFlipcardResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1523,24 +1523,24 @@ type UpdateTipCardResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateTipCardResponseValidationError) Field() string { return e.field }
+func (e UpdateFlipcardResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateTipCardResponseValidationError) Reason() string { return e.reason }
+func (e UpdateFlipcardResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateTipCardResponseValidationError) Cause() error { return e.cause }
+func (e UpdateFlipcardResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateTipCardResponseValidationError) Key() bool { return e.key }
+func (e UpdateFlipcardResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateTipCardResponseValidationError) ErrorName() string {
-	return "UpdateTipCardResponseValidationError"
+func (e UpdateFlipcardResponseValidationError) ErrorName() string {
+	return "UpdateFlipcardResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateTipCardResponseValidationError) Error() string {
+func (e UpdateFlipcardResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1552,14 +1552,14 @@ func (e UpdateTipCardResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateTipCardResponse.%s: %s%s",
+		"invalid %sUpdateFlipcardResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateTipCardResponseValidationError{}
+var _ error = UpdateFlipcardResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1567,7 +1567,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateTipCardResponseValidationError{}
+} = UpdateFlipcardResponseValidationError{}
 
 // Validate checks the field values on SetMinDmChatInitFeeRequest with the
 // rules defined in the proto definition for this message. If any rules are

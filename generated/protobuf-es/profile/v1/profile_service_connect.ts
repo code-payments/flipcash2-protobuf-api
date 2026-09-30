@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateTipCardRequest, UpdateTipCardResponse } from "./profile_service_pb";
+import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateFlipcardRequest, UpdateFlipcardResponse } from "./profile_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -60,15 +60,15 @@ export const Profile = {
       kind: MethodKind.Unary,
     },
     /**
-     * UpdateTipCard updates the caller's Tip Card customization. Every field is
+     * UpdateFlipcard updates the caller's Flipcard customization. Every field is
      * optional; only the ones set in the request are changed.
      *
-     * @generated from rpc flipcash.profile.v1.Profile.UpdateTipCard
+     * @generated from rpc flipcash.profile.v1.Profile.UpdateFlipcard
      */
-    updateTipCard: {
-      name: "UpdateTipCard",
-      I: UpdateTipCardRequest,
-      O: UpdateTipCardResponse,
+    updateFlipcard: {
+      name: "UpdateFlipcard",
+      I: UpdateFlipcardRequest,
+      O: UpdateFlipcardResponse,
       kind: MethodKind.Unary,
     },
     /**

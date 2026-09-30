@@ -567,11 +567,13 @@ export class UserFlags extends Message<UserFlags> {
   requireCoinbaseEmailVerification = false;
 
   /**
-   * Tip presets for all currencies
+   * Payment amount presets for all currencies. minimum is the least a payment
+   * that opens a DM may be when the recipient has set no min_dm_chat_init_fee,
+   * and the least such a fee may be; low, medium and high are one-tap amounts.
    *
-   * @generated from field: repeated flipcash.account.v1.TipPresets tip_presets = 15;
+   * @generated from field: repeated flipcash.account.v1.SendPresets send_presets = 15;
    */
-  tipPresets: TipPresets[] = [];
+  sendPresets: SendPresets[] = [];
 
   /**
    * USDF amount, in quarks, that must be held across all currencies in order to set a username
@@ -616,7 +618,7 @@ export class UserFlags extends Message<UserFlags> {
     { no: 12, name: "enable_phone_number_send", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 13, name: "minimum_holder_value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 14, name: "require_coinbase_email_verification", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 15, name: "tip_presets", kind: "message", T: TipPresets, repeated: true },
+    { no: 15, name: "send_presets", kind: "message", T: SendPresets, repeated: true },
     { no: 16, name: "username_min_balance", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 17, name: "message_edit_window", kind: "message", T: Duration },
     { no: 18, name: "message_delete_window", kind: "message", T: Duration },
@@ -728,9 +730,9 @@ proto3.util.setEnumType(UserFlags_UsdcLiquidityPool, "flipcash.account.v1.UserFl
 ]);
 
 /**
- * @generated from message flipcash.account.v1.TipPresets
+ * @generated from message flipcash.account.v1.SendPresets
  */
-export class TipPresets extends Message<TipPresets> {
+export class SendPresets extends Message<SendPresets> {
   /**
    * @generated from field: flipcash.common.v1.Region region = 1;
    */
@@ -756,13 +758,13 @@ export class TipPresets extends Message<TipPresets> {
    */
   high = 0;
 
-  constructor(data?: PartialMessage<TipPresets>) {
+  constructor(data?: PartialMessage<SendPresets>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.account.v1.TipPresets";
+  static readonly typeName = "flipcash.account.v1.SendPresets";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "region", kind: "message", T: Region },
     { no: 2, name: "minimum", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
@@ -771,20 +773,20 @@ export class TipPresets extends Message<TipPresets> {
     { no: 5, name: "high", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TipPresets {
-    return new TipPresets().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SendPresets {
+    return new SendPresets().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TipPresets {
-    return new TipPresets().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SendPresets {
+    return new SendPresets().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TipPresets {
-    return new TipPresets().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SendPresets {
+    return new SendPresets().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TipPresets | PlainMessage<TipPresets> | undefined, b: TipPresets | PlainMessage<TipPresets> | undefined): boolean {
-    return proto3.util.equals(TipPresets, a, b);
+  static equals(a: SendPresets | PlainMessage<SendPresets> | undefined, b: SendPresets | PlainMessage<SendPresets> | undefined): boolean {
+    return proto3.util.equals(SendPresets, a, b);
   }
 }
 

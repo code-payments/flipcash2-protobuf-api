@@ -280,9 +280,9 @@ func (m *UserProfile) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if m.GetTipCardCustomization() == nil {
+	if m.GetFlipcardCustomization() == nil {
 		err := UserProfileValidationError{
-			field:  "TipCardCustomization",
+			field:  "FlipcardCustomization",
 			reason: "value is required",
 		}
 		if !all {
@@ -292,11 +292,11 @@ func (m *UserProfile) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetTipCardCustomization()).(type) {
+		switch v := interface{}(m.GetFlipcardCustomization()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, UserProfileValidationError{
-					field:  "TipCardCustomization",
+					field:  "FlipcardCustomization",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -304,16 +304,16 @@ func (m *UserProfile) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, UserProfileValidationError{
-					field:  "TipCardCustomization",
+					field:  "FlipcardCustomization",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetTipCardCustomization()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetFlipcardCustomization()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return UserProfileValidationError{
-				field:  "TipCardCustomization",
+				field:  "FlipcardCustomization",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -742,22 +742,22 @@ var _ interface {
 	ErrorName() string
 } = XProfileValidationError{}
 
-// Validate checks the field values on TipCardCustomization with the rules
+// Validate checks the field values on FlipcardCustomization with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *TipCardCustomization) Validate() error {
+func (m *FlipcardCustomization) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TipCardCustomization with the rules
+// ValidateAll checks the field values on FlipcardCustomization with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// TipCardCustomizationMultiError, or nil if none found.
-func (m *TipCardCustomization) ValidateAll() error {
+// FlipcardCustomizationMultiError, or nil if none found.
+func (m *FlipcardCustomization) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TipCardCustomization) validate(all bool) error {
+func (m *FlipcardCustomization) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -765,7 +765,7 @@ func (m *TipCardCustomization) validate(all bool) error {
 	var errors []error
 
 	if m.GetColor() == nil {
-		err := TipCardCustomizationValidationError{
+		err := FlipcardCustomizationValidationError{
 			field:  "Color",
 			reason: "value is required",
 		}
@@ -779,7 +779,7 @@ func (m *TipCardCustomization) validate(all bool) error {
 		switch v := interface{}(m.GetColor()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, TipCardCustomizationValidationError{
+				errors = append(errors, FlipcardCustomizationValidationError{
 					field:  "Color",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -787,7 +787,7 @@ func (m *TipCardCustomization) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, TipCardCustomizationValidationError{
+				errors = append(errors, FlipcardCustomizationValidationError{
 					field:  "Color",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -796,7 +796,7 @@ func (m *TipCardCustomization) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetColor()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return TipCardCustomizationValidationError{
+			return FlipcardCustomizationValidationError{
 				field:  "Color",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -805,19 +805,19 @@ func (m *TipCardCustomization) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return TipCardCustomizationMultiError(errors)
+		return FlipcardCustomizationMultiError(errors)
 	}
 
 	return nil
 }
 
-// TipCardCustomizationMultiError is an error wrapping multiple validation
-// errors returned by TipCardCustomization.ValidateAll() if the designated
+// FlipcardCustomizationMultiError is an error wrapping multiple validation
+// errors returned by FlipcardCustomization.ValidateAll() if the designated
 // constraints aren't met.
-type TipCardCustomizationMultiError []error
+type FlipcardCustomizationMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TipCardCustomizationMultiError) Error() string {
+func (m FlipcardCustomizationMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -826,11 +826,11 @@ func (m TipCardCustomizationMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TipCardCustomizationMultiError) AllErrors() []error { return m }
+func (m FlipcardCustomizationMultiError) AllErrors() []error { return m }
 
-// TipCardCustomizationValidationError is the validation error returned by
-// TipCardCustomization.Validate if the designated constraints aren't met.
-type TipCardCustomizationValidationError struct {
+// FlipcardCustomizationValidationError is the validation error returned by
+// FlipcardCustomization.Validate if the designated constraints aren't met.
+type FlipcardCustomizationValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -838,24 +838,24 @@ type TipCardCustomizationValidationError struct {
 }
 
 // Field function returns field value.
-func (e TipCardCustomizationValidationError) Field() string { return e.field }
+func (e FlipcardCustomizationValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TipCardCustomizationValidationError) Reason() string { return e.reason }
+func (e FlipcardCustomizationValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TipCardCustomizationValidationError) Cause() error { return e.cause }
+func (e FlipcardCustomizationValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TipCardCustomizationValidationError) Key() bool { return e.key }
+func (e FlipcardCustomizationValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TipCardCustomizationValidationError) ErrorName() string {
-	return "TipCardCustomizationValidationError"
+func (e FlipcardCustomizationValidationError) ErrorName() string {
+	return "FlipcardCustomizationValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e TipCardCustomizationValidationError) Error() string {
+func (e FlipcardCustomizationValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -867,14 +867,14 @@ func (e TipCardCustomizationValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTipCardCustomization.%s: %s%s",
+		"invalid %sFlipcardCustomization.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TipCardCustomizationValidationError{}
+var _ error = FlipcardCustomizationValidationError{}
 
 var _ interface {
 	Field() string
@@ -882,4 +882,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TipCardCustomizationValidationError{}
+} = FlipcardCustomizationValidationError{}

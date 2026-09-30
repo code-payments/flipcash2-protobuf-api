@@ -23,7 +23,7 @@ const (
 	Profile_SetDisplayName_FullMethodName      = "/flipcash.profile.v1.Profile/SetDisplayName"
 	Profile_SetUsername_FullMethodName         = "/flipcash.profile.v1.Profile/SetUsername"
 	Profile_SetProfilePicture_FullMethodName   = "/flipcash.profile.v1.Profile/SetProfilePicture"
-	Profile_UpdateTipCard_FullMethodName       = "/flipcash.profile.v1.Profile/UpdateTipCard"
+	Profile_UpdateFlipcard_FullMethodName      = "/flipcash.profile.v1.Profile/UpdateFlipcard"
 	Profile_SetMinDmChatInitFee_FullMethodName = "/flipcash.profile.v1.Profile/SetMinDmChatInitFee"
 	Profile_LinkSocialAccount_FullMethodName   = "/flipcash.profile.v1.Profile/LinkSocialAccount"
 	Profile_UnlinkSocialAccount_FullMethodName = "/flipcash.profile.v1.Profile/UnlinkSocialAccount"
@@ -46,9 +46,9 @@ type ProfileClient interface {
 	// resulting BlobId here once the blob is READY. The server derives the
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	SetProfilePicture(ctx context.Context, in *SetProfilePictureRequest, opts ...grpc.CallOption) (*SetProfilePictureResponse, error)
-	// UpdateTipCard updates the caller's Tip Card customization. Every field is
+	// UpdateFlipcard updates the caller's Flipcard customization. Every field is
 	// optional; only the ones set in the request are changed.
-	UpdateTipCard(ctx context.Context, in *UpdateTipCardRequest, opts ...grpc.CallOption) (*UpdateTipCardResponse, error)
+	UpdateFlipcard(ctx context.Context, in *UpdateFlipcardRequest, opts ...grpc.CallOption) (*UpdateFlipcardResponse, error)
 	// SetMinDmChatInitFee sets the minimum fee another user must pay to
 	// initialize a DM chat with the caller, replacing any fee already set.
 	SetMinDmChatInitFee(ctx context.Context, in *SetMinDmChatInitFeeRequest, opts ...grpc.CallOption) (*SetMinDmChatInitFeeResponse, error)
@@ -106,10 +106,10 @@ func (c *profileClient) SetProfilePicture(ctx context.Context, in *SetProfilePic
 	return out, nil
 }
 
-func (c *profileClient) UpdateTipCard(ctx context.Context, in *UpdateTipCardRequest, opts ...grpc.CallOption) (*UpdateTipCardResponse, error) {
+func (c *profileClient) UpdateFlipcard(ctx context.Context, in *UpdateFlipcardRequest, opts ...grpc.CallOption) (*UpdateFlipcardResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateTipCardResponse)
-	err := c.cc.Invoke(ctx, Profile_UpdateTipCard_FullMethodName, in, out, cOpts...)
+	out := new(UpdateFlipcardResponse)
+	err := c.cc.Invoke(ctx, Profile_UpdateFlipcard_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -163,9 +163,9 @@ type ProfileServer interface {
 	// resulting BlobId here once the blob is READY. The server derives the
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error)
-	// UpdateTipCard updates the caller's Tip Card customization. Every field is
+	// UpdateFlipcard updates the caller's Flipcard customization. Every field is
 	// optional; only the ones set in the request are changed.
-	UpdateTipCard(context.Context, *UpdateTipCardRequest) (*UpdateTipCardResponse, error)
+	UpdateFlipcard(context.Context, *UpdateFlipcardRequest) (*UpdateFlipcardResponse, error)
 	// SetMinDmChatInitFee sets the minimum fee another user must pay to
 	// initialize a DM chat with the caller, replacing any fee already set.
 	SetMinDmChatInitFee(context.Context, *SetMinDmChatInitFeeRequest) (*SetMinDmChatInitFeeResponse, error)
@@ -195,8 +195,8 @@ func (UnimplementedProfileServer) SetUsername(context.Context, *SetUsernameReque
 func (UnimplementedProfileServer) SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetProfilePicture not implemented")
 }
-func (UnimplementedProfileServer) UpdateTipCard(context.Context, *UpdateTipCardRequest) (*UpdateTipCardResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateTipCard not implemented")
+func (UnimplementedProfileServer) UpdateFlipcard(context.Context, *UpdateFlipcardRequest) (*UpdateFlipcardResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateFlipcard not implemented")
 }
 func (UnimplementedProfileServer) SetMinDmChatInitFee(context.Context, *SetMinDmChatInitFeeRequest) (*SetMinDmChatInitFeeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetMinDmChatInitFee not implemented")
@@ -300,20 +300,20 @@ func _Profile_SetProfilePicture_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Profile_UpdateTipCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateTipCardRequest)
+func _Profile_UpdateFlipcard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFlipcardRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProfileServer).UpdateTipCard(ctx, in)
+		return srv.(ProfileServer).UpdateFlipcard(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Profile_UpdateTipCard_FullMethodName,
+		FullMethod: Profile_UpdateFlipcard_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfileServer).UpdateTipCard(ctx, req.(*UpdateTipCardRequest))
+		return srv.(ProfileServer).UpdateFlipcard(ctx, req.(*UpdateFlipcardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -396,8 +396,8 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Profile_SetProfilePicture_Handler,
 		},
 		{
-			MethodName: "UpdateTipCard",
-			Handler:    _Profile_UpdateTipCard_Handler,
+			MethodName: "UpdateFlipcard",
+			Handler:    _Profile_UpdateFlipcard_Handler,
 		},
 		{
 			MethodName: "SetMinDmChatInitFee",

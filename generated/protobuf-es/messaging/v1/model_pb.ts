@@ -514,7 +514,7 @@ export class CashContent extends Message$1<CashContent> {
 }
 
 /**
- * Verb for how the cash was sent. Clietns should always show SENT as a
+ * Verb for how the cash was sent. Clients should always show SENT as a
  * fallback.
  *
  * @generated from enum flipcash.messaging.v1.CashContent.Verb

@@ -1335,7 +1335,7 @@ func (m *UserFlags) validate(all bool) error {
 
 	// no validation rules for RequireCoinbaseEmailVerification
 
-	for idx, item := range m.GetTipPresets() {
+	for idx, item := range m.GetSendPresets() {
 		_, _ = idx, item
 
 		if all {
@@ -1343,7 +1343,7 @@ func (m *UserFlags) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, UserFlagsValidationError{
-						field:  fmt.Sprintf("TipPresets[%v]", idx),
+						field:  fmt.Sprintf("SendPresets[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1351,7 +1351,7 @@ func (m *UserFlags) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, UserFlagsValidationError{
-						field:  fmt.Sprintf("TipPresets[%v]", idx),
+						field:  fmt.Sprintf("SendPresets[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1360,7 +1360,7 @@ func (m *UserFlags) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return UserFlagsValidationError{
-					field:  fmt.Sprintf("TipPresets[%v]", idx),
+					field:  fmt.Sprintf("SendPresets[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1506,22 +1506,22 @@ var _ interface {
 	ErrorName() string
 } = UserFlagsValidationError{}
 
-// Validate checks the field values on TipPresets with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
+// Validate checks the field values on SendPresets with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *TipPresets) Validate() error {
+func (m *SendPresets) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TipPresets with the rules defined in
+// ValidateAll checks the field values on SendPresets with the rules defined in
 // the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TipPresetsMultiError, or
+// result is a list of violation errors wrapped in SendPresetsMultiError, or
 // nil if none found.
-func (m *TipPresets) ValidateAll() error {
+func (m *SendPresets) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TipPresets) validate(all bool) error {
+func (m *SendPresets) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1529,7 +1529,7 @@ func (m *TipPresets) validate(all bool) error {
 	var errors []error
 
 	if m.GetRegion() == nil {
-		err := TipPresetsValidationError{
+		err := SendPresetsValidationError{
 			field:  "Region",
 			reason: "value is required",
 		}
@@ -1543,7 +1543,7 @@ func (m *TipPresets) validate(all bool) error {
 		switch v := interface{}(m.GetRegion()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, TipPresetsValidationError{
+				errors = append(errors, SendPresetsValidationError{
 					field:  "Region",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1551,7 +1551,7 @@ func (m *TipPresets) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, TipPresetsValidationError{
+				errors = append(errors, SendPresetsValidationError{
 					field:  "Region",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1560,7 +1560,7 @@ func (m *TipPresets) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetRegion()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return TipPresetsValidationError{
+			return SendPresetsValidationError{
 				field:  "Region",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1577,18 +1577,18 @@ func (m *TipPresets) validate(all bool) error {
 	// no validation rules for High
 
 	if len(errors) > 0 {
-		return TipPresetsMultiError(errors)
+		return SendPresetsMultiError(errors)
 	}
 
 	return nil
 }
 
-// TipPresetsMultiError is an error wrapping multiple validation errors
-// returned by TipPresets.ValidateAll() if the designated constraints aren't met.
-type TipPresetsMultiError []error
+// SendPresetsMultiError is an error wrapping multiple validation errors
+// returned by SendPresets.ValidateAll() if the designated constraints aren't met.
+type SendPresetsMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TipPresetsMultiError) Error() string {
+func (m SendPresetsMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1597,11 +1597,11 @@ func (m TipPresetsMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TipPresetsMultiError) AllErrors() []error { return m }
+func (m SendPresetsMultiError) AllErrors() []error { return m }
 
-// TipPresetsValidationError is the validation error returned by
-// TipPresets.Validate if the designated constraints aren't met.
-type TipPresetsValidationError struct {
+// SendPresetsValidationError is the validation error returned by
+// SendPresets.Validate if the designated constraints aren't met.
+type SendPresetsValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1609,22 +1609,22 @@ type TipPresetsValidationError struct {
 }
 
 // Field function returns field value.
-func (e TipPresetsValidationError) Field() string { return e.field }
+func (e SendPresetsValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TipPresetsValidationError) Reason() string { return e.reason }
+func (e SendPresetsValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TipPresetsValidationError) Cause() error { return e.cause }
+func (e SendPresetsValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TipPresetsValidationError) Key() bool { return e.key }
+func (e SendPresetsValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TipPresetsValidationError) ErrorName() string { return "TipPresetsValidationError" }
+func (e SendPresetsValidationError) ErrorName() string { return "SendPresetsValidationError" }
 
 // Error satisfies the builtin error interface
-func (e TipPresetsValidationError) Error() string {
+func (e SendPresetsValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1636,14 +1636,14 @@ func (e TipPresetsValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTipPresets.%s: %s%s",
+		"invalid %sSendPresets.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TipPresetsValidationError{}
+var _ error = SendPresetsValidationError{}
 
 var _ interface {
 	Field() string
@@ -1651,4 +1651,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TipPresetsValidationError{}
+} = SendPresetsValidationError{}

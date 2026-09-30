@@ -110,7 +110,7 @@ func (ViewMode) EnumDescriptor() ([]byte, []int) {
 	return file_messaging_v1_model_proto_rawDescGZIP(), []int{0}
 }
 
-// Verb for how the cash was sent. Clietns should always show SENT as a
+// Verb for how the cash was sent. Clients should always show SENT as a
 // fallback.
 type CashContent_Verb int32
 

@@ -167,8 +167,10 @@ message UserFlags {
 	// Whether email verification is required for Coinbase purchase flows
 	bool require_coinbase_email_verification = 14;
 
-	// Tip presets for all currencies
-	repeated TipPresets tip_presets = 15;
+	// Payment amount presets for all currencies. minimum is the least a payment
+	// that opens a DM may be when the recipient has set no min_dm_chat_init_fee,
+	// and the least such a fee may be; low, medium and high are one-tap amounts.
+	repeated SendPresets send_presets = 15;
 
 	// USDF amount, in quarks, that must be held across all currencies in order to set a username
 	uint64 username_min_balance = 16;
@@ -180,7 +182,7 @@ message UserFlags {
 	google.protobuf.Duration message_delete_window = 18;
 }
 
-message TipPresets {
+message SendPresets {
     common.v1.Region region = 1 [(validate.rules).message.required = true];
 
     double minimum = 2;

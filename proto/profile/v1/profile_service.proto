@@ -30,9 +30,9 @@ service Profile {
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	rpc SetProfilePicture(SetProfilePictureRequest) returns (SetProfilePictureResponse);
 
-	// UpdateTipCard updates the caller's Tip Card customization. Every field is
+	// UpdateFlipcard updates the caller's Flipcard customization. Every field is
 	// optional; only the ones set in the request are changed.
-	rpc UpdateTipCard(UpdateTipCardRequest) returns (UpdateTipCardResponse);
+	rpc UpdateFlipcard(UpdateFlipcardRequest) returns (UpdateFlipcardResponse);
 
 	// SetMinDmChatInitFee sets the minimum fee another user must pay to
 	// initialize a DM chat with the caller, replacing any fee already set.
@@ -154,14 +154,14 @@ message SetProfilePictureResponse {
 	blob.v1.Media profile_picture = 2;
 }
 
-message UpdateTipCardRequest {
-	// The new colour of the Tip Card. Left unchanged when unset.
+message UpdateFlipcardRequest {
+	// The new colour of the Flipcard. Left unchanged when unset.
 	common.v1.Color color = 1;
 
 	common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }
 
-message UpdateTipCardResponse {
+message UpdateFlipcardResponse {
 	Result result = 1;
 	enum Result {
 		OK            = 0;
