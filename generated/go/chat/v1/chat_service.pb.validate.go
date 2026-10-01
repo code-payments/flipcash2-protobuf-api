@@ -1486,6 +1486,339 @@ var _ interface {
 	ErrorName() string
 } = GetRosterResponseValidationError{}
 
+// Validate checks the field values on GetMentionSuggestionsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetMentionSuggestionsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetMentionSuggestionsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetMentionSuggestionsRequestMultiError, or nil if none found.
+func (m *GetMentionSuggestionsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetMentionSuggestionsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetMentionSuggestionsRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetMentionSuggestionsRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetMentionSuggestionsRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetMentionSuggestionsRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := GetMentionSuggestionsRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetMentionSuggestionsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetMentionSuggestionsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetMentionSuggestionsRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetMentionSuggestionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetMentionSuggestionsRequestMultiError is an error wrapping multiple
+// validation errors returned by GetMentionSuggestionsRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetMentionSuggestionsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetMentionSuggestionsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetMentionSuggestionsRequestMultiError) AllErrors() []error { return m }
+
+// GetMentionSuggestionsRequestValidationError is the validation error returned
+// by GetMentionSuggestionsRequest.Validate if the designated constraints
+// aren't met.
+type GetMentionSuggestionsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetMentionSuggestionsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetMentionSuggestionsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetMentionSuggestionsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetMentionSuggestionsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetMentionSuggestionsRequestValidationError) ErrorName() string {
+	return "GetMentionSuggestionsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetMentionSuggestionsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetMentionSuggestionsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetMentionSuggestionsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetMentionSuggestionsRequestValidationError{}
+
+// Validate checks the field values on GetMentionSuggestionsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetMentionSuggestionsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetMentionSuggestionsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetMentionSuggestionsResponseMultiError, or nil if none found.
+func (m *GetMentionSuggestionsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetMentionSuggestionsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetSuggestions()) > 200 {
+		err := GetMentionSuggestionsResponseValidationError{
+			field:  "Suggestions",
+			reason: "value must contain no more than 200 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetSuggestions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetMentionSuggestionsResponseValidationError{
+						field:  fmt.Sprintf("Suggestions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetMentionSuggestionsResponseValidationError{
+						field:  fmt.Sprintf("Suggestions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetMentionSuggestionsResponseValidationError{
+					field:  fmt.Sprintf("Suggestions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetMentionSuggestionsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetMentionSuggestionsResponseMultiError is an error wrapping multiple
+// validation errors returned by GetMentionSuggestionsResponse.ValidateAll()
+// if the designated constraints aren't met.
+type GetMentionSuggestionsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetMentionSuggestionsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetMentionSuggestionsResponseMultiError) AllErrors() []error { return m }
+
+// GetMentionSuggestionsResponseValidationError is the validation error
+// returned by GetMentionSuggestionsResponse.Validate if the designated
+// constraints aren't met.
+type GetMentionSuggestionsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetMentionSuggestionsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetMentionSuggestionsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetMentionSuggestionsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetMentionSuggestionsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetMentionSuggestionsResponseValidationError) ErrorName() string {
+	return "GetMentionSuggestionsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetMentionSuggestionsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetMentionSuggestionsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetMentionSuggestionsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetMentionSuggestionsResponseValidationError{}
+
 // Validate checks the field values on StartChatRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

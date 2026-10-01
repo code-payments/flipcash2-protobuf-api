@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, Member, Metadata, MuteState, RosterSummary, Rules, ViewerState } from "./model_pb";
+import { ChatType, IdempotencyKey, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -606,6 +606,121 @@ export enum GetRosterResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetRosterResponse_Result)
 proto3.util.setEnumType(GetRosterResponse_Result, "flipcash.chat.v1.GetRosterResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetMentionSuggestionsRequest
+ */
+export class GetMentionSuggestionsRequest extends Message<GetMentionSuggestionsRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetMentionSuggestionsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetMentionSuggestionsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMentionSuggestionsRequest {
+    return new GetMentionSuggestionsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetMentionSuggestionsRequest {
+    return new GetMentionSuggestionsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetMentionSuggestionsRequest {
+    return new GetMentionSuggestionsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetMentionSuggestionsRequest | PlainMessage<GetMentionSuggestionsRequest> | undefined, b: GetMentionSuggestionsRequest | PlainMessage<GetMentionSuggestionsRequest> | undefined): boolean {
+    return proto3.util.equals(GetMentionSuggestionsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetMentionSuggestionsResponse
+ */
+export class GetMentionSuggestionsResponse extends Message<GetMentionSuggestionsResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetMentionSuggestionsResponse.Result result = 1;
+   */
+  result = GetMentionSuggestionsResponse_Result.OK;
+
+  /**
+   * The suggestions, most relevant first, as many as the server chooses.
+   * Set when result is OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.MentionSuggestion suggestions = 2;
+   */
+  suggestions: MentionSuggestion[] = [];
+
+  constructor(data?: PartialMessage<GetMentionSuggestionsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetMentionSuggestionsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetMentionSuggestionsResponse_Result) },
+    { no: 2, name: "suggestions", kind: "message", T: MentionSuggestion, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMentionSuggestionsResponse {
+    return new GetMentionSuggestionsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetMentionSuggestionsResponse {
+    return new GetMentionSuggestionsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetMentionSuggestionsResponse {
+    return new GetMentionSuggestionsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetMentionSuggestionsResponse | PlainMessage<GetMentionSuggestionsResponse> | undefined, b: GetMentionSuggestionsResponse | PlainMessage<GetMentionSuggestionsResponse> | undefined): boolean {
+    return proto3.util.equals(GetMentionSuggestionsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetMentionSuggestionsResponse.Result
+ */
+export enum GetMentionSuggestionsResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetMentionSuggestionsResponse_Result)
+proto3.util.setEnumType(GetMentionSuggestionsResponse_Result, "flipcash.chat.v1.GetMentionSuggestionsResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

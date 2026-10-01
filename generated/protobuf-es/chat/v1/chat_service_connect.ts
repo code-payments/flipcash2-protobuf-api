@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { EditChatRequest, EditChatResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { EditChatRequest, EditChatResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -128,6 +128,34 @@ export const Chat = {
       name: "GetRoster",
       I: GetRosterRequest,
       O: GetRosterResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetMentionSuggestions returns people the caller may want to @mention in
+     * a group chat, ranked by the server, most relevant first. Today that is
+     * the group's most recent senders, most recent first, including people
+     * who have since left the group.
+     *
+     * The response is a ranked pool of suggestions, not the set of people who
+     * may be mentioned, and it is neither complete nor paged. The server
+     * decides how many to return, up to 200; the client filters the whole
+     * pool locally as the user types, however few rows it displays, and keeps
+     * it fresh from the event stream by moving the sender of each new message
+     * to the front. It fetches the pool once per composing session. The
+     * ranking and the pool's size may change without notice; clients must
+     * not depend on either beyond the order given.
+     *
+     * The caller, users the caller has blocked or who have blocked the caller,
+     * and users without a username are never suggested.
+     *
+     * Requires that the caller may speak in the chat. A DM is DENIED.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetMentionSuggestions
+     */
+    getMentionSuggestions: {
+      name: "GetMentionSuggestions",
+      I: GetMentionSuggestionsRequest,
+      O: GetMentionSuggestionsResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -1848,6 +1848,177 @@ var _ interface {
 	ErrorName() string
 } = MemberValidationError{}
 
+// Validate checks the field values on MentionSuggestion with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MentionSuggestion) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MentionSuggestion with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MentionSuggestionMultiError, or nil if none found.
+func (m *MentionSuggestion) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MentionSuggestion) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetUserProfile() == nil {
+		err := MentionSuggestionValidationError{
+			field:  "UserProfile",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUserProfile()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MentionSuggestionValidationError{
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MentionSuggestionValidationError{
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserProfile()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MentionSuggestionValidationError{
+				field:  "UserProfile",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetLastSentAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MentionSuggestionValidationError{
+					field:  "LastSentAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MentionSuggestionValidationError{
+					field:  "LastSentAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastSentAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MentionSuggestionValidationError{
+				field:  "LastSentAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return MentionSuggestionMultiError(errors)
+	}
+
+	return nil
+}
+
+// MentionSuggestionMultiError is an error wrapping multiple validation errors
+// returned by MentionSuggestion.ValidateAll() if the designated constraints
+// aren't met.
+type MentionSuggestionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MentionSuggestionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MentionSuggestionMultiError) AllErrors() []error { return m }
+
+// MentionSuggestionValidationError is the validation error returned by
+// MentionSuggestion.Validate if the designated constraints aren't met.
+type MentionSuggestionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MentionSuggestionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MentionSuggestionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MentionSuggestionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MentionSuggestionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MentionSuggestionValidationError) ErrorName() string {
+	return "MentionSuggestionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MentionSuggestionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMentionSuggestion.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MentionSuggestionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MentionSuggestionValidationError{}
+
 // Validate checks the field values on RosterSummary with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

@@ -635,6 +635,61 @@ export class Member extends Message<Member> {
 }
 
 /**
+ * MentionSuggestion is one person the caller may want to @mention in a chat,
+ * as returned by Chat.GetMentionSuggestions. It is not a Member: a suggestion
+ * may name someone who has since left the chat.
+ *
+ * @generated from message flipcash.chat.v1.MentionSuggestion
+ */
+export class MentionSuggestion extends Message<MentionSuggestion> {
+  /**
+   * The suggested user's public profile. user_id and username are always
+   * set.
+   *
+   * @generated from field: flipcash.profile.v1.UserProfile user_profile = 1;
+   */
+  userProfile?: UserProfile;
+
+  /**
+   * When the user last sent a message in this chat, as the server records
+   * it: it may trail their latest message by up to a minute. A client
+   * merging new messages from the event stream into its list compares
+   * against it. Unset for a user suggested for another reason.
+   *
+   * @generated from field: google.protobuf.Timestamp last_sent_at = 2;
+   */
+  lastSentAt?: Timestamp;
+
+  constructor(data?: PartialMessage<MentionSuggestion>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MentionSuggestion";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_profile", kind: "message", T: UserProfile },
+    { no: 2, name: "last_sent_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MentionSuggestion {
+    return new MentionSuggestion().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MentionSuggestion {
+    return new MentionSuggestion().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MentionSuggestion {
+    return new MentionSuggestion().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MentionSuggestion | PlainMessage<MentionSuggestion> | undefined, b: MentionSuggestion | PlainMessage<MentionSuggestion> | undefined): boolean {
+    return proto3.util.equals(MentionSuggestion, a, b);
+  }
+}
+
+/**
  * RosterSummary describes a chat's roster — its member list — without
  * containing it: what a client needs in order to know whether its copy of
  * that list is stale, without holding the list.
