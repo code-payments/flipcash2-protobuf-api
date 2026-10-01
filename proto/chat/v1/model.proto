@@ -215,6 +215,21 @@ message Member {
     uint64 version = 5;
 }
 
+// MentionSuggestion is one person the caller may want to @mention in a chat,
+// as returned by Chat.GetMentionSuggestions. It is not a Member: a suggestion
+// may name someone who has since left the chat.
+message MentionSuggestion {
+    // The suggested user's public profile. user_id and username are always
+    // set.
+    profile.v1.UserProfile user_profile = 1 [(validate.rules).message.required = true];
+
+    // When the user last sent a message in this chat, as the server records
+    // it: it may trail their latest message by up to a minute. A client
+    // merging new messages from the event stream into its list compares
+    // against it. Unset for a user suggested for another reason.
+    google.protobuf.Timestamp last_sent_at = 2;
+}
+
 // RosterSummary describes a chat's roster — its member list — without
 // containing it: what a client needs in order to know whether its copy of
 // that list is stale, without holding the list.

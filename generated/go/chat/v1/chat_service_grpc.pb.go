@@ -19,16 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Chat_GetChat_FullMethodName          = "/flipcash.chat.v1.Chat/GetChat"
-	Chat_GetDmChatFeed_FullMethodName    = "/flipcash.chat.v1.Chat/GetDmChatFeed"
-	Chat_GetGroupChatFeed_FullMethodName = "/flipcash.chat.v1.Chat/GetGroupChatFeed"
-	Chat_GetRoster_FullMethodName        = "/flipcash.chat.v1.Chat/GetRoster"
-	Chat_StartChat_FullMethodName        = "/flipcash.chat.v1.Chat/StartChat"
-	Chat_JoinChat_FullMethodName         = "/flipcash.chat.v1.Chat/JoinChat"
-	Chat_LeaveChat_FullMethodName        = "/flipcash.chat.v1.Chat/LeaveChat"
-	Chat_EditChat_FullMethodName         = "/flipcash.chat.v1.Chat/EditChat"
-	Chat_MuteChat_FullMethodName         = "/flipcash.chat.v1.Chat/MuteChat"
-	Chat_UnmuteChat_FullMethodName       = "/flipcash.chat.v1.Chat/UnmuteChat"
+	Chat_GetChat_FullMethodName               = "/flipcash.chat.v1.Chat/GetChat"
+	Chat_GetDmChatFeed_FullMethodName         = "/flipcash.chat.v1.Chat/GetDmChatFeed"
+	Chat_GetGroupChatFeed_FullMethodName      = "/flipcash.chat.v1.Chat/GetGroupChatFeed"
+	Chat_GetRoster_FullMethodName             = "/flipcash.chat.v1.Chat/GetRoster"
+	Chat_GetMentionSuggestions_FullMethodName = "/flipcash.chat.v1.Chat/GetMentionSuggestions"
+	Chat_StartChat_FullMethodName             = "/flipcash.chat.v1.Chat/StartChat"
+	Chat_JoinChat_FullMethodName              = "/flipcash.chat.v1.Chat/JoinChat"
+	Chat_LeaveChat_FullMethodName             = "/flipcash.chat.v1.Chat/LeaveChat"
+	Chat_EditChat_FullMethodName              = "/flipcash.chat.v1.Chat/EditChat"
+	Chat_MuteChat_FullMethodName              = "/flipcash.chat.v1.Chat/MuteChat"
+	Chat_UnmuteChat_FullMethodName            = "/flipcash.chat.v1.Chat/UnmuteChat"
 )
 
 // ChatClient is the client API for Chat service.
@@ -117,6 +118,25 @@ type ChatClient interface {
 	// a group's listener rules admit. A viewer who may only preview the chat
 	// is DENIED.
 	GetRoster(ctx context.Context, in *GetRosterRequest, opts ...grpc.CallOption) (*GetRosterResponse, error)
+	// GetMentionSuggestions returns people the caller may want to @mention in
+	// a group chat, ranked by the server, most relevant first. Today that is
+	// the group's most recent senders, most recent first, including people
+	// who have since left the group.
+	//
+	// The response is a ranked pool of suggestions, not the set of people who
+	// may be mentioned, and it is neither complete nor paged. The server
+	// decides how many to return, up to 200; the client filters the whole
+	// pool locally as the user types, however few rows it displays, and keeps
+	// it fresh from the event stream by moving the sender of each new message
+	// to the front. It fetches the pool once per composing session. The
+	// ranking and the pool's size may change without notice; clients must
+	// not depend on either beyond the order given.
+	//
+	// The caller, users the caller has blocked or who have blocked the caller,
+	// and users without a username are never suggested.
+	//
+	// Requires that the caller may speak in the chat. A DM is DENIED.
+	GetMentionSuggestions(ctx context.Context, in *GetMentionSuggestionsRequest, opts ...grpc.CallOption) (*GetMentionSuggestionsResponse, error)
 	// StartChat starts a new chat.
 	StartChat(ctx context.Context, in *StartChatRequest, opts ...grpc.CallOption) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
@@ -199,6 +219,16 @@ func (c *chatClient) GetRoster(ctx context.Context, in *GetRosterRequest, opts .
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRosterResponse)
 	err := c.cc.Invoke(ctx, Chat_GetRoster_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetMentionSuggestions(ctx context.Context, in *GetMentionSuggestionsRequest, opts ...grpc.CallOption) (*GetMentionSuggestionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMentionSuggestionsResponse)
+	err := c.cc.Invoke(ctx, Chat_GetMentionSuggestions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -351,6 +381,25 @@ type ChatServer interface {
 	// a group's listener rules admit. A viewer who may only preview the chat
 	// is DENIED.
 	GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error)
+	// GetMentionSuggestions returns people the caller may want to @mention in
+	// a group chat, ranked by the server, most relevant first. Today that is
+	// the group's most recent senders, most recent first, including people
+	// who have since left the group.
+	//
+	// The response is a ranked pool of suggestions, not the set of people who
+	// may be mentioned, and it is neither complete nor paged. The server
+	// decides how many to return, up to 200; the client filters the whole
+	// pool locally as the user types, however few rows it displays, and keeps
+	// it fresh from the event stream by moving the sender of each new message
+	// to the front. It fetches the pool once per composing session. The
+	// ranking and the pool's size may change without notice; clients must
+	// not depend on either beyond the order given.
+	//
+	// The caller, users the caller has blocked or who have blocked the caller,
+	// and users without a username are never suggested.
+	//
+	// Requires that the caller may speak in the chat. A DM is DENIED.
+	GetMentionSuggestions(context.Context, *GetMentionSuggestionsRequest) (*GetMentionSuggestionsResponse, error)
 	// StartChat starts a new chat.
 	StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
@@ -410,6 +459,9 @@ func (UnimplementedChatServer) GetGroupChatFeed(context.Context, *GetGroupChatFe
 }
 func (UnimplementedChatServer) GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoster not implemented")
+}
+func (UnimplementedChatServer) GetMentionSuggestions(context.Context, *GetMentionSuggestionsRequest) (*GetMentionSuggestionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMentionSuggestions not implemented")
 }
 func (UnimplementedChatServer) StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StartChat not implemented")
@@ -518,6 +570,24 @@ func _Chat_GetRoster_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChatServer).GetRoster(ctx, req.(*GetRosterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetMentionSuggestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMentionSuggestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetMentionSuggestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetMentionSuggestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetMentionSuggestions(ctx, req.(*GetMentionSuggestionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -652,6 +722,10 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRoster",
 			Handler:    _Chat_GetRoster_Handler,
+		},
+		{
+			MethodName: "GetMentionSuggestions",
+			Handler:    _Chat_GetMentionSuggestions_Handler,
 		},
 		{
 			MethodName: "StartChat",

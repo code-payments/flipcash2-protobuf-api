@@ -100,6 +100,26 @@ service Chat {
     // is DENIED.
     rpc GetRoster(GetRosterRequest) returns (GetRosterResponse);
 
+    // GetMentionSuggestions returns people the caller may want to @mention in
+    // a group chat, ranked by the server, most relevant first. Today that is
+    // the group's most recent senders, most recent first, including people
+    // who have since left the group.
+    //
+    // The response is a ranked pool of suggestions, not the set of people who
+    // may be mentioned, and it is neither complete nor paged. The server
+    // decides how many to return, up to 200; the client filters the whole
+    // pool locally as the user types, however few rows it displays, and keeps
+    // it fresh from the event stream by moving the sender of each new message
+    // to the front. It fetches the pool once per composing session. The
+    // ranking and the pool's size may change without notice; clients must
+    // not depend on either beyond the order given.
+    //
+    // The caller, users the caller has blocked or who have blocked the caller,
+    // and users without a username are never suggested.
+    //
+    // Requires that the caller may speak in the chat. A DM is DENIED.
+    rpc GetMentionSuggestions(GetMentionSuggestionsRequest) returns (GetMentionSuggestionsResponse);
+
     // StartChat starts a new chat.
     rpc StartChat(StartChatRequest) returns (StartChatResponse);
 
@@ -322,6 +342,28 @@ message GetRosterResponse {
     // client should issue another GetRosterRequest with the returned
     // paging_token.
     bool has_more = 5;
+}
+
+message GetMentionSuggestionsRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetMentionSuggestionsResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
+
+    // The suggestions, most relevant first, as many as the server chooses.
+    // Set when result is OK.
+    repeated MentionSuggestion suggestions = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 200
+    }];
 }
 
 message StartChatRequest {
