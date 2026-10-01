@@ -132,8 +132,8 @@ type ChatClient interface {
 	// ranking and the pool's size may change without notice; clients must
 	// not depend on either beyond the order given.
 	//
-	// The caller, users the caller has blocked or who have blocked the caller,
-	// and users without a username are never suggested.
+	// The caller, users the caller has blocked, and users without a username
+	// are never suggested. A user who has blocked the caller may still be.
 	//
 	// Requires that the caller may speak in the chat. A DM is DENIED.
 	GetMentionSuggestions(ctx context.Context, in *GetMentionSuggestionsRequest, opts ...grpc.CallOption) (*GetMentionSuggestionsResponse, error)
@@ -395,8 +395,8 @@ type ChatServer interface {
 	// ranking and the pool's size may change without notice; clients must
 	// not depend on either beyond the order given.
 	//
-	// The caller, users the caller has blocked or who have blocked the caller,
-	// and users without a username are never suggested.
+	// The caller, users the caller has blocked, and users without a username
+	// are never suggested. A user who has blocked the caller may still be.
 	//
 	// Requires that the caller may speak in the chat. A DM is DENIED.
 	GetMentionSuggestions(context.Context, *GetMentionSuggestionsRequest) (*GetMentionSuggestionsResponse, error)
