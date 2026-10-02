@@ -237,7 +237,12 @@ message SendMessageRequest {
     //  - TextContent
     //  - ReplyContent
     //  - MediaContent
-    //  - EncryptedContent, in DMs only
+    //  - EncryptedContent, in DMs and private groups only. A private group
+    //    accepts nothing else.
+    //
+    // A private group whose creator has not stored its key yet (see
+    // chat.v1.StartChatRequest.PrivateGroupChatParameters) accepts nothing
+    // at all, and the send is DENIED.
     repeated Content content = 2 [(validate.rules).repeated = {
         min_items: 1
         max_items: 1
@@ -256,8 +261,11 @@ message SendMessageResponse {
     enum Result {
         OK                     = 0;
         DENIED                 = 1;
-        // The content is EncryptedContent and the chat is not a DM.
+        // The content is EncryptedContent and the chat is neither a DM nor a
+        // private group, or its scheme is not the one the chat uses.
         ENCRYPTION_NOT_ALLOWED = 2;
+        // The chat is a private group and the content is not EncryptedContent.
+        ENCRYPTION_REQUIRED    = 3;
     }
 
     // The chat message that was sent if the RPC was succesful, which includes
@@ -274,7 +282,9 @@ message EditMessageRequest {
     //  - TextContent
     //  - ReplyContent
     //  - MediaContent
-    //  - EncryptedContent, in DMs only
+    //  - EncryptedContent, in DMs and private groups only. A private group
+    //    accepts nothing else, and nothing at all before its creator has
+    //    stored its key, as for SendMessage.
     repeated Content content = 3 [(validate.rules).repeated = {
         min_items: 1
         max_items: 1
@@ -302,8 +312,11 @@ message EditMessageResponse {
         // edit/delete won). The edit was not applied; `message` carries the
         // current state for the client to reconcile against and retry.
         CONFLICT               = 4;
-        // The content is EncryptedContent and the chat is not a DM.
+        // The content is EncryptedContent and the chat is neither a DM nor a
+        // private group, or its scheme is not the one the chat uses.
         ENCRYPTION_NOT_ALLOWED = 5;
+        // The chat is a private group and the content is not EncryptedContent.
+        ENCRYPTION_REQUIRED    = 6;
     }
 
     // On OK, the updated materialized message (advanced event_sequence,
