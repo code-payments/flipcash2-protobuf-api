@@ -739,10 +739,10 @@ export class StartChatRequest extends Message<StartChatRequest> {
    */
   parameters: {
     /**
-     * @generated from field: flipcash.chat.v1.StartChatRequest.PublicGroupChatParameters group = 1;
+     * @generated from field: flipcash.chat.v1.StartChatRequest.PublicGroupChatParameters public_group = 1;
      */
     value: StartChatRequest_PublicGroupChatParameters;
-    case: "group";
+    case: "publicGroup";
   } | {
     /**
      * @generated from field: flipcash.chat.v1.StartChatRequest.PrivateGroupChatParameters private_group = 2;
@@ -773,7 +773,7 @@ export class StartChatRequest extends Message<StartChatRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.chat.v1.StartChatRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "group", kind: "message", T: StartChatRequest_PublicGroupChatParameters, oneof: "parameters" },
+    { no: 1, name: "public_group", kind: "message", T: StartChatRequest_PublicGroupChatParameters, oneof: "parameters" },
     { no: 2, name: "private_group", kind: "message", T: StartChatRequest_PrivateGroupChatParameters, oneof: "parameters" },
     { no: 9, name: "idempotency_key", kind: "message", T: IdempotencyKey },
     { no: 10, name: "auth", kind: "message", T: Auth },

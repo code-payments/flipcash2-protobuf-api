@@ -500,7 +500,7 @@ message StartChatRequest {
     oneof parameters {
         option (validate.required) = true;
 
-        PublicGroupChatParameters  group         = 1;
+        PublicGroupChatParameters  public_group  = 1;
         PrivateGroupChatParameters private_group = 2;
     }
 

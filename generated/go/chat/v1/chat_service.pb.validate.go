@@ -1923,7 +1923,7 @@ func (m *StartChatRequest) validate(all bool) error {
 
 	oneofParametersPresent := false
 	switch v := m.Parameters.(type) {
-	case *StartChatRequest_Group:
+	case *StartChatRequest_PublicGroup:
 		if v == nil {
 			err := StartChatRequestValidationError{
 				field:  "Parameters",
@@ -1937,11 +1937,11 @@ func (m *StartChatRequest) validate(all bool) error {
 		oneofParametersPresent = true
 
 		if all {
-			switch v := interface{}(m.GetGroup()).(type) {
+			switch v := interface{}(m.GetPublicGroup()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, StartChatRequestValidationError{
-						field:  "Group",
+						field:  "PublicGroup",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1949,16 +1949,16 @@ func (m *StartChatRequest) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, StartChatRequestValidationError{
-						field:  "Group",
+						field:  "PublicGroup",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetPublicGroup()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return StartChatRequestValidationError{
-					field:  "Group",
+					field:  "PublicGroup",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
