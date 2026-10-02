@@ -2226,7 +2226,7 @@ func (m *EncryptedContent) validate(all bool) error {
 	if _, ok := _EncryptedContent_Scheme_InLookup[m.GetScheme()]; !ok {
 		err := EncryptedContentValidationError{
 			field:  "Scheme",
-			reason: "value must be in list [X25519_XCHACHA20POLY1305]",
+			reason: "value must be in list [X25519_XCHACHA20POLY1305 CHAT_KEY_XCHACHA20POLY1305]",
 		}
 		if !all {
 			return err
@@ -2336,6 +2336,7 @@ var _ interface {
 
 var _EncryptedContent_Scheme_InLookup = map[EncryptedContent_Scheme]struct{}{
 	1: {},
+	2: {},
 }
 
 // Validate checks the field values on Emoji with the rules defined in the

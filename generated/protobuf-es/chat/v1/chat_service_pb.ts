@@ -5,9 +5,9 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
+import { Auth, ChatId, PagingToken, QueryOptions, UserId } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, ViewerState } from "./model_pb";
+import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -732,16 +732,23 @@ proto3.util.setEnumType(GetMentionSuggestionsResponse_Result, "flipcash.chat.v1.
 export class StartChatRequest extends Message<StartChatRequest> {
   /**
    * Parameters for the kind of chat being created. The variant selects the
-   * chat type.
+   * kind of chat. Both create a chat of type GROUP: one public, one
+   * private.
    *
    * @generated from oneof flipcash.chat.v1.StartChatRequest.parameters
    */
   parameters: {
     /**
-     * @generated from field: flipcash.chat.v1.StartChatRequest.GroupChatParameters group = 1;
+     * @generated from field: flipcash.chat.v1.StartChatRequest.PublicGroupChatParameters group = 1;
      */
-    value: StartChatRequest_GroupChatParameters;
+    value: StartChatRequest_PublicGroupChatParameters;
     case: "group";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.StartChatRequest.PrivateGroupChatParameters private_group = 2;
+     */
+    value: StartChatRequest_PrivateGroupChatParameters;
+    case: "privateGroup";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
@@ -766,7 +773,8 @@ export class StartChatRequest extends Message<StartChatRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.chat.v1.StartChatRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "group", kind: "message", T: StartChatRequest_GroupChatParameters, oneof: "parameters" },
+    { no: 1, name: "group", kind: "message", T: StartChatRequest_PublicGroupChatParameters, oneof: "parameters" },
+    { no: 2, name: "private_group", kind: "message", T: StartChatRequest_PrivateGroupChatParameters, oneof: "parameters" },
     { no: 9, name: "idempotency_key", kind: "message", T: IdempotencyKey },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
@@ -789,11 +797,12 @@ export class StartChatRequest extends Message<StartChatRequest> {
 }
 
 /**
- * Parameters for creating a group chat
+ * Parameters for creating a public group chat: one that users join with
+ * JoinChat, subject to its rules.
  *
- * @generated from message flipcash.chat.v1.StartChatRequest.GroupChatParameters
+ * @generated from message flipcash.chat.v1.StartChatRequest.PublicGroupChatParameters
  */
-export class StartChatRequest_GroupChatParameters extends Message<StartChatRequest_GroupChatParameters> {
+export class StartChatRequest_PublicGroupChatParameters extends Message<StartChatRequest_PublicGroupChatParameters> {
   /**
    * Title for the chat.
    *
@@ -818,33 +827,103 @@ export class StartChatRequest_GroupChatParameters extends Message<StartChatReque
    */
   rules?: Rules;
 
-  constructor(data?: PartialMessage<StartChatRequest_GroupChatParameters>) {
+  constructor(data?: PartialMessage<StartChatRequest_PublicGroupChatParameters>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.StartChatRequest.GroupChatParameters";
+  static readonly typeName = "flipcash.chat.v1.StartChatRequest.PublicGroupChatParameters";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "picture", kind: "message", T: BlobId },
     { no: 3, name: "rules", kind: "message", T: Rules },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_GroupChatParameters {
-    return new StartChatRequest_GroupChatParameters().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_PublicGroupChatParameters {
+    return new StartChatRequest_PublicGroupChatParameters().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatRequest_GroupChatParameters {
-    return new StartChatRequest_GroupChatParameters().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatRequest_PublicGroupChatParameters {
+    return new StartChatRequest_PublicGroupChatParameters().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatRequest_GroupChatParameters {
-    return new StartChatRequest_GroupChatParameters().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatRequest_PublicGroupChatParameters {
+    return new StartChatRequest_PublicGroupChatParameters().fromJsonString(jsonString, options);
   }
 
-  static equals(a: StartChatRequest_GroupChatParameters | PlainMessage<StartChatRequest_GroupChatParameters> | undefined, b: StartChatRequest_GroupChatParameters | PlainMessage<StartChatRequest_GroupChatParameters> | undefined): boolean {
-    return proto3.util.equals(StartChatRequest_GroupChatParameters, a, b);
+  static equals(a: StartChatRequest_PublicGroupChatParameters | PlainMessage<StartChatRequest_PublicGroupChatParameters> | undefined, b: StartChatRequest_PublicGroupChatParameters | PlainMessage<StartChatRequest_PublicGroupChatParameters> | undefined): boolean {
+    return proto3.util.equals(StartChatRequest_PublicGroupChatParameters, a, b);
+  }
+}
+
+/**
+ * Parameters for creating a private group chat (see Metadata.is_private):
+ * one whose creator admits each member from its lobby, and whose messages
+ * are end-to-end encrypted. Whether a group is private is fixed for the
+ * life of the chat. A private group has no rules.
+ *
+ * Creating a private group takes two steps. A key envelope is bound to
+ * the chat's ID, which the caller learns only from the response, so the
+ * caller generates the chat key once StartChat returns and stores its own
+ * envelope with SetKeyEnvelope (see KeyEnvelope).
+ *
+ * Until the creator's envelope is stored, the group has no key. It
+ * exists and is visible like any other private group: GetChat returns
+ * it, and it appears in the creator's GetGroupChatFeed. But nothing can
+ * happen in it, and the server refuses each of these as DENIED:
+ *  - EnterLobby, by anyone
+ *  - ApproveLobbyMember
+ *  - Messaging.SendMessage and Messaging.EditMessage
+ *  - BlobStorage.InitiateExternalUpload of a blob encrypted for the chat
+ * The creator's client must keep attempting SetKeyEnvelope until it
+ * succeeds. Storing the envelope lifts every refusal above, and it is
+ * never undone: the creator's envelope is kept even if they leave.
+ *
+ * @generated from message flipcash.chat.v1.StartChatRequest.PrivateGroupChatParameters
+ */
+export class StartChatRequest_PrivateGroupChatParameters extends Message<StartChatRequest_PrivateGroupChatParameters> {
+  /**
+   * Title for the chat.
+   *
+   * @generated from field: string title = 1;
+   */
+  title = "";
+
+  /**
+   * The blob holding the ORIGINAL picture the caller uploaded. Optional.
+   * If set, it must be owned by the caller and READY.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId picture = 2;
+   */
+  picture?: BlobId;
+
+  constructor(data?: PartialMessage<StartChatRequest_PrivateGroupChatParameters>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.StartChatRequest.PrivateGroupChatParameters";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "picture", kind: "message", T: BlobId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_PrivateGroupChatParameters {
+    return new StartChatRequest_PrivateGroupChatParameters().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatRequest_PrivateGroupChatParameters {
+    return new StartChatRequest_PrivateGroupChatParameters().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatRequest_PrivateGroupChatParameters {
+    return new StartChatRequest_PrivateGroupChatParameters().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StartChatRequest_PrivateGroupChatParameters | PlainMessage<StartChatRequest_PrivateGroupChatParameters> | undefined, b: StartChatRequest_PrivateGroupChatParameters | PlainMessage<StartChatRequest_PrivateGroupChatParameters> | undefined): boolean {
+    return proto3.util.equals(StartChatRequest_PrivateGroupChatParameters, a, b);
   }
 }
 
@@ -1646,5 +1725,915 @@ proto3.util.setEnumType(UnmuteChatResponse_Result, "flipcash.chat.v1.UnmuteChatR
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.EnterLobbyRequest
+ */
+export class EnterLobbyRequest extends Message<EnterLobbyRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<EnterLobbyRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EnterLobbyRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EnterLobbyRequest {
+    return new EnterLobbyRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EnterLobbyRequest {
+    return new EnterLobbyRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EnterLobbyRequest {
+    return new EnterLobbyRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EnterLobbyRequest | PlainMessage<EnterLobbyRequest> | undefined, b: EnterLobbyRequest | PlainMessage<EnterLobbyRequest> | undefined): boolean {
+    return proto3.util.equals(EnterLobbyRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.EnterLobbyResponse
+ */
+export class EnterLobbyResponse extends Message<EnterLobbyResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.EnterLobbyResponse.Result result = 1;
+   */
+  result = EnterLobbyResponse_Result.OK;
+
+  /**
+   * The caller's place in the lobby, so the client can record the chat it
+   * is now waiting in without a refetch. Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Lobby lobby = 2;
+   */
+  lobby?: Lobby;
+
+  constructor(data?: PartialMessage<EnterLobbyResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EnterLobbyResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(EnterLobbyResponse_Result) },
+    { no: 2, name: "lobby", kind: "message", T: Lobby },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EnterLobbyResponse {
+    return new EnterLobbyResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EnterLobbyResponse {
+    return new EnterLobbyResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EnterLobbyResponse {
+    return new EnterLobbyResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EnterLobbyResponse | PlainMessage<EnterLobbyResponse> | undefined, b: EnterLobbyResponse | PlainMessage<EnterLobbyResponse> | undefined): boolean {
+    return proto3.util.equals(EnterLobbyResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.EnterLobbyResponse.Result
+ */
+export enum EnterLobbyResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * The chat is not a private group, or has no key yet (see EnterLobby)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * Caller is already a member of the chat
+   *
+   * @generated from enum value: ALREADY_MEMBER = 3;
+   */
+  ALREADY_MEMBER = 3,
+
+  /**
+   * The chat's lobby holds as many users as the server allows
+   *
+   * @generated from enum value: LOBBY_FULL = 4;
+   */
+  LOBBY_FULL = 4,
+
+  /**
+   * Caller is waiting in as many lobbies as the server allows
+   *
+   * @generated from enum value: TOO_MANY_LOBBIES = 5;
+   */
+  TOO_MANY_LOBBIES = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(EnterLobbyResponse_Result)
+proto3.util.setEnumType(EnterLobbyResponse_Result, "flipcash.chat.v1.EnterLobbyResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "ALREADY_MEMBER" },
+  { no: 4, name: "LOBBY_FULL" },
+  { no: 5, name: "TOO_MANY_LOBBIES" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.LeaveLobbyRequest
+ */
+export class LeaveLobbyRequest extends Message<LeaveLobbyRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<LeaveLobbyRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.LeaveLobbyRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LeaveLobbyRequest {
+    return new LeaveLobbyRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LeaveLobbyRequest {
+    return new LeaveLobbyRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LeaveLobbyRequest {
+    return new LeaveLobbyRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LeaveLobbyRequest | PlainMessage<LeaveLobbyRequest> | undefined, b: LeaveLobbyRequest | PlainMessage<LeaveLobbyRequest> | undefined): boolean {
+    return proto3.util.equals(LeaveLobbyRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.LeaveLobbyResponse
+ */
+export class LeaveLobbyResponse extends Message<LeaveLobbyResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.LeaveLobbyResponse.Result result = 1;
+   */
+  result = LeaveLobbyResponse_Result.OK;
+
+  constructor(data?: PartialMessage<LeaveLobbyResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.LeaveLobbyResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(LeaveLobbyResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LeaveLobbyResponse {
+    return new LeaveLobbyResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LeaveLobbyResponse {
+    return new LeaveLobbyResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LeaveLobbyResponse {
+    return new LeaveLobbyResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LeaveLobbyResponse | PlainMessage<LeaveLobbyResponse> | undefined, b: LeaveLobbyResponse | PlainMessage<LeaveLobbyResponse> | undefined): boolean {
+    return proto3.util.equals(LeaveLobbyResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.LeaveLobbyResponse.Result
+ */
+export enum LeaveLobbyResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * The chat is not a private group
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(LeaveLobbyResponse_Result)
+proto3.util.setEnumType(LeaveLobbyResponse_Result, "flipcash.chat.v1.LeaveLobbyResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetLobbyMembersRequest
+ */
+export class GetLobbyMembersRequest extends Message<GetLobbyMembersRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * QueryOptions controls page_size, capped at 100. Ordering is fixed to
+   * earliest entered first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request. On every
+   * subsequent request, set it to the paging_token from the most recent
+   * response. The token is opaque and server-generated; do not construct
+   * it. It is bound to chat_id and refused with another chat.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 2;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetLobbyMembersRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetLobbyMembersRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLobbyMembersRequest {
+    return new GetLobbyMembersRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLobbyMembersRequest {
+    return new GetLobbyMembersRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLobbyMembersRequest {
+    return new GetLobbyMembersRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLobbyMembersRequest | PlainMessage<GetLobbyMembersRequest> | undefined, b: GetLobbyMembersRequest | PlainMessage<GetLobbyMembersRequest> | undefined): boolean {
+    return proto3.util.equals(GetLobbyMembersRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetLobbyMembersResponse
+ */
+export class GetLobbyMembersResponse extends Message<GetLobbyMembersResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetLobbyMembersResponse.Result result = 1;
+   */
+  result = GetLobbyMembersResponse_Result.OK;
+
+  /**
+   * The page, earliest entered first. Set when result is OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.LobbyMember members = 2;
+   */
+  members: LobbyMember[] = [];
+
+  /**
+   * PagingToken carries the cursor after the last member returned. The
+   * client MUST send it back in query_options.paging_token on the next
+   * GetLobbyMembersRequest. Set when result is OK and has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain. When true, the client
+   * should issue another GetLobbyMembersRequest with the returned
+   * paging_token.
+   *
+   * @generated from field: bool has_more = 4;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetLobbyMembersResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetLobbyMembersResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetLobbyMembersResponse_Result) },
+    { no: 2, name: "members", kind: "message", T: LobbyMember, repeated: true },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLobbyMembersResponse {
+    return new GetLobbyMembersResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLobbyMembersResponse {
+    return new GetLobbyMembersResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLobbyMembersResponse {
+    return new GetLobbyMembersResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLobbyMembersResponse | PlainMessage<GetLobbyMembersResponse> | undefined, b: GetLobbyMembersResponse | PlainMessage<GetLobbyMembersResponse> | undefined): boolean {
+    return proto3.util.equals(GetLobbyMembersResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetLobbyMembersResponse.Result
+ */
+export enum GetLobbyMembersResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not the chat's creator, or the chat is not a private group
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetLobbyMembersResponse_Result)
+proto3.util.setEnumType(GetLobbyMembersResponse_Result, "flipcash.chat.v1.GetLobbyMembersResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.ApproveLobbyMemberRequest
+ */
+export class ApproveLobbyMemberRequest extends Message<ApproveLobbyMemberRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user to admit, who must be waiting in the chat's lobby.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 2;
+   */
+  userId?: UserId;
+
+  /**
+   * The chat key wrapped by the caller for that user's public key, as
+   * given by LobbyMember.public_key (see KeyEnvelope). The server cannot
+   * check its contents: an envelope the user cannot open leaves them a
+   * member who cannot read the chat.
+   *
+   * @generated from field: flipcash.chat.v1.KeyEnvelope key_envelope = 3;
+   */
+  keyEnvelope?: KeyEnvelope;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<ApproveLobbyMemberRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ApproveLobbyMemberRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "user_id", kind: "message", T: UserId },
+    { no: 3, name: "key_envelope", kind: "message", T: KeyEnvelope },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ApproveLobbyMemberRequest {
+    return new ApproveLobbyMemberRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ApproveLobbyMemberRequest {
+    return new ApproveLobbyMemberRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ApproveLobbyMemberRequest {
+    return new ApproveLobbyMemberRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ApproveLobbyMemberRequest | PlainMessage<ApproveLobbyMemberRequest> | undefined, b: ApproveLobbyMemberRequest | PlainMessage<ApproveLobbyMemberRequest> | undefined): boolean {
+    return proto3.util.equals(ApproveLobbyMemberRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.ApproveLobbyMemberResponse
+ */
+export class ApproveLobbyMemberResponse extends Message<ApproveLobbyMemberResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.ApproveLobbyMemberResponse.Result result = 1;
+   */
+  result = ApproveLobbyMemberResponse_Result.OK;
+
+  constructor(data?: PartialMessage<ApproveLobbyMemberResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ApproveLobbyMemberResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ApproveLobbyMemberResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ApproveLobbyMemberResponse {
+    return new ApproveLobbyMemberResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ApproveLobbyMemberResponse {
+    return new ApproveLobbyMemberResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ApproveLobbyMemberResponse {
+    return new ApproveLobbyMemberResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ApproveLobbyMemberResponse | PlainMessage<ApproveLobbyMemberResponse> | undefined, b: ApproveLobbyMemberResponse | PlainMessage<ApproveLobbyMemberResponse> | undefined): boolean {
+    return proto3.util.equals(ApproveLobbyMemberResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.ApproveLobbyMemberResponse.Result
+ */
+export enum ApproveLobbyMemberResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not admit users to this chat (see ApproveLobbyMember)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * The user is neither waiting in the lobby nor a member
+   *
+   * @generated from enum value: NOT_IN_LOBBY = 3;
+   */
+  NOT_IN_LOBBY = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ApproveLobbyMemberResponse_Result)
+proto3.util.setEnumType(ApproveLobbyMemberResponse_Result, "flipcash.chat.v1.ApproveLobbyMemberResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "NOT_IN_LOBBY" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.DenyLobbyMemberRequest
+ */
+export class DenyLobbyMemberRequest extends Message<DenyLobbyMemberRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user to remove from the chat's lobby.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 2;
+   */
+  userId?: UserId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<DenyLobbyMemberRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.DenyLobbyMemberRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "user_id", kind: "message", T: UserId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DenyLobbyMemberRequest {
+    return new DenyLobbyMemberRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DenyLobbyMemberRequest {
+    return new DenyLobbyMemberRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DenyLobbyMemberRequest {
+    return new DenyLobbyMemberRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DenyLobbyMemberRequest | PlainMessage<DenyLobbyMemberRequest> | undefined, b: DenyLobbyMemberRequest | PlainMessage<DenyLobbyMemberRequest> | undefined): boolean {
+    return proto3.util.equals(DenyLobbyMemberRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.DenyLobbyMemberResponse
+ */
+export class DenyLobbyMemberResponse extends Message<DenyLobbyMemberResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.DenyLobbyMemberResponse.Result result = 1;
+   */
+  result = DenyLobbyMemberResponse_Result.OK;
+
+  constructor(data?: PartialMessage<DenyLobbyMemberResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.DenyLobbyMemberResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(DenyLobbyMemberResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DenyLobbyMemberResponse {
+    return new DenyLobbyMemberResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DenyLobbyMemberResponse {
+    return new DenyLobbyMemberResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DenyLobbyMemberResponse {
+    return new DenyLobbyMemberResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DenyLobbyMemberResponse | PlainMessage<DenyLobbyMemberResponse> | undefined, b: DenyLobbyMemberResponse | PlainMessage<DenyLobbyMemberResponse> | undefined): boolean {
+    return proto3.util.equals(DenyLobbyMemberResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.DenyLobbyMemberResponse.Result
+ */
+export enum DenyLobbyMemberResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not the chat's creator, or the chat is not a private group
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(DenyLobbyMemberResponse_Result)
+proto3.util.setEnumType(DenyLobbyMemberResponse_Result, "flipcash.chat.v1.DenyLobbyMemberResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.SetKeyEnvelopeRequest
+ */
+export class SetKeyEnvelopeRequest extends Message<SetKeyEnvelopeRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The chat key wrapped by the caller for themself (see KeyEnvelope).
+   *
+   * @generated from field: flipcash.chat.v1.KeyEnvelope key_envelope = 2;
+   */
+  keyEnvelope?: KeyEnvelope;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetKeyEnvelopeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SetKeyEnvelopeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "key_envelope", kind: "message", T: KeyEnvelope },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetKeyEnvelopeRequest {
+    return new SetKeyEnvelopeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetKeyEnvelopeRequest {
+    return new SetKeyEnvelopeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetKeyEnvelopeRequest {
+    return new SetKeyEnvelopeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetKeyEnvelopeRequest | PlainMessage<SetKeyEnvelopeRequest> | undefined, b: SetKeyEnvelopeRequest | PlainMessage<SetKeyEnvelopeRequest> | undefined): boolean {
+    return proto3.util.equals(SetKeyEnvelopeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.SetKeyEnvelopeResponse
+ */
+export class SetKeyEnvelopeResponse extends Message<SetKeyEnvelopeResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.SetKeyEnvelopeResponse.Result result = 1;
+   */
+  result = SetKeyEnvelopeResponse_Result.OK;
+
+  constructor(data?: PartialMessage<SetKeyEnvelopeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SetKeyEnvelopeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetKeyEnvelopeResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetKeyEnvelopeResponse {
+    return new SetKeyEnvelopeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetKeyEnvelopeResponse {
+    return new SetKeyEnvelopeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetKeyEnvelopeResponse {
+    return new SetKeyEnvelopeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetKeyEnvelopeResponse | PlainMessage<SetKeyEnvelopeResponse> | undefined, b: SetKeyEnvelopeResponse | PlainMessage<SetKeyEnvelopeResponse> | undefined): boolean {
+    return proto3.util.equals(SetKeyEnvelopeResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.SetKeyEnvelopeResponse.Result
+ */
+export enum SetKeyEnvelopeResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not a member, or the chat is not a private group
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * Caller already stored a different envelope of their own, which stands
+   *
+   * @generated from enum value: ALREADY_SET = 3;
+   */
+  ALREADY_SET = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetKeyEnvelopeResponse_Result)
+proto3.util.setEnumType(SetKeyEnvelopeResponse_Result, "flipcash.chat.v1.SetKeyEnvelopeResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "ALREADY_SET" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetKeyEnvelopeRequest
+ */
+export class GetKeyEnvelopeRequest extends Message<GetKeyEnvelopeRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetKeyEnvelopeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetKeyEnvelopeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKeyEnvelopeRequest {
+    return new GetKeyEnvelopeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetKeyEnvelopeRequest {
+    return new GetKeyEnvelopeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetKeyEnvelopeRequest {
+    return new GetKeyEnvelopeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetKeyEnvelopeRequest | PlainMessage<GetKeyEnvelopeRequest> | undefined, b: GetKeyEnvelopeRequest | PlainMessage<GetKeyEnvelopeRequest> | undefined): boolean {
+    return proto3.util.equals(GetKeyEnvelopeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetKeyEnvelopeResponse
+ */
+export class GetKeyEnvelopeResponse extends Message<GetKeyEnvelopeResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetKeyEnvelopeResponse.Result result = 1;
+   */
+  result = GetKeyEnvelopeResponse_Result.OK;
+
+  /**
+   * The caller's key envelope. Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.KeyEnvelope key_envelope = 2;
+   */
+  keyEnvelope?: KeyEnvelope;
+
+  /**
+   * The user who stored the envelope, as the server authenticated them:
+   * the caller, or the chat's creator. It tells the client whose public
+   * key to open the envelope against (see KeyEnvelope), and is only a
+   * hint: an envelope that does not open against that key is rejected. Set
+   * only when result == OK.
+   *
+   * @generated from field: flipcash.common.v1.UserId wrapped_by = 3;
+   */
+  wrappedBy?: UserId;
+
+  constructor(data?: PartialMessage<GetKeyEnvelopeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetKeyEnvelopeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetKeyEnvelopeResponse_Result) },
+    { no: 2, name: "key_envelope", kind: "message", T: KeyEnvelope },
+    { no: 3, name: "wrapped_by", kind: "message", T: UserId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKeyEnvelopeResponse {
+    return new GetKeyEnvelopeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetKeyEnvelopeResponse {
+    return new GetKeyEnvelopeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetKeyEnvelopeResponse {
+    return new GetKeyEnvelopeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetKeyEnvelopeResponse | PlainMessage<GetKeyEnvelopeResponse> | undefined, b: GetKeyEnvelopeResponse | PlainMessage<GetKeyEnvelopeResponse> | undefined): boolean {
+    return proto3.util.equals(GetKeyEnvelopeResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetKeyEnvelopeResponse.Result
+ */
+export enum GetKeyEnvelopeResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not a member, or the chat is not a private group
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * Caller is a member with no envelope stored
+   *
+   * @generated from enum value: NO_ENVELOPE = 3;
+   */
+  NO_ENVELOPE = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetKeyEnvelopeResponse_Result)
+proto3.util.setEnumType(GetKeyEnvelopeResponse_Result, "flipcash.chat.v1.GetKeyEnvelopeResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "NO_ENVELOPE" },
 ]);
 

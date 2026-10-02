@@ -830,11 +830,17 @@ export class DeletedContent extends Message$1<DeletedContent> {
 }
 
 /**
- * End-to-end encrypted content, sent only in DMs (chat.v1.ChatType
- * CONTACT_DM or DM). SendMessage and EditMessage reject it in a group
- * chat. The server stores and relays the ciphertext as-is and cannot read it,
- * so it cannot moderate it, render a push preview from it, or produce a
- * placeholder for it.
+ * End-to-end encrypted content, sent in DMs (chat.v1.ChatType CONTACT_DM or
+ * DM) and in private groups (chat.v1.Metadata.is_private). SendMessage and
+ * EditMessage reject it in any other group chat, and accept nothing else from
+ * a client in a private group. The server stores and relays the ciphertext
+ * as-is and cannot read it, so it cannot moderate it, render a push preview
+ * from it, or produce a placeholder for it.
+ *
+ * The scheme depends on the kind of chat: a DM uses X25519_XCHACHA20POLY1305,
+ * described under "DMs" below, and a private group uses
+ * CHAT_KEY_XCHACHA20POLY1305, described under "Private groups". Either is
+ * rejected in the other kind of chat.
  *
  * The plaintext is a serialized Content message. The allowed plaintext types
  * are:
@@ -844,6 +850,8 @@ export class DeletedContent extends Message$1<DeletedContent> {
  * The server cannot enforce this. A client that decrypts any other type, or
  * cannot decrypt the payload at all, renders the message as unsupported. A
  * decrypted Content never itself holds EncryptedContent.
+ *
+ * DMs
  *
  * Encryption is between the Ed25519 public keys the two DM members registered
  * their accounts with, which each member already knows. Neither key is carried
@@ -899,6 +907,38 @@ export class DeletedContent extends Message$1<DeletedContent> {
  * future. A scheme with ephemeral keys or a ratchet can be added as a new
  * Scheme value without changing this message.
  *
+ * Private groups
+ *
+ * Every member of a private group holds the same 32-byte chat key, which each
+ * obtains from their own chat.v1.KeyEnvelope. No key is carried in the
+ * message. For scheme CHAT_KEY_XCHACHA20POLY1305, the sender encrypts with
+ * XChaCha20-Poly1305, the same construction as step 4 above:
+ *   key       = the group's chat key
+ *   nonce     = 24 fresh random bytes, set in `nonce` below
+ *   plaintext = the serialized Content
+ *   aad       = "flipcash-group-e2ee-v1" || chat_id || sender_id
+ * The ciphertext, with its 16-byte Poly1305 tag appended, is set in
+ * `ciphertext` below. chat_id is the raw bytes of common.v1.ChatId.value, and
+ * sender_id is the raw bytes of common.v1.UserId.value for Message.sender_id.
+ * Every member encrypts under the one key, which is safe because the nonce is
+ * random and 24 bytes long. Never reuse a nonce, and do not substitute a
+ * 12-byte-nonce AEAD.
+ *
+ * A member decrypts with the chat key and the same aad. The sender is bound
+ * into the aad, so the server cannot present one member's ciphertext as
+ * another's, or move it to another chat. Any member can, however, produce a
+ * ciphertext that names another member as its sender: who wrote a message
+ * rests on the server having authenticated Message.sender_id, not on the
+ * encryption. As in a DM, nothing binds the ciphertext to its MessageId, so a
+ * ciphertext re-posted in the same chat by the server decrypts as a valid
+ * message there.
+ *
+ * This scheme has no forward secrecy either, and the chat key never changes:
+ * anyone who obtains it, or the private key of any member, can decrypt every
+ * message in the chat, past and future. A user who has left the group still
+ * holds the key, and is kept from later messages only by the server no longer
+ * serving them.
+ *
  * Media
  *
  * A MediaContent plaintext references blobs the sender uploaded for this chat
@@ -916,6 +956,15 @@ export class DeletedContent extends Message$1<DeletedContent> {
  * InitiateExternalUpload before the bytes are uploaded. Binding it stops the
  * server from serving one blob's bytes in place of another's. sender_pk is the
  * key of the member who uploaded the blob, which is always Message.sender_id.
+ *
+ * For scheme CHAT_KEY_XCHACHA20POLY1305, each blob is encrypted with the
+ * group's chat key in the same way, with its own aad:
+ *   nonce = 24 fresh random bytes
+ *   aad   = "flipcash-group-e2ee-blob-v1" || chat_id || blob_id || sender_id
+ *   blob  = nonce || XChaCha20-Poly1305(chat key, nonce, image bytes, aad)
+ * sender_id is the member who uploaded the blob, which is always
+ * Message.sender_id. It comes last because it is the one field here that is
+ * not a fixed length.
  *
  * The server never sees the image, so it cannot derive renditions or
  * metadata, strip privacy metadata, or moderate. Before encrypting, the sender
@@ -1015,14 +1064,24 @@ export enum EncryptedContent_Scheme {
   UNKNOWN = 0,
 
   /**
+   * DMs: a key the two members derive from each other's public keys.
+   *
    * @generated from enum value: X25519_XCHACHA20POLY1305 = 1;
    */
   X25519_XCHACHA20POLY1305 = 1,
+
+  /**
+   * Private groups: the chat key every member holds.
+   *
+   * @generated from enum value: CHAT_KEY_XCHACHA20POLY1305 = 2;
+   */
+  CHAT_KEY_XCHACHA20POLY1305 = 2,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EncryptedContent_Scheme)
 proto3.util.setEnumType(EncryptedContent_Scheme, "flipcash.messaging.v1.EncryptedContent.Scheme", [
   { no: 0, name: "UNKNOWN" },
   { no: 1, name: "X25519_XCHACHA20POLY1305" },
+  { no: 2, name: "CHAT_KEY_XCHACHA20POLY1305" },
 ]);
 
 /**

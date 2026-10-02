@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { EditChatRequest, EditChatResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, MuteChatRequest, MuteChatResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { ApproveLobbyMemberRequest, ApproveLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -20,6 +20,14 @@ export const Chat = {
      * with view_mode REDACTED and none of the per-viewer fields (is_hidden,
      * viewer_state). An unauthenticated read under any other view_mode, or of
      * a DM, is DENIED.
+     *
+     * A private group (see Metadata.is_private) returns its record to any
+     * registered user, so that one who is not a member can see what they are
+     * asking to join, but its messaging state only to a member, whatever the
+     * view_mode. It has no public view: an unauthenticated read of one is
+     * DENIED. A private group whose creator has not stored its key yet (see
+     * StartChatRequest.PrivateGroupChatParameters) is returned like any
+     * other: it is visible, though nothing can happen in it.
      *
      * @generated from rpc flipcash.chat.v1.Chat.GetChat
      */
@@ -172,6 +180,11 @@ export const Chat = {
     /**
      * JoinChat adds the caller to a chat's roster.
      *
+     * A private group (see Metadata.is_private) cannot be joined this way and
+     * is DENIED: a user enters its lobby with EnterLobby and is admitted by
+     * its creator. The one exception is the group's creator, who needs no
+     * approval and rejoins a private group they left with this RPC.
+     *
      * @generated from rpc flipcash.chat.v1.Chat.JoinChat
      */
     joinChat: {
@@ -182,6 +195,11 @@ export const Chat = {
     },
     /**
      * LeaveChat removes the caller from a chat's roster.
+     *
+     * Leaving a private group discards the caller's key envelope (see
+     * KeyEnvelope), so returning means entering the lobby and being admitted
+     * again. The creator's envelope is kept, since no one else could give
+     * them another.
      *
      * @generated from rpc flipcash.chat.v1.Chat.LeaveChat
      */
@@ -248,6 +266,171 @@ export const Chat = {
       name: "UnmuteChat",
       I: UnmuteChatRequest,
       O: UnmuteChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * EnterLobby places the caller in a private group's lobby, where they
+     * wait for the group's creator to admit them. It is how a user asks to
+     * join a private group (see Metadata.is_private); JoinChat is DENIED for
+     * one.
+     *
+     * Entering a lobby the caller is already in is a no-op that returns OK.
+     * The server caps both how many users may wait in one lobby and how many
+     * lobbies one user may wait in. A group whose creator has not stored its
+     * key yet (see StartChatRequest.PrivateGroupChatParameters) has no lobby
+     * to enter, and is DENIED until they have.
+     *
+     * A lobby is visible only to the group's creator, through
+     * GetLobbyMembers: the users waiting in it are not shown to each other or
+     * to the group's members. The creator's devices learn of the entry as a
+     * LobbyUpdate on the event stream.
+     *
+     * While the caller waits, the chat's Metadata carries in_lobby. The
+     * caller leaves the lobby when they withdraw (LeaveLobby), when the
+     * creator denies them (DenyLobbyMember), or when the creator admits them
+     * (ApproveLobbyMember). An admission reaches the caller's devices as a
+     * RosterUpdate.MemberJoined naming them; a denial is not announced to
+     * them.
+     *
+     * There is no RPC that lists the lobbies a caller is waiting in. A client
+     * keeps the chats it entered itself, and reads in_lobby from GetChat to
+     * learn whether it is still waiting in one. A paged listing may be added
+     * later.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.EnterLobby
+     */
+    enterLobby: {
+      name: "EnterLobby",
+      I: EnterLobbyRequest,
+      O: EnterLobbyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * LeaveLobby withdraws the caller from a private group's lobby. Leaving a
+     * lobby the caller is not in is a no-op that returns OK.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.LeaveLobby
+     */
+    leaveLobby: {
+      name: "LeaveLobby",
+      I: LeaveLobbyRequest,
+      O: LeaveLobbyResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetLobbyMembers pages the users waiting in a private group's lobby,
+     * earliest entered first.
+     *
+     * Only the group's creator may call it, and only while a member of the
+     * group; anyone else is DENIED. The page is read from an index that
+     * trails writes briefly, so a user who just entered may be absent and one
+     * who just left may be present.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetLobbyMembers
+     */
+    getLobbyMembers: {
+      name: "GetLobbyMembers",
+      I: GetLobbyMembersRequest,
+      O: GetLobbyMembersResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * ApproveLobbyMember admits a user waiting in a private group's lobby:
+     * it stores the chat key wrapped for them (see KeyEnvelope) and adds them
+     * to the chat's roster. The envelope is stored first, so an admitted
+     * member always has one.
+     *
+     * Only the group's creator may call it, and only while a member of the
+     * group; anyone else is DENIED. So is a creator who has not stored their
+     * own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
+     * nobody is admitted to a group before its creator holds its key. This is
+     * the only way to give another user a key envelope. Approving a user who
+     * is already a member is a no-op that returns OK and leaves their stored
+     * envelope as it is.
+     *
+     * The admission is announced like any other join: a
+     * RosterUpdate.MemberJoined to the chat's members and to the admitted
+     * user, who then fetches their envelope with GetKeyEnvelope.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.ApproveLobbyMember
+     */
+    approveLobbyMember: {
+      name: "ApproveLobbyMember",
+      I: ApproveLobbyMemberRequest,
+      O: ApproveLobbyMemberResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * DenyLobbyMember removes a user from a private group's lobby without
+     * admitting them. Only the group's creator may call it, and only while a
+     * member of the group; anyone else is DENIED. Denying a user who is not
+     * in the lobby is a no-op that returns OK.
+     *
+     * The denied user is not notified. The chat's Metadata stops carrying
+     * in_lobby for them, and they may enter the lobby again.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.DenyLobbyMember
+     */
+    denyLobbyMember: {
+      name: "DenyLobbyMember",
+      I: DenyLobbyMemberRequest,
+      O: DenyLobbyMemberResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetKeyEnvelope stores the caller's own key envelope for a private
+     * group. Only a member may call it, and only for themself: an envelope
+     * for another user is stored by admitting them (ApproveLobbyMember).
+     *
+     * It is called in two situations (see KeyEnvelope):
+     *  - By the group's creator, right after StartChat returns the chat's
+     *    ID, to store the chat key they have just generated. This is the
+     *    second step of creating a private group, and nothing can happen in
+     *    the group until it succeeds (see
+     *    StartChatRequest.PrivateGroupChatParameters). The creator's client
+     *    keeps attempting it until it returns OK or ALREADY_SET: on a failed
+     *    call, on its next launch, and on any device that finds the group
+     *    with NO_ENVELOPE.
+     *  - By an admitted member, after first opening the envelope the creator
+     *    wrapped for them, to replace it with one wrapped by themself.
+     *
+     * The first envelope a caller stores for themself stands. Once the
+     * stored envelope is one the caller wrapped, a call with a different
+     * envelope changes nothing and returns ALREADY_SET, and the caller uses
+     * the stored one from GetKeyEnvelope. This keeps two of a creator's
+     * devices, each setting up the same new group, from holding different
+     * keys. Storing an envelope identical to the one stored is a no-op that
+     * returns OK.
+     *
+     * Nothing is published: the caller's other devices fetch the envelope
+     * when they need it.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.SetKeyEnvelope
+     */
+    setKeyEnvelope: {
+      name: "SetKeyEnvelope",
+      I: SetKeyEnvelopeRequest,
+      O: SetKeyEnvelopeResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetKeyEnvelope returns the caller's own key envelope for a private
+     * group. Only a member may call it. The chat key never changes, so a
+     * client calls this once per chat per install and keeps the key it
+     * unwraps.
+     *
+     * NO_ENVELOPE is expected only for the creator of a group whose creation
+     * stopped between StartChat and SetKeyEnvelope. A creator's client that
+     * receives it generates a chat key and stores its envelope with
+     * SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
+     * until it succeeds.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetKeyEnvelope
+     */
+    getKeyEnvelope: {
+      name: "GetKeyEnvelope",
+      I: GetKeyEnvelopeRequest,
+      O: GetKeyEnvelopeResponse,
       kind: MethodKind.Unary,
     },
   }

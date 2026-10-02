@@ -473,7 +473,12 @@ export class SendMessageRequest extends Message<SendMessageRequest> {
    *  - TextContent
    *  - ReplyContent
    *  - MediaContent
-   *  - EncryptedContent, in DMs only
+   *  - EncryptedContent, in DMs and private groups only. A private group
+   *    accepts nothing else.
+   *
+   * A private group whose creator has not stored its key yet (see
+   * chat.v1.StartChatRequest.PrivateGroupChatParameters) accepts nothing
+   * at all, and the send is DENIED.
    *
    * @generated from field: repeated flipcash.messaging.v1.Content content = 2;
    */
@@ -585,17 +590,26 @@ export enum SendMessageResponse_Result {
   DENIED = 1,
 
   /**
-   * The content is EncryptedContent and the chat is not a DM.
+   * The content is EncryptedContent and the chat is neither a DM nor a
+   * private group, or its scheme is not the one the chat uses.
    *
    * @generated from enum value: ENCRYPTION_NOT_ALLOWED = 2;
    */
   ENCRYPTION_NOT_ALLOWED = 2,
+
+  /**
+   * The chat is a private group and the content is not EncryptedContent.
+   *
+   * @generated from enum value: ENCRYPTION_REQUIRED = 3;
+   */
+  ENCRYPTION_REQUIRED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SendMessageResponse_Result)
 proto3.util.setEnumType(SendMessageResponse_Result, "flipcash.messaging.v1.SendMessageResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "ENCRYPTION_NOT_ALLOWED" },
+  { no: 3, name: "ENCRYPTION_REQUIRED" },
 ]);
 
 /**
@@ -617,7 +631,9 @@ export class EditMessageRequest extends Message<EditMessageRequest> {
    *  - TextContent
    *  - ReplyContent
    *  - MediaContent
-   *  - EncryptedContent, in DMs only
+   *  - EncryptedContent, in DMs and private groups only. A private group
+   *    accepts nothing else, and nothing at all before its creator has
+   *    stored its key, as for SendMessage.
    *
    * @generated from field: repeated flipcash.messaging.v1.Content content = 3;
    */
@@ -752,11 +768,19 @@ export enum EditMessageResponse_Result {
   CONFLICT = 4,
 
   /**
-   * The content is EncryptedContent and the chat is not a DM.
+   * The content is EncryptedContent and the chat is neither a DM nor a
+   * private group, or its scheme is not the one the chat uses.
    *
    * @generated from enum value: ENCRYPTION_NOT_ALLOWED = 5;
    */
   ENCRYPTION_NOT_ALLOWED = 5,
+
+  /**
+   * The chat is a private group and the content is not EncryptedContent.
+   *
+   * @generated from enum value: ENCRYPTION_REQUIRED = 6;
+   */
+  ENCRYPTION_REQUIRED = 6,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EditMessageResponse_Result)
 proto3.util.setEnumType(EditMessageResponse_Result, "flipcash.messaging.v1.EditMessageResponse.Result", [
@@ -766,6 +790,7 @@ proto3.util.setEnumType(EditMessageResponse_Result, "flipcash.messaging.v1.EditM
   { no: 3, name: "CANNOT_EDIT" },
   { no: 4, name: "CONFLICT" },
   { no: 5, name: "ENCRYPTION_NOT_ALLOWED" },
+  { no: 6, name: "ENCRYPTION_REQUIRED" },
 ]);
 
 /**

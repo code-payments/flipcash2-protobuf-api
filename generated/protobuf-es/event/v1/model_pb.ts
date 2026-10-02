@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, UserId } from "../../common/v1/common_pb";
 import { EventBatch as EventBatch$1, IsTypingNotificationBatch, PointerBatch, ReactionUpdateBatch } from "../../messaging/v1/model_pb";
-import { MetadataUpdate, RosterUpdateBatch } from "../../chat/v1/model_pb";
+import { LobbyUpdateBatch, MetadataUpdate, RosterUpdateBatch } from "../../chat/v1/model_pb";
 import { BlobBatch } from "../../blob/v1/model_pb";
 
 /**
@@ -525,6 +525,17 @@ export class ChatUpdate extends Message<ChatUpdate> {
    */
   rosterUpdates?: RosterUpdateBatch;
 
+  /**
+   * If present, best-effort real-time changes to the chat's lobby — users
+   * entering or leaving it. Sent only for a private group, and only to its
+   * creator. Like roster_updates, they are NOT part of the gap-detected
+   * event log; the creator reconciles any misses by refetching the lobby
+   * with Chat.GetLobbyMembers.
+   *
+   * @generated from field: flipcash.chat.v1.LobbyUpdateBatch lobby_updates = 9;
+   */
+  lobbyUpdates?: LobbyUpdateBatch;
+
   constructor(data?: PartialMessage<ChatUpdate>) {
     super();
     proto3.util.initPartial(data, this);
@@ -540,6 +551,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
     { no: 6, name: "events", kind: "message", T: EventBatch$1 },
     { no: 7, name: "reaction_updates", kind: "message", T: ReactionUpdateBatch },
     { no: 8, name: "roster_updates", kind: "message", T: RosterUpdateBatch },
+    { no: 9, name: "lobby_updates", kind: "message", T: LobbyUpdateBatch },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUpdate {
