@@ -1294,6 +1294,576 @@ var _ interface {
 	ErrorName() string
 } = SetProfilePictureResponseValidationError{}
 
+// Validate checks the field values on SetCoverPictureRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetCoverPictureRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetCoverPictureRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetCoverPictureRequestMultiError, or nil if none found.
+func (m *SetCoverPictureRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetCoverPictureRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetBlobId() == nil {
+		err := SetCoverPictureRequestValidationError{
+			field:  "BlobId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlobId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetCoverPictureRequestValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetCoverPictureRequestValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetCoverPictureRequestValidationError{
+				field:  "BlobId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := SetCoverPictureRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetCoverPictureRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetCoverPictureRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetCoverPictureRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetCoverPictureRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetCoverPictureRequestMultiError is an error wrapping multiple validation
+// errors returned by SetCoverPictureRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SetCoverPictureRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetCoverPictureRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetCoverPictureRequestMultiError) AllErrors() []error { return m }
+
+// SetCoverPictureRequestValidationError is the validation error returned by
+// SetCoverPictureRequest.Validate if the designated constraints aren't met.
+type SetCoverPictureRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetCoverPictureRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetCoverPictureRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetCoverPictureRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetCoverPictureRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetCoverPictureRequestValidationError) ErrorName() string {
+	return "SetCoverPictureRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetCoverPictureRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetCoverPictureRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetCoverPictureRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetCoverPictureRequestValidationError{}
+
+// Validate checks the field values on SetCoverPictureResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetCoverPictureResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetCoverPictureResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetCoverPictureResponseMultiError, or nil if none found.
+func (m *SetCoverPictureResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetCoverPictureResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetCoverPicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetCoverPictureResponseValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetCoverPictureResponseValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCoverPicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetCoverPictureResponseValidationError{
+				field:  "CoverPicture",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetCoverPictureResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetCoverPictureResponseMultiError is an error wrapping multiple validation
+// errors returned by SetCoverPictureResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SetCoverPictureResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetCoverPictureResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetCoverPictureResponseMultiError) AllErrors() []error { return m }
+
+// SetCoverPictureResponseValidationError is the validation error returned by
+// SetCoverPictureResponse.Validate if the designated constraints aren't met.
+type SetCoverPictureResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetCoverPictureResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetCoverPictureResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetCoverPictureResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetCoverPictureResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetCoverPictureResponseValidationError) ErrorName() string {
+	return "SetCoverPictureResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetCoverPictureResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetCoverPictureResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetCoverPictureResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetCoverPictureResponseValidationError{}
+
+// Validate checks the field values on SetBioRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SetBioRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetBioRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SetBioRequestMultiError, or
+// nil if none found.
+func (m *SetBioRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetBioRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetBio()) > 160 {
+		err := SetBioRequestValidationError{
+			field:  "Bio",
+			reason: "value length must be at most 160 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetAuth() == nil {
+		err := SetBioRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetBioRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetBioRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetBioRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetBioRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetBioRequestMultiError is an error wrapping multiple validation errors
+// returned by SetBioRequest.ValidateAll() if the designated constraints
+// aren't met.
+type SetBioRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetBioRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetBioRequestMultiError) AllErrors() []error { return m }
+
+// SetBioRequestValidationError is the validation error returned by
+// SetBioRequest.Validate if the designated constraints aren't met.
+type SetBioRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetBioRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetBioRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetBioRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetBioRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetBioRequestValidationError) ErrorName() string { return "SetBioRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SetBioRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetBioRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetBioRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetBioRequestValidationError{}
+
+// Validate checks the field values on SetBioResponse with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SetBioResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetBioResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SetBioResponseMultiError,
+// or nil if none found.
+func (m *SetBioResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetBioResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	// no validation rules for FlaggedCategory
+
+	if len(errors) > 0 {
+		return SetBioResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetBioResponseMultiError is an error wrapping multiple validation errors
+// returned by SetBioResponse.ValidateAll() if the designated constraints
+// aren't met.
+type SetBioResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetBioResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetBioResponseMultiError) AllErrors() []error { return m }
+
+// SetBioResponseValidationError is the validation error returned by
+// SetBioResponse.Validate if the designated constraints aren't met.
+type SetBioResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetBioResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetBioResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetBioResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetBioResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetBioResponseValidationError) ErrorName() string { return "SetBioResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SetBioResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetBioResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetBioResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetBioResponseValidationError{}
+
 // Validate checks the field values on UpdateFlipcardRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

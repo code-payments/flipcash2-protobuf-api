@@ -562,6 +562,275 @@ proto3.util.setEnumType(SetProfilePictureResponse_Result, "flipcash.profile.v1.S
 ]);
 
 /**
+ * @generated from message flipcash.profile.v1.SetCoverPictureRequest
+ */
+export class SetCoverPictureRequest extends Message<SetCoverPictureRequest> {
+  /**
+   * The blob holding the ORIGINAL image the caller uploaded. It must be owned
+   * by the caller and READY; the server derives the remaining renditions from
+   * it, as for SetProfilePicture.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
+   */
+  blobId?: BlobId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetCoverPictureRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetCoverPictureRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blob_id", kind: "message", T: BlobId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetCoverPictureRequest {
+    return new SetCoverPictureRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetCoverPictureRequest {
+    return new SetCoverPictureRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetCoverPictureRequest {
+    return new SetCoverPictureRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetCoverPictureRequest | PlainMessage<SetCoverPictureRequest> | undefined, b: SetCoverPictureRequest | PlainMessage<SetCoverPictureRequest> | undefined): boolean {
+    return proto3.util.equals(SetCoverPictureRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.SetCoverPictureResponse
+ */
+export class SetCoverPictureResponse extends Message<SetCoverPictureResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.SetCoverPictureResponse.Result result = 1;
+   */
+  result = SetCoverPictureResponse_Result.OK;
+
+  /**
+   * The caller's new cover picture, including the renditions the server
+   * derived. Set only when result == OK.
+   *
+   * @generated from field: flipcash.blob.v1.Media cover_picture = 2;
+   */
+  coverPicture?: Media;
+
+  constructor(data?: PartialMessage<SetCoverPictureResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetCoverPictureResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetCoverPictureResponse_Result) },
+    { no: 2, name: "cover_picture", kind: "message", T: Media },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetCoverPictureResponse {
+    return new SetCoverPictureResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetCoverPictureResponse {
+    return new SetCoverPictureResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetCoverPictureResponse {
+    return new SetCoverPictureResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetCoverPictureResponse | PlainMessage<SetCoverPictureResponse> | undefined, b: SetCoverPictureResponse | PlainMessage<SetCoverPictureResponse> | undefined): boolean {
+    return proto3.util.equals(SetCoverPictureResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.SetCoverPictureResponse.Result
+ */
+export enum SetCoverPictureResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * no such blob, or it is not owned by the caller
+   *
+   * @generated from enum value: BLOB_NOT_FOUND = 2;
+   */
+  BLOB_NOT_FOUND = 2,
+
+  /**
+   * blob is still PENDING/PROCESSING; retry once READY
+   *
+   * @generated from enum value: BLOB_NOT_READY = 3;
+   */
+  BLOB_NOT_READY = 3,
+
+  /**
+   * blob failed validation or moderation; terminal for this id, so the client must upload again
+   *
+   * @generated from enum value: BLOB_REJECTED = 4;
+   */
+  BLOB_REJECTED = 4,
+
+  /**
+   * blob is READY but unusable as a picture (e.g. not an image)
+   *
+   * @generated from enum value: INVALID_BLOB = 5;
+   */
+  INVALID_BLOB = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetCoverPictureResponse_Result)
+proto3.util.setEnumType(SetCoverPictureResponse_Result, "flipcash.profile.v1.SetCoverPictureResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "BLOB_NOT_FOUND" },
+  { no: 3, name: "BLOB_NOT_READY" },
+  { no: 4, name: "BLOB_REJECTED" },
+  { no: 5, name: "INVALID_BLOB" },
+]);
+
+/**
+ * @generated from message flipcash.profile.v1.SetBioRequest
+ */
+export class SetBioRequest extends Message<SetBioRequest> {
+  /**
+   * The new bio to set. Empty clears the bio.
+   *
+   * @generated from field: string bio = 1;
+   */
+  bio = "";
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetBioRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetBioRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "bio", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetBioRequest {
+    return new SetBioRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetBioRequest {
+    return new SetBioRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetBioRequest {
+    return new SetBioRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetBioRequest | PlainMessage<SetBioRequest> | undefined, b: SetBioRequest | PlainMessage<SetBioRequest> | undefined): boolean {
+    return proto3.util.equals(SetBioRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.SetBioResponse
+ */
+export class SetBioResponse extends Message<SetBioResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.SetBioResponse.Result result = 1;
+   */
+  result = SetBioResponse_Result.OK;
+
+  /**
+   * The best-fit category that tripped moderation, mirroring the Moderation
+   * service's vocabulary. Set only when result == FAILED_MODERATED; NONE
+   * otherwise.
+   *
+   * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 2;
+   */
+  flaggedCategory = FlaggedCategory.NONE;
+
+  constructor(data?: PartialMessage<SetBioResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.SetBioResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetBioResponse_Result) },
+    { no: 2, name: "flagged_category", kind: "enum", T: proto3.getEnumType(FlaggedCategory) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetBioResponse {
+    return new SetBioResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetBioResponse {
+    return new SetBioResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetBioResponse {
+    return new SetBioResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetBioResponse | PlainMessage<SetBioResponse> | undefined, b: SetBioResponse | PlainMessage<SetBioResponse> | undefined): boolean {
+    return proto3.util.equals(SetBioResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.SetBioResponse.Result
+ */
+export enum SetBioResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: INVALID_BIO = 1;
+   */
+  INVALID_BIO = 1,
+
+  /**
+   * @generated from enum value: DENIED = 2;
+   */
+  DENIED = 2,
+
+  /**
+   * @generated from enum value: FAILED_MODERATED = 3;
+   */
+  FAILED_MODERATED = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetBioResponse_Result)
+proto3.util.setEnumType(SetBioResponse_Result, "flipcash.profile.v1.SetBioResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "INVALID_BIO" },
+  { no: 2, name: "DENIED" },
+  { no: 3, name: "FAILED_MODERATED" },
+]);
+
+/**
  * @generated from message flipcash.profile.v1.UpdateFlipcardRequest
  */
 export class UpdateFlipcardRequest extends Message<UpdateFlipcardRequest> {

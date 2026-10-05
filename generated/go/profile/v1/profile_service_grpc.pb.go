@@ -23,6 +23,8 @@ const (
 	Profile_SetDisplayName_FullMethodName      = "/flipcash.profile.v1.Profile/SetDisplayName"
 	Profile_SetUsername_FullMethodName         = "/flipcash.profile.v1.Profile/SetUsername"
 	Profile_SetProfilePicture_FullMethodName   = "/flipcash.profile.v1.Profile/SetProfilePicture"
+	Profile_SetCoverPicture_FullMethodName     = "/flipcash.profile.v1.Profile/SetCoverPicture"
+	Profile_SetBio_FullMethodName              = "/flipcash.profile.v1.Profile/SetBio"
 	Profile_UpdateFlipcard_FullMethodName      = "/flipcash.profile.v1.Profile/UpdateFlipcard"
 	Profile_SetMinDmChatInitFee_FullMethodName = "/flipcash.profile.v1.Profile/SetMinDmChatInitFee"
 	Profile_LinkSocialAccount_FullMethodName   = "/flipcash.profile.v1.Profile/LinkSocialAccount"
@@ -46,6 +48,15 @@ type ProfileClient interface {
 	// resulting BlobId here once the blob is READY. The server derives the
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	SetProfilePicture(ctx context.Context, in *SetProfilePictureRequest, opts ...grpc.CallOption) (*SetProfilePictureResponse, error)
+	// SetCoverPicture sets the caller's cover picture to a blob they have
+	// already uploaded via BlobStorage, replacing any cover picture already
+	// set. The upload flow and the server-derived renditions are exactly those
+	// of SetProfilePicture; only the surface the picture is shown on differs.
+	SetCoverPicture(ctx context.Context, in *SetCoverPictureRequest, opts ...grpc.CallOption) (*SetCoverPictureResponse, error)
+	// SetBio sets the caller's bio, replacing any bio already set. An empty
+	// bio clears it. The bio is moderated before it is set, like a display
+	// name.
+	SetBio(ctx context.Context, in *SetBioRequest, opts ...grpc.CallOption) (*SetBioResponse, error)
 	// UpdateFlipcard updates the caller's Flipcard customization. Every field is
 	// optional; only the ones set in the request are changed.
 	UpdateFlipcard(ctx context.Context, in *UpdateFlipcardRequest, opts ...grpc.CallOption) (*UpdateFlipcardResponse, error)
@@ -100,6 +111,26 @@ func (c *profileClient) SetProfilePicture(ctx context.Context, in *SetProfilePic
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SetProfilePictureResponse)
 	err := c.cc.Invoke(ctx, Profile_SetProfilePicture_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) SetCoverPicture(ctx context.Context, in *SetCoverPictureRequest, opts ...grpc.CallOption) (*SetCoverPictureResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetCoverPictureResponse)
+	err := c.cc.Invoke(ctx, Profile_SetCoverPicture_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) SetBio(ctx context.Context, in *SetBioRequest, opts ...grpc.CallOption) (*SetBioResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetBioResponse)
+	err := c.cc.Invoke(ctx, Profile_SetBio_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -163,6 +194,15 @@ type ProfileServer interface {
 	// resulting BlobId here once the blob is READY. The server derives the
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error)
+	// SetCoverPicture sets the caller's cover picture to a blob they have
+	// already uploaded via BlobStorage, replacing any cover picture already
+	// set. The upload flow and the server-derived renditions are exactly those
+	// of SetProfilePicture; only the surface the picture is shown on differs.
+	SetCoverPicture(context.Context, *SetCoverPictureRequest) (*SetCoverPictureResponse, error)
+	// SetBio sets the caller's bio, replacing any bio already set. An empty
+	// bio clears it. The bio is moderated before it is set, like a display
+	// name.
+	SetBio(context.Context, *SetBioRequest) (*SetBioResponse, error)
 	// UpdateFlipcard updates the caller's Flipcard customization. Every field is
 	// optional; only the ones set in the request are changed.
 	UpdateFlipcard(context.Context, *UpdateFlipcardRequest) (*UpdateFlipcardResponse, error)
@@ -194,6 +234,12 @@ func (UnimplementedProfileServer) SetUsername(context.Context, *SetUsernameReque
 }
 func (UnimplementedProfileServer) SetProfilePicture(context.Context, *SetProfilePictureRequest) (*SetProfilePictureResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetProfilePicture not implemented")
+}
+func (UnimplementedProfileServer) SetCoverPicture(context.Context, *SetCoverPictureRequest) (*SetCoverPictureResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetCoverPicture not implemented")
+}
+func (UnimplementedProfileServer) SetBio(context.Context, *SetBioRequest) (*SetBioResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetBio not implemented")
 }
 func (UnimplementedProfileServer) UpdateFlipcard(context.Context, *UpdateFlipcardRequest) (*UpdateFlipcardResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateFlipcard not implemented")
@@ -300,6 +346,42 @@ func _Profile_SetProfilePicture_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Profile_SetCoverPicture_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetCoverPictureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).SetCoverPicture(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Profile_SetCoverPicture_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).SetCoverPicture(ctx, req.(*SetCoverPictureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_SetBio_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetBioRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).SetBio(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Profile_SetBio_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).SetBio(ctx, req.(*SetBioRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Profile_UpdateFlipcard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateFlipcardRequest)
 	if err := dec(in); err != nil {
@@ -394,6 +476,14 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetProfilePicture",
 			Handler:    _Profile_SetProfilePicture_Handler,
+		},
+		{
+			MethodName: "SetCoverPicture",
+			Handler:    _Profile_SetCoverPicture_Handler,
+		},
+		{
+			MethodName: "SetBio",
+			Handler:    _Profile_SetBio_Handler,
 		},
 		{
 			MethodName: "UpdateFlipcard",

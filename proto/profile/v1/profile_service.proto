@@ -30,6 +30,17 @@ service Profile {
 	// DISPLAY and THUMBNAIL renditions itself and returns the full set.
 	rpc SetProfilePicture(SetProfilePictureRequest) returns (SetProfilePictureResponse);
 
+	// SetCoverPicture sets the caller's cover picture to a blob they have
+	// already uploaded via BlobStorage, replacing any cover picture already
+	// set. The upload flow and the server-derived renditions are exactly those
+	// of SetProfilePicture; only the surface the picture is shown on differs.
+	rpc SetCoverPicture(SetCoverPictureRequest) returns (SetCoverPictureResponse);
+
+	// SetBio sets the caller's bio, replacing any bio already set. An empty
+	// bio clears it. The bio is moderated before it is set, like a display
+	// name.
+	rpc SetBio(SetBioRequest) returns (SetBioResponse);
+
 	// UpdateFlipcard updates the caller's Flipcard customization. Every field is
 	// optional; only the ones set in the request are changed.
 	rpc UpdateFlipcard(UpdateFlipcardRequest) returns (UpdateFlipcardResponse);
@@ -152,6 +163,55 @@ message SetProfilePictureResponse {
 	// The caller's new profile picture, including the renditions the server
 	// derived. Set only when result == OK.
 	blob.v1.Media profile_picture = 2;
+}
+
+message SetCoverPictureRequest {
+	// The blob holding the ORIGINAL image the caller uploaded. It must be owned
+	// by the caller and READY; the server derives the remaining renditions from
+	// it, as for SetProfilePicture.
+	blob.v1.BlobId blob_id = 1 [(validate.rules).message.required = true];
+
+	common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetCoverPictureResponse {
+	Result result = 1;
+	enum Result {
+		OK             = 0;
+		DENIED         = 1;
+		BLOB_NOT_FOUND = 2; // no such blob, or it is not owned by the caller
+		BLOB_NOT_READY = 3; // blob is still PENDING/PROCESSING; retry once READY
+		BLOB_REJECTED  = 4; // blob failed validation or moderation; terminal for this id, so the client must upload again
+		INVALID_BLOB   = 5; // blob is READY but unusable as a picture (e.g. not an image)
+	}
+
+	// The caller's new cover picture, including the renditions the server
+	// derived. Set only when result == OK.
+	blob.v1.Media cover_picture = 2;
+}
+
+message SetBioRequest {
+	// The new bio to set. Empty clears the bio.
+	string bio = 1 [(validate.rules).string = {
+		max_len: 160
+	}];
+
+	common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetBioResponse {
+	Result result = 1;
+	enum Result {
+		OK               = 0;
+		INVALID_BIO      = 1;
+		DENIED           = 2;
+		FAILED_MODERATED = 3;
+	}
+
+	// The best-fit category that tripped moderation, mirroring the Moderation
+	// service's vocabulary. Set only when result == FAILED_MODERATED; NONE
+	// otherwise.
+	moderation.v1.FlaggedCategory flagged_category = 2;
 }
 
 message UpdateFlipcardRequest {

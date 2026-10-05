@@ -1208,11 +1208,11 @@ export class AccessContext extends Message<AccessContext> {
     /**
      * The caller is accessing these blobs from this user's public profile.
      * Authorized iff the blob is a rendition of that user's CURRENT profile
-     * picture — a profile grants nothing else, and a superseded picture's
-     * renditions stop resolving through it.
+     * picture or cover picture — a profile grants nothing else, and a
+     * superseded picture's renditions stop resolving through it.
      *
-     * A caller never needs this for its OWN profile picture, since it owns
-     * those blobs.
+     * A caller never needs this for its OWN pictures, since it owns those
+     * blobs.
      *
      * @generated from field: flipcash.common.v1.UserId user_profile = 2;
      */
