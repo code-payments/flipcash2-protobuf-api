@@ -24,11 +24,12 @@ export class GetChatRequest extends Message<GetChatRequest> {
    * What the client intends to render of the chat's messaging state — its
    * last_message and latest_event_sequence — and so whether they may be
    * returned redacted (see messaging.v1.ViewMode). A group's record (title,
-   * description, picture, rules, roster summary) is returned to every
-   * registered user whatever the mode; the mode decides only the messaging
-   * state, which is withheld from a viewer who may not read the chat under
-   * it. Unset (FULL) is the pre-redaction contract: messaging state for a
-   * viewer who may read the chat in full, the bare record for anyone else.
+   * description, profile picture, cover picture, rules, roster summary) is
+   * returned to every registered user whatever the mode; the mode decides
+   * only the messaging state, which is withheld from a viewer who may not
+   * read the chat under it. Unset (FULL) is the pre-redaction contract:
+   * messaging state for a viewer who may read the chat in full, the bare
+   * record for anyone else.
    *
    * Must be REDACTED when auth is unset; any other mode is DENIED.
    *
@@ -811,12 +812,12 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
   title = "";
 
   /**
-   * The blob holding the ORIGINAL picture the caller uploaded. Optional.
-   * If set, it must be owned by the caller and READY.
+   * The blob holding the ORIGINAL profile picture the caller uploaded.
+   * Optional. If set, it must be owned by the caller and READY.
    *
-   * @generated from field: flipcash.blob.v1.BlobId picture = 2;
+   * @generated from field: flipcash.blob.v1.BlobId profile_picture = 2;
    */
-  picture?: BlobId;
+  profilePicture?: BlobId;
 
   /**
    * Rules governing participation in the chat. Optional; if not set, the
@@ -835,6 +836,14 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
    */
   description = "";
 
+  /**
+   * The blob holding the ORIGINAL cover picture the caller uploaded.
+   * Optional. If set, it must be owned by the caller and READY.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId cover_picture = 5;
+   */
+  coverPicture?: BlobId;
+
   constructor(data?: PartialMessage<StartChatRequest_PublicGroupChatParameters>) {
     super();
     proto3.util.initPartial(data, this);
@@ -844,9 +853,10 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
   static readonly typeName = "flipcash.chat.v1.StartChatRequest.PublicGroupChatParameters";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "picture", kind: "message", T: BlobId },
+    { no: 2, name: "profile_picture", kind: "message", T: BlobId },
     { no: 3, name: "rules", kind: "message", T: Rules },
     { no: 4, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "cover_picture", kind: "message", T: BlobId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_PublicGroupChatParameters {
@@ -900,12 +910,12 @@ export class StartChatRequest_PrivateGroupChatParameters extends Message<StartCh
   title = "";
 
   /**
-   * The blob holding the ORIGINAL picture the caller uploaded. Optional.
-   * If set, it must be owned by the caller and READY.
+   * The blob holding the ORIGINAL profile picture the caller uploaded.
+   * Optional. If set, it must be owned by the caller and READY.
    *
-   * @generated from field: flipcash.blob.v1.BlobId picture = 2;
+   * @generated from field: flipcash.blob.v1.BlobId profile_picture = 2;
    */
-  picture?: BlobId;
+  profilePicture?: BlobId;
 
   /**
    * Description for the chat. Optional; empty sets none. Moderated like
@@ -914,6 +924,14 @@ export class StartChatRequest_PrivateGroupChatParameters extends Message<StartCh
    * @generated from field: string description = 3;
    */
   description = "";
+
+  /**
+   * The blob holding the ORIGINAL cover picture the caller uploaded.
+   * Optional. If set, it must be owned by the caller and READY.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId cover_picture = 4;
+   */
+  coverPicture?: BlobId;
 
   constructor(data?: PartialMessage<StartChatRequest_PrivateGroupChatParameters>) {
     super();
@@ -924,8 +942,9 @@ export class StartChatRequest_PrivateGroupChatParameters extends Message<StartCh
   static readonly typeName = "flipcash.chat.v1.StartChatRequest.PrivateGroupChatParameters";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "picture", kind: "message", T: BlobId },
+    { no: 2, name: "profile_picture", kind: "message", T: BlobId },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "cover_picture", kind: "message", T: BlobId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_PrivateGroupChatParameters {
@@ -956,8 +975,8 @@ export class StartChatResponse extends Message<StartChatResponse> {
 
   /**
    * The metadata for the newly created chat, including the server-generated
-   * chat_id and any picture renditions the server derived. Set only when
-   * result == OK.
+   * chat_id and any profile picture or cover picture renditions the server
+   * derived. Set only when result == OK.
    *
    * @generated from field: flipcash.chat.v1.Metadata chat = 2;
    */
@@ -1022,9 +1041,9 @@ export enum StartChatResponse_Result {
   TITLE_MODERATED = 2,
 
   /**
-   * @generated from enum value: PICTURE_BLOB_NOT_ACCEPTED = 3;
+   * @generated from enum value: PROFILE_PICTURE_BLOB_NOT_ACCEPTED = 3;
    */
-  PICTURE_BLOB_NOT_ACCEPTED = 3,
+  PROFILE_PICTURE_BLOB_NOT_ACCEPTED = 3,
 
   /**
    * @generated from enum value: INVALID_RULES = 4;
@@ -1040,16 +1059,22 @@ export enum StartChatResponse_Result {
    * @generated from enum value: DESCRIPTION_MODERATED = 6;
    */
   DESCRIPTION_MODERATED = 6,
+
+  /**
+   * @generated from enum value: COVER_PICTURE_BLOB_NOT_ACCEPTED = 7;
+   */
+  COVER_PICTURE_BLOB_NOT_ACCEPTED = 7,
 }
 // Retrieve enum metadata with: proto3.getEnumType(StartChatResponse_Result)
 proto3.util.setEnumType(StartChatResponse_Result, "flipcash.chat.v1.StartChatResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "TITLE_MODERATED" },
-  { no: 3, name: "PICTURE_BLOB_NOT_ACCEPTED" },
+  { no: 3, name: "PROFILE_PICTURE_BLOB_NOT_ACCEPTED" },
   { no: 4, name: "INVALID_RULES" },
   { no: 5, name: "RULES_NOT_SATISFIED" },
   { no: 6, name: "DESCRIPTION_MODERATED" },
+  { no: 7, name: "COVER_PICTURE_BLOB_NOT_ACCEPTED" },
 ]);
 
 /**
@@ -1296,11 +1321,11 @@ export class EditChatRequest extends Message<EditChatRequest> {
   title?: EditChatRequest_Title;
 
   /**
-   * The new picture. Left unchanged when unset.
+   * The new profile picture. Left unchanged when unset.
    *
-   * @generated from field: flipcash.chat.v1.EditChatRequest.Picture picture = 3;
+   * @generated from field: flipcash.chat.v1.EditChatRequest.ProfilePicture profile_picture = 3;
    */
-  picture?: EditChatRequest_Picture;
+  profilePicture?: EditChatRequest_ProfilePicture;
 
   /**
    * The new description. Left unchanged when unset.
@@ -1308,6 +1333,13 @@ export class EditChatRequest extends Message<EditChatRequest> {
    * @generated from field: flipcash.chat.v1.EditChatRequest.Description description = 4;
    */
   description?: EditChatRequest_Description;
+
+  /**
+   * The new cover picture. Left unchanged when unset.
+   *
+   * @generated from field: flipcash.chat.v1.EditChatRequest.CoverPicture cover_picture = 5;
+   */
+  coverPicture?: EditChatRequest_CoverPicture;
 
   /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
@@ -1324,8 +1356,9 @@ export class EditChatRequest extends Message<EditChatRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "title", kind: "message", T: EditChatRequest_Title },
-    { no: 3, name: "picture", kind: "message", T: EditChatRequest_Picture },
+    { no: 3, name: "profile_picture", kind: "message", T: EditChatRequest_ProfilePicture },
     { no: 4, name: "description", kind: "message", T: EditChatRequest_Description },
+    { no: 5, name: "cover_picture", kind: "message", T: EditChatRequest_CoverPicture },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -1384,43 +1417,43 @@ export class EditChatRequest_Title extends Message<EditChatRequest_Title> {
 }
 
 /**
- * @generated from message flipcash.chat.v1.EditChatRequest.Picture
+ * @generated from message flipcash.chat.v1.EditChatRequest.ProfilePicture
  */
-export class EditChatRequest_Picture extends Message<EditChatRequest_Picture> {
+export class EditChatRequest_ProfilePicture extends Message<EditChatRequest_ProfilePicture> {
   /**
-   * The blob holding the ORIGINAL picture the caller uploaded. It must be
-   * owned by the caller and READY; the server derives the remaining
-   * renditions from it.
+   * The blob holding the ORIGINAL profile picture the caller uploaded. It
+   * must be owned by the caller and READY; the server derives the
+   * remaining renditions from it.
    *
    * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
    */
   blobId?: BlobId;
 
-  constructor(data?: PartialMessage<EditChatRequest_Picture>) {
+  constructor(data?: PartialMessage<EditChatRequest_ProfilePicture>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.EditChatRequest.Picture";
+  static readonly typeName = "flipcash.chat.v1.EditChatRequest.ProfilePicture";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "blob_id", kind: "message", T: BlobId },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest_Picture {
-    return new EditChatRequest_Picture().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest_ProfilePicture {
+    return new EditChatRequest_ProfilePicture().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest_Picture {
-    return new EditChatRequest_Picture().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest_ProfilePicture {
+    return new EditChatRequest_ProfilePicture().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest_Picture {
-    return new EditChatRequest_Picture().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest_ProfilePicture {
+    return new EditChatRequest_ProfilePicture().fromJsonString(jsonString, options);
   }
 
-  static equals(a: EditChatRequest_Picture | PlainMessage<EditChatRequest_Picture> | undefined, b: EditChatRequest_Picture | PlainMessage<EditChatRequest_Picture> | undefined): boolean {
-    return proto3.util.equals(EditChatRequest_Picture, a, b);
+  static equals(a: EditChatRequest_ProfilePicture | PlainMessage<EditChatRequest_ProfilePicture> | undefined, b: EditChatRequest_ProfilePicture | PlainMessage<EditChatRequest_ProfilePicture> | undefined): boolean {
+    return proto3.util.equals(EditChatRequest_ProfilePicture, a, b);
   }
 }
 
@@ -1464,6 +1497,47 @@ export class EditChatRequest_Description extends Message<EditChatRequest_Descrip
 }
 
 /**
+ * @generated from message flipcash.chat.v1.EditChatRequest.CoverPicture
+ */
+export class EditChatRequest_CoverPicture extends Message<EditChatRequest_CoverPicture> {
+  /**
+   * The blob holding the ORIGINAL cover picture the caller uploaded. It
+   * must be owned by the caller and READY; the server derives the
+   * remaining renditions from it.
+   *
+   * @generated from field: flipcash.blob.v1.BlobId blob_id = 1;
+   */
+  blobId?: BlobId;
+
+  constructor(data?: PartialMessage<EditChatRequest_CoverPicture>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EditChatRequest.CoverPicture";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "blob_id", kind: "message", T: BlobId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest_CoverPicture {
+    return new EditChatRequest_CoverPicture().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest_CoverPicture {
+    return new EditChatRequest_CoverPicture().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest_CoverPicture {
+    return new EditChatRequest_CoverPicture().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EditChatRequest_CoverPicture | PlainMessage<EditChatRequest_CoverPicture> | undefined, b: EditChatRequest_CoverPicture | PlainMessage<EditChatRequest_CoverPicture> | undefined): boolean {
+    return proto3.util.equals(EditChatRequest_CoverPicture, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.chat.v1.EditChatResponse
  */
 export class EditChatResponse extends Message<EditChatResponse> {
@@ -1474,8 +1548,8 @@ export class EditChatResponse extends Message<EditChatResponse> {
 
   /**
    * The metadata for the chat after the edit, as seen by the caller,
-   * including any picture renditions the server derived. Set only when
-   * result == OK.
+   * including any profile picture or cover picture renditions the server
+   * derived. Set only when result == OK.
    *
    * @generated from field: flipcash.chat.v1.Metadata chat = 2;
    */
@@ -1545,14 +1619,19 @@ export enum EditChatResponse_Result {
   TITLE_MODERATED = 3,
 
   /**
-   * @generated from enum value: PICTURE_BLOB_NOT_ACCEPTED = 4;
+   * @generated from enum value: PROFILE_PICTURE_BLOB_NOT_ACCEPTED = 4;
    */
-  PICTURE_BLOB_NOT_ACCEPTED = 4,
+  PROFILE_PICTURE_BLOB_NOT_ACCEPTED = 4,
 
   /**
-   * @generated from enum value: DESCRIPTION_MODERATED = 5;
+   * @generated from enum value: COVER_PICTURE_BLOB_NOT_ACCEPTED = 5;
    */
-  DESCRIPTION_MODERATED = 5,
+  COVER_PICTURE_BLOB_NOT_ACCEPTED = 5,
+
+  /**
+   * @generated from enum value: DESCRIPTION_MODERATED = 6;
+   */
+  DESCRIPTION_MODERATED = 6,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EditChatResponse_Result)
 proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatResponse.Result", [
@@ -1560,8 +1639,9 @@ proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatRespo
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "TITLE_MODERATED" },
-  { no: 4, name: "PICTURE_BLOB_NOT_ACCEPTED" },
-  { no: 5, name: "DESCRIPTION_MODERATED" },
+  { no: 4, name: "PROFILE_PICTURE_BLOB_NOT_ACCEPTED" },
+  { no: 5, name: "COVER_PICTURE_BLOB_NOT_ACCEPTED" },
+  { no: 6, name: "DESCRIPTION_MODERATED" },
 ]);
 
 /**

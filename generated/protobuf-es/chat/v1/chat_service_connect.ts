@@ -93,6 +93,10 @@ export const Chat = {
      * member of at the time of that page; a group the caller left between
      * pages is dropped, and its removal arrives on the stream.
      *
+     * The feed is meant for list views, so a chat's description and
+     * cover_picture may be omitted from it (see Metadata). Fetch them with
+     * GetChat when the client shows the chat's profile view.
+     *
      * @generated from rpc flipcash.chat.v1.Chat.GetGroupChatFeed
      */
     getGroupChatFeed: {
@@ -217,17 +221,18 @@ export const Chat = {
      * Only a group chat may be edited, and only by a member the server permits
      * to edit it, as reported by ViewerState.Permissions.can_edit; anyone else
      * is DENIED. A new title or description is moderated like StartChat's. A
-     * new picture is a blob the caller has already uploaded via
-     * BlobStorage: the client uploads only the ORIGINAL and passes the
-     * resulting BlobId once the blob is READY, and the server derives the
-     * remaining renditions. Setting a field to the value the chat already has
-     * is a no-op for that field, and a request that sets nothing is a no-op
-     * that returns OK.
+     * new profile picture or cover picture is a blob the caller has already
+     * uploaded via BlobStorage: the client uploads only the ORIGINAL and
+     * passes the resulting BlobId once the blob is READY, and the server
+     * derives the remaining renditions. Setting a field to the value the chat
+     * already has is a no-op for that field, and a request that sets nothing
+     * is a no-op that returns OK.
      *
      * Every real change reaches the chat's members, including the caller's
      * other devices, on the event stream as one MetadataUpdate per field
-     * changed: TitleChanged for the title, PictureChanged for the picture,
-     * DescriptionChanged for the description.
+     * changed: TitleChanged for the title, ProfilePictureChanged for the
+     * profile picture, DescriptionChanged for the description,
+     * CoverPictureChanged for the cover picture.
      *
      * @generated from rpc flipcash.chat.v1.Chat.EditChat
      */

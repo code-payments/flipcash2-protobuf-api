@@ -117,11 +117,18 @@ export class Metadata extends Message<Metadata> {
   title = "";
 
   /**
-   * Picture for this chat. Only supported for group chats
+   * The chat's profile picture — the avatar shown for it in chat lists and
+   * headers — as the set of renditions it is stored as. Only supported for
+   * group chats. Not to be confused with cover_picture, the banner shown
+   * behind the chat's profile view.
    *
-   * @generated from field: flipcash.blob.v1.Media picture = 9;
+   * Set it on creation (see StartChatRequest) or with Chat.EditChat. To
+   * fetch its bytes as a non-member, a GetBlobs call must carry a
+   * blob.v1.AccessContext whose `chat_profile` scope names this chat.
+   *
+   * @generated from field: flipcash.blob.v1.Media profile_picture = 9;
    */
-  picture?: Media;
+  profilePicture?: Media;
 
   /**
    * Chat roster summary
@@ -193,9 +200,36 @@ export class Metadata extends Message<Metadata> {
    *
    * Set it on creation (see StartChatRequest) or with Chat.EditChat.
    *
+   * It may be left empty on a chat returned by a feed RPC meant for list
+   * views (Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an empty value
+   * there does not mean none is set. Fetch it with Chat.GetChat, and don't
+   * let a feed result clear a description the client already holds.
+   *
    * @generated from field: string description = 16;
    */
   description = "";
+
+  /**
+   * The chat's cover picture — the banner shown behind the chat's profile
+   * view — as the set of renditions it is stored as, like
+   * profile_picture. Only supported for group chats. Unset when none is
+   * set. Part of the group's record, like profile_picture, so it is
+   * returned to every viewer who can see the chat, including in its public
+   * view.
+   *
+   * Set it on creation (see StartChatRequest) or with Chat.EditChat. To
+   * fetch its bytes as a non-member, a GetBlobs call must carry a
+   * blob.v1.AccessContext whose `chat_profile` scope names this chat,
+   * exactly as for profile_picture.
+   *
+   * It may be unset on a chat returned by a feed RPC meant for list views
+   * (Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an unset value there
+   * does not mean none is set. Fetch it with Chat.GetChat, and don't let a
+   * feed result clear a cover picture the client already holds.
+   *
+   * @generated from field: flipcash.blob.v1.Media cover_picture = 17;
+   */
+  coverPicture?: Media;
 
   /**
    * Whether messages in this chat are end-to-end encrypted (see
@@ -232,7 +266,7 @@ export class Metadata extends Message<Metadata> {
     { no: 6, name: "latest_event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "is_hidden", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 8, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "picture", kind: "message", T: Media },
+    { no: 9, name: "profile_picture", kind: "message", T: Media },
     { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
     { no: 11, name: "rules", kind: "message", T: Rules },
     { no: 12, name: "viewer_state", kind: "message", T: ViewerState },
@@ -240,6 +274,7 @@ export class Metadata extends Message<Metadata> {
     { no: 14, name: "is_private", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "in_lobby", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 16, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 17, name: "cover_picture", kind: "message", T: Media },
     { no: 100, name: "use_e2ee", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
@@ -839,16 +874,22 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     case: "titleChanged";
   } | {
     /**
-     * @generated from field: flipcash.chat.v1.MetadataUpdate.PictureChanged picture_changed = 5;
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged profile_picture_changed = 5;
      */
-    value: MetadataUpdate_PictureChanged;
-    case: "pictureChanged";
+    value: MetadataUpdate_ProfilePictureChanged;
+    case: "profilePictureChanged";
   } | {
     /**
      * @generated from field: flipcash.chat.v1.MetadataUpdate.DescriptionChanged description_changed = 6;
      */
     value: MetadataUpdate_DescriptionChanged;
     case: "descriptionChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.CoverPictureChanged cover_picture_changed = 7;
+     */
+    value: MetadataUpdate_CoverPictureChanged;
+    case: "coverPictureChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -863,8 +904,9 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     { no: 2, name: "last_activity_changed", kind: "message", T: MetadataUpdate_LastActivityChanged, oneof: "kind" },
     { no: 3, name: "viewer_state_changed", kind: "message", T: MetadataUpdate_ViewerStateChanged, oneof: "kind" },
     { no: 4, name: "title_changed", kind: "message", T: MetadataUpdate_TitleChanged, oneof: "kind" },
-    { no: 5, name: "picture_changed", kind: "message", T: MetadataUpdate_PictureChanged, oneof: "kind" },
+    { no: 5, name: "profile_picture_changed", kind: "message", T: MetadataUpdate_ProfilePictureChanged, oneof: "kind" },
     { no: 6, name: "description_changed", kind: "message", T: MetadataUpdate_DescriptionChanged, oneof: "kind" },
+    { no: 7, name: "cover_picture_changed", kind: "message", T: MetadataUpdate_CoverPictureChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -1046,47 +1088,47 @@ export class MetadataUpdate_TitleChanged extends Message<MetadataUpdate_TitleCha
 }
 
 /**
- * The chat's picture has changed (e.g. via Chat.EditChat). Delivered to
- * the chat's members, including the editor's other devices. Best-effort
- * and applied as received; a client that suspects a miss refetches the
- * chat via Chat.GetChat.
+ * The chat's profile picture has changed (e.g. via Chat.EditChat).
+ * Delivered to the chat's members, including the editor's other devices.
+ * Best-effort and applied as received; a client that suspects a miss
+ * refetches the chat via Chat.GetChat.
  *
- * @generated from message flipcash.chat.v1.MetadataUpdate.PictureChanged
+ * @generated from message flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged
  */
-export class MetadataUpdate_PictureChanged extends Message<MetadataUpdate_PictureChanged> {
+export class MetadataUpdate_ProfilePictureChanged extends Message<MetadataUpdate_ProfilePictureChanged> {
   /**
-   * The new picture, with the renditions the server derived, replacing
-   * Metadata.picture.
+   * The new profile picture, with the renditions the server derived,
+   * replacing Metadata.profile_picture.
    *
-   * @generated from field: flipcash.blob.v1.Media new_picture = 1;
+   * @generated from field: flipcash.blob.v1.Media new_profile_picture = 1;
    */
-  newPicture?: Media;
+  newProfilePicture?: Media;
 
-  constructor(data?: PartialMessage<MetadataUpdate_PictureChanged>) {
+  constructor(data?: PartialMessage<MetadataUpdate_ProfilePictureChanged>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.PictureChanged";
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "new_picture", kind: "message", T: Media },
+    { no: 1, name: "new_profile_picture", kind: "message", T: Media },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_PictureChanged {
-    return new MetadataUpdate_PictureChanged().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_ProfilePictureChanged {
+    return new MetadataUpdate_ProfilePictureChanged().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_PictureChanged {
-    return new MetadataUpdate_PictureChanged().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_ProfilePictureChanged {
+    return new MetadataUpdate_ProfilePictureChanged().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_PictureChanged {
-    return new MetadataUpdate_PictureChanged().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_ProfilePictureChanged {
+    return new MetadataUpdate_ProfilePictureChanged().fromJsonString(jsonString, options);
   }
 
-  static equals(a: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined, b: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined): boolean {
-    return proto3.util.equals(MetadataUpdate_PictureChanged, a, b);
+  static equals(a: MetadataUpdate_ProfilePictureChanged | PlainMessage<MetadataUpdate_ProfilePictureChanged> | undefined, b: MetadataUpdate_ProfilePictureChanged | PlainMessage<MetadataUpdate_ProfilePictureChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_ProfilePictureChanged, a, b);
   }
 }
 
@@ -1132,6 +1174,51 @@ export class MetadataUpdate_DescriptionChanged extends Message<MetadataUpdate_De
 
   static equals(a: MetadataUpdate_DescriptionChanged | PlainMessage<MetadataUpdate_DescriptionChanged> | undefined, b: MetadataUpdate_DescriptionChanged | PlainMessage<MetadataUpdate_DescriptionChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_DescriptionChanged, a, b);
+  }
+}
+
+/**
+ * The chat's cover picture has changed (e.g. via Chat.EditChat). Delivered
+ * to the chat's members, including the editor's other devices.
+ * Best-effort and applied as received; a client that suspects a miss
+ * refetches the chat via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.CoverPictureChanged
+ */
+export class MetadataUpdate_CoverPictureChanged extends Message<MetadataUpdate_CoverPictureChanged> {
+  /**
+   * The new cover picture, with the renditions the server derived,
+   * replacing Metadata.cover_picture.
+   *
+   * @generated from field: flipcash.blob.v1.Media new_cover_picture = 1;
+   */
+  newCoverPicture?: Media;
+
+  constructor(data?: PartialMessage<MetadataUpdate_CoverPictureChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.CoverPictureChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_cover_picture", kind: "message", T: Media },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_CoverPictureChanged {
+    return new MetadataUpdate_CoverPictureChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_CoverPictureChanged {
+    return new MetadataUpdate_CoverPictureChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_CoverPictureChanged {
+    return new MetadataUpdate_CoverPictureChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_CoverPictureChanged | PlainMessage<MetadataUpdate_CoverPictureChanged> | undefined, b: MetadataUpdate_CoverPictureChanged | PlainMessage<MetadataUpdate_CoverPictureChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_CoverPictureChanged, a, b);
   }
 }
 
@@ -1867,8 +1954,8 @@ export class LobbyMember extends Message<LobbyMember> {
 export class Lobby extends Message<Lobby> {
   /**
    * The chat, as a user who is not a member sees it: its record (title,
-   * picture, roster summary, creator) with in_lobby set, and none of its
-   * members or messaging state.
+   * profile picture, roster summary, creator) with in_lobby set, and none of
+   * its members or messaging state.
    *
    * @generated from field: flipcash.chat.v1.Metadata chat = 1;
    */
