@@ -1491,11 +1491,11 @@ type AccessContext_Chat struct {
 type AccessContext_UserProfile struct {
 	// The caller is accessing these blobs from this user's public profile.
 	// Authorized iff the blob is a rendition of that user's CURRENT profile
-	// picture — a profile grants nothing else, and a superseded picture's
-	// renditions stop resolving through it.
+	// picture or cover picture — a profile grants nothing else, and a
+	// superseded picture's renditions stop resolving through it.
 	//
-	// A caller never needs this for its OWN profile picture, since it owns
-	// those blobs.
+	// A caller never needs this for its OWN pictures, since it owns those
+	// blobs.
 	UserProfile *v11.UserId `protobuf:"bytes,2,opt,name=user_profile,json=userProfile,proto3,oneof"`
 }
 

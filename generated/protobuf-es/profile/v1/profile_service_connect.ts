@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateFlipcardRequest, UpdateFlipcardResponse } from "./profile_service_pb";
+import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetBioRequest, SetBioResponse, SetCoverPictureRequest, SetCoverPictureResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateFlipcardRequest, UpdateFlipcardResponse } from "./profile_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -57,6 +57,33 @@ export const Profile = {
       name: "SetProfilePicture",
       I: SetProfilePictureRequest,
       O: SetProfilePictureResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetCoverPicture sets the caller's cover picture to a blob they have
+     * already uploaded via BlobStorage, replacing any cover picture already
+     * set. The upload flow and the server-derived renditions are exactly those
+     * of SetProfilePicture; only the surface the picture is shown on differs.
+     *
+     * @generated from rpc flipcash.profile.v1.Profile.SetCoverPicture
+     */
+    setCoverPicture: {
+      name: "SetCoverPicture",
+      I: SetCoverPictureRequest,
+      O: SetCoverPictureResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetBio sets the caller's bio, replacing any bio already set. An empty
+     * bio clears it. The bio is moderated before it is set, like a display
+     * name.
+     *
+     * @generated from rpc flipcash.profile.v1.Profile.SetBio
+     */
+    setBio: {
+      name: "SetBio",
+      I: SetBioRequest,
+      O: SetBioResponse,
       kind: MethodKind.Unary,
     },
     /**

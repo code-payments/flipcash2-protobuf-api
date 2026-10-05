@@ -73,6 +73,29 @@ message UserProfile {
     // when the user hasn't set one, in which case the server default applies.
     // Update it with SetMinDmChatInitFee.
     common.v1.FiatPaymentAmount min_dm_chat_init_fee = 10;
+
+    // A short free-form description the user wrote about themself. Public, so
+    // it is returned for any user, not just the caller. Empty when the user
+    // has not set one. Set it with SetBio.
+    //
+    // It is returned on GetProfile only: a profile embedded elsewhere (a chat
+    // member row, a mention suggestion) carries no bio.
+    string bio = 12 [(validate.rules).string = {
+        max_len: 160
+    }];
+
+    // The user's cover picture — the banner shown behind the profile view —
+    // as the set of renditions it is stored as, like profile_picture. Public,
+    // so it is returned for any user, not just the caller.
+    //
+    // Unset when the user has not set one. Set it with SetCoverPicture.
+    //
+    // It is returned on GetProfile only: a profile embedded elsewhere carries
+    // no cover picture. To fetch the bytes of ANOTHER user's cover picture, a
+    // GetBlobs call must carry a blob.v1.AccessContext whose `user_profile`
+    // scope names this user, exactly as for profile_picture. A caller reading
+    // its own needs none.
+    blob.v1.Media cover_picture = 13;
 }
 
 message SocialProfile {

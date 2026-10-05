@@ -111,6 +111,35 @@ export class UserProfile extends Message<UserProfile> {
    */
   minDmChatInitFee?: FiatPaymentAmount;
 
+  /**
+   * A short free-form description the user wrote about themself. Public, so
+   * it is returned for any user, not just the caller. Empty when the user
+   * has not set one. Set it with SetBio.
+   *
+   * It is returned on GetProfile only: a profile embedded elsewhere (a chat
+   * member row, a mention suggestion) carries no bio.
+   *
+   * @generated from field: string bio = 12;
+   */
+  bio = "";
+
+  /**
+   * The user's cover picture — the banner shown behind the profile view —
+   * as the set of renditions it is stored as, like profile_picture. Public,
+   * so it is returned for any user, not just the caller.
+   *
+   * Unset when the user has not set one. Set it with SetCoverPicture.
+   *
+   * It is returned on GetProfile only: a profile embedded elsewhere carries
+   * no cover picture. To fetch the bytes of ANOTHER user's cover picture, a
+   * GetBlobs call must carry a blob.v1.AccessContext whose `user_profile`
+   * scope names this user, exactly as for profile_picture. A caller reading
+   * its own needs none.
+   *
+   * @generated from field: flipcash.blob.v1.Media cover_picture = 13;
+   */
+  coverPicture?: Media;
+
   constructor(data?: PartialMessage<UserProfile>) {
     super();
     proto3.util.initPartial(data, this);
@@ -130,6 +159,8 @@ export class UserProfile extends Message<UserProfile> {
     { no: 6, name: "join_ts", kind: "message", T: Timestamp },
     { no: 7, name: "flipcard_customization", kind: "message", T: FlipcardCustomization },
     { no: 10, name: "min_dm_chat_init_fee", kind: "message", T: FiatPaymentAmount },
+    { no: 12, name: "bio", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "cover_picture", kind: "message", T: Media },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserProfile {
