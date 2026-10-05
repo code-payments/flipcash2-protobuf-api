@@ -30,6 +30,13 @@ const (
 	Chat_EditChat_FullMethodName              = "/flipcash.chat.v1.Chat/EditChat"
 	Chat_MuteChat_FullMethodName              = "/flipcash.chat.v1.Chat/MuteChat"
 	Chat_UnmuteChat_FullMethodName            = "/flipcash.chat.v1.Chat/UnmuteChat"
+	Chat_EnterLobby_FullMethodName            = "/flipcash.chat.v1.Chat/EnterLobby"
+	Chat_LeaveLobby_FullMethodName            = "/flipcash.chat.v1.Chat/LeaveLobby"
+	Chat_GetLobbyMembers_FullMethodName       = "/flipcash.chat.v1.Chat/GetLobbyMembers"
+	Chat_AdmitLobbyMember_FullMethodName      = "/flipcash.chat.v1.Chat/AdmitLobbyMember"
+	Chat_DenyLobbyMember_FullMethodName       = "/flipcash.chat.v1.Chat/DenyLobbyMember"
+	Chat_SetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/SetKeyEnvelope"
+	Chat_GetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/GetKeyEnvelope"
 )
 
 // ChatClient is the client API for Chat service.
@@ -43,6 +50,14 @@ type ChatClient interface {
 	// with view_mode REDACTED and none of the per-viewer fields (is_hidden,
 	// viewer_state). An unauthenticated read under any other view_mode, or of
 	// a DM, is DENIED.
+	//
+	// A private group (see Metadata.is_private) returns its record to any
+	// registered user, so that one who is not a member can see what they are
+	// asking to join, but its messaging state only to a member, whatever the
+	// view_mode. It has no public view: an unauthenticated read of one is
+	// DENIED. A private group whose creator has not stored its key yet (see
+	// StartChatRequest.PrivateGroupChatParameters) is returned like any
+	// other: it is visible, though nothing can happen in it.
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*GetChatResponse, error)
 	// GetDmChatFeed gets the set of DM chats for an owner account using
 	// a paged API, ordered by last activity with the most recent first.
@@ -140,8 +155,18 @@ type ChatClient interface {
 	// StartChat starts a new chat.
 	StartChat(ctx context.Context, in *StartChatRequest, opts ...grpc.CallOption) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
+	//
+	// A private group (see Metadata.is_private) cannot be joined this way and
+	// is DENIED: a user enters its lobby with EnterLobby and is admitted by
+	// its creator. The one exception is the group's creator, who needs no
+	// approval and rejoins a private group they left with this RPC.
 	JoinChat(ctx context.Context, in *JoinChatRequest, opts ...grpc.CallOption) (*JoinChatResponse, error)
 	// LeaveChat removes the caller from a chat's roster.
+	//
+	// Leaving a private group discards the caller's key envelope (see
+	// KeyEnvelope), so returning means entering the lobby and being admitted
+	// again. The creator's envelope is kept, since no one else could give
+	// them another.
 	LeaveChat(ctx context.Context, in *LeaveChatRequest, opts ...grpc.CallOption) (*LeaveChatResponse, error)
 	// EditChat edits a group chat's record. Every editable field is optional;
 	// only the ones set in the request are changed, and the edit is atomic:
@@ -175,6 +200,108 @@ type ChatClient interface {
 	// not muted is a no-op. Every real change reaches the caller's other devices
 	// as a MetadataUpdate.ViewerStateChanged on the event stream.
 	UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts ...grpc.CallOption) (*UnmuteChatResponse, error)
+	// EnterLobby places the caller in a private group's lobby, where they
+	// wait for the group's creator to admit them. It is how a user asks to
+	// join a private group (see Metadata.is_private); JoinChat is DENIED for
+	// one.
+	//
+	// Entering a lobby the caller is already in is a no-op that returns OK.
+	// The server caps both how many users may wait in one lobby and how many
+	// lobbies one user may wait in. A group whose creator has not stored its
+	// key yet (see StartChatRequest.PrivateGroupChatParameters) has no lobby
+	// to enter, and is DENIED until they have.
+	//
+	// A lobby is visible only to the group's creator, through
+	// GetLobbyMembers: the users waiting in it are not shown to each other or
+	// to the group's members. The creator's devices learn of the entry as a
+	// LobbyUpdate on the event stream.
+	//
+	// While the caller waits, the chat's Metadata carries in_lobby. The
+	// caller leaves the lobby when they withdraw (LeaveLobby), when the
+	// creator denies them (DenyLobbyMember), or when the creator admits them
+	// (AdmitLobbyMember). An admission reaches the caller's devices as a
+	// RosterUpdate.MemberJoined naming them; a denial is not announced to
+	// them.
+	//
+	// There is no RPC that lists the lobbies a caller is waiting in. A client
+	// keeps the chats it entered itself, and reads in_lobby from GetChat to
+	// learn whether it is still waiting in one. A paged listing may be added
+	// later.
+	EnterLobby(ctx context.Context, in *EnterLobbyRequest, opts ...grpc.CallOption) (*EnterLobbyResponse, error)
+	// LeaveLobby withdraws the caller from a private group's lobby. Leaving a
+	// lobby the caller is not in is a no-op that returns OK.
+	LeaveLobby(ctx context.Context, in *LeaveLobbyRequest, opts ...grpc.CallOption) (*LeaveLobbyResponse, error)
+	// GetLobbyMembers pages the users waiting in a private group's lobby,
+	// earliest entered first.
+	//
+	// Only the group's creator may call it, and only while a member of the
+	// group; anyone else is DENIED. The page is read from an index that
+	// trails writes briefly, so a user who just entered may be absent and one
+	// who just left may be present.
+	GetLobbyMembers(ctx context.Context, in *GetLobbyMembersRequest, opts ...grpc.CallOption) (*GetLobbyMembersResponse, error)
+	// AdmitLobbyMember admits a user waiting in a private group's lobby:
+	// it stores the chat key wrapped for them (see KeyEnvelope) and adds them
+	// to the chat's roster. The envelope is stored first, so an admitted
+	// member always has one.
+	//
+	// Only the group's creator may call it, and only while a member of the
+	// group; anyone else is DENIED. So is a creator who has not stored their
+	// own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
+	// nobody is admitted to a group before its creator holds its key. This is
+	// the only way to give another user a key envelope. Admitting a user who
+	// is already a member is a no-op that returns OK and leaves their stored
+	// envelope as it is.
+	//
+	// The admission is announced like any other join: a
+	// RosterUpdate.MemberJoined to the chat's members and to the admitted
+	// user, who then fetches their envelope with GetKeyEnvelope.
+	AdmitLobbyMember(ctx context.Context, in *AdmitLobbyMemberRequest, opts ...grpc.CallOption) (*AdmitLobbyMemberResponse, error)
+	// DenyLobbyMember removes a user from a private group's lobby without
+	// admitting them. Only the group's creator may call it, and only while a
+	// member of the group; anyone else is DENIED. Denying a user who is not
+	// in the lobby is a no-op that returns OK.
+	//
+	// The denied user is not notified. The chat's Metadata stops carrying
+	// in_lobby for them, and they may enter the lobby again.
+	DenyLobbyMember(ctx context.Context, in *DenyLobbyMemberRequest, opts ...grpc.CallOption) (*DenyLobbyMemberResponse, error)
+	// SetKeyEnvelope stores the caller's own key envelope for a private
+	// group. Only a member may call it, and only for themself: an envelope
+	// for another user is stored by admitting them (AdmitLobbyMember).
+	//
+	// It is called in two situations (see KeyEnvelope):
+	//   - By the group's creator, right after StartChat returns the chat's
+	//     ID, to store the chat key they have just generated. This is the
+	//     second step of creating a private group, and nothing can happen in
+	//     the group until it succeeds (see
+	//     StartChatRequest.PrivateGroupChatParameters). The creator's client
+	//     keeps attempting it until it returns OK or ALREADY_SET: on a failed
+	//     call, on its next launch, and on any device that finds the group
+	//     with NO_ENVELOPE.
+	//   - By an admitted member, after first opening the envelope the creator
+	//     wrapped for them, to replace it with one wrapped by themself.
+	//
+	// The first envelope a caller stores for themself stands. Once the
+	// stored envelope is one the caller wrapped, a call with a different
+	// envelope changes nothing and returns ALREADY_SET, and the caller uses
+	// the stored one from GetKeyEnvelope. This keeps two of a creator's
+	// devices, each setting up the same new group, from holding different
+	// keys. Storing an envelope identical to the one stored is a no-op that
+	// returns OK.
+	//
+	// Nothing is published: the caller's other devices fetch the envelope
+	// when they need it.
+	SetKeyEnvelope(ctx context.Context, in *SetKeyEnvelopeRequest, opts ...grpc.CallOption) (*SetKeyEnvelopeResponse, error)
+	// GetKeyEnvelope returns the caller's own key envelope for a private
+	// group. Only a member may call it. The chat key never changes, so a
+	// client calls this once per chat per install and keeps the key it
+	// unwraps.
+	//
+	// NO_ENVELOPE is expected only for the creator of a group whose creation
+	// stopped between StartChat and SetKeyEnvelope. A creator's client that
+	// receives it generates a chat key and stores its envelope with
+	// SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
+	// until it succeeds.
+	GetKeyEnvelope(ctx context.Context, in *GetKeyEnvelopeRequest, opts ...grpc.CallOption) (*GetKeyEnvelopeResponse, error)
 }
 
 type chatClient struct {
@@ -295,6 +422,76 @@ func (c *chatClient) UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts
 	return out, nil
 }
 
+func (c *chatClient) EnterLobby(ctx context.Context, in *EnterLobbyRequest, opts ...grpc.CallOption) (*EnterLobbyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnterLobbyResponse)
+	err := c.cc.Invoke(ctx, Chat_EnterLobby_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) LeaveLobby(ctx context.Context, in *LeaveLobbyRequest, opts ...grpc.CallOption) (*LeaveLobbyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LeaveLobbyResponse)
+	err := c.cc.Invoke(ctx, Chat_LeaveLobby_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetLobbyMembers(ctx context.Context, in *GetLobbyMembersRequest, opts ...grpc.CallOption) (*GetLobbyMembersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLobbyMembersResponse)
+	err := c.cc.Invoke(ctx, Chat_GetLobbyMembers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) AdmitLobbyMember(ctx context.Context, in *AdmitLobbyMemberRequest, opts ...grpc.CallOption) (*AdmitLobbyMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdmitLobbyMemberResponse)
+	err := c.cc.Invoke(ctx, Chat_AdmitLobbyMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) DenyLobbyMember(ctx context.Context, in *DenyLobbyMemberRequest, opts ...grpc.CallOption) (*DenyLobbyMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DenyLobbyMemberResponse)
+	err := c.cc.Invoke(ctx, Chat_DenyLobbyMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) SetKeyEnvelope(ctx context.Context, in *SetKeyEnvelopeRequest, opts ...grpc.CallOption) (*SetKeyEnvelopeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetKeyEnvelopeResponse)
+	err := c.cc.Invoke(ctx, Chat_SetKeyEnvelope_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetKeyEnvelope(ctx context.Context, in *GetKeyEnvelopeRequest, opts ...grpc.CallOption) (*GetKeyEnvelopeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKeyEnvelopeResponse)
+	err := c.cc.Invoke(ctx, Chat_GetKeyEnvelope_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility.
@@ -306,6 +503,14 @@ type ChatServer interface {
 	// with view_mode REDACTED and none of the per-viewer fields (is_hidden,
 	// viewer_state). An unauthenticated read under any other view_mode, or of
 	// a DM, is DENIED.
+	//
+	// A private group (see Metadata.is_private) returns its record to any
+	// registered user, so that one who is not a member can see what they are
+	// asking to join, but its messaging state only to a member, whatever the
+	// view_mode. It has no public view: an unauthenticated read of one is
+	// DENIED. A private group whose creator has not stored its key yet (see
+	// StartChatRequest.PrivateGroupChatParameters) is returned like any
+	// other: it is visible, though nothing can happen in it.
 	GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error)
 	// GetDmChatFeed gets the set of DM chats for an owner account using
 	// a paged API, ordered by last activity with the most recent first.
@@ -403,8 +608,18 @@ type ChatServer interface {
 	// StartChat starts a new chat.
 	StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
+	//
+	// A private group (see Metadata.is_private) cannot be joined this way and
+	// is DENIED: a user enters its lobby with EnterLobby and is admitted by
+	// its creator. The one exception is the group's creator, who needs no
+	// approval and rejoins a private group they left with this RPC.
 	JoinChat(context.Context, *JoinChatRequest) (*JoinChatResponse, error)
 	// LeaveChat removes the caller from a chat's roster.
+	//
+	// Leaving a private group discards the caller's key envelope (see
+	// KeyEnvelope), so returning means entering the lobby and being admitted
+	// again. The creator's envelope is kept, since no one else could give
+	// them another.
 	LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error)
 	// EditChat edits a group chat's record. Every editable field is optional;
 	// only the ones set in the request are changed, and the edit is atomic:
@@ -438,6 +653,108 @@ type ChatServer interface {
 	// not muted is a no-op. Every real change reaches the caller's other devices
 	// as a MetadataUpdate.ViewerStateChanged on the event stream.
 	UnmuteChat(context.Context, *UnmuteChatRequest) (*UnmuteChatResponse, error)
+	// EnterLobby places the caller in a private group's lobby, where they
+	// wait for the group's creator to admit them. It is how a user asks to
+	// join a private group (see Metadata.is_private); JoinChat is DENIED for
+	// one.
+	//
+	// Entering a lobby the caller is already in is a no-op that returns OK.
+	// The server caps both how many users may wait in one lobby and how many
+	// lobbies one user may wait in. A group whose creator has not stored its
+	// key yet (see StartChatRequest.PrivateGroupChatParameters) has no lobby
+	// to enter, and is DENIED until they have.
+	//
+	// A lobby is visible only to the group's creator, through
+	// GetLobbyMembers: the users waiting in it are not shown to each other or
+	// to the group's members. The creator's devices learn of the entry as a
+	// LobbyUpdate on the event stream.
+	//
+	// While the caller waits, the chat's Metadata carries in_lobby. The
+	// caller leaves the lobby when they withdraw (LeaveLobby), when the
+	// creator denies them (DenyLobbyMember), or when the creator admits them
+	// (AdmitLobbyMember). An admission reaches the caller's devices as a
+	// RosterUpdate.MemberJoined naming them; a denial is not announced to
+	// them.
+	//
+	// There is no RPC that lists the lobbies a caller is waiting in. A client
+	// keeps the chats it entered itself, and reads in_lobby from GetChat to
+	// learn whether it is still waiting in one. A paged listing may be added
+	// later.
+	EnterLobby(context.Context, *EnterLobbyRequest) (*EnterLobbyResponse, error)
+	// LeaveLobby withdraws the caller from a private group's lobby. Leaving a
+	// lobby the caller is not in is a no-op that returns OK.
+	LeaveLobby(context.Context, *LeaveLobbyRequest) (*LeaveLobbyResponse, error)
+	// GetLobbyMembers pages the users waiting in a private group's lobby,
+	// earliest entered first.
+	//
+	// Only the group's creator may call it, and only while a member of the
+	// group; anyone else is DENIED. The page is read from an index that
+	// trails writes briefly, so a user who just entered may be absent and one
+	// who just left may be present.
+	GetLobbyMembers(context.Context, *GetLobbyMembersRequest) (*GetLobbyMembersResponse, error)
+	// AdmitLobbyMember admits a user waiting in a private group's lobby:
+	// it stores the chat key wrapped for them (see KeyEnvelope) and adds them
+	// to the chat's roster. The envelope is stored first, so an admitted
+	// member always has one.
+	//
+	// Only the group's creator may call it, and only while a member of the
+	// group; anyone else is DENIED. So is a creator who has not stored their
+	// own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
+	// nobody is admitted to a group before its creator holds its key. This is
+	// the only way to give another user a key envelope. Admitting a user who
+	// is already a member is a no-op that returns OK and leaves their stored
+	// envelope as it is.
+	//
+	// The admission is announced like any other join: a
+	// RosterUpdate.MemberJoined to the chat's members and to the admitted
+	// user, who then fetches their envelope with GetKeyEnvelope.
+	AdmitLobbyMember(context.Context, *AdmitLobbyMemberRequest) (*AdmitLobbyMemberResponse, error)
+	// DenyLobbyMember removes a user from a private group's lobby without
+	// admitting them. Only the group's creator may call it, and only while a
+	// member of the group; anyone else is DENIED. Denying a user who is not
+	// in the lobby is a no-op that returns OK.
+	//
+	// The denied user is not notified. The chat's Metadata stops carrying
+	// in_lobby for them, and they may enter the lobby again.
+	DenyLobbyMember(context.Context, *DenyLobbyMemberRequest) (*DenyLobbyMemberResponse, error)
+	// SetKeyEnvelope stores the caller's own key envelope for a private
+	// group. Only a member may call it, and only for themself: an envelope
+	// for another user is stored by admitting them (AdmitLobbyMember).
+	//
+	// It is called in two situations (see KeyEnvelope):
+	//   - By the group's creator, right after StartChat returns the chat's
+	//     ID, to store the chat key they have just generated. This is the
+	//     second step of creating a private group, and nothing can happen in
+	//     the group until it succeeds (see
+	//     StartChatRequest.PrivateGroupChatParameters). The creator's client
+	//     keeps attempting it until it returns OK or ALREADY_SET: on a failed
+	//     call, on its next launch, and on any device that finds the group
+	//     with NO_ENVELOPE.
+	//   - By an admitted member, after first opening the envelope the creator
+	//     wrapped for them, to replace it with one wrapped by themself.
+	//
+	// The first envelope a caller stores for themself stands. Once the
+	// stored envelope is one the caller wrapped, a call with a different
+	// envelope changes nothing and returns ALREADY_SET, and the caller uses
+	// the stored one from GetKeyEnvelope. This keeps two of a creator's
+	// devices, each setting up the same new group, from holding different
+	// keys. Storing an envelope identical to the one stored is a no-op that
+	// returns OK.
+	//
+	// Nothing is published: the caller's other devices fetch the envelope
+	// when they need it.
+	SetKeyEnvelope(context.Context, *SetKeyEnvelopeRequest) (*SetKeyEnvelopeResponse, error)
+	// GetKeyEnvelope returns the caller's own key envelope for a private
+	// group. Only a member may call it. The chat key never changes, so a
+	// client calls this once per chat per install and keeps the key it
+	// unwraps.
+	//
+	// NO_ENVELOPE is expected only for the creator of a group whose creation
+	// stopped between StartChat and SetKeyEnvelope. A creator's client that
+	// receives it generates a chat key and stores its envelope with
+	// SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
+	// until it succeeds.
+	GetKeyEnvelope(context.Context, *GetKeyEnvelopeRequest) (*GetKeyEnvelopeResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -480,6 +797,27 @@ func (UnimplementedChatServer) MuteChat(context.Context, *MuteChatRequest) (*Mut
 }
 func (UnimplementedChatServer) UnmuteChat(context.Context, *UnmuteChatRequest) (*UnmuteChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnmuteChat not implemented")
+}
+func (UnimplementedChatServer) EnterLobby(context.Context, *EnterLobbyRequest) (*EnterLobbyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnterLobby not implemented")
+}
+func (UnimplementedChatServer) LeaveLobby(context.Context, *LeaveLobbyRequest) (*LeaveLobbyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LeaveLobby not implemented")
+}
+func (UnimplementedChatServer) GetLobbyMembers(context.Context, *GetLobbyMembersRequest) (*GetLobbyMembersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLobbyMembers not implemented")
+}
+func (UnimplementedChatServer) AdmitLobbyMember(context.Context, *AdmitLobbyMemberRequest) (*AdmitLobbyMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdmitLobbyMember not implemented")
+}
+func (UnimplementedChatServer) DenyLobbyMember(context.Context, *DenyLobbyMemberRequest) (*DenyLobbyMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DenyLobbyMember not implemented")
+}
+func (UnimplementedChatServer) SetKeyEnvelope(context.Context, *SetKeyEnvelopeRequest) (*SetKeyEnvelopeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetKeyEnvelope not implemented")
+}
+func (UnimplementedChatServer) GetKeyEnvelope(context.Context, *GetKeyEnvelopeRequest) (*GetKeyEnvelopeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetKeyEnvelope not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -700,6 +1038,132 @@ func _Chat_UnmuteChat_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_EnterLobby_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnterLobbyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).EnterLobby(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_EnterLobby_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).EnterLobby(ctx, req.(*EnterLobbyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_LeaveLobby_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LeaveLobbyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).LeaveLobby(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_LeaveLobby_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).LeaveLobby(ctx, req.(*LeaveLobbyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetLobbyMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLobbyMembersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetLobbyMembers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetLobbyMembers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetLobbyMembers(ctx, req.(*GetLobbyMembersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_AdmitLobbyMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdmitLobbyMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).AdmitLobbyMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_AdmitLobbyMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).AdmitLobbyMember(ctx, req.(*AdmitLobbyMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_DenyLobbyMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DenyLobbyMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).DenyLobbyMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_DenyLobbyMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).DenyLobbyMember(ctx, req.(*DenyLobbyMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_SetKeyEnvelope_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetKeyEnvelopeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).SetKeyEnvelope(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_SetKeyEnvelope_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).SetKeyEnvelope(ctx, req.(*SetKeyEnvelopeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetKeyEnvelope_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKeyEnvelopeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetKeyEnvelope(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetKeyEnvelope_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetKeyEnvelope(ctx, req.(*GetKeyEnvelopeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -750,6 +1214,34 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnmuteChat",
 			Handler:    _Chat_UnmuteChat_Handler,
+		},
+		{
+			MethodName: "EnterLobby",
+			Handler:    _Chat_EnterLobby_Handler,
+		},
+		{
+			MethodName: "LeaveLobby",
+			Handler:    _Chat_LeaveLobby_Handler,
+		},
+		{
+			MethodName: "GetLobbyMembers",
+			Handler:    _Chat_GetLobbyMembers_Handler,
+		},
+		{
+			MethodName: "AdmitLobbyMember",
+			Handler:    _Chat_AdmitLobbyMember_Handler,
+		},
+		{
+			MethodName: "DenyLobbyMember",
+			Handler:    _Chat_DenyLobbyMember_Handler,
+		},
+		{
+			MethodName: "SetKeyEnvelope",
+			Handler:    _Chat_SetKeyEnvelope_Handler,
+		},
+		{
+			MethodName: "GetKeyEnvelope",
+			Handler:    _Chat_GetKeyEnvelope_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

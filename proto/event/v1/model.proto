@@ -140,6 +140,13 @@ message ChatUpdate {
     // This is how a chat left between pages of a chat feed read is
     // reconciled.
     chat.v1.RosterUpdateBatch roster_updates = 8;
+
+    // If present, best-effort real-time changes to the chat's lobby — users
+    // entering or leaving it. Sent only for a private group, and only to its
+    // creator. Like roster_updates, they are NOT part of the gap-detected
+    // event log; the creator reconciles any misses by refetching the lobby
+    // with Chat.GetLobbyMembers.
+    chat.v1.LobbyUpdateBatch lobby_updates = 9;
 }
 
 // BlobUpdate notifies the recipient in real time that blobs they uploaded have

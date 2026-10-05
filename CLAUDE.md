@@ -57,7 +57,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | activity | `flipcash.activity.v1` | `ActivityFeed` | Notification feed: latest, paged, batch |
 | blob | `flipcash.blob.v1` | `BlobStorage` | Direct-to-storage uploads via presigned targets; blob status and fresh download URLs. Server derives renditions and metadata; clients only upload ORIGINALs |
 | blocklist | `flipcash.blocklist.v1` | `Blocklist` | Block/unblock users, IsBlocked, paged blocklist |
-| chat | `flipcash.chat.v1` | `Chat` | Chat metadata, DM and group chat feeds, Start/Join/Leave group chats, chat rules |
+| chat | `flipcash.chat.v1` | `Chat` | Chat metadata, DM and group chat feeds, Start/Join/Leave group chats, chat rules, private groups (lobby admission by the creator, per-member key envelopes) |
 | common | `flipcash.common.v1` | none | Shared types: Auth, PublicKey, Signature, UserId, Username, ChatId, IntentId, PhoneNumber, EmailAddress, payment amounts, PagingToken, QueryOptions, Locale, Region, Color, Substitution |
 | contact | `flipcash.contact.v1` | `ContactList` | Contact sync (CheckSync, DeltaUpload, streaming FullUpload) and Flipcash contact discovery |
 | email | `flipcash.email.v1` | `EmailVerification` | Send/check verification codes, unlink |

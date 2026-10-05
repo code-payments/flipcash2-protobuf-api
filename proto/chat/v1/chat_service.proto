@@ -21,6 +21,14 @@ service Chat {
     // with view_mode REDACTED and none of the per-viewer fields (is_hidden,
     // viewer_state). An unauthenticated read under any other view_mode, or of
     // a DM, is DENIED.
+    //
+    // A private group (see Metadata.is_private) returns its record to any
+    // registered user, so that one who is not a member can see what they are
+    // asking to join, but its messaging state only to a member, whatever the
+    // view_mode. It has no public view: an unauthenticated read of one is
+    // DENIED. A private group whose creator has not stored its key yet (see
+    // StartChatRequest.PrivateGroupChatParameters) is returned like any
+    // other: it is visible, though nothing can happen in it.
     rpc GetChat(GetChatRequest) returns (GetChatResponse);
 
     // GetDmChatFeed gets the set of DM chats for an owner account using
@@ -124,9 +132,19 @@ service Chat {
     rpc StartChat(StartChatRequest) returns (StartChatResponse);
 
     // JoinChat adds the caller to a chat's roster.
+    //
+    // A private group (see Metadata.is_private) cannot be joined this way and
+    // is DENIED: a user enters its lobby with EnterLobby and is admitted by
+    // its creator. The one exception is the group's creator, who needs no
+    // approval and rejoins a private group they left with this RPC.
     rpc JoinChat(JoinChatRequest) returns (JoinChatResponse);
 
     // LeaveChat removes the caller from a chat's roster.
+    //
+    // Leaving a private group discards the caller's key envelope (see
+    // KeyEnvelope), so returning means entering the lobby and being admitted
+    // again. The creator's envelope is kept, since no one else could give
+    // them another.
     rpc LeaveChat(LeaveChatRequest) returns (LeaveChatResponse);
 
     // EditChat edits a group chat's record. Every editable field is optional;
@@ -163,6 +181,115 @@ service Chat {
     // not muted is a no-op. Every real change reaches the caller's other devices
     // as a MetadataUpdate.ViewerStateChanged on the event stream.
     rpc UnmuteChat(UnmuteChatRequest) returns (UnmuteChatResponse);
+
+    // EnterLobby places the caller in a private group's lobby, where they
+    // wait for the group's creator to admit them. It is how a user asks to
+    // join a private group (see Metadata.is_private); JoinChat is DENIED for
+    // one.
+    //
+    // Entering a lobby the caller is already in is a no-op that returns OK.
+    // The server caps both how many users may wait in one lobby and how many
+    // lobbies one user may wait in. A group whose creator has not stored its
+    // key yet (see StartChatRequest.PrivateGroupChatParameters) has no lobby
+    // to enter, and is DENIED until they have.
+    //
+    // A lobby is visible only to the group's creator, through
+    // GetLobbyMembers: the users waiting in it are not shown to each other or
+    // to the group's members. The creator's devices learn of the entry as a
+    // LobbyUpdate on the event stream.
+    //
+    // While the caller waits, the chat's Metadata carries in_lobby. The
+    // caller leaves the lobby when they withdraw (LeaveLobby), when the
+    // creator denies them (DenyLobbyMember), or when the creator admits them
+    // (AdmitLobbyMember). An admission reaches the caller's devices as a
+    // RosterUpdate.MemberJoined naming them; a denial is not announced to
+    // them.
+    //
+    // There is no RPC that lists the lobbies a caller is waiting in. A client
+    // keeps the chats it entered itself, and reads in_lobby from GetChat to
+    // learn whether it is still waiting in one. A paged listing may be added
+    // later.
+    rpc EnterLobby(EnterLobbyRequest) returns (EnterLobbyResponse);
+
+    // LeaveLobby withdraws the caller from a private group's lobby. Leaving a
+    // lobby the caller is not in is a no-op that returns OK.
+    rpc LeaveLobby(LeaveLobbyRequest) returns (LeaveLobbyResponse);
+
+    // GetLobbyMembers pages the users waiting in a private group's lobby,
+    // earliest entered first.
+    //
+    // Only the group's creator may call it, and only while a member of the
+    // group; anyone else is DENIED. The page is read from an index that
+    // trails writes briefly, so a user who just entered may be absent and one
+    // who just left may be present.
+    rpc GetLobbyMembers(GetLobbyMembersRequest) returns (GetLobbyMembersResponse);
+
+    // AdmitLobbyMember admits a user waiting in a private group's lobby:
+    // it stores the chat key wrapped for them (see KeyEnvelope) and adds them
+    // to the chat's roster. The envelope is stored first, so an admitted
+    // member always has one.
+    //
+    // Only the group's creator may call it, and only while a member of the
+    // group; anyone else is DENIED. So is a creator who has not stored their
+    // own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
+    // nobody is admitted to a group before its creator holds its key. This is
+    // the only way to give another user a key envelope. Admitting a user who
+    // is already a member is a no-op that returns OK and leaves their stored
+    // envelope as it is.
+    //
+    // The admission is announced like any other join: a
+    // RosterUpdate.MemberJoined to the chat's members and to the admitted
+    // user, who then fetches their envelope with GetKeyEnvelope.
+    rpc AdmitLobbyMember(AdmitLobbyMemberRequest) returns (AdmitLobbyMemberResponse);
+
+    // DenyLobbyMember removes a user from a private group's lobby without
+    // admitting them. Only the group's creator may call it, and only while a
+    // member of the group; anyone else is DENIED. Denying a user who is not
+    // in the lobby is a no-op that returns OK.
+    //
+    // The denied user is not notified. The chat's Metadata stops carrying
+    // in_lobby for them, and they may enter the lobby again.
+    rpc DenyLobbyMember(DenyLobbyMemberRequest) returns (DenyLobbyMemberResponse);
+
+    // SetKeyEnvelope stores the caller's own key envelope for a private
+    // group. Only a member may call it, and only for themself: an envelope
+    // for another user is stored by admitting them (AdmitLobbyMember).
+    //
+    // It is called in two situations (see KeyEnvelope):
+    //  - By the group's creator, right after StartChat returns the chat's
+    //    ID, to store the chat key they have just generated. This is the
+    //    second step of creating a private group, and nothing can happen in
+    //    the group until it succeeds (see
+    //    StartChatRequest.PrivateGroupChatParameters). The creator's client
+    //    keeps attempting it until it returns OK or ALREADY_SET: on a failed
+    //    call, on its next launch, and on any device that finds the group
+    //    with NO_ENVELOPE.
+    //  - By an admitted member, after first opening the envelope the creator
+    //    wrapped for them, to replace it with one wrapped by themself.
+    //
+    // The first envelope a caller stores for themself stands. Once the
+    // stored envelope is one the caller wrapped, a call with a different
+    // envelope changes nothing and returns ALREADY_SET, and the caller uses
+    // the stored one from GetKeyEnvelope. This keeps two of a creator's
+    // devices, each setting up the same new group, from holding different
+    // keys. Storing an envelope identical to the one stored is a no-op that
+    // returns OK.
+    //
+    // Nothing is published: the caller's other devices fetch the envelope
+    // when they need it.
+    rpc SetKeyEnvelope(SetKeyEnvelopeRequest) returns (SetKeyEnvelopeResponse);
+
+    // GetKeyEnvelope returns the caller's own key envelope for a private
+    // group. Only a member may call it. The chat key never changes, so a
+    // client calls this once per chat per install and keeps the key it
+    // unwraps.
+    //
+    // NO_ENVELOPE is expected only for the creator of a group whose creation
+    // stopped between StartChat and SetKeyEnvelope. A creator's client that
+    // receives it generates a chat key and stores its envelope with
+    // SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
+    // until it succeeds.
+    rpc GetKeyEnvelope(GetKeyEnvelopeRequest) returns (GetKeyEnvelopeResponse);
 }
 
 message GetChatRequest {
@@ -368,15 +495,18 @@ message GetMentionSuggestionsResponse {
 
 message StartChatRequest {
     // Parameters for the kind of chat being created. The variant selects the
-    // chat type.
+    // kind of chat. Both create a chat of type GROUP: one public, one
+    // private.
     oneof parameters {
         option (validate.required) = true;
 
-        GroupChatParameters group = 1;
+        PublicGroupChatParameters  public_group  = 1;
+        PrivateGroupChatParameters private_group = 2;
     }
 
-    // Parameters for creating a group chat
-    message GroupChatParameters {
+    // Parameters for creating a public group chat: one that users join with
+    // JoinChat, subject to its rules.
+    message PublicGroupChatParameters {
         // Title for the chat.
         string title = 1 [(validate.rules).string = {
             min_len: 1
@@ -391,6 +521,39 @@ message StartChatRequest {
         // chat has no participation requirements. Caller must satisfy the rules
         // in order for the chat to be started.
         Rules rules = 3;
+    }
+
+    // Parameters for creating a private group chat (see Metadata.is_private):
+    // one whose creator admits each member from its lobby, and whose messages
+    // are end-to-end encrypted. Whether a group is private is fixed for the
+    // life of the chat. A private group has no rules.
+    //
+    // Creating a private group takes two steps. A key envelope is bound to
+    // the chat's ID, which the caller learns only from the response, so the
+    // caller generates the chat key once StartChat returns and stores its own
+    // envelope with SetKeyEnvelope (see KeyEnvelope).
+    //
+    // Until the creator's envelope is stored, the group has no key. It
+    // exists and is visible like any other private group: GetChat returns
+    // it, and it appears in the creator's GetGroupChatFeed. But nothing can
+    // happen in it, and the server refuses each of these as DENIED:
+    //  - EnterLobby, by anyone
+    //  - AdmitLobbyMember
+    //  - Messaging.SendMessage and Messaging.EditMessage
+    //  - BlobStorage.InitiateExternalUpload of a blob encrypted for the chat
+    // The creator's client must keep attempting SetKeyEnvelope until it
+    // succeeds. Storing the envelope lifts every refusal above, and it is
+    // never undone: the creator's envelope is kept even if they leave.
+    message PrivateGroupChatParameters {
+        // Title for the chat.
+        string title = 1 [(validate.rules).string = {
+            min_len: 1
+            max_len: 64
+        }];
+
+        // The blob holding the ORIGINAL picture the caller uploaded. Optional.
+        // If set, it must be owned by the caller and READY.
+        blob.v1.BlobId picture = 2;
     }
 
     // Key for retrying this request safely. A retry with the same key from the
@@ -544,4 +707,169 @@ message UnmuteChatResponse {
 
     // As for MuteChatResponse.viewer_state.
     ViewerState viewer_state = 2;
+}
+
+message EnterLobbyRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message EnterLobbyResponse {
+    Result result = 1;
+    enum Result {
+        OK               = 0;
+        DENIED           = 1; // The chat is not a private group, or has no key yet (see EnterLobby)
+        NOT_FOUND        = 2;
+        ALREADY_MEMBER   = 3; // Caller is already a member of the chat
+        LOBBY_FULL       = 4; // The chat's lobby holds as many users as the server allows
+        TOO_MANY_LOBBIES = 5; // Caller is waiting in as many lobbies as the server allows
+    }
+
+    // The caller's place in the lobby, so the client can record the chat it
+    // is now waiting in without a refetch. Set only when result == OK.
+    Lobby lobby = 2;
+}
+
+message LeaveLobbyRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message LeaveLobbyResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // The chat is not a private group
+        NOT_FOUND = 2;
+    }
+}
+
+message GetLobbyMembersRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // QueryOptions controls page_size, capped at 100. Ordering is fixed to
+    // earliest entered first and is not client-selectable.
+    //
+    // Leave query_options.paging_token unset on the first request. On every
+    // subsequent request, set it to the paging_token from the most recent
+    // response. The token is opaque and server-generated; do not construct
+    // it. It is bound to chat_id and refused with another chat.
+    common.v1.QueryOptions query_options = 2;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetLobbyMembersResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // Caller is not the chat's creator, or the chat is not a private group
+        NOT_FOUND = 2;
+    }
+
+    // The page, earliest entered first. Set when result is OK.
+    repeated LobbyMember members = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // PagingToken carries the cursor after the last member returned. The
+    // client MUST send it back in query_options.paging_token on the next
+    // GetLobbyMembersRequest. Set when result is OK and has_more is true.
+    common.v1.PagingToken paging_token = 3;
+
+    // HasMore indicates whether further pages remain. When true, the client
+    // should issue another GetLobbyMembersRequest with the returned
+    // paging_token.
+    bool has_more = 4;
+}
+
+message AdmitLobbyMemberRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The user to admit, who must be waiting in the chat's lobby.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    // The chat key wrapped by the caller for that user's public key, as
+    // given by LobbyMember.public_key (see KeyEnvelope). The server cannot
+    // check its contents: an envelope the user cannot open leaves them a
+    // member who cannot read the chat.
+    KeyEnvelope key_envelope = 3 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message AdmitLobbyMemberResponse {
+    Result result = 1;
+    enum Result {
+        OK           = 0;
+        DENIED       = 1; // Caller may not admit users to this chat (see AdmitLobbyMember)
+        NOT_FOUND    = 2;
+        NOT_IN_LOBBY = 3; // The user is neither waiting in the lobby nor a member
+    }
+}
+
+message DenyLobbyMemberRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The user to remove from the chat's lobby.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message DenyLobbyMemberResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // Caller is not the chat's creator, or the chat is not a private group
+        NOT_FOUND = 2;
+    }
+}
+
+message SetKeyEnvelopeRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The chat key wrapped by the caller for themself (see KeyEnvelope).
+    KeyEnvelope key_envelope = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetKeyEnvelopeResponse {
+    Result result = 1;
+    enum Result {
+        OK          = 0;
+        DENIED      = 1; // Caller is not a member, or the chat is not a private group
+        NOT_FOUND   = 2;
+        ALREADY_SET = 3; // Caller already stored a different envelope of their own, which stands
+    }
+}
+
+message GetKeyEnvelopeRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetKeyEnvelopeResponse {
+    Result result = 1;
+    enum Result {
+        OK          = 0;
+        DENIED      = 1; // Caller is not a member, or the chat is not a private group
+        NOT_FOUND   = 2;
+        NO_ENVELOPE = 3; // Caller is a member with no envelope stored
+    }
+
+    // The caller's key envelope. Set only when result == OK.
+    KeyEnvelope key_envelope = 2;
+
+    // The user who stored the envelope, as the server authenticated them:
+    // the caller, or the chat's creator. It tells the client whose public
+    // key to open the envelope against (see KeyEnvelope), and is only a
+    // hint: an envelope that does not open against that key is rejected. Set
+    // only when result == OK.
+    common.v1.UserId wrapped_by = 3;
 }
