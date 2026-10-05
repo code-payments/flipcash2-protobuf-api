@@ -65,8 +65,15 @@ message Metadata {
         max_len: 64
     }];
 
-    // Picture for this chat. Only supported for group chats
-    blob.v1.Media picture = 9;
+    // The chat's profile picture — the avatar shown for it in chat lists and
+    // headers — as the set of renditions it is stored as. Only supported for
+    // group chats. Not to be confused with cover_picture, the banner shown
+    // behind the chat's profile view.
+    //
+    // Set it on creation (see StartChatRequest) or with Chat.EditChat. To
+    // fetch its bytes as a non-member, a GetBlobs call must carry a
+    // blob.v1.AccessContext whose `chat_profile` scope names this chat.
+    blob.v1.Media profile_picture = 9;
 
     // Chat roster summary
     RosterSummary roster_summary = 10 [(validate.rules).message.required = true];
@@ -112,9 +119,32 @@ message Metadata {
     // see the chat, including in its public view.
     //
     // Set it on creation (see StartChatRequest) or with Chat.EditChat.
+    //
+    // It may be left empty on a chat returned by a feed RPC meant for list
+    // views (Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an empty value
+    // there does not mean none is set. Fetch it with Chat.GetChat, and don't
+    // let a feed result clear a description the client already holds.
     string description = 16 [(validate.rules).string = {
         max_len: 160
     }];
+
+    // The chat's cover picture — the banner shown behind the chat's profile
+    // view — as the set of renditions it is stored as, like
+    // profile_picture. Only supported for group chats. Unset when none is
+    // set. Part of the group's record, like profile_picture, so it is
+    // returned to every viewer who can see the chat, including in its public
+    // view.
+    //
+    // Set it on creation (see StartChatRequest) or with Chat.EditChat. To
+    // fetch its bytes as a non-member, a GetBlobs call must carry a
+    // blob.v1.AccessContext whose `chat_profile` scope names this chat,
+    // exactly as for profile_picture.
+    //
+    // It may be unset on a chat returned by a feed RPC meant for list views
+    // (Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an unset value there
+    // does not mean none is set. Fetch it with Chat.GetChat, and don't let a
+    // feed result clear a cover picture the client already holds.
+    blob.v1.Media cover_picture = 17;
 
     // Whether messages in this chat are end-to-end encrypted (see
     // messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
@@ -298,12 +328,13 @@ message MetadataUpdate {
     oneof kind {
         option (validate.required) = true;
 
-        FullRefresh         full_refresh          = 1;
-        LastActivityChanged last_activity_changed = 2;
-        ViewerStateChanged  viewer_state_changed  = 3;
-        TitleChanged        title_changed         = 4;
-        PictureChanged      picture_changed       = 5;
-        DescriptionChanged  description_changed   = 6;
+        FullRefresh           full_refresh            = 1;
+        LastActivityChanged   last_activity_changed   = 2;
+        ViewerStateChanged    viewer_state_changed    = 3;
+        TitleChanged          title_changed           = 4;
+        ProfilePictureChanged profile_picture_changed = 5;
+        DescriptionChanged    description_changed     = 6;
+        CoverPictureChanged   cover_picture_changed   = 7;
     }
 
     // Refreshes the entire chat metadata
@@ -333,14 +364,14 @@ message MetadataUpdate {
         }];
     }
 
-    // The chat's picture has changed (e.g. via Chat.EditChat). Delivered to
-    // the chat's members, including the editor's other devices. Best-effort
-    // and applied as received; a client that suspects a miss refetches the
-    // chat via Chat.GetChat.
-    message PictureChanged {
-        // The new picture, with the renditions the server derived, replacing
-        // Metadata.picture.
-        blob.v1.Media new_picture = 1 [(validate.rules).message.required = true];
+    // The chat's profile picture has changed (e.g. via Chat.EditChat).
+    // Delivered to the chat's members, including the editor's other devices.
+    // Best-effort and applied as received; a client that suspects a miss
+    // refetches the chat via Chat.GetChat.
+    message ProfilePictureChanged {
+        // The new profile picture, with the renditions the server derived,
+        // replacing Metadata.profile_picture.
+        blob.v1.Media new_profile_picture = 1 [(validate.rules).message.required = true];
     }
 
     // The chat's description has changed (e.g. via Chat.EditChat). Delivered
@@ -353,6 +384,16 @@ message MetadataUpdate {
         string new_description = 1 [(validate.rules).string = {
             max_len: 160
         }];
+    }
+
+    // The chat's cover picture has changed (e.g. via Chat.EditChat). Delivered
+    // to the chat's members, including the editor's other devices.
+    // Best-effort and applied as received; a client that suspects a miss
+    // refetches the chat via Chat.GetChat.
+    message CoverPictureChanged {
+        // The new cover picture, with the renditions the server derived,
+        // replacing Metadata.cover_picture.
+        blob.v1.Media new_cover_picture = 1 [(validate.rules).message.required = true];
     }
 }
 
@@ -617,8 +658,8 @@ message LobbyMember {
 // as returned by Chat.EnterLobby.
 message Lobby {
     // The chat, as a user who is not a member sees it: its record (title,
-    // picture, roster summary, creator) with in_lobby set, and none of its
-    // members or messaging state.
+    // profile picture, roster summary, creator) with in_lobby set, and none of
+    // its members or messaging state.
     Metadata chat = 1 [(validate.rules).message.required = true];
 
     // When the user entered the lobby.

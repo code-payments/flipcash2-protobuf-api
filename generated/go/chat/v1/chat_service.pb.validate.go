@@ -2921,11 +2921,11 @@ func (m *EditChatRequest) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetPicture()).(type) {
+		switch v := interface{}(m.GetProfilePicture()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, EditChatRequestValidationError{
-					field:  "Picture",
+					field:  "ProfilePicture",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -2933,16 +2933,16 @@ func (m *EditChatRequest) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, EditChatRequestValidationError{
-					field:  "Picture",
+					field:  "ProfilePicture",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetPicture()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetProfilePicture()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return EditChatRequestValidationError{
-				field:  "Picture",
+				field:  "ProfilePicture",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -2972,6 +2972,35 @@ func (m *EditChatRequest) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return EditChatRequestValidationError{
 				field:  "Description",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCoverPicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCoverPicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequestValidationError{
+				field:  "CoverPicture",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -6285,11 +6314,11 @@ func (m *StartChatRequest_PublicGroupChatParameters) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetPicture()).(type) {
+		switch v := interface{}(m.GetProfilePicture()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, StartChatRequest_PublicGroupChatParametersValidationError{
-					field:  "Picture",
+					field:  "ProfilePicture",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6297,16 +6326,16 @@ func (m *StartChatRequest_PublicGroupChatParameters) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, StartChatRequest_PublicGroupChatParametersValidationError{
-					field:  "Picture",
+					field:  "ProfilePicture",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetPicture()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetProfilePicture()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return StartChatRequest_PublicGroupChatParametersValidationError{
-				field:  "Picture",
+				field:  "ProfilePicture",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -6351,6 +6380,35 @@ func (m *StartChatRequest_PublicGroupChatParameters) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetCoverPicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StartChatRequest_PublicGroupChatParametersValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StartChatRequest_PublicGroupChatParametersValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCoverPicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StartChatRequest_PublicGroupChatParametersValidationError{
+				field:  "CoverPicture",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -6471,11 +6529,11 @@ func (m *StartChatRequest_PrivateGroupChatParameters) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetPicture()).(type) {
+		switch v := interface{}(m.GetProfilePicture()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, StartChatRequest_PrivateGroupChatParametersValidationError{
-					field:  "Picture",
+					field:  "ProfilePicture",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6483,16 +6541,16 @@ func (m *StartChatRequest_PrivateGroupChatParameters) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, StartChatRequest_PrivateGroupChatParametersValidationError{
-					field:  "Picture",
+					field:  "ProfilePicture",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetPicture()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetProfilePicture()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return StartChatRequest_PrivateGroupChatParametersValidationError{
-				field:  "Picture",
+				field:  "ProfilePicture",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -6508,6 +6566,35 @@ func (m *StartChatRequest_PrivateGroupChatParameters) validate(all bool) error {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetCoverPicture()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StartChatRequest_PrivateGroupChatParametersValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StartChatRequest_PrivateGroupChatParametersValidationError{
+					field:  "CoverPicture",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCoverPicture()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StartChatRequest_PrivateGroupChatParametersValidationError{
+				field:  "CoverPicture",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -6705,22 +6792,22 @@ var _ interface {
 	ErrorName() string
 } = EditChatRequest_TitleValidationError{}
 
-// Validate checks the field values on EditChatRequest_Picture with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on EditChatRequest_ProfilePicture with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *EditChatRequest_Picture) Validate() error {
+func (m *EditChatRequest_ProfilePicture) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on EditChatRequest_Picture with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// EditChatRequest_PictureMultiError, or nil if none found.
-func (m *EditChatRequest_Picture) ValidateAll() error {
+// ValidateAll checks the field values on EditChatRequest_ProfilePicture with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// EditChatRequest_ProfilePictureMultiError, or nil if none found.
+func (m *EditChatRequest_ProfilePicture) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *EditChatRequest_Picture) validate(all bool) error {
+func (m *EditChatRequest_ProfilePicture) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -6728,7 +6815,7 @@ func (m *EditChatRequest_Picture) validate(all bool) error {
 	var errors []error
 
 	if m.GetBlobId() == nil {
-		err := EditChatRequest_PictureValidationError{
+		err := EditChatRequest_ProfilePictureValidationError{
 			field:  "BlobId",
 			reason: "value is required",
 		}
@@ -6742,7 +6829,7 @@ func (m *EditChatRequest_Picture) validate(all bool) error {
 		switch v := interface{}(m.GetBlobId()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, EditChatRequest_PictureValidationError{
+				errors = append(errors, EditChatRequest_ProfilePictureValidationError{
 					field:  "BlobId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -6750,7 +6837,7 @@ func (m *EditChatRequest_Picture) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, EditChatRequest_PictureValidationError{
+				errors = append(errors, EditChatRequest_ProfilePictureValidationError{
 					field:  "BlobId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -6759,7 +6846,7 @@ func (m *EditChatRequest_Picture) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return EditChatRequest_PictureValidationError{
+			return EditChatRequest_ProfilePictureValidationError{
 				field:  "BlobId",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -6768,19 +6855,19 @@ func (m *EditChatRequest_Picture) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return EditChatRequest_PictureMultiError(errors)
+		return EditChatRequest_ProfilePictureMultiError(errors)
 	}
 
 	return nil
 }
 
-// EditChatRequest_PictureMultiError is an error wrapping multiple validation
-// errors returned by EditChatRequest_Picture.ValidateAll() if the designated
-// constraints aren't met.
-type EditChatRequest_PictureMultiError []error
+// EditChatRequest_ProfilePictureMultiError is an error wrapping multiple
+// validation errors returned by EditChatRequest_ProfilePicture.ValidateAll()
+// if the designated constraints aren't met.
+type EditChatRequest_ProfilePictureMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m EditChatRequest_PictureMultiError) Error() string {
+func (m EditChatRequest_ProfilePictureMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -6789,11 +6876,12 @@ func (m EditChatRequest_PictureMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m EditChatRequest_PictureMultiError) AllErrors() []error { return m }
+func (m EditChatRequest_ProfilePictureMultiError) AllErrors() []error { return m }
 
-// EditChatRequest_PictureValidationError is the validation error returned by
-// EditChatRequest_Picture.Validate if the designated constraints aren't met.
-type EditChatRequest_PictureValidationError struct {
+// EditChatRequest_ProfilePictureValidationError is the validation error
+// returned by EditChatRequest_ProfilePicture.Validate if the designated
+// constraints aren't met.
+type EditChatRequest_ProfilePictureValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -6801,24 +6889,24 @@ type EditChatRequest_PictureValidationError struct {
 }
 
 // Field function returns field value.
-func (e EditChatRequest_PictureValidationError) Field() string { return e.field }
+func (e EditChatRequest_ProfilePictureValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e EditChatRequest_PictureValidationError) Reason() string { return e.reason }
+func (e EditChatRequest_ProfilePictureValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e EditChatRequest_PictureValidationError) Cause() error { return e.cause }
+func (e EditChatRequest_ProfilePictureValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e EditChatRequest_PictureValidationError) Key() bool { return e.key }
+func (e EditChatRequest_ProfilePictureValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e EditChatRequest_PictureValidationError) ErrorName() string {
-	return "EditChatRequest_PictureValidationError"
+func (e EditChatRequest_ProfilePictureValidationError) ErrorName() string {
+	return "EditChatRequest_ProfilePictureValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e EditChatRequest_PictureValidationError) Error() string {
+func (e EditChatRequest_ProfilePictureValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -6830,14 +6918,14 @@ func (e EditChatRequest_PictureValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sEditChatRequest_Picture.%s: %s%s",
+		"invalid %sEditChatRequest_ProfilePicture.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = EditChatRequest_PictureValidationError{}
+var _ error = EditChatRequest_ProfilePictureValidationError{}
 
 var _ interface {
 	Field() string
@@ -6845,7 +6933,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = EditChatRequest_PictureValidationError{}
+} = EditChatRequest_ProfilePictureValidationError{}
 
 // Validate checks the field values on EditChatRequest_Description with the
 // rules defined in the proto definition for this message. If any rules are
@@ -6960,3 +7048,146 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EditChatRequest_DescriptionValidationError{}
+
+// Validate checks the field values on EditChatRequest_CoverPicture with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditChatRequest_CoverPicture) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditChatRequest_CoverPicture with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditChatRequest_CoverPictureMultiError, or nil if none found.
+func (m *EditChatRequest_CoverPicture) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditChatRequest_CoverPicture) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetBlobId() == nil {
+		err := EditChatRequest_CoverPictureValidationError{
+			field:  "BlobId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBlobId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequest_CoverPictureValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequest_CoverPictureValidationError{
+					field:  "BlobId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBlobId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequest_CoverPictureValidationError{
+				field:  "BlobId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return EditChatRequest_CoverPictureMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditChatRequest_CoverPictureMultiError is an error wrapping multiple
+// validation errors returned by EditChatRequest_CoverPicture.ValidateAll() if
+// the designated constraints aren't met.
+type EditChatRequest_CoverPictureMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditChatRequest_CoverPictureMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditChatRequest_CoverPictureMultiError) AllErrors() []error { return m }
+
+// EditChatRequest_CoverPictureValidationError is the validation error returned
+// by EditChatRequest_CoverPicture.Validate if the designated constraints
+// aren't met.
+type EditChatRequest_CoverPictureValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditChatRequest_CoverPictureValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditChatRequest_CoverPictureValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditChatRequest_CoverPictureValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditChatRequest_CoverPictureValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditChatRequest_CoverPictureValidationError) ErrorName() string {
+	return "EditChatRequest_CoverPictureValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditChatRequest_CoverPictureValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditChatRequest_CoverPicture.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditChatRequest_CoverPictureValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditChatRequest_CoverPictureValidationError{}

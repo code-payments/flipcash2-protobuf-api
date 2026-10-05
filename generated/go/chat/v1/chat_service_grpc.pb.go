@@ -104,6 +104,10 @@ type ChatClient interface {
 	// being read. Every page is served only for groups the caller is still a
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
+	//
+	// The feed is meant for list views, so a chat's description and
+	// cover_picture may be omitted from it (see Metadata). Fetch them with
+	// GetChat when the client shows the chat's profile view.
 	GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedRequest, opts ...grpc.CallOption) (*GetGroupChatFeedResponse, error)
 	// GetRoster pages a chat's roster, most recently joined first. Every
 	// page carries the chat's RosterSummary, and every member carries the
@@ -175,17 +179,18 @@ type ChatClient interface {
 	// Only a group chat may be edited, and only by a member the server permits
 	// to edit it, as reported by ViewerState.Permissions.can_edit; anyone else
 	// is DENIED. A new title or description is moderated like StartChat's. A
-	// new picture is a blob the caller has already uploaded via
-	// BlobStorage: the client uploads only the ORIGINAL and passes the
-	// resulting BlobId once the blob is READY, and the server derives the
-	// remaining renditions. Setting a field to the value the chat already has
-	// is a no-op for that field, and a request that sets nothing is a no-op
-	// that returns OK.
+	// new profile picture or cover picture is a blob the caller has already
+	// uploaded via BlobStorage: the client uploads only the ORIGINAL and
+	// passes the resulting BlobId once the blob is READY, and the server
+	// derives the remaining renditions. Setting a field to the value the chat
+	// already has is a no-op for that field, and a request that sets nothing
+	// is a no-op that returns OK.
 	//
 	// Every real change reaches the chat's members, including the caller's
 	// other devices, on the event stream as one MetadataUpdate per field
-	// changed: TitleChanged for the title, PictureChanged for the picture,
-	// DescriptionChanged for the description.
+	// changed: TitleChanged for the title, ProfilePictureChanged for the
+	// profile picture, DescriptionChanged for the description,
+	// CoverPictureChanged for the cover picture.
 	EditChat(ctx context.Context, in *EditChatRequest, opts ...grpc.CallOption) (*EditChatResponse, error)
 	// MuteChat mutes a chat for the caller, until a time or indefinitely.
 	//
@@ -558,6 +563,10 @@ type ChatServer interface {
 	// being read. Every page is served only for groups the caller is still a
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
+	//
+	// The feed is meant for list views, so a chat's description and
+	// cover_picture may be omitted from it (see Metadata). Fetch them with
+	// GetChat when the client shows the chat's profile view.
 	GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error)
 	// GetRoster pages a chat's roster, most recently joined first. Every
 	// page carries the chat's RosterSummary, and every member carries the
@@ -629,17 +638,18 @@ type ChatServer interface {
 	// Only a group chat may be edited, and only by a member the server permits
 	// to edit it, as reported by ViewerState.Permissions.can_edit; anyone else
 	// is DENIED. A new title or description is moderated like StartChat's. A
-	// new picture is a blob the caller has already uploaded via
-	// BlobStorage: the client uploads only the ORIGINAL and passes the
-	// resulting BlobId once the blob is READY, and the server derives the
-	// remaining renditions. Setting a field to the value the chat already has
-	// is a no-op for that field, and a request that sets nothing is a no-op
-	// that returns OK.
+	// new profile picture or cover picture is a blob the caller has already
+	// uploaded via BlobStorage: the client uploads only the ORIGINAL and
+	// passes the resulting BlobId once the blob is READY, and the server
+	// derives the remaining renditions. Setting a field to the value the chat
+	// already has is a no-op for that field, and a request that sets nothing
+	// is a no-op that returns OK.
 	//
 	// Every real change reaches the chat's members, including the caller's
 	// other devices, on the event stream as one MetadataUpdate per field
-	// changed: TitleChanged for the title, PictureChanged for the picture,
-	// DescriptionChanged for the description.
+	// changed: TitleChanged for the title, ProfilePictureChanged for the
+	// profile picture, DescriptionChanged for the description,
+	// CoverPictureChanged for the cover picture.
 	EditChat(context.Context, *EditChatRequest) (*EditChatResponse, error)
 	// MuteChat mutes a chat for the caller, until a time or indefinitely.
 	//
