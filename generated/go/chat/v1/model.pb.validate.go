@@ -357,6 +357,17 @@ func (m *Metadata) validate(all bool) error {
 
 	// no validation rules for InLobby
 
+	if utf8.RuneCountInString(m.GetDescription()) > 160 {
+		err := MetadataValidationError{
+			field:  "Description",
+			reason: "value length must be at most 160 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	// no validation rules for UseE2Ee
 
 	if len(errors) > 0 {
@@ -2355,6 +2366,48 @@ func (m *MetadataUpdate) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return MetadataUpdateValidationError{
 					field:  "PictureChanged",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *MetadataUpdate_DescriptionChanged_:
+		if v == nil {
+			err := MetadataUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetDescriptionChanged()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MetadataUpdateValidationError{
+						field:  "DescriptionChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MetadataUpdateValidationError{
+						field:  "DescriptionChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDescriptionChanged()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MetadataUpdateValidationError{
+					field:  "DescriptionChanged",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -4786,6 +4839,122 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MetadataUpdate_PictureChangedValidationError{}
+
+// Validate checks the field values on MetadataUpdate_DescriptionChanged with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *MetadataUpdate_DescriptionChanged) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MetadataUpdate_DescriptionChanged
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// MetadataUpdate_DescriptionChangedMultiError, or nil if none found.
+func (m *MetadataUpdate_DescriptionChanged) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MetadataUpdate_DescriptionChanged) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetNewDescription()) > 160 {
+		err := MetadataUpdate_DescriptionChangedValidationError{
+			field:  "NewDescription",
+			reason: "value length must be at most 160 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return MetadataUpdate_DescriptionChangedMultiError(errors)
+	}
+
+	return nil
+}
+
+// MetadataUpdate_DescriptionChangedMultiError is an error wrapping multiple
+// validation errors returned by
+// MetadataUpdate_DescriptionChanged.ValidateAll() if the designated
+// constraints aren't met.
+type MetadataUpdate_DescriptionChangedMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MetadataUpdate_DescriptionChangedMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MetadataUpdate_DescriptionChangedMultiError) AllErrors() []error { return m }
+
+// MetadataUpdate_DescriptionChangedValidationError is the validation error
+// returned by MetadataUpdate_DescriptionChanged.Validate if the designated
+// constraints aren't met.
+type MetadataUpdate_DescriptionChangedValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MetadataUpdate_DescriptionChangedValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MetadataUpdate_DescriptionChangedValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MetadataUpdate_DescriptionChangedValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MetadataUpdate_DescriptionChangedValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MetadataUpdate_DescriptionChangedValidationError) ErrorName() string {
+	return "MetadataUpdate_DescriptionChangedValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MetadataUpdate_DescriptionChangedValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMetadataUpdate_DescriptionChanged.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MetadataUpdate_DescriptionChangedValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MetadataUpdate_DescriptionChangedValidationError{}
 
 // Validate checks the field values on RosterUpdate_MemberJoined with the rules
 // defined in the proto definition for this message. If any rules are

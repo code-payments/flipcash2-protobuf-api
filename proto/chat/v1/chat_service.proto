@@ -153,8 +153,8 @@ service Chat {
     //
     // Only a group chat may be edited, and only by a member the server permits
     // to edit it, as reported by ViewerState.Permissions.can_edit; anyone else
-    // is DENIED. A new title is moderated like
-    // StartChat's. A new picture is a blob the caller has already uploaded via
+    // is DENIED. A new title or description is moderated like StartChat's. A
+    // new picture is a blob the caller has already uploaded via
     // BlobStorage: the client uploads only the ORIGINAL and passes the
     // resulting BlobId once the blob is READY, and the server derives the
     // remaining renditions. Setting a field to the value the chat already has
@@ -163,7 +163,8 @@ service Chat {
     //
     // Every real change reaches the chat's members, including the caller's
     // other devices, on the event stream as one MetadataUpdate per field
-    // changed: TitleChanged for the title, PictureChanged for the picture.
+    // changed: TitleChanged for the title, PictureChanged for the picture,
+    // DescriptionChanged for the description.
     rpc EditChat(EditChatRequest) returns (EditChatResponse);
 
     // MuteChat mutes a chat for the caller, until a time or indefinitely.
@@ -298,11 +299,11 @@ message GetChatRequest {
     // What the client intends to render of the chat's messaging state — its
     // last_message and latest_event_sequence — and so whether they may be
     // returned redacted (see messaging.v1.ViewMode). A group's record (title,
-    // picture, rules, roster summary) is returned to every registered user
-    // whatever the mode; the mode decides only the messaging state, which is
-    // withheld from a viewer who may not read the chat under it. Unset (FULL)
-    // is the pre-redaction contract: messaging state for a viewer who may
-    // read the chat in full, the bare record for anyone else.
+    // description, picture, rules, roster summary) is returned to every
+    // registered user whatever the mode; the mode decides only the messaging
+    // state, which is withheld from a viewer who may not read the chat under
+    // it. Unset (FULL) is the pre-redaction contract: messaging state for a
+    // viewer who may read the chat in full, the bare record for anyone else.
     //
     // Must be REDACTED when auth is unset; any other mode is DENIED.
     messaging.v1.ViewMode view_mode = 2 [(validate.rules).enum = {
@@ -521,6 +522,12 @@ message StartChatRequest {
         // chat has no participation requirements. Caller must satisfy the rules
         // in order for the chat to be started.
         Rules rules = 3;
+
+        // Description for the chat. Optional; empty sets none. Moderated like
+        // the title.
+        string description = 4 [(validate.rules).string = {
+            max_len: 160
+        }];
     }
 
     // Parameters for creating a private group chat (see Metadata.is_private):
@@ -554,6 +561,12 @@ message StartChatRequest {
         // The blob holding the ORIGINAL picture the caller uploaded. Optional.
         // If set, it must be owned by the caller and READY.
         blob.v1.BlobId picture = 2;
+
+        // Description for the chat. Optional; empty sets none. Moderated like
+        // the title.
+        string description = 3 [(validate.rules).string = {
+            max_len: 160
+        }];
     }
 
     // Key for retrying this request safely. A retry with the same key from the
@@ -573,6 +586,7 @@ message StartChatResponse {
         PICTURE_BLOB_NOT_ACCEPTED = 3;
         INVALID_RULES             = 4;
         RULES_NOT_SATISFIED       = 5;
+        DESCRIPTION_MODERATED     = 6;
     }
 
     // The metadata for the newly created chat, including the server-generated
@@ -581,8 +595,8 @@ message StartChatResponse {
     Metadata chat = 2;
 
     // The best-fit category that tripped moderation, mirroring the Moderation
-    // service's vocabulary. Set only when result == TITLE_MODERATED; NONE
-    // otherwise.
+    // service's vocabulary. Set only when result == TITLE_MODERATED or
+    // DESCRIPTION_MODERATED; NONE otherwise.
     moderation.v1.FlaggedCategory flagged_category = 3;
 }
 
@@ -630,6 +644,9 @@ message EditChatRequest {
     // The new picture. Left unchanged when unset.
     Picture picture = 3;
 
+    // The new description. Left unchanged when unset.
+    Description description = 4;
+
     message Title {
         string value = 1 [(validate.rules).string = {
             min_len: 1
@@ -644,6 +661,13 @@ message EditChatRequest {
         blob.v1.BlobId blob_id = 1 [(validate.rules).message.required = true];
     }
 
+    message Description {
+        // The new description. Empty clears it.
+        string value = 1 [(validate.rules).string = {
+            max_len: 160
+        }];
+    }
+
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }
 
@@ -655,6 +679,7 @@ message EditChatResponse {
         NOT_FOUND                 = 2;
         TITLE_MODERATED           = 3;
         PICTURE_BLOB_NOT_ACCEPTED = 4;
+        DESCRIPTION_MODERATED     = 5;
     }
 
     // The metadata for the chat after the edit, as seen by the caller,
@@ -663,8 +688,8 @@ message EditChatResponse {
     Metadata chat = 2;
 
     // The best-fit category that tripped moderation, mirroring the Moderation
-    // service's vocabulary. Set only when result == TITLE_MODERATED; NONE
-    // otherwise.
+    // service's vocabulary. Set only when result == TITLE_MODERATED or
+    // DESCRIPTION_MODERATED; NONE otherwise.
     moderation.v1.FlaggedCategory flagged_category = 3;
 }
 
