@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ApproveLobbyMemberRequest, ApproveLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -288,7 +288,7 @@ export const Chat = {
      * While the caller waits, the chat's Metadata carries in_lobby. The
      * caller leaves the lobby when they withdraw (LeaveLobby), when the
      * creator denies them (DenyLobbyMember), or when the creator admits them
-     * (ApproveLobbyMember). An admission reaches the caller's devices as a
+     * (AdmitLobbyMember). An admission reaches the caller's devices as a
      * RosterUpdate.MemberJoined naming them; a denial is not announced to
      * them.
      *
@@ -335,7 +335,7 @@ export const Chat = {
       kind: MethodKind.Unary,
     },
     /**
-     * ApproveLobbyMember admits a user waiting in a private group's lobby:
+     * AdmitLobbyMember admits a user waiting in a private group's lobby:
      * it stores the chat key wrapped for them (see KeyEnvelope) and adds them
      * to the chat's roster. The envelope is stored first, so an admitted
      * member always has one.
@@ -344,7 +344,7 @@ export const Chat = {
      * group; anyone else is DENIED. So is a creator who has not stored their
      * own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
      * nobody is admitted to a group before its creator holds its key. This is
-     * the only way to give another user a key envelope. Approving a user who
+     * the only way to give another user a key envelope. Admitting a user who
      * is already a member is a no-op that returns OK and leaves their stored
      * envelope as it is.
      *
@@ -352,12 +352,12 @@ export const Chat = {
      * RosterUpdate.MemberJoined to the chat's members and to the admitted
      * user, who then fetches their envelope with GetKeyEnvelope.
      *
-     * @generated from rpc flipcash.chat.v1.Chat.ApproveLobbyMember
+     * @generated from rpc flipcash.chat.v1.Chat.AdmitLobbyMember
      */
-    approveLobbyMember: {
-      name: "ApproveLobbyMember",
-      I: ApproveLobbyMemberRequest,
-      O: ApproveLobbyMemberResponse,
+    admitLobbyMember: {
+      name: "AdmitLobbyMember",
+      I: AdmitLobbyMemberRequest,
+      O: AdmitLobbyMemberResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -380,7 +380,7 @@ export const Chat = {
     /**
      * SetKeyEnvelope stores the caller's own key envelope for a private
      * group. Only a member may call it, and only for themself: an envelope
-     * for another user is stored by admitting them (ApproveLobbyMember).
+     * for another user is stored by admitting them (AdmitLobbyMember).
      *
      * It is called in two situations (see KeyEnvelope):
      *  - By the group's creator, right after StartChat returns the chat's

@@ -1526,7 +1526,7 @@ func (x *IdempotencyKey) GetValue() []byte {
 //
 // An envelope is made by a wrapper for a recipient. The wrapper is either
 // the recipient themself, or the group's creator admitting the recipient
-// with Chat.ApproveLobbyMember. The server records who stored each envelope
+// with Chat.AdmitLobbyMember. The server records who stored each envelope
 // and returns it as GetKeyEnvelopeResponse.wrapped_by. Both are identified
 // by the Ed25519 public keys they registered their accounts with. For scheme
 // X25519_XCHACHA20POLY1305:
@@ -2447,7 +2447,7 @@ func (x *LobbyUpdate_MemberEntered) GetMember() *LobbyMember {
 
 // A user is no longer in the lobby: they withdrew (Chat.LeaveLobby),
 // were denied (Chat.DenyLobbyMember) or were admitted
-// (Chat.ApproveLobbyMember). An admission also arrives as a
+// (Chat.AdmitLobbyMember). An admission also arrives as a
 // RosterUpdate.MemberJoined.
 type LobbyUpdate_MemberLeft struct {
 	state         protoimpl.MessageState

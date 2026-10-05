@@ -873,7 +873,7 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
  * it, and it appears in the creator's GetGroupChatFeed. But nothing can
  * happen in it, and the server refuses each of these as DENIED:
  *  - EnterLobby, by anyone
- *  - ApproveLobbyMember
+ *  - AdmitLobbyMember
  *  - Messaging.SendMessage and Messaging.EditMessage
  *  - BlobStorage.InitiateExternalUpload of a blob encrypted for the chat
  * The creator's client must keep attempting SetKeyEnvelope until it
@@ -2127,9 +2127,9 @@ proto3.util.setEnumType(GetLobbyMembersResponse_Result, "flipcash.chat.v1.GetLob
 ]);
 
 /**
- * @generated from message flipcash.chat.v1.ApproveLobbyMemberRequest
+ * @generated from message flipcash.chat.v1.AdmitLobbyMemberRequest
  */
-export class ApproveLobbyMemberRequest extends Message<ApproveLobbyMemberRequest> {
+export class AdmitLobbyMemberRequest extends Message<AdmitLobbyMemberRequest> {
   /**
    * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */
@@ -2157,13 +2157,13 @@ export class ApproveLobbyMemberRequest extends Message<ApproveLobbyMemberRequest
    */
   auth?: Auth;
 
-  constructor(data?: PartialMessage<ApproveLobbyMemberRequest>) {
+  constructor(data?: PartialMessage<AdmitLobbyMemberRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.ApproveLobbyMemberRequest";
+  static readonly typeName = "flipcash.chat.v1.AdmitLobbyMemberRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "user_id", kind: "message", T: UserId },
@@ -2171,71 +2171,71 @@ export class ApproveLobbyMemberRequest extends Message<ApproveLobbyMemberRequest
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ApproveLobbyMemberRequest {
-    return new ApproveLobbyMemberRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AdmitLobbyMemberRequest {
+    return new AdmitLobbyMemberRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ApproveLobbyMemberRequest {
-    return new ApproveLobbyMemberRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AdmitLobbyMemberRequest {
+    return new AdmitLobbyMemberRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ApproveLobbyMemberRequest {
-    return new ApproveLobbyMemberRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AdmitLobbyMemberRequest {
+    return new AdmitLobbyMemberRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ApproveLobbyMemberRequest | PlainMessage<ApproveLobbyMemberRequest> | undefined, b: ApproveLobbyMemberRequest | PlainMessage<ApproveLobbyMemberRequest> | undefined): boolean {
-    return proto3.util.equals(ApproveLobbyMemberRequest, a, b);
+  static equals(a: AdmitLobbyMemberRequest | PlainMessage<AdmitLobbyMemberRequest> | undefined, b: AdmitLobbyMemberRequest | PlainMessage<AdmitLobbyMemberRequest> | undefined): boolean {
+    return proto3.util.equals(AdmitLobbyMemberRequest, a, b);
   }
 }
 
 /**
- * @generated from message flipcash.chat.v1.ApproveLobbyMemberResponse
+ * @generated from message flipcash.chat.v1.AdmitLobbyMemberResponse
  */
-export class ApproveLobbyMemberResponse extends Message<ApproveLobbyMemberResponse> {
+export class AdmitLobbyMemberResponse extends Message<AdmitLobbyMemberResponse> {
   /**
-   * @generated from field: flipcash.chat.v1.ApproveLobbyMemberResponse.Result result = 1;
+   * @generated from field: flipcash.chat.v1.AdmitLobbyMemberResponse.Result result = 1;
    */
-  result = ApproveLobbyMemberResponse_Result.OK;
+  result = AdmitLobbyMemberResponse_Result.OK;
 
-  constructor(data?: PartialMessage<ApproveLobbyMemberResponse>) {
+  constructor(data?: PartialMessage<AdmitLobbyMemberResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.chat.v1.ApproveLobbyMemberResponse";
+  static readonly typeName = "flipcash.chat.v1.AdmitLobbyMemberResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ApproveLobbyMemberResponse_Result) },
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(AdmitLobbyMemberResponse_Result) },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ApproveLobbyMemberResponse {
-    return new ApproveLobbyMemberResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AdmitLobbyMemberResponse {
+    return new AdmitLobbyMemberResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ApproveLobbyMemberResponse {
-    return new ApproveLobbyMemberResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AdmitLobbyMemberResponse {
+    return new AdmitLobbyMemberResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ApproveLobbyMemberResponse {
-    return new ApproveLobbyMemberResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AdmitLobbyMemberResponse {
+    return new AdmitLobbyMemberResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ApproveLobbyMemberResponse | PlainMessage<ApproveLobbyMemberResponse> | undefined, b: ApproveLobbyMemberResponse | PlainMessage<ApproveLobbyMemberResponse> | undefined): boolean {
-    return proto3.util.equals(ApproveLobbyMemberResponse, a, b);
+  static equals(a: AdmitLobbyMemberResponse | PlainMessage<AdmitLobbyMemberResponse> | undefined, b: AdmitLobbyMemberResponse | PlainMessage<AdmitLobbyMemberResponse> | undefined): boolean {
+    return proto3.util.equals(AdmitLobbyMemberResponse, a, b);
   }
 }
 
 /**
- * @generated from enum flipcash.chat.v1.ApproveLobbyMemberResponse.Result
+ * @generated from enum flipcash.chat.v1.AdmitLobbyMemberResponse.Result
  */
-export enum ApproveLobbyMemberResponse_Result {
+export enum AdmitLobbyMemberResponse_Result {
   /**
    * @generated from enum value: OK = 0;
    */
   OK = 0,
 
   /**
-   * Caller may not admit users to this chat (see ApproveLobbyMember)
+   * Caller may not admit users to this chat (see AdmitLobbyMember)
    *
    * @generated from enum value: DENIED = 1;
    */
@@ -2253,8 +2253,8 @@ export enum ApproveLobbyMemberResponse_Result {
    */
   NOT_IN_LOBBY = 3,
 }
-// Retrieve enum metadata with: proto3.getEnumType(ApproveLobbyMemberResponse_Result)
-proto3.util.setEnumType(ApproveLobbyMemberResponse_Result, "flipcash.chat.v1.ApproveLobbyMemberResponse.Result", [
+// Retrieve enum metadata with: proto3.getEnumType(AdmitLobbyMemberResponse_Result)
+proto3.util.setEnumType(AdmitLobbyMemberResponse_Result, "flipcash.chat.v1.AdmitLobbyMemberResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

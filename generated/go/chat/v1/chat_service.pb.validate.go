@@ -4858,22 +4858,22 @@ var _ interface {
 	ErrorName() string
 } = GetLobbyMembersResponseValidationError{}
 
-// Validate checks the field values on ApproveLobbyMemberRequest with the rules
+// Validate checks the field values on AdmitLobbyMemberRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ApproveLobbyMemberRequest) Validate() error {
+func (m *AdmitLobbyMemberRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ApproveLobbyMemberRequest with the
+// ValidateAll checks the field values on AdmitLobbyMemberRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ApproveLobbyMemberRequestMultiError, or nil if none found.
-func (m *ApproveLobbyMemberRequest) ValidateAll() error {
+// AdmitLobbyMemberRequestMultiError, or nil if none found.
+func (m *AdmitLobbyMemberRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ApproveLobbyMemberRequest) validate(all bool) error {
+func (m *AdmitLobbyMemberRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -4881,7 +4881,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 	var errors []error
 
 	if m.GetChatId() == nil {
-		err := ApproveLobbyMemberRequestValidationError{
+		err := AdmitLobbyMemberRequestValidationError{
 			field:  "ChatId",
 			reason: "value is required",
 		}
@@ -4895,7 +4895,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		switch v := interface{}(m.GetChatId()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "ChatId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -4903,7 +4903,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "ChatId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -4912,7 +4912,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ApproveLobbyMemberRequestValidationError{
+			return AdmitLobbyMemberRequestValidationError{
 				field:  "ChatId",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -4921,7 +4921,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 	}
 
 	if m.GetUserId() == nil {
-		err := ApproveLobbyMemberRequestValidationError{
+		err := AdmitLobbyMemberRequestValidationError{
 			field:  "UserId",
 			reason: "value is required",
 		}
@@ -4935,7 +4935,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		switch v := interface{}(m.GetUserId()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "UserId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -4943,7 +4943,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "UserId",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -4952,7 +4952,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ApproveLobbyMemberRequestValidationError{
+			return AdmitLobbyMemberRequestValidationError{
 				field:  "UserId",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -4961,7 +4961,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 	}
 
 	if m.GetKeyEnvelope() == nil {
-		err := ApproveLobbyMemberRequestValidationError{
+		err := AdmitLobbyMemberRequestValidationError{
 			field:  "KeyEnvelope",
 			reason: "value is required",
 		}
@@ -4975,7 +4975,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		switch v := interface{}(m.GetKeyEnvelope()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "KeyEnvelope",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -4983,7 +4983,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "KeyEnvelope",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -4992,7 +4992,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetKeyEnvelope()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ApproveLobbyMemberRequestValidationError{
+			return AdmitLobbyMemberRequestValidationError{
 				field:  "KeyEnvelope",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -5001,7 +5001,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 	}
 
 	if m.GetAuth() == nil {
-		err := ApproveLobbyMemberRequestValidationError{
+		err := AdmitLobbyMemberRequestValidationError{
 			field:  "Auth",
 			reason: "value is required",
 		}
@@ -5015,7 +5015,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5023,7 +5023,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ApproveLobbyMemberRequestValidationError{
+				errors = append(errors, AdmitLobbyMemberRequestValidationError{
 					field:  "Auth",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5032,7 +5032,7 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ApproveLobbyMemberRequestValidationError{
+			return AdmitLobbyMemberRequestValidationError{
 				field:  "Auth",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -5041,19 +5041,19 @@ func (m *ApproveLobbyMemberRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ApproveLobbyMemberRequestMultiError(errors)
+		return AdmitLobbyMemberRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// ApproveLobbyMemberRequestMultiError is an error wrapping multiple validation
-// errors returned by ApproveLobbyMemberRequest.ValidateAll() if the
-// designated constraints aren't met.
-type ApproveLobbyMemberRequestMultiError []error
+// AdmitLobbyMemberRequestMultiError is an error wrapping multiple validation
+// errors returned by AdmitLobbyMemberRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AdmitLobbyMemberRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ApproveLobbyMemberRequestMultiError) Error() string {
+func (m AdmitLobbyMemberRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5062,11 +5062,11 @@ func (m ApproveLobbyMemberRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ApproveLobbyMemberRequestMultiError) AllErrors() []error { return m }
+func (m AdmitLobbyMemberRequestMultiError) AllErrors() []error { return m }
 
-// ApproveLobbyMemberRequestValidationError is the validation error returned by
-// ApproveLobbyMemberRequest.Validate if the designated constraints aren't met.
-type ApproveLobbyMemberRequestValidationError struct {
+// AdmitLobbyMemberRequestValidationError is the validation error returned by
+// AdmitLobbyMemberRequest.Validate if the designated constraints aren't met.
+type AdmitLobbyMemberRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5074,24 +5074,24 @@ type ApproveLobbyMemberRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ApproveLobbyMemberRequestValidationError) Field() string { return e.field }
+func (e AdmitLobbyMemberRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ApproveLobbyMemberRequestValidationError) Reason() string { return e.reason }
+func (e AdmitLobbyMemberRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ApproveLobbyMemberRequestValidationError) Cause() error { return e.cause }
+func (e AdmitLobbyMemberRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ApproveLobbyMemberRequestValidationError) Key() bool { return e.key }
+func (e AdmitLobbyMemberRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ApproveLobbyMemberRequestValidationError) ErrorName() string {
-	return "ApproveLobbyMemberRequestValidationError"
+func (e AdmitLobbyMemberRequestValidationError) ErrorName() string {
+	return "AdmitLobbyMemberRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ApproveLobbyMemberRequestValidationError) Error() string {
+func (e AdmitLobbyMemberRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5103,14 +5103,14 @@ func (e ApproveLobbyMemberRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sApproveLobbyMemberRequest.%s: %s%s",
+		"invalid %sAdmitLobbyMemberRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ApproveLobbyMemberRequestValidationError{}
+var _ error = AdmitLobbyMemberRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -5118,24 +5118,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ApproveLobbyMemberRequestValidationError{}
+} = AdmitLobbyMemberRequestValidationError{}
 
-// Validate checks the field values on ApproveLobbyMemberResponse with the
-// rules defined in the proto definition for this message. If any rules are
+// Validate checks the field values on AdmitLobbyMemberResponse with the rules
+// defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ApproveLobbyMemberResponse) Validate() error {
+func (m *AdmitLobbyMemberResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ApproveLobbyMemberResponse with the
+// ValidateAll checks the field values on AdmitLobbyMemberResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ApproveLobbyMemberResponseMultiError, or nil if none found.
-func (m *ApproveLobbyMemberResponse) ValidateAll() error {
+// AdmitLobbyMemberResponseMultiError, or nil if none found.
+func (m *AdmitLobbyMemberResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ApproveLobbyMemberResponse) validate(all bool) error {
+func (m *AdmitLobbyMemberResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5145,19 +5145,19 @@ func (m *ApproveLobbyMemberResponse) validate(all bool) error {
 	// no validation rules for Result
 
 	if len(errors) > 0 {
-		return ApproveLobbyMemberResponseMultiError(errors)
+		return AdmitLobbyMemberResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// ApproveLobbyMemberResponseMultiError is an error wrapping multiple
-// validation errors returned by ApproveLobbyMemberResponse.ValidateAll() if
-// the designated constraints aren't met.
-type ApproveLobbyMemberResponseMultiError []error
+// AdmitLobbyMemberResponseMultiError is an error wrapping multiple validation
+// errors returned by AdmitLobbyMemberResponse.ValidateAll() if the designated
+// constraints aren't met.
+type AdmitLobbyMemberResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ApproveLobbyMemberResponseMultiError) Error() string {
+func (m AdmitLobbyMemberResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5166,11 +5166,11 @@ func (m ApproveLobbyMemberResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ApproveLobbyMemberResponseMultiError) AllErrors() []error { return m }
+func (m AdmitLobbyMemberResponseMultiError) AllErrors() []error { return m }
 
-// ApproveLobbyMemberResponseValidationError is the validation error returned
-// by ApproveLobbyMemberResponse.Validate if the designated constraints aren't met.
-type ApproveLobbyMemberResponseValidationError struct {
+// AdmitLobbyMemberResponseValidationError is the validation error returned by
+// AdmitLobbyMemberResponse.Validate if the designated constraints aren't met.
+type AdmitLobbyMemberResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5178,24 +5178,24 @@ type ApproveLobbyMemberResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e ApproveLobbyMemberResponseValidationError) Field() string { return e.field }
+func (e AdmitLobbyMemberResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ApproveLobbyMemberResponseValidationError) Reason() string { return e.reason }
+func (e AdmitLobbyMemberResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ApproveLobbyMemberResponseValidationError) Cause() error { return e.cause }
+func (e AdmitLobbyMemberResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ApproveLobbyMemberResponseValidationError) Key() bool { return e.key }
+func (e AdmitLobbyMemberResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ApproveLobbyMemberResponseValidationError) ErrorName() string {
-	return "ApproveLobbyMemberResponseValidationError"
+func (e AdmitLobbyMemberResponseValidationError) ErrorName() string {
+	return "AdmitLobbyMemberResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ApproveLobbyMemberResponseValidationError) Error() string {
+func (e AdmitLobbyMemberResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5207,14 +5207,14 @@ func (e ApproveLobbyMemberResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sApproveLobbyMemberResponse.%s: %s%s",
+		"invalid %sAdmitLobbyMemberResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ApproveLobbyMemberResponseValidationError{}
+var _ error = AdmitLobbyMemberResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -5222,7 +5222,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ApproveLobbyMemberResponseValidationError{}
+} = AdmitLobbyMemberResponseValidationError{}
 
 // Validate checks the field values on DenyLobbyMemberRequest with the rules
 // defined in the proto definition for this message. If any rules are

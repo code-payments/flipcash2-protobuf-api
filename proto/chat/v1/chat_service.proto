@@ -201,7 +201,7 @@ service Chat {
     // While the caller waits, the chat's Metadata carries in_lobby. The
     // caller leaves the lobby when they withdraw (LeaveLobby), when the
     // creator denies them (DenyLobbyMember), or when the creator admits them
-    // (ApproveLobbyMember). An admission reaches the caller's devices as a
+    // (AdmitLobbyMember). An admission reaches the caller's devices as a
     // RosterUpdate.MemberJoined naming them; a denial is not announced to
     // them.
     //
@@ -224,7 +224,7 @@ service Chat {
     // who just left may be present.
     rpc GetLobbyMembers(GetLobbyMembersRequest) returns (GetLobbyMembersResponse);
 
-    // ApproveLobbyMember admits a user waiting in a private group's lobby:
+    // AdmitLobbyMember admits a user waiting in a private group's lobby:
     // it stores the chat key wrapped for them (see KeyEnvelope) and adds them
     // to the chat's roster. The envelope is stored first, so an admitted
     // member always has one.
@@ -233,14 +233,14 @@ service Chat {
     // group; anyone else is DENIED. So is a creator who has not stored their
     // own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
     // nobody is admitted to a group before its creator holds its key. This is
-    // the only way to give another user a key envelope. Approving a user who
+    // the only way to give another user a key envelope. Admitting a user who
     // is already a member is a no-op that returns OK and leaves their stored
     // envelope as it is.
     //
     // The admission is announced like any other join: a
     // RosterUpdate.MemberJoined to the chat's members and to the admitted
     // user, who then fetches their envelope with GetKeyEnvelope.
-    rpc ApproveLobbyMember(ApproveLobbyMemberRequest) returns (ApproveLobbyMemberResponse);
+    rpc AdmitLobbyMember(AdmitLobbyMemberRequest) returns (AdmitLobbyMemberResponse);
 
     // DenyLobbyMember removes a user from a private group's lobby without
     // admitting them. Only the group's creator may call it, and only while a
@@ -253,7 +253,7 @@ service Chat {
 
     // SetKeyEnvelope stores the caller's own key envelope for a private
     // group. Only a member may call it, and only for themself: an envelope
-    // for another user is stored by admitting them (ApproveLobbyMember).
+    // for another user is stored by admitting them (AdmitLobbyMember).
     //
     // It is called in two situations (see KeyEnvelope):
     //  - By the group's creator, right after StartChat returns the chat's
@@ -538,7 +538,7 @@ message StartChatRequest {
     // it, and it appears in the creator's GetGroupChatFeed. But nothing can
     // happen in it, and the server refuses each of these as DENIED:
     //  - EnterLobby, by anyone
-    //  - ApproveLobbyMember
+    //  - AdmitLobbyMember
     //  - Messaging.SendMessage and Messaging.EditMessage
     //  - BlobStorage.InitiateExternalUpload of a blob encrypted for the chat
     // The creator's client must keep attempting SetKeyEnvelope until it
@@ -786,7 +786,7 @@ message GetLobbyMembersResponse {
     bool has_more = 4;
 }
 
-message ApproveLobbyMemberRequest {
+message AdmitLobbyMemberRequest {
     common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
     // The user to admit, who must be waiting in the chat's lobby.
@@ -801,11 +801,11 @@ message ApproveLobbyMemberRequest {
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }
 
-message ApproveLobbyMemberResponse {
+message AdmitLobbyMemberResponse {
     Result result = 1;
     enum Result {
         OK           = 0;
-        DENIED       = 1; // Caller may not admit users to this chat (see ApproveLobbyMember)
+        DENIED       = 1; // Caller may not admit users to this chat (see AdmitLobbyMember)
         NOT_FOUND    = 2;
         NOT_IN_LOBBY = 3; // The user is neither waiting in the lobby nor a member
     }

@@ -33,7 +33,7 @@ const (
 	Chat_EnterLobby_FullMethodName            = "/flipcash.chat.v1.Chat/EnterLobby"
 	Chat_LeaveLobby_FullMethodName            = "/flipcash.chat.v1.Chat/LeaveLobby"
 	Chat_GetLobbyMembers_FullMethodName       = "/flipcash.chat.v1.Chat/GetLobbyMembers"
-	Chat_ApproveLobbyMember_FullMethodName    = "/flipcash.chat.v1.Chat/ApproveLobbyMember"
+	Chat_AdmitLobbyMember_FullMethodName      = "/flipcash.chat.v1.Chat/AdmitLobbyMember"
 	Chat_DenyLobbyMember_FullMethodName       = "/flipcash.chat.v1.Chat/DenyLobbyMember"
 	Chat_SetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/SetKeyEnvelope"
 	Chat_GetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/GetKeyEnvelope"
@@ -219,7 +219,7 @@ type ChatClient interface {
 	// While the caller waits, the chat's Metadata carries in_lobby. The
 	// caller leaves the lobby when they withdraw (LeaveLobby), when the
 	// creator denies them (DenyLobbyMember), or when the creator admits them
-	// (ApproveLobbyMember). An admission reaches the caller's devices as a
+	// (AdmitLobbyMember). An admission reaches the caller's devices as a
 	// RosterUpdate.MemberJoined naming them; a denial is not announced to
 	// them.
 	//
@@ -239,7 +239,7 @@ type ChatClient interface {
 	// trails writes briefly, so a user who just entered may be absent and one
 	// who just left may be present.
 	GetLobbyMembers(ctx context.Context, in *GetLobbyMembersRequest, opts ...grpc.CallOption) (*GetLobbyMembersResponse, error)
-	// ApproveLobbyMember admits a user waiting in a private group's lobby:
+	// AdmitLobbyMember admits a user waiting in a private group's lobby:
 	// it stores the chat key wrapped for them (see KeyEnvelope) and adds them
 	// to the chat's roster. The envelope is stored first, so an admitted
 	// member always has one.
@@ -248,14 +248,14 @@ type ChatClient interface {
 	// group; anyone else is DENIED. So is a creator who has not stored their
 	// own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
 	// nobody is admitted to a group before its creator holds its key. This is
-	// the only way to give another user a key envelope. Approving a user who
+	// the only way to give another user a key envelope. Admitting a user who
 	// is already a member is a no-op that returns OK and leaves their stored
 	// envelope as it is.
 	//
 	// The admission is announced like any other join: a
 	// RosterUpdate.MemberJoined to the chat's members and to the admitted
 	// user, who then fetches their envelope with GetKeyEnvelope.
-	ApproveLobbyMember(ctx context.Context, in *ApproveLobbyMemberRequest, opts ...grpc.CallOption) (*ApproveLobbyMemberResponse, error)
+	AdmitLobbyMember(ctx context.Context, in *AdmitLobbyMemberRequest, opts ...grpc.CallOption) (*AdmitLobbyMemberResponse, error)
 	// DenyLobbyMember removes a user from a private group's lobby without
 	// admitting them. Only the group's creator may call it, and only while a
 	// member of the group; anyone else is DENIED. Denying a user who is not
@@ -266,7 +266,7 @@ type ChatClient interface {
 	DenyLobbyMember(ctx context.Context, in *DenyLobbyMemberRequest, opts ...grpc.CallOption) (*DenyLobbyMemberResponse, error)
 	// SetKeyEnvelope stores the caller's own key envelope for a private
 	// group. Only a member may call it, and only for themself: an envelope
-	// for another user is stored by admitting them (ApproveLobbyMember).
+	// for another user is stored by admitting them (AdmitLobbyMember).
 	//
 	// It is called in two situations (see KeyEnvelope):
 	//   - By the group's creator, right after StartChat returns the chat's
@@ -452,10 +452,10 @@ func (c *chatClient) GetLobbyMembers(ctx context.Context, in *GetLobbyMembersReq
 	return out, nil
 }
 
-func (c *chatClient) ApproveLobbyMember(ctx context.Context, in *ApproveLobbyMemberRequest, opts ...grpc.CallOption) (*ApproveLobbyMemberResponse, error) {
+func (c *chatClient) AdmitLobbyMember(ctx context.Context, in *AdmitLobbyMemberRequest, opts ...grpc.CallOption) (*AdmitLobbyMemberResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ApproveLobbyMemberResponse)
-	err := c.cc.Invoke(ctx, Chat_ApproveLobbyMember_FullMethodName, in, out, cOpts...)
+	out := new(AdmitLobbyMemberResponse)
+	err := c.cc.Invoke(ctx, Chat_AdmitLobbyMember_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -672,7 +672,7 @@ type ChatServer interface {
 	// While the caller waits, the chat's Metadata carries in_lobby. The
 	// caller leaves the lobby when they withdraw (LeaveLobby), when the
 	// creator denies them (DenyLobbyMember), or when the creator admits them
-	// (ApproveLobbyMember). An admission reaches the caller's devices as a
+	// (AdmitLobbyMember). An admission reaches the caller's devices as a
 	// RosterUpdate.MemberJoined naming them; a denial is not announced to
 	// them.
 	//
@@ -692,7 +692,7 @@ type ChatServer interface {
 	// trails writes briefly, so a user who just entered may be absent and one
 	// who just left may be present.
 	GetLobbyMembers(context.Context, *GetLobbyMembersRequest) (*GetLobbyMembersResponse, error)
-	// ApproveLobbyMember admits a user waiting in a private group's lobby:
+	// AdmitLobbyMember admits a user waiting in a private group's lobby:
 	// it stores the chat key wrapped for them (see KeyEnvelope) and adds them
 	// to the chat's roster. The envelope is stored first, so an admitted
 	// member always has one.
@@ -701,14 +701,14 @@ type ChatServer interface {
 	// group; anyone else is DENIED. So is a creator who has not stored their
 	// own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
 	// nobody is admitted to a group before its creator holds its key. This is
-	// the only way to give another user a key envelope. Approving a user who
+	// the only way to give another user a key envelope. Admitting a user who
 	// is already a member is a no-op that returns OK and leaves their stored
 	// envelope as it is.
 	//
 	// The admission is announced like any other join: a
 	// RosterUpdate.MemberJoined to the chat's members and to the admitted
 	// user, who then fetches their envelope with GetKeyEnvelope.
-	ApproveLobbyMember(context.Context, *ApproveLobbyMemberRequest) (*ApproveLobbyMemberResponse, error)
+	AdmitLobbyMember(context.Context, *AdmitLobbyMemberRequest) (*AdmitLobbyMemberResponse, error)
 	// DenyLobbyMember removes a user from a private group's lobby without
 	// admitting them. Only the group's creator may call it, and only while a
 	// member of the group; anyone else is DENIED. Denying a user who is not
@@ -719,7 +719,7 @@ type ChatServer interface {
 	DenyLobbyMember(context.Context, *DenyLobbyMemberRequest) (*DenyLobbyMemberResponse, error)
 	// SetKeyEnvelope stores the caller's own key envelope for a private
 	// group. Only a member may call it, and only for themself: an envelope
-	// for another user is stored by admitting them (ApproveLobbyMember).
+	// for another user is stored by admitting them (AdmitLobbyMember).
 	//
 	// It is called in two situations (see KeyEnvelope):
 	//   - By the group's creator, right after StartChat returns the chat's
@@ -807,8 +807,8 @@ func (UnimplementedChatServer) LeaveLobby(context.Context, *LeaveLobbyRequest) (
 func (UnimplementedChatServer) GetLobbyMembers(context.Context, *GetLobbyMembersRequest) (*GetLobbyMembersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLobbyMembers not implemented")
 }
-func (UnimplementedChatServer) ApproveLobbyMember(context.Context, *ApproveLobbyMemberRequest) (*ApproveLobbyMemberResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ApproveLobbyMember not implemented")
+func (UnimplementedChatServer) AdmitLobbyMember(context.Context, *AdmitLobbyMemberRequest) (*AdmitLobbyMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdmitLobbyMember not implemented")
 }
 func (UnimplementedChatServer) DenyLobbyMember(context.Context, *DenyLobbyMemberRequest) (*DenyLobbyMemberResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DenyLobbyMember not implemented")
@@ -1092,20 +1092,20 @@ func _Chat_GetLobbyMembers_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Chat_ApproveLobbyMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ApproveLobbyMemberRequest)
+func _Chat_AdmitLobbyMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdmitLobbyMemberRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChatServer).ApproveLobbyMember(ctx, in)
+		return srv.(ChatServer).AdmitLobbyMember(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Chat_ApproveLobbyMember_FullMethodName,
+		FullMethod: Chat_AdmitLobbyMember_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatServer).ApproveLobbyMember(ctx, req.(*ApproveLobbyMemberRequest))
+		return srv.(ChatServer).AdmitLobbyMember(ctx, req.(*AdmitLobbyMemberRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1228,8 +1228,8 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Chat_GetLobbyMembers_Handler,
 		},
 		{
-			MethodName: "ApproveLobbyMember",
-			Handler:    _Chat_ApproveLobbyMember_Handler,
+			MethodName: "AdmitLobbyMember",
+			Handler:    _Chat_AdmitLobbyMember_Handler,
 		},
 		{
 			MethodName: "DenyLobbyMember",
