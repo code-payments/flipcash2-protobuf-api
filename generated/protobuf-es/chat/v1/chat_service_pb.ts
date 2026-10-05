@@ -24,11 +24,11 @@ export class GetChatRequest extends Message<GetChatRequest> {
    * What the client intends to render of the chat's messaging state — its
    * last_message and latest_event_sequence — and so whether they may be
    * returned redacted (see messaging.v1.ViewMode). A group's record (title,
-   * picture, rules, roster summary) is returned to every registered user
-   * whatever the mode; the mode decides only the messaging state, which is
-   * withheld from a viewer who may not read the chat under it. Unset (FULL)
-   * is the pre-redaction contract: messaging state for a viewer who may
-   * read the chat in full, the bare record for anyone else.
+   * description, picture, rules, roster summary) is returned to every
+   * registered user whatever the mode; the mode decides only the messaging
+   * state, which is withheld from a viewer who may not read the chat under
+   * it. Unset (FULL) is the pre-redaction contract: messaging state for a
+   * viewer who may read the chat in full, the bare record for anyone else.
    *
    * Must be REDACTED when auth is unset; any other mode is DENIED.
    *
@@ -827,6 +827,14 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
    */
   rules?: Rules;
 
+  /**
+   * Description for the chat. Optional; empty sets none. Moderated like
+   * the title.
+   *
+   * @generated from field: string description = 4;
+   */
+  description = "";
+
   constructor(data?: PartialMessage<StartChatRequest_PublicGroupChatParameters>) {
     super();
     proto3.util.initPartial(data, this);
@@ -838,6 +846,7 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "picture", kind: "message", T: BlobId },
     { no: 3, name: "rules", kind: "message", T: Rules },
+    { no: 4, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_PublicGroupChatParameters {
@@ -898,6 +907,14 @@ export class StartChatRequest_PrivateGroupChatParameters extends Message<StartCh
    */
   picture?: BlobId;
 
+  /**
+   * Description for the chat. Optional; empty sets none. Moderated like
+   * the title.
+   *
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
   constructor(data?: PartialMessage<StartChatRequest_PrivateGroupChatParameters>) {
     super();
     proto3.util.initPartial(data, this);
@@ -908,6 +925,7 @@ export class StartChatRequest_PrivateGroupChatParameters extends Message<StartCh
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "picture", kind: "message", T: BlobId },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_PrivateGroupChatParameters {
@@ -947,8 +965,8 @@ export class StartChatResponse extends Message<StartChatResponse> {
 
   /**
    * The best-fit category that tripped moderation, mirroring the Moderation
-   * service's vocabulary. Set only when result == TITLE_MODERATED; NONE
-   * otherwise.
+   * service's vocabulary. Set only when result == TITLE_MODERATED or
+   * DESCRIPTION_MODERATED; NONE otherwise.
    *
    * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 3;
    */
@@ -1017,6 +1035,11 @@ export enum StartChatResponse_Result {
    * @generated from enum value: RULES_NOT_SATISFIED = 5;
    */
   RULES_NOT_SATISFIED = 5,
+
+  /**
+   * @generated from enum value: DESCRIPTION_MODERATED = 6;
+   */
+  DESCRIPTION_MODERATED = 6,
 }
 // Retrieve enum metadata with: proto3.getEnumType(StartChatResponse_Result)
 proto3.util.setEnumType(StartChatResponse_Result, "flipcash.chat.v1.StartChatResponse.Result", [
@@ -1026,6 +1049,7 @@ proto3.util.setEnumType(StartChatResponse_Result, "flipcash.chat.v1.StartChatRes
   { no: 3, name: "PICTURE_BLOB_NOT_ACCEPTED" },
   { no: 4, name: "INVALID_RULES" },
   { no: 5, name: "RULES_NOT_SATISFIED" },
+  { no: 6, name: "DESCRIPTION_MODERATED" },
 ]);
 
 /**
@@ -1279,6 +1303,13 @@ export class EditChatRequest extends Message<EditChatRequest> {
   picture?: EditChatRequest_Picture;
 
   /**
+   * The new description. Left unchanged when unset.
+   *
+   * @generated from field: flipcash.chat.v1.EditChatRequest.Description description = 4;
+   */
+  description?: EditChatRequest_Description;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -1294,6 +1325,7 @@ export class EditChatRequest extends Message<EditChatRequest> {
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "title", kind: "message", T: EditChatRequest_Title },
     { no: 3, name: "picture", kind: "message", T: EditChatRequest_Picture },
+    { no: 4, name: "description", kind: "message", T: EditChatRequest_Description },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -1393,6 +1425,45 @@ export class EditChatRequest_Picture extends Message<EditChatRequest_Picture> {
 }
 
 /**
+ * @generated from message flipcash.chat.v1.EditChatRequest.Description
+ */
+export class EditChatRequest_Description extends Message<EditChatRequest_Description> {
+  /**
+   * The new description. Empty clears it.
+   *
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<EditChatRequest_Description>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.EditChatRequest.Description";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EditChatRequest_Description {
+    return new EditChatRequest_Description().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): EditChatRequest_Description {
+    return new EditChatRequest_Description().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): EditChatRequest_Description {
+    return new EditChatRequest_Description().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: EditChatRequest_Description | PlainMessage<EditChatRequest_Description> | undefined, b: EditChatRequest_Description | PlainMessage<EditChatRequest_Description> | undefined): boolean {
+    return proto3.util.equals(EditChatRequest_Description, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.chat.v1.EditChatResponse
  */
 export class EditChatResponse extends Message<EditChatResponse> {
@@ -1412,8 +1483,8 @@ export class EditChatResponse extends Message<EditChatResponse> {
 
   /**
    * The best-fit category that tripped moderation, mirroring the Moderation
-   * service's vocabulary. Set only when result == TITLE_MODERATED; NONE
-   * otherwise.
+   * service's vocabulary. Set only when result == TITLE_MODERATED or
+   * DESCRIPTION_MODERATED; NONE otherwise.
    *
    * @generated from field: flipcash.moderation.v1.FlaggedCategory flagged_category = 3;
    */
@@ -1477,6 +1548,11 @@ export enum EditChatResponse_Result {
    * @generated from enum value: PICTURE_BLOB_NOT_ACCEPTED = 4;
    */
   PICTURE_BLOB_NOT_ACCEPTED = 4,
+
+  /**
+   * @generated from enum value: DESCRIPTION_MODERATED = 5;
+   */
+  DESCRIPTION_MODERATED = 5,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EditChatResponse_Result)
 proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatResponse.Result", [
@@ -1485,6 +1561,7 @@ proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatRespo
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "TITLE_MODERATED" },
   { no: 4, name: "PICTURE_BLOB_NOT_ACCEPTED" },
+  { no: 5, name: "DESCRIPTION_MODERATED" },
 ]);
 
 /**

@@ -2949,6 +2949,35 @@ func (m *EditChatRequest) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetDescription()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Description",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, EditChatRequestValidationError{
+					field:  "Description",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDescription()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return EditChatRequestValidationError{
+				field:  "Description",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if m.GetAuth() == nil {
 		err := EditChatRequestValidationError{
 			field:  "Auth",
@@ -6313,6 +6342,17 @@ func (m *StartChatRequest_PublicGroupChatParameters) validate(all bool) error {
 		}
 	}
 
+	if utf8.RuneCountInString(m.GetDescription()) > 160 {
+		err := StartChatRequest_PublicGroupChatParametersValidationError{
+			field:  "Description",
+			reason: "value length must be at most 160 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return StartChatRequest_PublicGroupChatParametersMultiError(errors)
 	}
@@ -6457,6 +6497,17 @@ func (m *StartChatRequest_PrivateGroupChatParameters) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	if utf8.RuneCountInString(m.GetDescription()) > 160 {
+		err := StartChatRequest_PrivateGroupChatParametersValidationError{
+			field:  "Description",
+			reason: "value length must be at most 160 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -6795,3 +6846,117 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EditChatRequest_PictureValidationError{}
+
+// Validate checks the field values on EditChatRequest_Description with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EditChatRequest_Description) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EditChatRequest_Description with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EditChatRequest_DescriptionMultiError, or nil if none found.
+func (m *EditChatRequest_Description) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EditChatRequest_Description) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetValue()) > 160 {
+		err := EditChatRequest_DescriptionValidationError{
+			field:  "Value",
+			reason: "value length must be at most 160 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EditChatRequest_DescriptionMultiError(errors)
+	}
+
+	return nil
+}
+
+// EditChatRequest_DescriptionMultiError is an error wrapping multiple
+// validation errors returned by EditChatRequest_Description.ValidateAll() if
+// the designated constraints aren't met.
+type EditChatRequest_DescriptionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EditChatRequest_DescriptionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EditChatRequest_DescriptionMultiError) AllErrors() []error { return m }
+
+// EditChatRequest_DescriptionValidationError is the validation error returned
+// by EditChatRequest_Description.Validate if the designated constraints
+// aren't met.
+type EditChatRequest_DescriptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EditChatRequest_DescriptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EditChatRequest_DescriptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EditChatRequest_DescriptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EditChatRequest_DescriptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EditChatRequest_DescriptionValidationError) ErrorName() string {
+	return "EditChatRequest_DescriptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EditChatRequest_DescriptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEditChatRequest_Description.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EditChatRequest_DescriptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EditChatRequest_DescriptionValidationError{}

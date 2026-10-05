@@ -186,6 +186,18 @@ export class Metadata extends Message<Metadata> {
   inLobby = false;
 
   /**
+   * A short free-form description of this chat, written by its creator.
+   * Only supported for group chats. Empty when none is set. Part of the
+   * group's record, like title, so it is returned to every viewer who can
+   * see the chat, including in its public view.
+   *
+   * Set it on creation (see StartChatRequest) or with Chat.EditChat.
+   *
+   * @generated from field: string description = 16;
+   */
+  description = "";
+
+  /**
    * Whether messages in this chat are end-to-end encrypted (see
    * messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
    * always false for group chats. A private group is always end-to-end
@@ -227,6 +239,7 @@ export class Metadata extends Message<Metadata> {
     { no: 13, name: "creator", kind: "message", T: UserId },
     { no: 14, name: "is_private", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 15, name: "in_lobby", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 16, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 100, name: "use_e2ee", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
@@ -830,6 +843,12 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
      */
     value: MetadataUpdate_PictureChanged;
     case: "pictureChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.DescriptionChanged description_changed = 6;
+     */
+    value: MetadataUpdate_DescriptionChanged;
+    case: "descriptionChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -845,6 +864,7 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     { no: 3, name: "viewer_state_changed", kind: "message", T: MetadataUpdate_ViewerStateChanged, oneof: "kind" },
     { no: 4, name: "title_changed", kind: "message", T: MetadataUpdate_TitleChanged, oneof: "kind" },
     { no: 5, name: "picture_changed", kind: "message", T: MetadataUpdate_PictureChanged, oneof: "kind" },
+    { no: 6, name: "description_changed", kind: "message", T: MetadataUpdate_DescriptionChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -1067,6 +1087,51 @@ export class MetadataUpdate_PictureChanged extends Message<MetadataUpdate_Pictur
 
   static equals(a: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined, b: MetadataUpdate_PictureChanged | PlainMessage<MetadataUpdate_PictureChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_PictureChanged, a, b);
+  }
+}
+
+/**
+ * The chat's description has changed (e.g. via Chat.EditChat). Delivered
+ * to the chat's members, including the editor's other devices.
+ * Best-effort and applied as received; a client that suspects a miss
+ * refetches the chat via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.DescriptionChanged
+ */
+export class MetadataUpdate_DescriptionChanged extends Message<MetadataUpdate_DescriptionChanged> {
+  /**
+   * The new description, replacing Metadata.description. Empty when the
+   * description was cleared.
+   *
+   * @generated from field: string new_description = 1;
+   */
+  newDescription = "";
+
+  constructor(data?: PartialMessage<MetadataUpdate_DescriptionChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.DescriptionChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_DescriptionChanged {
+    return new MetadataUpdate_DescriptionChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_DescriptionChanged {
+    return new MetadataUpdate_DescriptionChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_DescriptionChanged {
+    return new MetadataUpdate_DescriptionChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_DescriptionChanged | PlainMessage<MetadataUpdate_DescriptionChanged> | undefined, b: MetadataUpdate_DescriptionChanged | PlainMessage<MetadataUpdate_DescriptionChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_DescriptionChanged, a, b);
   }
 }
 

@@ -106,6 +106,16 @@ message Metadata {
     // group.
     bool in_lobby = 15;
 
+    // A short free-form description of this chat, written by its creator.
+    // Only supported for group chats. Empty when none is set. Part of the
+    // group's record, like title, so it is returned to every viewer who can
+    // see the chat, including in its public view.
+    //
+    // Set it on creation (see StartChatRequest) or with Chat.EditChat.
+    string description = 16 [(validate.rules).string = {
+        max_len: 160
+    }];
+
     // Whether messages in this chat are end-to-end encrypted (see
     // messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
     // always false for group chats. A private group is always end-to-end
@@ -293,6 +303,7 @@ message MetadataUpdate {
         ViewerStateChanged  viewer_state_changed  = 3;
         TitleChanged        title_changed         = 4;
         PictureChanged      picture_changed       = 5;
+        DescriptionChanged  description_changed   = 6;
     }
 
     // Refreshes the entire chat metadata
@@ -330,6 +341,18 @@ message MetadataUpdate {
         // The new picture, with the renditions the server derived, replacing
         // Metadata.picture.
         blob.v1.Media new_picture = 1 [(validate.rules).message.required = true];
+    }
+
+    // The chat's description has changed (e.g. via Chat.EditChat). Delivered
+    // to the chat's members, including the editor's other devices.
+    // Best-effort and applied as received; a client that suspects a miss
+    // refetches the chat via Chat.GetChat.
+    message DescriptionChanged {
+        // The new description, replacing Metadata.description. Empty when the
+        // description was cleared.
+        string new_description = 1 [(validate.rules).string = {
+            max_len: 160
+        }];
     }
 }
 
