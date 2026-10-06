@@ -622,6 +622,9 @@ export class SampleChattersRequest extends Message<SampleChattersRequest> {
   chatId?: ChatId;
 
   /**
+   * Optional. When set it must be valid, but the sample is the same with
+   * or without it (see Chat.SampleChatters).
+   *
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
