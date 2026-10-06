@@ -2063,6 +2063,177 @@ var _ interface {
 	ErrorName() string
 } = MentionSuggestionValidationError{}
 
+// Validate checks the field values on SampledChatter with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SampledChatter) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SampledChatter with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SampledChatterMultiError,
+// or nil if none found.
+func (m *SampledChatter) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SampledChatter) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetUserProfile() == nil {
+		err := SampledChatterValidationError{
+			field:  "UserProfile",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUserProfile()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SampledChatterValidationError{
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SampledChatterValidationError{
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserProfile()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SampledChatterValidationError{
+				field:  "UserProfile",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetLastSentAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SampledChatterValidationError{
+					field:  "LastSentAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SampledChatterValidationError{
+					field:  "LastSentAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetLastSentAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SampledChatterValidationError{
+				field:  "LastSentAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for IsCreator
+
+	if len(errors) > 0 {
+		return SampledChatterMultiError(errors)
+	}
+
+	return nil
+}
+
+// SampledChatterMultiError is an error wrapping multiple validation errors
+// returned by SampledChatter.ValidateAll() if the designated constraints
+// aren't met.
+type SampledChatterMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SampledChatterMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SampledChatterMultiError) AllErrors() []error { return m }
+
+// SampledChatterValidationError is the validation error returned by
+// SampledChatter.Validate if the designated constraints aren't met.
+type SampledChatterValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SampledChatterValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SampledChatterValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SampledChatterValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SampledChatterValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SampledChatterValidationError) ErrorName() string { return "SampledChatterValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SampledChatterValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSampledChatter.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SampledChatterValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SampledChatterValidationError{}
+
 // Validate checks the field values on RosterSummary with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -2719,6 +2890,48 @@ func (m *RosterUpdate) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return RosterUpdateValidationError{
 					field:  "MemberLeft",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *RosterUpdate_MembershipChanged_:
+		if v == nil {
+			err := RosterUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetMembershipChanged()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RosterUpdateValidationError{
+						field:  "MembershipChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RosterUpdateValidationError{
+						field:  "MembershipChanged",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMembershipChanged()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RosterUpdateValidationError{
+					field:  "MembershipChanged",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -5486,6 +5699,109 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RosterUpdate_MemberLeftValidationError{}
+
+// Validate checks the field values on RosterUpdate_MembershipChanged with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RosterUpdate_MembershipChanged) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RosterUpdate_MembershipChanged with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RosterUpdate_MembershipChangedMultiError, or nil if none found.
+func (m *RosterUpdate_MembershipChanged) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RosterUpdate_MembershipChanged) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return RosterUpdate_MembershipChangedMultiError(errors)
+	}
+
+	return nil
+}
+
+// RosterUpdate_MembershipChangedMultiError is an error wrapping multiple
+// validation errors returned by RosterUpdate_MembershipChanged.ValidateAll()
+// if the designated constraints aren't met.
+type RosterUpdate_MembershipChangedMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RosterUpdate_MembershipChangedMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RosterUpdate_MembershipChangedMultiError) AllErrors() []error { return m }
+
+// RosterUpdate_MembershipChangedValidationError is the validation error
+// returned by RosterUpdate_MembershipChanged.Validate if the designated
+// constraints aren't met.
+type RosterUpdate_MembershipChangedValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RosterUpdate_MembershipChangedValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RosterUpdate_MembershipChangedValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RosterUpdate_MembershipChangedValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RosterUpdate_MembershipChangedValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RosterUpdate_MembershipChangedValidationError) ErrorName() string {
+	return "RosterUpdate_MembershipChangedValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RosterUpdate_MembershipChangedValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRosterUpdate_MembershipChanged.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RosterUpdate_MembershipChangedValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RosterUpdate_MembershipChangedValidationError{}
 
 // Validate checks the field values on ViewerState_Settings with the rules
 // defined in the proto definition for this message. If any rules are

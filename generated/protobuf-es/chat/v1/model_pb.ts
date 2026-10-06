@@ -773,6 +773,70 @@ export class MentionSuggestion extends Message<MentionSuggestion> {
 }
 
 /**
+ * SampledChatter is one member of a group in a sample of its chatters, as
+ * returned by Chat.SampleChatters: a member as of the read. It is not a
+ * Member message, carrying no join time or roster version, because a sample
+ * is a snapshot replaced whole rather than merged against the roster by
+ * version.
+ *
+ * @generated from message flipcash.chat.v1.SampledChatter
+ */
+export class SampledChatter extends Message<SampledChatter> {
+  /**
+   * The member's public profile.
+   *
+   * @generated from field: flipcash.profile.v1.UserProfile user_profile = 1;
+   */
+  userProfile?: UserProfile;
+
+  /**
+   * When the member last sent a message in this chat, as the server records
+   * it: it may trail their latest message by up to a minute. A client
+   * moving new senders to the front compares against it. Unset for a
+   * creator who has not sent recently.
+   *
+   * @generated from field: google.protobuf.Timestamp last_sent_at = 2;
+   */
+  lastSentAt?: Timestamp;
+
+  /**
+   * Whether the member is the group's creator.
+   *
+   * @generated from field: bool is_creator = 3;
+   */
+  isCreator = false;
+
+  constructor(data?: PartialMessage<SampledChatter>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SampledChatter";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_profile", kind: "message", T: UserProfile },
+    { no: 2, name: "last_sent_at", kind: "message", T: Timestamp },
+    { no: 3, name: "is_creator", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SampledChatter {
+    return new SampledChatter().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SampledChatter {
+    return new SampledChatter().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SampledChatter {
+    return new SampledChatter().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SampledChatter | PlainMessage<SampledChatter> | undefined, b: SampledChatter | PlainMessage<SampledChatter> | undefined): boolean {
+    return proto3.util.equals(SampledChatter, a, b);
+  }
+}
+
+/**
  * RosterSummary describes a chat's roster — its member list — without
  * containing it: what a client needs in order to know whether its copy of
  * that list is stale, without holding the list.
@@ -1225,8 +1289,10 @@ export class MetadataUpdate_CoverPictureChanged extends Message<MetadataUpdate_C
 /**
  * RosterUpdate is a best-effort, real-time change to a chat's roster — a
  * member joining (e.g. via Chat.JoinChat, or as the first member via
- * Chat.StartChat) or leaving (e.g. via Chat.LeaveChat). It is delivered to
- * the chat's members, including the affected user's other devices.
+ * Chat.StartChat) or leaving (e.g. via Chat.LeaveChat), or a change the
+ * recipient is not shown, which carries the summary alone (see
+ * MembershipChanged). It is delivered to the chat's members, including the
+ * affected user's other devices.
  *
  * Roster changes are a convergent overlay, so these ride the event stream
  * OUTSIDE the gap-detected event log. Clients apply them by roster_summary
@@ -1254,6 +1320,12 @@ export class RosterUpdate extends Message<RosterUpdate> {
      */
     value: RosterUpdate_MemberLeft;
     case: "memberLeft";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.RosterUpdate.MembershipChanged membership_changed = 3;
+     */
+    value: RosterUpdate_MembershipChanged;
+    case: "membershipChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
@@ -1274,6 +1346,7 @@ export class RosterUpdate extends Message<RosterUpdate> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "member_joined", kind: "message", T: RosterUpdate_MemberJoined, oneof: "kind" },
     { no: 2, name: "member_left", kind: "message", T: RosterUpdate_MemberLeft, oneof: "kind" },
+    { no: 3, name: "membership_changed", kind: "message", T: RosterUpdate_MembershipChanged, oneof: "kind" },
     { no: 10, name: "roster_summary", kind: "message", T: RosterSummary },
   ]);
 
@@ -1394,6 +1467,48 @@ export class RosterUpdate_MemberLeft extends Message<RosterUpdate_MemberLeft> {
 
   static equals(a: RosterUpdate_MemberLeft | PlainMessage<RosterUpdate_MemberLeft> | undefined, b: RosterUpdate_MemberLeft | PlainMessage<RosterUpdate_MemberLeft> | undefined): boolean {
     return proto3.util.equals(RosterUpdate_MemberLeft, a, b);
+  }
+}
+
+/**
+ * The roster changed, but the change is not disclosed to the recipient:
+ * the update names no member and carries no member to add or remove. The
+ * recipient applies the enclosing roster_summary by version like any
+ * other roster update, so member_count and version stay current, and
+ * leaves its cached member list as it is. Having applied it, the
+ * recipient holds the new version, so it is not a version to reconcile
+ * by refetching the roster.
+ *
+ * It is never delivered to the user whose membership changed: their own
+ * devices receive MemberJoined or MemberLeft for it.
+ *
+ * @generated from message flipcash.chat.v1.RosterUpdate.MembershipChanged
+ */
+export class RosterUpdate_MembershipChanged extends Message<RosterUpdate_MembershipChanged> {
+  constructor(data?: PartialMessage<RosterUpdate_MembershipChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RosterUpdate.MembershipChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RosterUpdate_MembershipChanged {
+    return new RosterUpdate_MembershipChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RosterUpdate_MembershipChanged {
+    return new RosterUpdate_MembershipChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RosterUpdate_MembershipChanged {
+    return new RosterUpdate_MembershipChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RosterUpdate_MembershipChanged | PlainMessage<RosterUpdate_MembershipChanged> | undefined, b: RosterUpdate_MembershipChanged | PlainMessage<RosterUpdate_MembershipChanged> | undefined): boolean {
+    return proto3.util.equals(RosterUpdate_MembershipChanged, a, b);
   }
 }
 
