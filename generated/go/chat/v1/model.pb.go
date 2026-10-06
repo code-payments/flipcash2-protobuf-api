@@ -208,10 +208,9 @@ type Metadata struct {
 	//
 	// Set it on creation (see StartChatRequest) or with Chat.EditChat.
 	//
-	// It may be left empty on a chat returned by a feed RPC meant for list
-	// views (Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an empty value
-	// there does not mean none is set. Fetch it with Chat.GetChat, and don't
-	// let a feed result clear a description the client already holds.
+	// Unlike cover_picture, it is carried by the feed RPCs meant for list
+	// views (Chat.GetDmChatFeed, Chat.GetGroupChatFeed) too, so a list row
+	// may show it, and an empty value there means none is set.
 	Description string `protobuf:"bytes,16,opt,name=description,proto3" json:"description,omitempty"`
 	// The chat's cover picture — the banner shown behind the chat's profile
 	// view — as the set of renditions it is stored as, like

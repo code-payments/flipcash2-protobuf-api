@@ -6600,6 +6600,680 @@ var _ interface {
 	ErrorName() string
 } = GetKeyEnvelopeResponseValidationError{}
 
+// Validate checks the field values on SetFeaturedGroupsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetFeaturedGroupsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetFeaturedGroupsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetFeaturedGroupsRequestMultiError, or nil if none found.
+func (m *SetFeaturedGroupsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetFeaturedGroupsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetChatIds()) > 10 {
+		err := SetFeaturedGroupsRequestValidationError{
+			field:  "ChatIds",
+			reason: "value must contain no more than 10 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetChatIds() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SetFeaturedGroupsRequestValidationError{
+						field:  fmt.Sprintf("ChatIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SetFeaturedGroupsRequestValidationError{
+						field:  fmt.Sprintf("ChatIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SetFeaturedGroupsRequestValidationError{
+					field:  fmt.Sprintf("ChatIds[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.GetAuth() == nil {
+		err := SetFeaturedGroupsRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetFeaturedGroupsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetFeaturedGroupsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetFeaturedGroupsRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetFeaturedGroupsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetFeaturedGroupsRequestMultiError is an error wrapping multiple validation
+// errors returned by SetFeaturedGroupsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SetFeaturedGroupsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetFeaturedGroupsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetFeaturedGroupsRequestMultiError) AllErrors() []error { return m }
+
+// SetFeaturedGroupsRequestValidationError is the validation error returned by
+// SetFeaturedGroupsRequest.Validate if the designated constraints aren't met.
+type SetFeaturedGroupsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetFeaturedGroupsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetFeaturedGroupsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetFeaturedGroupsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetFeaturedGroupsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetFeaturedGroupsRequestValidationError) ErrorName() string {
+	return "SetFeaturedGroupsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetFeaturedGroupsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetFeaturedGroupsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetFeaturedGroupsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetFeaturedGroupsRequestValidationError{}
+
+// Validate checks the field values on SetFeaturedGroupsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetFeaturedGroupsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetFeaturedGroupsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetFeaturedGroupsResponseMultiError, or nil if none found.
+func (m *SetFeaturedGroupsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetFeaturedGroupsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetFeaturedGroups()) > 10 {
+		err := SetFeaturedGroupsResponseValidationError{
+			field:  "FeaturedGroups",
+			reason: "value must contain no more than 10 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetFeaturedGroups() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SetFeaturedGroupsResponseValidationError{
+						field:  fmt.Sprintf("FeaturedGroups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SetFeaturedGroupsResponseValidationError{
+						field:  fmt.Sprintf("FeaturedGroups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SetFeaturedGroupsResponseValidationError{
+					field:  fmt.Sprintf("FeaturedGroups[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return SetFeaturedGroupsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetFeaturedGroupsResponseMultiError is an error wrapping multiple validation
+// errors returned by SetFeaturedGroupsResponse.ValidateAll() if the
+// designated constraints aren't met.
+type SetFeaturedGroupsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetFeaturedGroupsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetFeaturedGroupsResponseMultiError) AllErrors() []error { return m }
+
+// SetFeaturedGroupsResponseValidationError is the validation error returned by
+// SetFeaturedGroupsResponse.Validate if the designated constraints aren't met.
+type SetFeaturedGroupsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetFeaturedGroupsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetFeaturedGroupsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetFeaturedGroupsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetFeaturedGroupsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetFeaturedGroupsResponseValidationError) ErrorName() string {
+	return "SetFeaturedGroupsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetFeaturedGroupsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetFeaturedGroupsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetFeaturedGroupsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetFeaturedGroupsResponseValidationError{}
+
+// Validate checks the field values on GetFeaturedGroupsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetFeaturedGroupsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetFeaturedGroupsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetFeaturedGroupsRequestMultiError, or nil if none found.
+func (m *GetFeaturedGroupsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetFeaturedGroupsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetFeaturedGroupsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetFeaturedGroupsRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetFeaturedGroupsRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	oneofIdentifierPresent := false
+	switch v := m.Identifier.(type) {
+	case *GetFeaturedGroupsRequest_Username:
+		if v == nil {
+			err := GetFeaturedGroupsRequestValidationError{
+				field:  "Identifier",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofIdentifierPresent = true
+
+		if all {
+			switch v := interface{}(m.GetUsername()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetFeaturedGroupsRequestValidationError{
+						field:  "Username",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetFeaturedGroupsRequestValidationError{
+						field:  "Username",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUsername()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetFeaturedGroupsRequestValidationError{
+					field:  "Username",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofIdentifierPresent {
+		err := GetFeaturedGroupsRequestValidationError{
+			field:  "Identifier",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetFeaturedGroupsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetFeaturedGroupsRequestMultiError is an error wrapping multiple validation
+// errors returned by GetFeaturedGroupsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetFeaturedGroupsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetFeaturedGroupsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetFeaturedGroupsRequestMultiError) AllErrors() []error { return m }
+
+// GetFeaturedGroupsRequestValidationError is the validation error returned by
+// GetFeaturedGroupsRequest.Validate if the designated constraints aren't met.
+type GetFeaturedGroupsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetFeaturedGroupsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetFeaturedGroupsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetFeaturedGroupsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetFeaturedGroupsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetFeaturedGroupsRequestValidationError) ErrorName() string {
+	return "GetFeaturedGroupsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetFeaturedGroupsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetFeaturedGroupsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetFeaturedGroupsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetFeaturedGroupsRequestValidationError{}
+
+// Validate checks the field values on GetFeaturedGroupsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetFeaturedGroupsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetFeaturedGroupsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetFeaturedGroupsResponseMultiError, or nil if none found.
+func (m *GetFeaturedGroupsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetFeaturedGroupsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetFeaturedGroups()) > 10 {
+		err := GetFeaturedGroupsResponseValidationError{
+			field:  "FeaturedGroups",
+			reason: "value must contain no more than 10 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetFeaturedGroups() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetFeaturedGroupsResponseValidationError{
+						field:  fmt.Sprintf("FeaturedGroups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetFeaturedGroupsResponseValidationError{
+						field:  fmt.Sprintf("FeaturedGroups[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetFeaturedGroupsResponseValidationError{
+					field:  fmt.Sprintf("FeaturedGroups[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetFeaturedGroupsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetFeaturedGroupsResponseMultiError is an error wrapping multiple validation
+// errors returned by GetFeaturedGroupsResponse.ValidateAll() if the
+// designated constraints aren't met.
+type GetFeaturedGroupsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetFeaturedGroupsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetFeaturedGroupsResponseMultiError) AllErrors() []error { return m }
+
+// GetFeaturedGroupsResponseValidationError is the validation error returned by
+// GetFeaturedGroupsResponse.Validate if the designated constraints aren't met.
+type GetFeaturedGroupsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetFeaturedGroupsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetFeaturedGroupsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetFeaturedGroupsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetFeaturedGroupsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetFeaturedGroupsResponseValidationError) ErrorName() string {
+	return "GetFeaturedGroupsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetFeaturedGroupsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetFeaturedGroupsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetFeaturedGroupsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetFeaturedGroupsResponseValidationError{}
+
 // Validate checks the field values on
 // StartChatRequest_PublicGroupChatParameters with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

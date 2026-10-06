@@ -78,9 +78,9 @@ service Chat {
     // member of at the time of that page; a group the caller left between
     // pages is dropped, and its removal arrives on the stream.
     //
-    // The feed is meant for list views, so a chat's description and
-    // cover_picture may be omitted from it (see Metadata). Fetch them with
-    // GetChat when the client shows the chat's profile view.
+    // The feed is meant for list views, so a chat's cover_picture may be
+    // omitted from it (see Metadata). Fetch it with GetChat when the client
+    // shows the chat's profile view.
     rpc GetGroupChatFeed(GetGroupChatFeedRequest) returns (GetGroupChatFeedResponse);
 
     // GetRoster pages a chat's roster, most recently joined first. Every
@@ -331,6 +331,48 @@ service Chat {
     // SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
     // until it succeeds.
     rpc GetKeyEnvelope(GetKeyEnvelopeRequest) returns (GetKeyEnvelopeResponse);
+
+    // SetFeaturedGroups replaces the caller's featured groups: an ordered
+    // list of public group chats they show on their profile, which anyone can
+    // fetch with GetFeaturedGroups. The list is written whole, so the request
+    // carries every group the caller wants featured, in the order to show
+    // them, and an empty list clears it. Setting the list already stored is a
+    // no-op that returns OK.
+    //
+    // Featuring a group says nothing about the caller's place in it: a group
+    // may be featured whether or not the caller is a member, and leaving a
+    // group does not remove it from the list.
+    //
+    // Only public groups may be featured: when a group in the request is
+    // private (see Metadata.is_private), nothing is written and the result
+    // is DENIED. A group never becomes private after it is created, so a
+    // featured group stays public. Every group must exist: when one does not,
+    // nothing is written and the result is NOT_FOUND. A DM's ID, or a group
+    // named more than once, is an invalid argument.
+    //
+    // Nothing is published: the caller's other devices see the change on
+    // their next GetFeaturedGroups.
+    rpc SetFeaturedGroups(SetFeaturedGroupsRequest) returns (SetFeaturedGroupsResponse);
+
+    // GetFeaturedGroups returns a user's featured groups (see
+    // SetFeaturedGroups), in the order the user set them.
+    //
+    // Each group is a public group (see SetFeaturedGroups), returned as its
+    // record as a list view shows it: chat_id, type, title, description,
+    // profile_picture, roster_summary, rules, creator and last_activity. Nothing about the viewer's place in the
+    // group is set (members, is_hidden, viewer_state, in_lobby), nor its
+    // messaging state (last_message, latest_event_sequence), nor its
+    // cover_picture: a client opening a group fetches the rest with GetChat.
+    //
+    // The list is public, like the user's profile, and the same for every
+    // viewer. Auth is optional; when set it must be valid, but it changes
+    // nothing about what is returned. A group that no longer exists is left
+    // out.
+    //
+    // The user is identified by username, the handle a profile is opened by,
+    // so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
+    // its featured groups at once.
+    rpc GetFeaturedGroups(GetFeaturedGroupsRequest) returns (GetFeaturedGroupsResponse);
 }
 
 message GetChatRequest {
@@ -989,4 +1031,61 @@ message GetKeyEnvelopeResponse {
     // hint: an envelope that does not open against that key is rejected. Set
     // only when result == OK.
     common.v1.UserId wrapped_by = 3;
+}
+
+message SetFeaturedGroupsRequest {
+    // The groups to feature, in the order to show them. Every ID must name a
+    // public group chat, and none may repeat. Empty clears the featured
+    // groups.
+    repeated common.v1.ChatId chat_ids = 1 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 10
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SetFeaturedGroupsResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // A group in the request is private; nothing was written
+        NOT_FOUND = 2; // A group in the request does not exist; nothing was written
+    }
+
+    // The caller's featured groups after the write, as GetFeaturedGroups
+    // returns them. Set only when result == OK.
+    repeated Metadata featured_groups = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 10
+    }];
+}
+
+message GetFeaturedGroupsRequest {
+    // The user whose featured groups are being fetched. Only a username is
+    // supported for now; the oneof leaves room for other identifiers.
+    oneof identifier {
+        option (validate.required) = true;
+
+        common.v1.Username username = 1;
+    }
+
+    // Optional. When set it must be valid, but the list is the same with or
+    // without it (see Chat.GetFeaturedGroups).
+    common.v1.Auth auth = 10;
+}
+
+message GetFeaturedGroupsResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        NOT_FOUND = 1; // No user holds the username
+    }
+
+    // The user's featured groups, in their order. Empty when they feature
+    // none. Set only when result == OK.
+    repeated Metadata featured_groups = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 10
+    }];
 }
