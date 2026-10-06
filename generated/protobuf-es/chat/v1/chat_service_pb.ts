@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, ChatId, PagingToken, QueryOptions, UserId } from "../../common/v1/common_pb";
+import { Auth, ChatId, PagingToken, QueryOptions, UserId, Username } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
 import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, SampledChatter, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
@@ -2922,5 +2922,251 @@ proto3.util.setEnumType(GetKeyEnvelopeResponse_Result, "flipcash.chat.v1.GetKeyE
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "NO_ENVELOPE" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.SetFeaturedGroupsRequest
+ */
+export class SetFeaturedGroupsRequest extends Message<SetFeaturedGroupsRequest> {
+  /**
+   * The groups to feature, in the order to show them. Every ID must name a
+   * public group chat, and none may repeat. Empty clears the featured
+   * groups.
+   *
+   * @generated from field: repeated flipcash.common.v1.ChatId chat_ids = 1;
+   */
+  chatIds: ChatId[] = [];
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SetFeaturedGroupsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SetFeaturedGroupsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_ids", kind: "message", T: ChatId, repeated: true },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetFeaturedGroupsRequest {
+    return new SetFeaturedGroupsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetFeaturedGroupsRequest {
+    return new SetFeaturedGroupsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetFeaturedGroupsRequest {
+    return new SetFeaturedGroupsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetFeaturedGroupsRequest | PlainMessage<SetFeaturedGroupsRequest> | undefined, b: SetFeaturedGroupsRequest | PlainMessage<SetFeaturedGroupsRequest> | undefined): boolean {
+    return proto3.util.equals(SetFeaturedGroupsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.SetFeaturedGroupsResponse
+ */
+export class SetFeaturedGroupsResponse extends Message<SetFeaturedGroupsResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.SetFeaturedGroupsResponse.Result result = 1;
+   */
+  result = SetFeaturedGroupsResponse_Result.OK;
+
+  /**
+   * The caller's featured groups after the write, as GetFeaturedGroups
+   * returns them. Set only when result == OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.Metadata featured_groups = 2;
+   */
+  featuredGroups: Metadata[] = [];
+
+  constructor(data?: PartialMessage<SetFeaturedGroupsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SetFeaturedGroupsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SetFeaturedGroupsResponse_Result) },
+    { no: 2, name: "featured_groups", kind: "message", T: Metadata, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetFeaturedGroupsResponse {
+    return new SetFeaturedGroupsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetFeaturedGroupsResponse {
+    return new SetFeaturedGroupsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetFeaturedGroupsResponse {
+    return new SetFeaturedGroupsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetFeaturedGroupsResponse | PlainMessage<SetFeaturedGroupsResponse> | undefined, b: SetFeaturedGroupsResponse | PlainMessage<SetFeaturedGroupsResponse> | undefined): boolean {
+    return proto3.util.equals(SetFeaturedGroupsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.SetFeaturedGroupsResponse.Result
+ */
+export enum SetFeaturedGroupsResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * A group in the request is private; nothing was written
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * A group in the request does not exist; nothing was written
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SetFeaturedGroupsResponse_Result)
+proto3.util.setEnumType(SetFeaturedGroupsResponse_Result, "flipcash.chat.v1.SetFeaturedGroupsResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetFeaturedGroupsRequest
+ */
+export class GetFeaturedGroupsRequest extends Message<GetFeaturedGroupsRequest> {
+  /**
+   * The user whose featured groups are being fetched. Only a username is
+   * supported for now; the oneof leaves room for other identifiers.
+   *
+   * @generated from oneof flipcash.chat.v1.GetFeaturedGroupsRequest.identifier
+   */
+  identifier: {
+    /**
+     * @generated from field: flipcash.common.v1.Username username = 1;
+     */
+    value: Username;
+    case: "username";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * Optional. When set it must be valid, but the list is the same with or
+   * without it (see Chat.GetFeaturedGroups).
+   *
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetFeaturedGroupsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetFeaturedGroupsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "username", kind: "message", T: Username, oneof: "identifier" },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetFeaturedGroupsRequest {
+    return new GetFeaturedGroupsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetFeaturedGroupsRequest {
+    return new GetFeaturedGroupsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetFeaturedGroupsRequest {
+    return new GetFeaturedGroupsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetFeaturedGroupsRequest | PlainMessage<GetFeaturedGroupsRequest> | undefined, b: GetFeaturedGroupsRequest | PlainMessage<GetFeaturedGroupsRequest> | undefined): boolean {
+    return proto3.util.equals(GetFeaturedGroupsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetFeaturedGroupsResponse
+ */
+export class GetFeaturedGroupsResponse extends Message<GetFeaturedGroupsResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetFeaturedGroupsResponse.Result result = 1;
+   */
+  result = GetFeaturedGroupsResponse_Result.OK;
+
+  /**
+   * The user's featured groups, in their order. Empty when they feature
+   * none. Set only when result == OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.Metadata featured_groups = 2;
+   */
+  featuredGroups: Metadata[] = [];
+
+  constructor(data?: PartialMessage<GetFeaturedGroupsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetFeaturedGroupsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetFeaturedGroupsResponse_Result) },
+    { no: 2, name: "featured_groups", kind: "message", T: Metadata, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetFeaturedGroupsResponse {
+    return new GetFeaturedGroupsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetFeaturedGroupsResponse {
+    return new GetFeaturedGroupsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetFeaturedGroupsResponse {
+    return new GetFeaturedGroupsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetFeaturedGroupsResponse | PlainMessage<GetFeaturedGroupsResponse> | undefined, b: GetFeaturedGroupsResponse | PlainMessage<GetFeaturedGroupsResponse> | undefined): boolean {
+    return proto3.util.equals(GetFeaturedGroupsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetFeaturedGroupsResponse.Result
+ */
+export enum GetFeaturedGroupsResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * No user holds the username
+   *
+   * @generated from enum value: NOT_FOUND = 1;
+   */
+  NOT_FOUND = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetFeaturedGroupsResponse_Result)
+proto3.util.setEnumType(GetFeaturedGroupsResponse_Result, "flipcash.chat.v1.GetFeaturedGroupsResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "NOT_FOUND" },
 ]);
 

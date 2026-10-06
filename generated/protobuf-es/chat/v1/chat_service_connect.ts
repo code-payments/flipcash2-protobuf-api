@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SampleChattersRequest, SampleChattersResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -93,9 +93,9 @@ export const Chat = {
      * member of at the time of that page; a group the caller left between
      * pages is dropped, and its removal arrives on the stream.
      *
-     * The feed is meant for list views, so a chat's description and
-     * cover_picture may be omitted from it (see Metadata). Fetch them with
-     * GetChat when the client shows the chat's profile view.
+     * The feed is meant for list views, so a chat's cover_picture may be
+     * omitted from it (see Metadata). Fetch it with GetChat when the client
+     * shows the chat's profile view.
      *
      * @generated from rpc flipcash.chat.v1.Chat.GetGroupChatFeed
      */
@@ -480,6 +480,64 @@ export const Chat = {
       name: "GetKeyEnvelope",
       I: GetKeyEnvelopeRequest,
       O: GetKeyEnvelopeResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SetFeaturedGroups replaces the caller's featured groups: an ordered
+     * list of public group chats they show on their profile, which anyone can
+     * fetch with GetFeaturedGroups. The list is written whole, so the request
+     * carries every group the caller wants featured, in the order to show
+     * them, and an empty list clears it. Setting the list already stored is a
+     * no-op that returns OK.
+     *
+     * Featuring a group says nothing about the caller's place in it: a group
+     * may be featured whether or not the caller is a member, and leaving a
+     * group does not remove it from the list.
+     *
+     * Only public groups may be featured: when a group in the request is
+     * private (see Metadata.is_private), nothing is written and the result
+     * is DENIED. A group never becomes private after it is created, so a
+     * featured group stays public. Every group must exist: when one does not,
+     * nothing is written and the result is NOT_FOUND. A DM's ID, or a group
+     * named more than once, is an invalid argument.
+     *
+     * Nothing is published: the caller's other devices see the change on
+     * their next GetFeaturedGroups.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.SetFeaturedGroups
+     */
+    setFeaturedGroups: {
+      name: "SetFeaturedGroups",
+      I: SetFeaturedGroupsRequest,
+      O: SetFeaturedGroupsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetFeaturedGroups returns a user's featured groups (see
+     * SetFeaturedGroups), in the order the user set them.
+     *
+     * Each group is a public group (see SetFeaturedGroups), returned as its
+     * record as a list view shows it: chat_id, type, title, description,
+     * profile_picture, roster_summary, rules, creator and last_activity. Nothing about the viewer's place in the
+     * group is set (members, is_hidden, viewer_state, in_lobby), nor its
+     * messaging state (last_message, latest_event_sequence), nor its
+     * cover_picture: a client opening a group fetches the rest with GetChat.
+     *
+     * The list is public, like the user's profile, and the same for every
+     * viewer. Auth is optional; when set it must be valid, but it changes
+     * nothing about what is returned. A group that no longer exists is left
+     * out.
+     *
+     * The user is identified by username, the handle a profile is opened by,
+     * so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
+     * its featured groups at once.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetFeaturedGroups
+     */
+    getFeaturedGroups: {
+      name: "GetFeaturedGroups",
+      I: GetFeaturedGroupsRequest,
+      O: GetFeaturedGroupsResponse,
       kind: MethodKind.Unary,
     },
   }

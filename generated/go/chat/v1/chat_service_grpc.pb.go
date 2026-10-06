@@ -38,6 +38,8 @@ const (
 	Chat_DenyLobbyMember_FullMethodName       = "/flipcash.chat.v1.Chat/DenyLobbyMember"
 	Chat_SetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/SetKeyEnvelope"
 	Chat_GetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/GetKeyEnvelope"
+	Chat_SetFeaturedGroups_FullMethodName     = "/flipcash.chat.v1.Chat/SetFeaturedGroups"
+	Chat_GetFeaturedGroups_FullMethodName     = "/flipcash.chat.v1.Chat/GetFeaturedGroups"
 )
 
 // ChatClient is the client API for Chat service.
@@ -106,9 +108,9 @@ type ChatClient interface {
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
 	//
-	// The feed is meant for list views, so a chat's description and
-	// cover_picture may be omitted from it (see Metadata). Fetch them with
-	// GetChat when the client shows the chat's profile view.
+	// The feed is meant for list views, so a chat's cover_picture may be
+	// omitted from it (see Metadata). Fetch it with GetChat when the client
+	// shows the chat's profile view.
 	GetGroupChatFeed(ctx context.Context, in *GetGroupChatFeedRequest, opts ...grpc.CallOption) (*GetGroupChatFeedResponse, error)
 	// GetRoster pages a chat's roster, most recently joined first. Every
 	// page carries the chat's RosterSummary, and every member carries the
@@ -343,6 +345,46 @@ type ChatClient interface {
 	// SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
 	// until it succeeds.
 	GetKeyEnvelope(ctx context.Context, in *GetKeyEnvelopeRequest, opts ...grpc.CallOption) (*GetKeyEnvelopeResponse, error)
+	// SetFeaturedGroups replaces the caller's featured groups: an ordered
+	// list of public group chats they show on their profile, which anyone can
+	// fetch with GetFeaturedGroups. The list is written whole, so the request
+	// carries every group the caller wants featured, in the order to show
+	// them, and an empty list clears it. Setting the list already stored is a
+	// no-op that returns OK.
+	//
+	// Featuring a group says nothing about the caller's place in it: a group
+	// may be featured whether or not the caller is a member, and leaving a
+	// group does not remove it from the list.
+	//
+	// Only public groups may be featured: when a group in the request is
+	// private (see Metadata.is_private), nothing is written and the result
+	// is DENIED. A group never becomes private after it is created, so a
+	// featured group stays public. Every group must exist: when one does not,
+	// nothing is written and the result is NOT_FOUND. A DM's ID, or a group
+	// named more than once, is an invalid argument.
+	//
+	// Nothing is published: the caller's other devices see the change on
+	// their next GetFeaturedGroups.
+	SetFeaturedGroups(ctx context.Context, in *SetFeaturedGroupsRequest, opts ...grpc.CallOption) (*SetFeaturedGroupsResponse, error)
+	// GetFeaturedGroups returns a user's featured groups (see
+	// SetFeaturedGroups), in the order the user set them.
+	//
+	// Each group is a public group (see SetFeaturedGroups), returned as its
+	// record as a list view shows it: chat_id, type, title, description,
+	// profile_picture, roster_summary, rules, creator and last_activity. Nothing about the viewer's place in the
+	// group is set (members, is_hidden, viewer_state, in_lobby), nor its
+	// messaging state (last_message, latest_event_sequence), nor its
+	// cover_picture: a client opening a group fetches the rest with GetChat.
+	//
+	// The list is public, like the user's profile, and the same for every
+	// viewer. Auth is optional; when set it must be valid, but it changes
+	// nothing about what is returned. A group that no longer exists is left
+	// out.
+	//
+	// The user is identified by username, the handle a profile is opened by,
+	// so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
+	// its featured groups at once.
+	GetFeaturedGroups(ctx context.Context, in *GetFeaturedGroupsRequest, opts ...grpc.CallOption) (*GetFeaturedGroupsResponse, error)
 }
 
 type chatClient struct {
@@ -543,6 +585,26 @@ func (c *chatClient) GetKeyEnvelope(ctx context.Context, in *GetKeyEnvelopeReque
 	return out, nil
 }
 
+func (c *chatClient) SetFeaturedGroups(ctx context.Context, in *SetFeaturedGroupsRequest, opts ...grpc.CallOption) (*SetFeaturedGroupsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetFeaturedGroupsResponse)
+	err := c.cc.Invoke(ctx, Chat_SetFeaturedGroups_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetFeaturedGroups(ctx context.Context, in *GetFeaturedGroupsRequest, opts ...grpc.CallOption) (*GetFeaturedGroupsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFeaturedGroupsResponse)
+	err := c.cc.Invoke(ctx, Chat_GetFeaturedGroups_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatServer is the server API for Chat service.
 // All implementations must embed UnimplementedChatServer
 // for forward compatibility.
@@ -609,9 +671,9 @@ type ChatServer interface {
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
 	//
-	// The feed is meant for list views, so a chat's description and
-	// cover_picture may be omitted from it (see Metadata). Fetch them with
-	// GetChat when the client shows the chat's profile view.
+	// The feed is meant for list views, so a chat's cover_picture may be
+	// omitted from it (see Metadata). Fetch it with GetChat when the client
+	// shows the chat's profile view.
 	GetGroupChatFeed(context.Context, *GetGroupChatFeedRequest) (*GetGroupChatFeedResponse, error)
 	// GetRoster pages a chat's roster, most recently joined first. Every
 	// page carries the chat's RosterSummary, and every member carries the
@@ -846,6 +908,46 @@ type ChatServer interface {
 	// SetKeyEnvelope, as described on KeyEnvelope, and keeps attempting that
 	// until it succeeds.
 	GetKeyEnvelope(context.Context, *GetKeyEnvelopeRequest) (*GetKeyEnvelopeResponse, error)
+	// SetFeaturedGroups replaces the caller's featured groups: an ordered
+	// list of public group chats they show on their profile, which anyone can
+	// fetch with GetFeaturedGroups. The list is written whole, so the request
+	// carries every group the caller wants featured, in the order to show
+	// them, and an empty list clears it. Setting the list already stored is a
+	// no-op that returns OK.
+	//
+	// Featuring a group says nothing about the caller's place in it: a group
+	// may be featured whether or not the caller is a member, and leaving a
+	// group does not remove it from the list.
+	//
+	// Only public groups may be featured: when a group in the request is
+	// private (see Metadata.is_private), nothing is written and the result
+	// is DENIED. A group never becomes private after it is created, so a
+	// featured group stays public. Every group must exist: when one does not,
+	// nothing is written and the result is NOT_FOUND. A DM's ID, or a group
+	// named more than once, is an invalid argument.
+	//
+	// Nothing is published: the caller's other devices see the change on
+	// their next GetFeaturedGroups.
+	SetFeaturedGroups(context.Context, *SetFeaturedGroupsRequest) (*SetFeaturedGroupsResponse, error)
+	// GetFeaturedGroups returns a user's featured groups (see
+	// SetFeaturedGroups), in the order the user set them.
+	//
+	// Each group is a public group (see SetFeaturedGroups), returned as its
+	// record as a list view shows it: chat_id, type, title, description,
+	// profile_picture, roster_summary, rules, creator and last_activity. Nothing about the viewer's place in the
+	// group is set (members, is_hidden, viewer_state, in_lobby), nor its
+	// messaging state (last_message, latest_event_sequence), nor its
+	// cover_picture: a client opening a group fetches the rest with GetChat.
+	//
+	// The list is public, like the user's profile, and the same for every
+	// viewer. Auth is optional; when set it must be valid, but it changes
+	// nothing about what is returned. A group that no longer exists is left
+	// out.
+	//
+	// The user is identified by username, the handle a profile is opened by,
+	// so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
+	// its featured groups at once.
+	GetFeaturedGroups(context.Context, *GetFeaturedGroupsRequest) (*GetFeaturedGroupsResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -912,6 +1014,12 @@ func (UnimplementedChatServer) SetKeyEnvelope(context.Context, *SetKeyEnvelopeRe
 }
 func (UnimplementedChatServer) GetKeyEnvelope(context.Context, *GetKeyEnvelopeRequest) (*GetKeyEnvelopeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKeyEnvelope not implemented")
+}
+func (UnimplementedChatServer) SetFeaturedGroups(context.Context, *SetFeaturedGroupsRequest) (*SetFeaturedGroupsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetFeaturedGroups not implemented")
+}
+func (UnimplementedChatServer) GetFeaturedGroups(context.Context, *GetFeaturedGroupsRequest) (*GetFeaturedGroupsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFeaturedGroups not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -1276,6 +1384,42 @@ func _Chat_GetKeyEnvelope_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_SetFeaturedGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetFeaturedGroupsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).SetFeaturedGroups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_SetFeaturedGroups_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).SetFeaturedGroups(ctx, req.(*SetFeaturedGroupsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetFeaturedGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeaturedGroupsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetFeaturedGroups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetFeaturedGroups_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetFeaturedGroups(ctx, req.(*GetFeaturedGroupsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1358,6 +1502,14 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetKeyEnvelope",
 			Handler:    _Chat_GetKeyEnvelope_Handler,
+		},
+		{
+			MethodName: "SetFeaturedGroups",
+			Handler:    _Chat_SetFeaturedGroups_Handler,
+		},
+		{
+			MethodName: "GetFeaturedGroups",
+			Handler:    _Chat_GetFeaturedGroups_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
