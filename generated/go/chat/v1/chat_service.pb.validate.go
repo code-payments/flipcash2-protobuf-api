@@ -1548,17 +1548,6 @@ func (m *SampleChattersRequest) validate(all bool) error {
 		}
 	}
 
-	if m.GetAuth() == nil {
-		err := SampleChattersRequestValidationError{
-			field:  "Auth",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if all {
 		switch v := interface{}(m.GetAuth()).(type) {
 		case interface{ ValidateAll() error }:

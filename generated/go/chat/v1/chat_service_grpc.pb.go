@@ -146,6 +146,12 @@ type ChatClient interface {
 	// shows who is in the chat, not who may be mentioned (see
 	// GetMentionSuggestions).
 	//
+	// Unlike the roster (see GetRoster), the sample is public: it is part of
+	// how a group presents itself, as its title and pictures are, and is
+	// returned to anyone who asks, member or not, registered or not. Auth is
+	// optional; when set it must be valid, but it changes nothing about what
+	// is returned.
+	//
 	// Everyone in the sample is a member of the group as of the read, which
 	// may trail a join or departure by a moment: it is a subset of the roster
 	// GetRoster pages, never someone who never joined, though someone who
@@ -155,16 +161,16 @@ type ChatClient interface {
 	// return, up to 100; neither the size nor the order after the creator is
 	// part of the contract.
 	//
-	// It is a snapshot. A client fetches it when it shows the sample, and in
-	// between keeps it fresh from the event stream by moving the sender of
-	// each new message to the front, adding them if absent, since anyone who
-	// sends is a member. Departures are not announced to the other members
-	// (see RosterUpdate.MembershipChanged), so a member who has left may
-	// remain in a client's copy until it fetches again.
+	// It is a snapshot, which a client may show as it is. A client that wants
+	// it live, and streams the group's events (as a member, or through a chat
+	// preview), may instead keep it fresh between fetches by moving the
+	// sender of each new message to the front, adding them if absent, since
+	// anyone who sends is a member. Departures are not announced to the other
+	// members (see RosterUpdate.MembershipChanged), so a member who has left
+	// may remain in a client's copy until it fetches again.
 	//
 	// Only for public groups: a private group (see Metadata.is_private) and a
-	// DM are DENIED, whoever asks. Requires that the caller is a member of
-	// the group.
+	// DM are DENIED, whoever asks.
 	SampleChatters(ctx context.Context, in *SampleChattersRequest, opts ...grpc.CallOption) (*SampleChattersResponse, error)
 	// GetMentionSuggestions returns people the caller may want to @mention in
 	// a group chat, ranked by the server, most relevant first. Today that is
@@ -643,6 +649,12 @@ type ChatServer interface {
 	// shows who is in the chat, not who may be mentioned (see
 	// GetMentionSuggestions).
 	//
+	// Unlike the roster (see GetRoster), the sample is public: it is part of
+	// how a group presents itself, as its title and pictures are, and is
+	// returned to anyone who asks, member or not, registered or not. Auth is
+	// optional; when set it must be valid, but it changes nothing about what
+	// is returned.
+	//
 	// Everyone in the sample is a member of the group as of the read, which
 	// may trail a join or departure by a moment: it is a subset of the roster
 	// GetRoster pages, never someone who never joined, though someone who
@@ -652,16 +664,16 @@ type ChatServer interface {
 	// return, up to 100; neither the size nor the order after the creator is
 	// part of the contract.
 	//
-	// It is a snapshot. A client fetches it when it shows the sample, and in
-	// between keeps it fresh from the event stream by moving the sender of
-	// each new message to the front, adding them if absent, since anyone who
-	// sends is a member. Departures are not announced to the other members
-	// (see RosterUpdate.MembershipChanged), so a member who has left may
-	// remain in a client's copy until it fetches again.
+	// It is a snapshot, which a client may show as it is. A client that wants
+	// it live, and streams the group's events (as a member, or through a chat
+	// preview), may instead keep it fresh between fetches by moving the
+	// sender of each new message to the front, adding them if absent, since
+	// anyone who sends is a member. Departures are not announced to the other
+	// members (see RosterUpdate.MembershipChanged), so a member who has left
+	// may remain in a client's copy until it fetches again.
 	//
 	// Only for public groups: a private group (see Metadata.is_private) and a
-	// DM are DENIED, whoever asks. Requires that the caller is a member of
-	// the group.
+	// DM are DENIED, whoever asks.
 	SampleChatters(context.Context, *SampleChattersRequest) (*SampleChattersResponse, error)
 	// GetMentionSuggestions returns people the caller may want to @mention in
 	// a group chat, ranked by the server, most relevant first. Today that is
