@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SampleChattersRequest, SampleChattersResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -130,9 +130,9 @@ export const Chat = {
      * carry none: group pointer advances are never broadcast, so a page of
      * them would be stale as soon as it was served.
      *
-     * Requires that the caller may read the chat: a member, or a non-member
-     * a group's listener rules admit. A viewer who may only preview the chat
-     * is DENIED.
+     * Requires that the caller is a member of the chat. Anyone else is
+     * DENIED, including a non-member whom a group's listener rules admit to
+     * read its messages: who is in a chat is shown only to its members.
      *
      * @generated from rpc flipcash.chat.v1.Chat.GetRoster
      */
@@ -140,6 +140,43 @@ export const Chat = {
       name: "GetRoster",
       I: GetRosterRequest,
       O: GetRosterResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SampleChatters returns a short sample of a public group's members to
+     * show: its creator first, while they are a member, then the members who
+     * have sent a message most recently, most recent first. Members who have
+     * not sent a message recently are not in it. The caller is included like
+     * any other member, and so are users the caller has blocked: the sample
+     * shows who is in the chat, not who may be mentioned (see
+     * GetMentionSuggestions).
+     *
+     * Everyone in the sample is a member of the group as of the read, which
+     * may trail a join or departure by a moment: it is a subset of the roster
+     * GetRoster pages, never someone who never joined, though someone who
+     * left a moment ago may still be in it. It is not the whole roster: it is neither complete nor
+     * paged and carries no roster version, and has_more is the only
+     * indication of what lies past it. The server decides how many to
+     * return, up to 100; neither the size nor the order after the creator is
+     * part of the contract.
+     *
+     * It is a snapshot. A client fetches it when it shows the sample, and in
+     * between keeps it fresh from the event stream by moving the sender of
+     * each new message to the front, adding them if absent, since anyone who
+     * sends is a member. Departures are not announced to the other members
+     * (see RosterUpdate.MembershipChanged), so a member who has left may
+     * remain in a client's copy until it fetches again.
+     *
+     * Only for public groups: a private group (see Metadata.is_private) and a
+     * DM are DENIED, whoever asks. Requires that the caller is a member of
+     * the group.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.SampleChatters
+     */
+    sampleChatters: {
+      name: "SampleChatters",
+      I: SampleChattersRequest,
+      O: SampleChattersResponse,
       kind: MethodKind.Unary,
     },
     /**

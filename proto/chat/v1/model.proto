@@ -295,6 +295,25 @@ message MentionSuggestion {
     google.protobuf.Timestamp last_sent_at = 2;
 }
 
+// SampledChatter is one member of a group in a sample of its chatters, as
+// returned by Chat.SampleChatters: a member as of the read. It is not a
+// Member message, carrying no join time or roster version, because a sample
+// is a snapshot replaced whole rather than merged against the roster by
+// version.
+message SampledChatter {
+    // The member's public profile.
+    profile.v1.UserProfile user_profile = 1 [(validate.rules).message.required = true];
+
+    // When the member last sent a message in this chat, as the server records
+    // it: it may trail their latest message by up to a minute. A client
+    // moving new senders to the front compares against it. Unset for a
+    // creator who has not sent recently.
+    google.protobuf.Timestamp last_sent_at = 2;
+
+    // Whether the member is the group's creator.
+    bool is_creator = 3;
+}
+
 // RosterSummary describes a chat's roster — its member list — without
 // containing it: what a client needs in order to know whether its copy of
 // that list is stale, without holding the list.
@@ -399,8 +418,10 @@ message MetadataUpdate {
 
 // RosterUpdate is a best-effort, real-time change to a chat's roster — a
 // member joining (e.g. via Chat.JoinChat, or as the first member via
-// Chat.StartChat) or leaving (e.g. via Chat.LeaveChat). It is delivered to
-// the chat's members, including the affected user's other devices.
+// Chat.StartChat) or leaving (e.g. via Chat.LeaveChat), or a change the
+// recipient is not shown, which carries the summary alone (see
+// MembershipChanged). It is delivered to the chat's members, including the
+// affected user's other devices.
 //
 // Roster changes are a convergent overlay, so these ride the event stream
 // OUTSIDE the gap-detected event log. Clients apply them by roster_summary
@@ -413,8 +434,9 @@ message RosterUpdate {
     oneof kind {
         option (validate.required) = true;
 
-        MemberJoined member_joined = 1;
-        MemberLeft   member_left   = 2;
+        MemberJoined      member_joined      = 1;
+        MemberLeft        member_left        = 2;
+        MembershipChanged membership_changed = 3;
     }
 
     // The chat's roster summary after this change, applied by version as
@@ -448,6 +470,18 @@ message RosterUpdate {
         // The user that left
         common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
     }
+
+    // The roster changed, but the change is not disclosed to the recipient:
+    // the update names no member and carries no member to add or remove. The
+    // recipient applies the enclosing roster_summary by version like any
+    // other roster update, so member_count and version stay current, and
+    // leaves its cached member list as it is. Having applied it, the
+    // recipient holds the new version, so it is not a version to reconcile
+    // by refetching the roster.
+    //
+    // It is never delivered to the user whose membership changed: their own
+    // devices receive MemberJoined or MemberLeft for it.
+    message MembershipChanged {}
 }
 
 message RosterUpdateBatch {

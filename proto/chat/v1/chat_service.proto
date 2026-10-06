@@ -107,10 +107,39 @@ service Chat {
     // carry none: group pointer advances are never broadcast, so a page of
     // them would be stale as soon as it was served.
     //
-    // Requires that the caller may read the chat: a member, or a non-member
-    // a group's listener rules admit. A viewer who may only preview the chat
-    // is DENIED.
+    // Requires that the caller is a member of the chat. Anyone else is
+    // DENIED, including a non-member whom a group's listener rules admit to
+    // read its messages: who is in a chat is shown only to its members.
     rpc GetRoster(GetRosterRequest) returns (GetRosterResponse);
+
+    // SampleChatters returns a short sample of a public group's members to
+    // show: its creator first, while they are a member, then the members who
+    // have sent a message most recently, most recent first. Members who have
+    // not sent a message recently are not in it. The caller is included like
+    // any other member, and so are users the caller has blocked: the sample
+    // shows who is in the chat, not who may be mentioned (see
+    // GetMentionSuggestions).
+    //
+    // Everyone in the sample is a member of the group as of the read, which
+    // may trail a join or departure by a moment: it is a subset of the roster
+    // GetRoster pages, never someone who never joined, though someone who
+    // left a moment ago may still be in it. It is not the whole roster: it is neither complete nor
+    // paged and carries no roster version, and has_more is the only
+    // indication of what lies past it. The server decides how many to
+    // return, up to 100; neither the size nor the order after the creator is
+    // part of the contract.
+    //
+    // It is a snapshot. A client fetches it when it shows the sample, and in
+    // between keeps it fresh from the event stream by moving the sender of
+    // each new message to the front, adding them if absent, since anyone who
+    // sends is a member. Departures are not announced to the other members
+    // (see RosterUpdate.MembershipChanged), so a member who has left may
+    // remain in a client's copy until it fetches again.
+    //
+    // Only for public groups: a private group (see Metadata.is_private) and a
+    // DM are DENIED, whoever asks. Requires that the caller is a member of
+    // the group.
+    rpc SampleChatters(SampleChattersRequest) returns (SampleChattersResponse);
 
     // GetMentionSuggestions returns people the caller may want to @mention in
     // a group chat, ranked by the server, most relevant first. Today that is
@@ -476,6 +505,35 @@ message GetRosterResponse {
     // client should issue another GetRosterRequest with the returned
     // paging_token.
     bool has_more = 5;
+}
+
+message SampleChattersRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SampleChattersResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1;
+        NOT_FOUND = 2;
+    }
+
+    // The sample, every one a member as of the read: the creator first, when
+    // they are a member, then the most recent senders, most recent first.
+    // Set when result is OK.
+    repeated SampledChatter chatters = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // Whether the group may have more members who have sent recently than
+    // the sample holds, for a client to show that there are others. It is
+    // true when the server knows of more, and also when it stopped looking
+    // before it could tell. Set when result is OK.
+    bool has_more = 3;
 }
 
 message GetMentionSuggestionsRequest {

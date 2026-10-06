@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions, UserId } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, ViewerState } from "./model_pb";
+import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, SampledChatter, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -607,6 +607,133 @@ export enum GetRosterResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetRosterResponse_Result)
 proto3.util.setEnumType(GetRosterResponse_Result, "flipcash.chat.v1.GetRosterResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.SampleChattersRequest
+ */
+export class SampleChattersRequest extends Message<SampleChattersRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SampleChattersRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SampleChattersRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SampleChattersRequest {
+    return new SampleChattersRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SampleChattersRequest {
+    return new SampleChattersRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SampleChattersRequest {
+    return new SampleChattersRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SampleChattersRequest | PlainMessage<SampleChattersRequest> | undefined, b: SampleChattersRequest | PlainMessage<SampleChattersRequest> | undefined): boolean {
+    return proto3.util.equals(SampleChattersRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.SampleChattersResponse
+ */
+export class SampleChattersResponse extends Message<SampleChattersResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.SampleChattersResponse.Result result = 1;
+   */
+  result = SampleChattersResponse_Result.OK;
+
+  /**
+   * The sample, every one a member as of the read: the creator first, when
+   * they are a member, then the most recent senders, most recent first.
+   * Set when result is OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.SampledChatter chatters = 2;
+   */
+  chatters: SampledChatter[] = [];
+
+  /**
+   * Whether the group may have more members who have sent recently than
+   * the sample holds, for a client to show that there are others. It is
+   * true when the server knows of more, and also when it stopped looking
+   * before it could tell. Set when result is OK.
+   *
+   * @generated from field: bool has_more = 3;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<SampleChattersResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SampleChattersResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SampleChattersResponse_Result) },
+    { no: 2, name: "chatters", kind: "message", T: SampledChatter, repeated: true },
+    { no: 3, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SampleChattersResponse {
+    return new SampleChattersResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SampleChattersResponse {
+    return new SampleChattersResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SampleChattersResponse {
+    return new SampleChattersResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SampleChattersResponse | PlainMessage<SampleChattersResponse> | undefined, b: SampleChattersResponse | PlainMessage<SampleChattersResponse> | undefined): boolean {
+    return proto3.util.equals(SampleChattersResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.SampleChattersResponse.Result
+ */
+export enum SampleChattersResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SampleChattersResponse_Result)
+proto3.util.setEnumType(SampleChattersResponse_Result, "flipcash.chat.v1.SampleChattersResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

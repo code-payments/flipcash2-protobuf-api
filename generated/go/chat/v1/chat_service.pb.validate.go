@@ -1486,6 +1486,339 @@ var _ interface {
 	ErrorName() string
 } = GetRosterResponseValidationError{}
 
+// Validate checks the field values on SampleChattersRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SampleChattersRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SampleChattersRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SampleChattersRequestMultiError, or nil if none found.
+func (m *SampleChattersRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SampleChattersRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := SampleChattersRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SampleChattersRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SampleChattersRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SampleChattersRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := SampleChattersRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SampleChattersRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SampleChattersRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SampleChattersRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SampleChattersRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SampleChattersRequestMultiError is an error wrapping multiple validation
+// errors returned by SampleChattersRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SampleChattersRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SampleChattersRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SampleChattersRequestMultiError) AllErrors() []error { return m }
+
+// SampleChattersRequestValidationError is the validation error returned by
+// SampleChattersRequest.Validate if the designated constraints aren't met.
+type SampleChattersRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SampleChattersRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SampleChattersRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SampleChattersRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SampleChattersRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SampleChattersRequestValidationError) ErrorName() string {
+	return "SampleChattersRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SampleChattersRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSampleChattersRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SampleChattersRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SampleChattersRequestValidationError{}
+
+// Validate checks the field values on SampleChattersResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SampleChattersResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SampleChattersResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SampleChattersResponseMultiError, or nil if none found.
+func (m *SampleChattersResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SampleChattersResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetChatters()) > 100 {
+		err := SampleChattersResponseValidationError{
+			field:  "Chatters",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetChatters() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SampleChattersResponseValidationError{
+						field:  fmt.Sprintf("Chatters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SampleChattersResponseValidationError{
+						field:  fmt.Sprintf("Chatters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SampleChattersResponseValidationError{
+					field:  fmt.Sprintf("Chatters[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for HasMore
+
+	if len(errors) > 0 {
+		return SampleChattersResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SampleChattersResponseMultiError is an error wrapping multiple validation
+// errors returned by SampleChattersResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SampleChattersResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SampleChattersResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SampleChattersResponseMultiError) AllErrors() []error { return m }
+
+// SampleChattersResponseValidationError is the validation error returned by
+// SampleChattersResponse.Validate if the designated constraints aren't met.
+type SampleChattersResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SampleChattersResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SampleChattersResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SampleChattersResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SampleChattersResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SampleChattersResponseValidationError) ErrorName() string {
+	return "SampleChattersResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SampleChattersResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSampleChattersResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SampleChattersResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SampleChattersResponseValidationError{}
+
 // Validate checks the field values on GetMentionSuggestionsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

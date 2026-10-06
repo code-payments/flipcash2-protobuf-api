@@ -23,6 +23,7 @@ const (
 	Chat_GetDmChatFeed_FullMethodName         = "/flipcash.chat.v1.Chat/GetDmChatFeed"
 	Chat_GetGroupChatFeed_FullMethodName      = "/flipcash.chat.v1.Chat/GetGroupChatFeed"
 	Chat_GetRoster_FullMethodName             = "/flipcash.chat.v1.Chat/GetRoster"
+	Chat_SampleChatters_FullMethodName        = "/flipcash.chat.v1.Chat/SampleChatters"
 	Chat_GetMentionSuggestions_FullMethodName = "/flipcash.chat.v1.Chat/GetMentionSuggestions"
 	Chat_StartChat_FullMethodName             = "/flipcash.chat.v1.Chat/StartChat"
 	Chat_JoinChat_FullMethodName              = "/flipcash.chat.v1.Chat/JoinChat"
@@ -133,10 +134,38 @@ type ChatClient interface {
 	// carry none: group pointer advances are never broadcast, so a page of
 	// them would be stale as soon as it was served.
 	//
-	// Requires that the caller may read the chat: a member, or a non-member
-	// a group's listener rules admit. A viewer who may only preview the chat
-	// is DENIED.
+	// Requires that the caller is a member of the chat. Anyone else is
+	// DENIED, including a non-member whom a group's listener rules admit to
+	// read its messages: who is in a chat is shown only to its members.
 	GetRoster(ctx context.Context, in *GetRosterRequest, opts ...grpc.CallOption) (*GetRosterResponse, error)
+	// SampleChatters returns a short sample of a public group's members to
+	// show: its creator first, while they are a member, then the members who
+	// have sent a message most recently, most recent first. Members who have
+	// not sent a message recently are not in it. The caller is included like
+	// any other member, and so are users the caller has blocked: the sample
+	// shows who is in the chat, not who may be mentioned (see
+	// GetMentionSuggestions).
+	//
+	// Everyone in the sample is a member of the group as of the read, which
+	// may trail a join or departure by a moment: it is a subset of the roster
+	// GetRoster pages, never someone who never joined, though someone who
+	// left a moment ago may still be in it. It is not the whole roster: it is neither complete nor
+	// paged and carries no roster version, and has_more is the only
+	// indication of what lies past it. The server decides how many to
+	// return, up to 100; neither the size nor the order after the creator is
+	// part of the contract.
+	//
+	// It is a snapshot. A client fetches it when it shows the sample, and in
+	// between keeps it fresh from the event stream by moving the sender of
+	// each new message to the front, adding them if absent, since anyone who
+	// sends is a member. Departures are not announced to the other members
+	// (see RosterUpdate.MembershipChanged), so a member who has left may
+	// remain in a client's copy until it fetches again.
+	//
+	// Only for public groups: a private group (see Metadata.is_private) and a
+	// DM are DENIED, whoever asks. Requires that the caller is a member of
+	// the group.
+	SampleChatters(ctx context.Context, in *SampleChattersRequest, opts ...grpc.CallOption) (*SampleChattersResponse, error)
 	// GetMentionSuggestions returns people the caller may want to @mention in
 	// a group chat, ranked by the server, most relevant first. Today that is
 	// the group's most recent senders, most recent first, including people
@@ -352,6 +381,16 @@ func (c *chatClient) GetRoster(ctx context.Context, in *GetRosterRequest, opts .
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRosterResponse)
 	err := c.cc.Invoke(ctx, Chat_GetRoster_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) SampleChatters(ctx context.Context, in *SampleChattersRequest, opts ...grpc.CallOption) (*SampleChattersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SampleChattersResponse)
+	err := c.cc.Invoke(ctx, Chat_SampleChatters_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -592,10 +631,38 @@ type ChatServer interface {
 	// carry none: group pointer advances are never broadcast, so a page of
 	// them would be stale as soon as it was served.
 	//
-	// Requires that the caller may read the chat: a member, or a non-member
-	// a group's listener rules admit. A viewer who may only preview the chat
-	// is DENIED.
+	// Requires that the caller is a member of the chat. Anyone else is
+	// DENIED, including a non-member whom a group's listener rules admit to
+	// read its messages: who is in a chat is shown only to its members.
 	GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error)
+	// SampleChatters returns a short sample of a public group's members to
+	// show: its creator first, while they are a member, then the members who
+	// have sent a message most recently, most recent first. Members who have
+	// not sent a message recently are not in it. The caller is included like
+	// any other member, and so are users the caller has blocked: the sample
+	// shows who is in the chat, not who may be mentioned (see
+	// GetMentionSuggestions).
+	//
+	// Everyone in the sample is a member of the group as of the read, which
+	// may trail a join or departure by a moment: it is a subset of the roster
+	// GetRoster pages, never someone who never joined, though someone who
+	// left a moment ago may still be in it. It is not the whole roster: it is neither complete nor
+	// paged and carries no roster version, and has_more is the only
+	// indication of what lies past it. The server decides how many to
+	// return, up to 100; neither the size nor the order after the creator is
+	// part of the contract.
+	//
+	// It is a snapshot. A client fetches it when it shows the sample, and in
+	// between keeps it fresh from the event stream by moving the sender of
+	// each new message to the front, adding them if absent, since anyone who
+	// sends is a member. Departures are not announced to the other members
+	// (see RosterUpdate.MembershipChanged), so a member who has left may
+	// remain in a client's copy until it fetches again.
+	//
+	// Only for public groups: a private group (see Metadata.is_private) and a
+	// DM are DENIED, whoever asks. Requires that the caller is a member of
+	// the group.
+	SampleChatters(context.Context, *SampleChattersRequest) (*SampleChattersResponse, error)
 	// GetMentionSuggestions returns people the caller may want to @mention in
 	// a group chat, ranked by the server, most relevant first. Today that is
 	// the group's most recent senders, most recent first, including people
@@ -789,6 +856,9 @@ func (UnimplementedChatServer) GetGroupChatFeed(context.Context, *GetGroupChatFe
 func (UnimplementedChatServer) GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoster not implemented")
 }
+func (UnimplementedChatServer) SampleChatters(context.Context, *SampleChattersRequest) (*SampleChattersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SampleChatters not implemented")
+}
 func (UnimplementedChatServer) GetMentionSuggestions(context.Context, *GetMentionSuggestionsRequest) (*GetMentionSuggestionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMentionSuggestions not implemented")
 }
@@ -920,6 +990,24 @@ func _Chat_GetRoster_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChatServer).GetRoster(ctx, req.(*GetRosterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_SampleChatters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SampleChattersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).SampleChatters(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_SampleChatters_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).SampleChatters(ctx, req.(*SampleChattersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1198,6 +1286,10 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRoster",
 			Handler:    _Chat_GetRoster_Handler,
+		},
+		{
+			MethodName: "SampleChatters",
+			Handler:    _Chat_SampleChatters_Handler,
 		},
 		{
 			MethodName: "GetMentionSuggestions",
