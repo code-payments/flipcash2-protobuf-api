@@ -3728,9 +3728,22 @@ type StartChatRequest_PublicGroupChatParameters struct {
 	// The blob holding the ORIGINAL profile picture the caller uploaded.
 	// Optional. If set, it must be owned by the caller and READY.
 	ProfilePicture *v13.BlobId `protobuf:"bytes,2,opt,name=profile_picture,json=profilePicture,proto3" json:"profile_picture,omitempty"`
-	// Rules governing participation in the chat. Optional; if not set, the
-	// chat has no participation requirements. Caller must satisfy the rules
-	// in order for the chat to be started.
+	// Rules governing participation in the chat. Caller must satisfy the
+	// rules, speaker rules included, in order for the chat to be started
+	// (RULES_NOT_SATISFIED otherwise).
+	//
+	// The server currently accepts only the following, and refuses
+	// anything else as INVALID_RULES:
+	//   - Listener rules: exactly one MinimumBalanceRequirement, which is
+	//     required, and optionally one StaffRequirement.
+	//   - Speaker rules: optionally one MinimumBalanceRequirement. If set,
+	//     it must be in the same currency and the same mints as the
+	//     listener MinimumBalanceRequirement, and its amount must be larger
+	//     by at least the currency's minimum transfer value.
+	//
+	// Every MinimumBalanceRequirement must be at least the currency's
+	// minimum transfer value (one unit at its last decimal place, e.g.
+	// 0.01 USD or 1 JPY), in a currency the server can value.
 	Rules *Rules `protobuf:"bytes,3,opt,name=rules,proto3" json:"rules,omitempty"`
 	// Description for the chat. Optional; empty sets none. Moderated like
 	// the title.
