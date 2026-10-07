@@ -67,6 +67,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | messaging | `flipcash.messaging.v1` | `Messaging` | Messages (get/send/edit/delete), reactions, `GetDelta` event log stream, pointer advancement (read state), typing notifications |
 | moderation | `flipcash.moderation.v1` | `Moderation` | Text and image moderation with attestations; `FlaggedCategory` is reused by other services |
 | phone | `flipcash.phone.v1` | `PhoneVerification` | Send/check verification codes, unlink, link for payment |
+| poll | `flipcash.poll.v1` | `Poll` | Polls in group chats (private groups encrypt the poll text with the chat key): create, vote, read state; polls close only at their end time. COUNT or BALANCE (balance-weighted, read at close) modes; results hidden until the poll closes, and withheld if too few voters were counted. Shown in a chat as a `messaging.v1.PollWidget` |
 | profile | `flipcash.profile.v1` | `Profile` | Display name, username, profile picture, Flipcard, min DM init fee, social account linking |
 | push | `flipcash.push.v1` | `Push` | Push token registration; `Payload` models for push content |
 | reporting | `flipcash.reporting.v1` | `Reporting` | Report a user, chat, message, or blob for review, with optional free-form description |
@@ -77,10 +78,10 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 Cross-domain model dependencies form these layers (each imports the ones before it):
 
 ```
-common → moderation → blob → { profile, messaging } → { chat, reporting } → { event, push }
+common → moderation → { blob, poll } → { profile, messaging } → { chat, reporting } → { event, push }
 ```
 
-Concretely: `blob` imports `moderation`; `profile` and `messaging` import `blob`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `reporting` imports `blob` and `messaging`; `event` and `push` import `chat` and `messaging`. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
+Concretely: `blob` imports `moderation`; `poll` imports `moderation` (its model imports only `common`); `profile` and `messaging` import `blob`, and `messaging` also imports `poll`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `reporting` imports `blob` and `messaging`; `event` and `push` import `chat` and `messaging`. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
 
 ## Proto Conventions
 

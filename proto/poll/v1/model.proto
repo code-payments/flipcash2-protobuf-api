@@ -1,0 +1,320 @@
+syntax = "proto3";
+
+package flipcash.poll.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/poll/v1;pollpb";
+option java_package = "com.codeinc.flipcash.gen.poll.v1";
+option objc_class_prefix = "FPBPollV1";
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// PollId is the server-assigned identity of a poll. It is what a
+// messaging.v1.PollWidget carries, and what every Poll RPC is keyed by.
+message PollId {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}
+
+// IdempotencyKey lets a client safely retry CreatePoll. The server derives the
+// poll's identity from the caller and this key, so a retry with the same key
+// returns the original poll instead of creating a duplicate. Which parameters
+// were sent is not part of the identity: a retry with different parameters
+// still returns the original.
+//
+// The key is owned by the client and is typically a randomly generated UUID.
+// It is never exposed as the poll's identity.
+message IdempotencyKey {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}
+
+// Mode is how votes are weighted, which also determines the shape of the
+// results (see Results).
+enum Mode {
+    UNKNOWN = 0;
+
+    // Each voter adds 1 to every option they chose. Results are CountResults,
+    // or WithheldResults if too few voters were counted.
+    COUNT   = 1;
+
+    // Each voter adds their balance of BalanceParameters.mint to every option
+    // they chose. Balances are read once, when the poll closes, not when the
+    // vote is cast: every token sits in exactly one wallet at that moment, so
+    // moving funds between accounts cannot count the same tokens twice. A
+    // voter who chose several options adds their full balance to each.
+    // Results are BalanceResults, which never include voter counts, or
+    // WithheldResults if too few voters were counted.
+    BALANCE = 2;
+}
+
+// PollDefinition is what the creator chose for the poll. It is set on
+// CreatePoll and never changes afterward.
+//
+// The question and option text are in `text`, which is plaintext in a group
+// that is not private and encrypted in a private group. Everything else is
+// plaintext everywhere, because the server needs it to accept votes and count
+// them.
+message PollDefinition {
+    // The number of options. Votes and results refer to options by their
+    // position, from 0 to option_count - 1. For plaintext text, it must equal
+    // the number of options in it. For encrypted text, the server cannot check
+    // it, so clients render a poll whose decrypted option count differs as
+    // unsupported.
+    uint32 option_count = 1 [(validate.rules).uint32 = {
+        gte: 2
+        lte: 10
+    }];
+
+    // How votes are weighted.
+    Mode mode = 2 [(validate.rules).enum = {
+        in: [1, 2] // COUNT, BALANCE
+    }];
+
+    // Whether a voter may choose more than one option. If false, a vote
+    // selects exactly one option.
+    bool allows_multiple_choices = 3;
+
+    // When the poll closes. It must be at least 5 minutes and at most 30 days
+    // after the poll is created. This is the only way a poll closes: nobody,
+    // including the creator, can close it earlier, so nobody controls when a
+    // BALANCE poll's balances are read.
+    google.protobuf.Timestamp ends_at = 4 [(validate.rules).timestamp.required = true];
+
+    // Required when mode == BALANCE, and must be unset otherwise.
+    BalanceParameters balance_parameters = 5;
+
+    // The question and option text.
+    oneof text {
+        option (validate.required) = true;
+
+        // Required in a group that is not private, and moderated.
+        PollText          plaintext = 6;
+
+        // Required in a private group. Not moderated, since the server cannot
+        // read it.
+        EncryptedPollText encrypted = 7;
+    }
+}
+
+// PollText is the human-readable part of a poll.
+message PollText {
+    // The question being asked.
+    string question = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 255
+    }];
+
+    // The options voters choose between, in the order votes and results refer
+    // to them.
+    repeated Option options = 2 [(validate.rules).repeated = {
+        min_items: 2
+        max_items: 10
+    }];
+}
+
+// Option is one choice in a poll.
+message Option {
+    string text = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 100
+    }];
+}
+
+// EncryptedPollText is a private group's PollText, encrypted with the chat
+// key every member holds. The server stores it as-is and cannot read it.
+//
+// For scheme CHAT_KEY_XCHACHA20POLY1305, the creator encrypts with
+// XChaCha20-Poly1305, as for messaging.v1.EncryptedContent but with its own
+// aad:
+//   key       = the group's chat key
+//   nonce     = 24 fresh random bytes, set in `nonce` below
+//   plaintext = the serialized PollText
+//   aad       = "flipcash-group-poll-e2ee-v1" || chat_id || creator_id
+// chat_id is the raw bytes of common.v1.ChatId.value, and creator_id is the
+// raw bytes of common.v1.UserId.value for PollMetadata.creator. Never reuse a
+// nonce, and do not substitute a 12-byte-nonce AEAD.
+//
+// A member decrypts with the chat key and the same aad, so the server cannot
+// move the text to another chat or attribute it to another creator, and the
+// distinct prefix keeps poll text and message content from being swapped for
+// each other. The poll ID is not bound, since the server assigns it after the
+// text is encrypted.
+message EncryptedPollText {
+    // The encryption scheme used. Clients render a poll with an unrecognized
+    // scheme as unsupported.
+    Scheme scheme = 1 [(validate.rules).enum = {
+        in: [1] // CHAT_KEY_XCHACHA20POLY1305
+    }];
+    enum Scheme {
+        UNKNOWN                    = 0;
+        // The private group's chat key.
+        CHAT_KEY_XCHACHA20POLY1305 = 1;
+    }
+
+    // The random XChaCha20-Poly1305 nonce, unique per encryption.
+    bytes nonce = 2 [(validate.rules).bytes = {
+        min_len: 24
+        max_len: 24
+    }];
+
+    // The encrypted, serialized PollText with the 16-byte Poly1305 tag
+    // appended. The upper bound fits a PollText with a maximum-length question
+    // and the maximum number of maximum-length options (up to 4 bytes per
+    // character), plus the tag.
+    bytes ciphertext = 3 [(validate.rules).bytes = {
+        min_len: 17
+        max_len: 5120
+    }];
+}
+
+// BalanceParameters configures a BALANCE poll.
+message BalanceParameters {
+    // The mint whose balance is a voter's weight. Clients default to the mint
+    // in the group's MinimumBalanceRequirement.
+    common.v1.PublicKey mint = 1 [(validate.rules).message.required = true];
+
+    // ISO 4217 alpha-3 currency code that the results' native amounts are
+    // valued in, at the exchange rate when the poll closes.
+    string currency = 2 [(validate.rules).string = { pattern: "^[a-z]{3,4}$" }];
+}
+
+// PollMetadata is a poll: its identity, definition, and current state.
+message PollMetadata {
+    PollId poll_id = 1 [(validate.rules).message.required = true];
+
+    // The chat the poll was created for. Anyone who can read this chat in
+    // full can see the poll: its members and anyone who satisfies its
+    // listener rules in a group that is not private, and only its members in
+    // a private group. Someone who can only preview the chat sees the
+    // PollWidget but not the poll. Only the chat's members can vote. Clients
+    // render a PollWidget whose poll belongs to a different chat than the
+    // message carrying it as unsupported.
+    common.v1.ChatId chat_id = 2 [(validate.rules).message.required = true];
+
+    // The user that created the poll, who in a group that is not private is
+    // the only user that can send it.
+    common.v1.UserId creator = 3 [(validate.rules).message.required = true];
+
+    // What the creator chose. Never changes.
+    PollDefinition definition = 4 [(validate.rules).message.required = true];
+
+    // When the poll was created.
+    google.protobuf.Timestamp created_at = 5 [(validate.rules).timestamp.required = true];
+
+    // The poll's current state.
+    PollState state = 6 [(validate.rules).message.required = true];
+}
+
+// PollState is the changing part of a poll.
+//
+// Results are hidden while the poll is open: nobody, including the creator,
+// can see any totals or how many people have voted until the poll is CLOSED.
+// Individual votes are never revealed to anyone but the voter, before or after
+// the poll closes.
+//
+// PollState deliberately carries no version: a value that changed on every
+// vote would let anyone watching an open poll see when votes are cast. Status
+// only moves forward (OPEN, then TALLYING, then CLOSED), so clients keep the
+// copy with the most advanced status and never move a poll's status
+// backward. For self_vote, a client that has called Vote trusts its latest
+// VoteResponse over any GetPoll or GetPolls response it requested before
+// that Vote completed.
+message PollState {
+    Status status = 1;
+    enum Status {
+        UNKNOWN  = 0;
+        // Accepting votes.
+        OPEN     = 1;
+        // No longer accepting votes, and results are being computed. A
+        // BALANCE poll reads every counted voter's balance at this point, so
+        // results may take a moment to appear.
+        TALLYING = 2;
+        // Results are available and final.
+        CLOSED   = 3;
+    }
+
+    // Positions of the options the caller has currently selected. Empty if
+    // the caller hasn't voted or removed their vote.
+    //
+    // Per-viewer, like messaging.v1.EmojiReaction.self_reactor: everything
+    // else in PollState is the same for every viewer, but this is computed
+    // for the caller.
+    repeated uint32 self_vote = 2 [(validate.rules).repeated = {
+        max_items: 10
+        unique: true
+    }];
+
+    // When the poll stopped accepting votes. Set once status is TALLYING or
+    // CLOSED. At or shortly after PollDefinition.ends_at.
+    google.protobuf.Timestamp closed_at = 3;
+
+    // The final results. Set only when status == CLOSED.
+    Results results = 4;
+}
+
+// Results are a closed poll's final totals. Every vote is counted: only
+// members can vote, and a vote still counts if the voter has since left the
+// chat. The variant matches PollDefinition.mode, unless the totals are
+// withheld.
+message Results {
+    oneof type {
+        option (validate.required) = true;
+
+        CountResults    count    = 1;
+        BalanceResults  balance  = 2;
+        WithheldResults withheld = 3;
+    }
+}
+
+// WithheldResults replaces a closed poll's totals when too few voters were
+// counted for the totals to be shown without exposing how individual members
+// voted, or in a BALANCE poll, who voted. With only one voter, for example,
+// any totals would be that voter's own choice and balance.
+//
+// The minimum number of counted voters is set by the server, may differ by
+// mode, and is not part of the contract. Withheld results reveal only that
+// fewer voters than that minimum were counted. They are final: a poll whose
+// results are withheld never shows totals.
+message WithheldResults {}
+
+// Results for a COUNT poll.
+message CountResults {
+    // The number of distinct voters counted. This is the denominator for each
+    // option's percentage. When multiple choices are allowed, option
+    // percentages can add up to more than 100%.
+    uint64 total_voters = 1;
+
+    // The number of voters that chose each option, in option order.
+    repeated uint64 option_voters = 2 [(validate.rules).repeated = {
+        min_items: 2
+        max_items: 10
+    }];
+}
+
+// Results for a BALANCE poll. Voter counts are deliberately absent.
+//
+// Every amount here may be approximate. Members' balances can often be
+// looked up, so exact sums could reveal who voted and how, and the server may
+// round or otherwise coarsen the amounts to prevent that. Clients display
+// them as-is and must not rely on exact relationships between them: options
+// in a single-choice poll may not add up to exactly the total, and an
+// option's percentage may need clamping to 100%.
+message BalanceResults {
+    // The sum of the counted voters' balances when the poll closed, with each
+    // voter counted once even if they chose several options. This is the
+    // denominator for each option's percentage. When multiple choices are
+    // allowed, option percentages can add up to more than 100%.
+    common.v1.CryptoPaymentAmount total = 1 [(validate.rules).message.required = true];
+
+    // The balance behind each option, in option order.
+    repeated common.v1.CryptoPaymentAmount option_balances = 2 [(validate.rules).repeated = {
+        min_items: 2
+        max_items: 10
+    }];
+}

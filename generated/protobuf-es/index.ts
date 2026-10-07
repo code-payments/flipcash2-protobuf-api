@@ -30,5 +30,7 @@ export * as Email from './email/v1';
 export * as Email from './email/v1';
 export * as Resolver from './resolver/v1';
 export * as Resolver from './resolver/v1';
+export * as Poll from './poll/v1';
+export * as Poll from './poll/v1';
 export * as Moderation from './moderation/v1';
 export * as Moderation from './moderation/v1';

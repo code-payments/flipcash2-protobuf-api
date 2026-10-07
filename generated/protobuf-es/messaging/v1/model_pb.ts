@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message as Message$1, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { CryptoPaymentAmount, IntentId, UserId, Username } from "../../common/v1/common_pb";
 import { Media } from "../../blob/v1/model_pb";
+import { PollId } from "../../poll/v1/model_pb";
 
 /**
  * ViewMode is what a client intends to render from a read of a chat's
@@ -706,6 +707,12 @@ export class WidgetContent extends Message$1<WidgetContent> {
      */
     value: ShareProfileWidget;
     case: "shareProfile";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.PollWidget poll = 2;
+     */
+    value: PollWidget;
+    case: "poll";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<WidgetContent>) {
@@ -717,6 +724,7 @@ export class WidgetContent extends Message$1<WidgetContent> {
   static readonly typeName = "flipcash.messaging.v1.WidgetContent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "share_profile", kind: "message", T: ShareProfileWidget, oneof: "type" },
+    { no: 2, name: "poll", kind: "message", T: PollWidget, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WidgetContent {
@@ -773,6 +781,59 @@ export class ShareProfileWidget extends Message$1<ShareProfileWidget> {
 
   static equals(a: ShareProfileWidget | PlainMessage<ShareProfileWidget> | undefined, b: ShareProfileWidget | PlainMessage<ShareProfileWidget> | undefined): boolean {
     return proto3.util.equals(ShareProfileWidget, a, b);
+  }
+}
+
+/**
+ * A widget that shows a poll. It carries only the poll's ID: clients get the
+ * question, options, and state from poll.v1.Poll's GetPoll or GetPolls.
+ *
+ * The creator sends it after calling poll.v1.Poll.CreatePoll, and may send the
+ * same poll in its chat any number of times. Deleting a message that carries
+ * it does not delete the poll.
+ *
+ * In a group that is not private, it is sent as plain WidgetContent:
+ * SendMessage accepts it only from the poll's creator, in the chat the poll
+ * was created for, while the poll is OPEN; otherwise the send is DENIED.
+ *
+ * In a private group, it is sent inside EncryptedContent, so the server cannot
+ * check any of this. Clients render the widget as unsupported if the poll's
+ * chat_id is not the chat the message is in, or the poll's creator is not the
+ * message's sender.
+ *
+ * @generated from message flipcash.messaging.v1.PollWidget
+ */
+export class PollWidget extends Message$1<PollWidget> {
+  /**
+   * @generated from field: flipcash.poll.v1.PollId poll_id = 1;
+   */
+  pollId?: PollId;
+
+  constructor(data?: PartialMessage<PollWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.PollWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "poll_id", kind: "message", T: PollId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PollWidget {
+    return new PollWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PollWidget {
+    return new PollWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PollWidget {
+    return new PollWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PollWidget | PlainMessage<PollWidget> | undefined, b: PollWidget | PlainMessage<PollWidget> | undefined): boolean {
+    return proto3.util.equals(PollWidget, a, b);
   }
 }
 

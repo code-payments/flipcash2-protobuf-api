@@ -9,6 +9,7 @@ option objc_class_prefix = "FPBMessagingV1";
 import "blob/v1/model.proto";
 import "common/v1/common.proto";
 import "google/protobuf/timestamp.proto";
+import "poll/v1/model.proto";
 import "validate/validate.proto";
 
 message MessageId {
@@ -270,6 +271,7 @@ message WidgetContent {
         option (validate.required) = true;
 
         ShareProfileWidget share_profile = 1;
+        PollWidget         poll          = 2;
     }
 }
 
@@ -277,6 +279,25 @@ message WidgetContent {
 // username.
 message ShareProfileWidget {
     common.v1.Username username = 1 [(validate.rules).message.required = true];
+}
+
+// A widget that shows a poll. It carries only the poll's ID: clients get the
+// question, options, and state from poll.v1.Poll's GetPoll or GetPolls.
+//
+// The creator sends it after calling poll.v1.Poll.CreatePoll, and may send the
+// same poll in its chat any number of times. Deleting a message that carries
+// it does not delete the poll.
+//
+// In a group that is not private, it is sent as plain WidgetContent:
+// SendMessage accepts it only from the poll's creator, in the chat the poll
+// was created for, while the poll is OPEN; otherwise the send is DENIED.
+//
+// In a private group, it is sent inside EncryptedContent, so the server cannot
+// check any of this. Clients render the widget as unsupported if the poll's
+// chat_id is not the chat the message is in, or the poll's creator is not the
+// message's sender.
+message PollWidget {
+    poll.v1.PollId poll_id = 1 [(validate.rules).message.required = true];
 }
 
 // Deleted message content
