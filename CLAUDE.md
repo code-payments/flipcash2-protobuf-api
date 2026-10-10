@@ -67,7 +67,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | messaging | `flipcash.messaging.v1` | `Messaging` | Messages (get/send/edit/delete), reactions, `GetDelta` event log stream, pointer advancement (read state), typing notifications |
 | moderation | `flipcash.moderation.v1` | `Moderation` | Text and image moderation with attestations; `FlaggedCategory` is reused by other services |
 | phone | `flipcash.phone.v1` | `PhoneVerification` | Send/check verification codes, unlink, link for payment |
-| poll | `flipcash.poll.v1` | `Poll` | Polls in group chats (private groups encrypt the poll text with the chat key): create, vote, read state; polls close only at their end time. COUNT or BALANCE (balance-weighted, read at close) modes; results hidden until the poll closes, and withheld if too few voters were counted. Shown in a chat as a `messaging.v1.PollWidget` |
+| poll | `flipcash.poll.v1` | `Poll` | Polls in group chats (private groups encrypt the poll text with the chat key): create, vote, read state; polls close only at their end time. COUNT or BALANCE (balance-weighted, read at close; clients see only a ranking of the options, never amounts) modes; results hidden until the poll closes, and a COUNT poll's withheld if too few voters were counted. Shown in a chat as a `messaging.v1.PollWidget` |
 | profile | `flipcash.profile.v1` | `Profile` | Display name, username, profile picture, Flipcard, min DM init fee, social account linking |
 | push | `flipcash.push.v1` | `Push` | Push token registration; `Payload` models for push content |
 | reporting | `flipcash.reporting.v1` | `Reporting` | Report a user, chat, message, or blob for review, with optional free-form description |

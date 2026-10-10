@@ -33,8 +33,9 @@ export enum Mode {
    * vote is cast: every token sits in exactly one wallet at that moment, so
    * moving funds between accounts cannot count the same tokens twice. A
    * voter who chose several options adds their full balance to each.
-   * Results are BalanceResults, which never include voter counts, or
-   * WithheldResults if too few voters were counted.
+   * Results are RankedResults, which order the options by the balance
+   * behind them and show no amounts or voter counts, so they are never
+   * withheld.
    *
    * @generated from enum value: BALANCE = 2;
    */
@@ -698,8 +699,8 @@ proto3.util.setEnumType(PollState_Status, "flipcash.poll.v1.PollState.Status", [
 /**
  * Results are a closed poll's final totals. Every vote is counted: only
  * members can vote, and a vote still counts if the voter has since left the
- * chat. The variant matches PollDefinition.mode, unless the totals are
- * withheld.
+ * chat. The variant is CountResults for a COUNT poll, unless its totals are
+ * withheld, and RankedResults for a BALANCE poll.
  *
  * @generated from message flipcash.poll.v1.Results
  */
@@ -715,6 +716,9 @@ export class Results extends Message<Results> {
     case: "count";
   } | {
     /**
+     * Not sent to clients: the server keeps a BALANCE poll's totals and
+     * shows only their ranking (see RankedResults).
+     *
      * @generated from field: flipcash.poll.v1.BalanceResults balance = 2;
      */
     value: BalanceResults;
@@ -725,6 +729,12 @@ export class Results extends Message<Results> {
      */
     value: WithheldResults;
     case: "withheld";
+  } | {
+    /**
+     * @generated from field: flipcash.poll.v1.RankedResults ranked = 4;
+     */
+    value: RankedResults;
+    case: "ranked";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<Results>) {
@@ -738,6 +748,7 @@ export class Results extends Message<Results> {
     { no: 1, name: "count", kind: "message", T: CountResults, oneof: "type" },
     { no: 2, name: "balance", kind: "message", T: BalanceResults, oneof: "type" },
     { no: 3, name: "withheld", kind: "message", T: WithheldResults, oneof: "type" },
+    { no: 4, name: "ranked", kind: "message", T: RankedResults, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Results {
@@ -758,15 +769,16 @@ export class Results extends Message<Results> {
 }
 
 /**
- * WithheldResults replaces a closed poll's totals when too few voters were
- * counted for the totals to be shown without exposing how individual members
- * voted, or in a BALANCE poll, who voted. With only one voter, for example,
- * any totals would be that voter's own choice and balance.
+ * WithheldResults replaces a closed COUNT poll's totals when too few voters
+ * were counted for the totals to be shown without exposing how individual
+ * members voted. With only one voter, for example, any totals would be that
+ * voter's own choice. A BALANCE poll's results are never withheld, since its
+ * RankedResults show no totals.
  *
- * The minimum number of counted voters is set by the server, may differ by
- * mode, and is not part of the contract. Withheld results reveal only that
- * fewer voters than that minimum were counted. They are final: a poll whose
- * results are withheld never shows totals.
+ * The minimum number of counted voters is set by the server and is not part
+ * of the contract. Withheld results reveal only that fewer voters than that
+ * minimum were counted. They are final: a poll whose results are withheld
+ * never shows totals.
  *
  * @generated from message flipcash.poll.v1.WithheldResults
  */
@@ -850,14 +862,10 @@ export class CountResults extends Message<CountResults> {
 }
 
 /**
- * Results for a BALANCE poll. Voter counts are deliberately absent.
- *
- * Every amount here may be approximate. Members' balances can often be
- * looked up, so exact sums could reveal who voted and how, and the server may
- * round or otherwise coarsen the amounts to prevent that. Clients display
- * them as-is and must not rely on exact relationships between them: options
- * in a single-choice poll may not add up to exactly the total, and an
- * option's percentage may need clamping to 100%.
+ * The totals behind a BALANCE poll's results. Voter counts are deliberately
+ * absent. The server records these when the poll closes but does not send
+ * them to clients, who see only RankedResults: members' balances can often be
+ * looked up, so the totals could reveal who voted and how.
  *
  * @generated from message flipcash.poll.v1.BalanceResults
  */
@@ -905,6 +913,53 @@ export class BalanceResults extends Message<BalanceResults> {
 
   static equals(a: BalanceResults | PlainMessage<BalanceResults> | undefined, b: BalanceResults | PlainMessage<BalanceResults> | undefined): boolean {
     return proto3.util.equals(BalanceResults, a, b);
+  }
+}
+
+/**
+ * Results for a BALANCE poll: the options ranked by the balance behind each,
+ * with no amounts and no voter counts, so they reveal neither how much was
+ * voted nor by whom.
+ *
+ * @generated from message flipcash.poll.v1.RankedResults
+ */
+export class RankedResults extends Message<RankedResults> {
+  /**
+   * Each option's rank, in option order. 1 is the option with the most
+   * balance behind it. Options with equal balances share a rank, and the
+   * next rank skips the tied positions: balances of 30, 20, 20 and 10 rank
+   * 1, 2, 2 and 4. Every option is ranked, including those with no balance
+   * behind them, which share the last rank.
+   *
+   * @generated from field: repeated uint32 option_ranks = 1;
+   */
+  optionRanks: number[] = [];
+
+  constructor(data?: PartialMessage<RankedResults>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.poll.v1.RankedResults";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "option_ranks", kind: "scalar", T: 13 /* ScalarType.UINT32 */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RankedResults {
+    return new RankedResults().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RankedResults {
+    return new RankedResults().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RankedResults {
+    return new RankedResults().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RankedResults | PlainMessage<RankedResults> | undefined, b: RankedResults | PlainMessage<RankedResults> | undefined): boolean {
+    return proto3.util.equals(RankedResults, a, b);
   }
 }
 

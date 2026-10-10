@@ -48,8 +48,9 @@ enum Mode {
     // vote is cast: every token sits in exactly one wallet at that moment, so
     // moving funds between accounts cannot count the same tokens twice. A
     // voter who chose several options adds their full balance to each.
-    // Results are BalanceResults, which never include voter counts, or
-    // WithheldResults if too few voters were counted.
+    // Results are RankedResults, which order the options by the balance
+    // behind them and show no amounts or voter counts, so they are never
+    // withheld.
     BALANCE = 2;
 }
 
@@ -260,27 +261,31 @@ message PollState {
 
 // Results are a closed poll's final totals. Every vote is counted: only
 // members can vote, and a vote still counts if the voter has since left the
-// chat. The variant matches PollDefinition.mode, unless the totals are
-// withheld.
+// chat. The variant is CountResults for a COUNT poll, unless its totals are
+// withheld, and RankedResults for a BALANCE poll.
 message Results {
     oneof type {
         option (validate.required) = true;
 
         CountResults    count    = 1;
+        // Not sent to clients: the server keeps a BALANCE poll's totals and
+        // shows only their ranking (see RankedResults).
         BalanceResults  balance  = 2;
         WithheldResults withheld = 3;
+        RankedResults   ranked   = 4;
     }
 }
 
-// WithheldResults replaces a closed poll's totals when too few voters were
-// counted for the totals to be shown without exposing how individual members
-// voted, or in a BALANCE poll, who voted. With only one voter, for example,
-// any totals would be that voter's own choice and balance.
+// WithheldResults replaces a closed COUNT poll's totals when too few voters
+// were counted for the totals to be shown without exposing how individual
+// members voted. With only one voter, for example, any totals would be that
+// voter's own choice. A BALANCE poll's results are never withheld, since its
+// RankedResults show no totals.
 //
-// The minimum number of counted voters is set by the server, may differ by
-// mode, and is not part of the contract. Withheld results reveal only that
-// fewer voters than that minimum were counted. They are final: a poll whose
-// results are withheld never shows totals.
+// The minimum number of counted voters is set by the server and is not part
+// of the contract. Withheld results reveal only that fewer voters than that
+// minimum were counted. They are final: a poll whose results are withheld
+// never shows totals.
 message WithheldResults {}
 
 // Results for a COUNT poll.
@@ -297,14 +302,10 @@ message CountResults {
     }];
 }
 
-// Results for a BALANCE poll. Voter counts are deliberately absent.
-//
-// Every amount here may be approximate. Members' balances can often be
-// looked up, so exact sums could reveal who voted and how, and the server may
-// round or otherwise coarsen the amounts to prevent that. Clients display
-// them as-is and must not rely on exact relationships between them: options
-// in a single-choice poll may not add up to exactly the total, and an
-// option's percentage may need clamping to 100%.
+// The totals behind a BALANCE poll's results. Voter counts are deliberately
+// absent. The server records these when the poll closes but does not send
+// them to clients, who see only RankedResults: members' balances can often be
+// looked up, so the totals could reveal who voted and how.
 message BalanceResults {
     // The sum of the counted voters' balances when the poll closed, with each
     // voter counted once even if they chose several options. This is the
@@ -316,5 +317,23 @@ message BalanceResults {
     repeated common.v1.CryptoPaymentAmount option_balances = 2 [(validate.rules).repeated = {
         min_items: 2
         max_items: 10
+    }];
+}
+
+// Results for a BALANCE poll: the options ranked by the balance behind each,
+// with no amounts and no voter counts, so they reveal neither how much was
+// voted nor by whom.
+message RankedResults {
+    // Each option's rank, in option order. 1 is the option with the most
+    // balance behind it. Options with equal balances share a rank, and the
+    // next rank skips the tied positions: balances of 30, 20, 20 and 10 rank
+    // 1, 2, 2 and 4. Every option is ranked, including those with no balance
+    // behind them, which share the last rank.
+    repeated uint32 option_ranks = 1 [(validate.rules).repeated = {
+        min_items: 2
+        max_items: 10
+        items: {
+            uint32: { gte: 1, lte: 10 }
+        }
     }];
 }
