@@ -2184,6 +2184,8 @@ func (m *BalanceResults) validate(all bool) error {
 
 	}
 
+	// no validation rules for TotalVoters
+
 	if len(errors) > 0 {
 		return BalanceResultsMultiError(errors)
 	}
@@ -2310,6 +2312,8 @@ func (m *RankedResults) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for TotalVoters
 
 	if len(errors) > 0 {
 		return RankedResultsMultiError(errors)

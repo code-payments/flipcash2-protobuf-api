@@ -34,7 +34,7 @@ export enum Mode {
    * moving funds between accounts cannot count the same tokens twice. A
    * voter who chose several options adds their full balance to each.
    * Results are RankedResults, which order the options by the balance
-   * behind them and show no amounts or voter counts, so they are never
+   * behind them and show how many voted but no amounts, so they are never
    * withheld.
    *
    * @generated from enum value: BALANCE = 2;
@@ -862,10 +862,10 @@ export class CountResults extends Message<CountResults> {
 }
 
 /**
- * The totals behind a BALANCE poll's results. Voter counts are deliberately
- * absent. The server records these when the poll closes but does not send
- * them to clients, who see only RankedResults: members' balances can often be
- * looked up, so the totals could reveal who voted and how.
+ * The totals behind a BALANCE poll's results. The server records these when
+ * the poll closes but does not send them to clients, who see only
+ * RankedResults: members' balances can often be looked up, so the totals could
+ * reveal who voted and how.
  *
  * @generated from message flipcash.poll.v1.BalanceResults
  */
@@ -887,6 +887,15 @@ export class BalanceResults extends Message<BalanceResults> {
    */
   optionBalances: CryptoPaymentAmount[] = [];
 
+  /**
+   * The number of distinct voters counted, including those holding none of
+   * the mint, whose votes add nothing to any balance. It is what
+   * RankedResults.total_voters shows.
+   *
+   * @generated from field: uint64 total_voters = 3;
+   */
+  totalVoters = protoInt64.zero;
+
   constructor(data?: PartialMessage<BalanceResults>) {
     super();
     proto3.util.initPartial(data, this);
@@ -897,6 +906,7 @@ export class BalanceResults extends Message<BalanceResults> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "total", kind: "message", T: CryptoPaymentAmount },
     { no: 2, name: "option_balances", kind: "message", T: CryptoPaymentAmount, repeated: true },
+    { no: 3, name: "total_voters", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BalanceResults {
@@ -918,8 +928,8 @@ export class BalanceResults extends Message<BalanceResults> {
 
 /**
  * Results for a BALANCE poll: the options ranked by the balance behind each,
- * with no amounts and no voter counts, so they reveal neither how much was
- * voted nor by whom.
+ * and how many voted, with no amounts and no per-option voter counts, so they
+ * reveal neither how much was voted nor by whom.
  *
  * @generated from message flipcash.poll.v1.RankedResults
  */
@@ -935,6 +945,15 @@ export class RankedResults extends Message<RankedResults> {
    */
   optionRanks: number[] = [];
 
+  /**
+   * The number of distinct voters counted, as for CountResults.total_voters.
+   * Every voter counts, including one holding none of the mint, whose vote
+   * moves no option's rank.
+   *
+   * @generated from field: uint64 total_voters = 2;
+   */
+  totalVoters = protoInt64.zero;
+
   constructor(data?: PartialMessage<RankedResults>) {
     super();
     proto3.util.initPartial(data, this);
@@ -944,6 +963,7 @@ export class RankedResults extends Message<RankedResults> {
   static readonly typeName = "flipcash.poll.v1.RankedResults";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "option_ranks", kind: "scalar", T: 13 /* ScalarType.UINT32 */, repeated: true },
+    { no: 2, name: "total_voters", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RankedResults {

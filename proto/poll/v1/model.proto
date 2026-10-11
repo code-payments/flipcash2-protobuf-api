@@ -49,7 +49,7 @@ enum Mode {
     // moving funds between accounts cannot count the same tokens twice. A
     // voter who chose several options adds their full balance to each.
     // Results are RankedResults, which order the options by the balance
-    // behind them and show no amounts or voter counts, so they are never
+    // behind them and show how many voted but no amounts, so they are never
     // withheld.
     BALANCE = 2;
 }
@@ -302,10 +302,10 @@ message CountResults {
     }];
 }
 
-// The totals behind a BALANCE poll's results. Voter counts are deliberately
-// absent. The server records these when the poll closes but does not send
-// them to clients, who see only RankedResults: members' balances can often be
-// looked up, so the totals could reveal who voted and how.
+// The totals behind a BALANCE poll's results. The server records these when
+// the poll closes but does not send them to clients, who see only
+// RankedResults: members' balances can often be looked up, so the totals could
+// reveal who voted and how.
 message BalanceResults {
     // The sum of the counted voters' balances when the poll closed, with each
     // voter counted once even if they chose several options. This is the
@@ -318,11 +318,16 @@ message BalanceResults {
         min_items: 2
         max_items: 10
     }];
+
+    // The number of distinct voters counted, including those holding none of
+    // the mint, whose votes add nothing to any balance. It is what
+    // RankedResults.total_voters shows.
+    uint64 total_voters = 3;
 }
 
 // Results for a BALANCE poll: the options ranked by the balance behind each,
-// with no amounts and no voter counts, so they reveal neither how much was
-// voted nor by whom.
+// and how many voted, with no amounts and no per-option voter counts, so they
+// reveal neither how much was voted nor by whom.
 message RankedResults {
     // Each option's rank, in option order. 1 is the option with the most
     // balance behind it. Options with equal balances share a rank, and the
@@ -336,4 +341,9 @@ message RankedResults {
             uint32: { gte: 1, lte: 10 }
         }
     }];
+
+    // The number of distinct voters counted, as for CountResults.total_voters.
+    // Every voter counts, including one holding none of the mint, whose vote
+    // moves no option's rank.
+    uint64 total_voters = 2;
 }
