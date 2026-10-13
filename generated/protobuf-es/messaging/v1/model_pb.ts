@@ -652,15 +652,27 @@ export class MediaContent extends Message$1<MediaContent> {
  */
 export class SystemContent extends Message$1<SystemContent> {
   /**
-   * Best-effort, server-rendered text in the user's locale setting. Today this
-   * is the only way to display a system message; once the structured `event`
-   * oneof exists it becomes a fallback, rendered ONLY when the client does not
-   * recognize the variant (old client, new server). It is not localized per
+   * Best-effort, server-rendered text in the user's locale setting. Always
+   * set. It is a fallback, rendered ONLY when the client does not recognize
+   * the `type` variant (old client, new server). It is not localized per
    * viewer — clients that know a variant render their own localized string.
    *
    * @generated from field: string fallback_text = 1;
    */
   fallbackText = "";
+
+  /**
+   * What this system message describes, in structured form. Always set.
+   *
+   * @generated from oneof flipcash.messaging.v1.SystemContent.type
+   */
+  type: {
+    /**
+     * @generated from field: flipcash.messaging.v1.SystemContent.UserJoined user_joined = 2;
+     */
+    value: SystemContent_UserJoined;
+    case: "userJoined";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SystemContent>) {
     super();
@@ -671,6 +683,7 @@ export class SystemContent extends Message$1<SystemContent> {
   static readonly typeName = "flipcash.messaging.v1.SystemContent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "fallback_text", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "user_joined", kind: "message", T: SystemContent_UserJoined, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent {
@@ -687,6 +700,47 @@ export class SystemContent extends Message$1<SystemContent> {
 
   static equals(a: SystemContent | PlainMessage<SystemContent> | undefined, b: SystemContent | PlainMessage<SystemContent> | undefined): boolean {
     return proto3.util.equals(SystemContent, a, b);
+  }
+}
+
+/**
+ * A user joined the chat.
+ *
+ * @generated from message flipcash.messaging.v1.SystemContent.UserJoined
+ */
+export class SystemContent_UserJoined extends Message$1<SystemContent_UserJoined> {
+  /**
+   * The user that joined
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   */
+  userId?: UserId;
+
+  constructor(data?: PartialMessage<SystemContent_UserJoined>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.SystemContent.UserJoined";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "message", T: UserId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent_UserJoined {
+    return new SystemContent_UserJoined().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SystemContent_UserJoined {
+    return new SystemContent_UserJoined().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SystemContent_UserJoined {
+    return new SystemContent_UserJoined().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SystemContent_UserJoined | PlainMessage<SystemContent_UserJoined> | undefined, b: SystemContent_UserJoined | PlainMessage<SystemContent_UserJoined> | undefined): boolean {
+    return proto3.util.equals(SystemContent_UserJoined, a, b);
   }
 }
 

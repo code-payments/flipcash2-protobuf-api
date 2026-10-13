@@ -250,17 +250,27 @@ message MediaContent {
 
 // System message content
 message SystemContent {
-    // Best-effort, server-rendered text in the user's locale setting. Today this
-    // is the only way to display a system message; once the structured `event`
-    // oneof exists it becomes a fallback, rendered ONLY when the client does not
-    // recognize the variant (old client, new server). It is not localized per
+    // Best-effort, server-rendered text in the user's locale setting. Always
+    // set. It is a fallback, rendered ONLY when the client does not recognize
+    // the `type` variant (old client, new server). It is not localized per
     // viewer — clients that know a variant render their own localized string.
     string fallback_text = 1 [(validate.rules).string = {
         min_len: 1
         max_len: 256
     }];
 
-    // todo: Define events once we have them
+    // What this system message describes, in structured form. Always set.
+    oneof type {
+        option (validate.required) = true;
+
+        UserJoined user_joined = 2;
+    }
+
+    // A user joined the chat.
+    message UserJoined {
+        // The user that joined
+        common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+    }
 }
 
 // Content that clients render as a native widget rather than as plain text
