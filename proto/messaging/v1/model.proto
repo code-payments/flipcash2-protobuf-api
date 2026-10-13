@@ -254,6 +254,8 @@ message SystemContent {
     // set. It is a fallback, rendered ONLY when the client does not recognize
     // the `type` variant (old client, new server). It is not localized per
     // viewer — clients that know a variant render their own localized string.
+    // It names no one: users are carried in the variant, so clients render
+    // their current profiles, and the text never goes stale on a rename.
     string fallback_text = 1 [(validate.rules).string = {
         min_len: 1
         max_len: 256
@@ -270,6 +272,26 @@ message SystemContent {
     message UserJoined {
         // The user that joined
         common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+        // How they joined. Always set. A client that finds it unset (a way of
+        // joining it does not know yet) renders a plain join.
+        oneof method {
+            option (validate.required) = true;
+
+            Direct   direct   = 2;
+            Admitted admitted = 3;
+        }
+
+        // They joined on their own (e.g. a private group's creator rejoining
+        // their group).
+        message Direct {}
+
+        // Someone let them in (e.g. a private group's creator admitting them
+        // from its lobby).
+        message Admitted {
+            // The user that let them in
+            common.v1.UserId admitted_by = 1 [(validate.rules).message.required = true];
+        }
     }
 }
 

@@ -656,6 +656,8 @@ export class SystemContent extends Message$1<SystemContent> {
    * set. It is a fallback, rendered ONLY when the client does not recognize
    * the `type` variant (old client, new server). It is not localized per
    * viewer — clients that know a variant render their own localized string.
+   * It names no one: users are carried in the variant, so clients render
+   * their current profiles, and the text never goes stale on a rename.
    *
    * @generated from field: string fallback_text = 1;
    */
@@ -716,6 +718,26 @@ export class SystemContent_UserJoined extends Message$1<SystemContent_UserJoined
    */
   userId?: UserId;
 
+  /**
+   * How they joined. Always set. A client that finds it unset (a way of
+   * joining it does not know yet) renders a plain join.
+   *
+   * @generated from oneof flipcash.messaging.v1.SystemContent.UserJoined.method
+   */
+  method: {
+    /**
+     * @generated from field: flipcash.messaging.v1.SystemContent.UserJoined.Direct direct = 2;
+     */
+    value: SystemContent_UserJoined_Direct;
+    case: "direct";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.SystemContent.UserJoined.Admitted admitted = 3;
+     */
+    value: SystemContent_UserJoined_Admitted;
+    case: "admitted";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
   constructor(data?: PartialMessage<SystemContent_UserJoined>) {
     super();
     proto3.util.initPartial(data, this);
@@ -725,6 +747,8 @@ export class SystemContent_UserJoined extends Message$1<SystemContent_UserJoined
   static readonly typeName = "flipcash.messaging.v1.SystemContent.UserJoined";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "user_id", kind: "message", T: UserId },
+    { no: 2, name: "direct", kind: "message", T: SystemContent_UserJoined_Direct, oneof: "method" },
+    { no: 3, name: "admitted", kind: "message", T: SystemContent_UserJoined_Admitted, oneof: "method" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent_UserJoined {
@@ -741,6 +765,82 @@ export class SystemContent_UserJoined extends Message$1<SystemContent_UserJoined
 
   static equals(a: SystemContent_UserJoined | PlainMessage<SystemContent_UserJoined> | undefined, b: SystemContent_UserJoined | PlainMessage<SystemContent_UserJoined> | undefined): boolean {
     return proto3.util.equals(SystemContent_UserJoined, a, b);
+  }
+}
+
+/**
+ * They joined on their own (e.g. a private group's creator rejoining
+ * their group).
+ *
+ * @generated from message flipcash.messaging.v1.SystemContent.UserJoined.Direct
+ */
+export class SystemContent_UserJoined_Direct extends Message$1<SystemContent_UserJoined_Direct> {
+  constructor(data?: PartialMessage<SystemContent_UserJoined_Direct>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.SystemContent.UserJoined.Direct";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent_UserJoined_Direct {
+    return new SystemContent_UserJoined_Direct().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SystemContent_UserJoined_Direct {
+    return new SystemContent_UserJoined_Direct().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SystemContent_UserJoined_Direct {
+    return new SystemContent_UserJoined_Direct().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SystemContent_UserJoined_Direct | PlainMessage<SystemContent_UserJoined_Direct> | undefined, b: SystemContent_UserJoined_Direct | PlainMessage<SystemContent_UserJoined_Direct> | undefined): boolean {
+    return proto3.util.equals(SystemContent_UserJoined_Direct, a, b);
+  }
+}
+
+/**
+ * Someone let them in (e.g. a private group's creator admitting them
+ * from its lobby).
+ *
+ * @generated from message flipcash.messaging.v1.SystemContent.UserJoined.Admitted
+ */
+export class SystemContent_UserJoined_Admitted extends Message$1<SystemContent_UserJoined_Admitted> {
+  /**
+   * The user that let them in
+   *
+   * @generated from field: flipcash.common.v1.UserId admitted_by = 1;
+   */
+  admittedBy?: UserId;
+
+  constructor(data?: PartialMessage<SystemContent_UserJoined_Admitted>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.SystemContent.UserJoined.Admitted";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "admitted_by", kind: "message", T: UserId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent_UserJoined_Admitted {
+    return new SystemContent_UserJoined_Admitted().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SystemContent_UserJoined_Admitted {
+    return new SystemContent_UserJoined_Admitted().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SystemContent_UserJoined_Admitted {
+    return new SystemContent_UserJoined_Admitted().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SystemContent_UserJoined_Admitted | PlainMessage<SystemContent_UserJoined_Admitted> | undefined, b: SystemContent_UserJoined_Admitted | PlainMessage<SystemContent_UserJoined_Admitted> | undefined): boolean {
+    return proto3.util.equals(SystemContent_UserJoined_Admitted, a, b);
   }
 }
 
