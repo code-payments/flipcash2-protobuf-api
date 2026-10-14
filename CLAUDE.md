@@ -64,7 +64,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | event | `flipcash.event.v1` | `EventStreaming` | Bidirectional `StreamEvents` for real-time updates (ChatUpdate, BlobUpdate); internal `ForwardEvents` for server-to-server fan-out |
 | iap | `flipcash.iap.v1` | `Iap` | In-app purchase completion |
 | intent | `flipcash.intent.v1` | none | Models only: app metadata attached to payment intents (e.g. chat payments), embedded in other services' requests |
-| messaging | `flipcash.messaging.v1` | `Messaging` | Messages (get/send/edit/delete), reactions, `GetDelta` event log stream, pointer advancement (read state), typing notifications |
+| messaging | `flipcash.messaging.v1` | `Messaging` | Messages (get/send/edit/delete; text may carry sender-generated link previews), reactions, `GetDelta` event log stream, pointer advancement (read state), typing notifications |
 | moderation | `flipcash.moderation.v1` | `Moderation` | Text and image moderation with attestations; `FlaggedCategory` is reused by other services |
 | phone | `flipcash.phone.v1` | `PhoneVerification` | Send/check verification codes, unlink, link for payment |
 | poll | `flipcash.poll.v1` | `Poll` | Polls in group chats (private groups encrypt the poll text with the chat key): create, vote, read state; polls close only at their end time. COUNT or BALANCE (balance-weighted, read at close; clients see only a ranking of the options, never amounts) modes; results hidden until the poll closes, and a COUNT poll's withheld if too few voters were counted. Shown in a chat as a `messaging.v1.PollWidget` |
