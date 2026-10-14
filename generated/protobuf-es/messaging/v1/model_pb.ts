@@ -480,6 +480,15 @@ export class CashContent extends Message$1<CashContent> {
   amount?: CryptoPaymentAmount;
 
   /**
+   * The user who received the cash. Always set in a group chat, where it
+   * names which member was paid. In a DM it is set on new messages but unset
+   * on older ones, whose receiver is the DM member who is not the sender.
+   *
+   * @generated from field: flipcash.common.v1.UserId receiver = 3;
+   */
+  receiver?: UserId;
+
+  /**
    * @generated from field: flipcash.messaging.v1.CashContent.Verb verb = 4;
    */
   verb = CashContent_Verb.SENT;
@@ -494,6 +503,7 @@ export class CashContent extends Message$1<CashContent> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "intent_id", kind: "message", T: IntentId },
     { no: 2, name: "amount", kind: "message", T: CryptoPaymentAmount },
+    { no: 3, name: "receiver", kind: "message", T: UserId },
     { no: 4, name: "verb", kind: "enum", T: proto3.getEnumType(CashContent_Verb) },
   ]);
 

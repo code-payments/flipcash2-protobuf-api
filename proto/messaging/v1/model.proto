@@ -202,8 +202,10 @@ message CashContent {
     // The amount of cash that was sent
     common.v1.CryptoPaymentAmount amount = 2 [(validate.rules).message.required = true];
 
-    // Reserved for receiver, which will is required for group chats
-    reserved 3;
+    // The user who received the cash. Always set in a group chat, where it
+    // names which member was paid. In a DM it is set on new messages but unset
+    // on older ones, whose receiver is the DM member who is not the sender.
+    common.v1.UserId receiver = 3;
 
     // Verb for how the cash was sent. Clients should always show SENT as a
     // fallback.

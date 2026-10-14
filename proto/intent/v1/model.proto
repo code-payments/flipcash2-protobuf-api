@@ -26,6 +26,7 @@ message ChatMetadata {
 
         ContactDmPayment contact_dm_payment = 2;
         DmPayment        dm_payment         = 3;
+        GroupPayment     group_payment      = 4;
     }
 
     // For sending a payment to a contact in a DM
@@ -48,11 +49,26 @@ message ChatMetadata {
         Location location = 1;
 
         // The action being performed for the payment
-        enum Action {
-            DEFAULT = 0; // Same as SEND: the payment is shown as "sent", not "tipped"
-            SEND    = 1;
-            TIP     = 2;
-        }
-        Action action = 2;
+        PaymentAction action = 2;
     }
+
+    // For sending a payment directly to another member of a group chat. The
+    // chat_id must be a group, and the payment's destination owner account
+    // names the recipient, who must be a Flipcash user and a member of the
+    // group. The sender must be able to speak in the group: the payment posts
+    // a CashContent message into it as the sender, naming the recipient as
+    // its receiver.
+    message GroupPayment {
+        // The action being performed for the payment. Only DEFAULT and SEND
+        // are supported today, and the payment is shown as SENT; the server
+        // denies TIP.
+        PaymentAction action = 1;
+    }
+}
+
+// The action being performed for a payment in a chat
+enum PaymentAction {
+    DEFAULT = 0; // Same as SEND: the payment is shown as "sent", not "tipped"
+    SEND    = 1;
+    TIP     = 2;
 }

@@ -8,6 +8,36 @@ import { Message, proto3 } from "@bufbuild/protobuf";
 import { ChatId, PhoneNumber } from "../../common/v1/common_pb";
 
 /**
+ * The action being performed for a payment in a chat
+ *
+ * @generated from enum flipcash.intent.v1.PaymentAction
+ */
+export enum PaymentAction {
+  /**
+   * Same as SEND: the payment is shown as "sent", not "tipped"
+   *
+   * @generated from enum value: DEFAULT = 0;
+   */
+  DEFAULT = 0,
+
+  /**
+   * @generated from enum value: SEND = 1;
+   */
+  SEND = 1,
+
+  /**
+   * @generated from enum value: TIP = 2;
+   */
+  TIP = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(PaymentAction)
+proto3.util.setEnumType(PaymentAction, "flipcash.intent.v1.PaymentAction", [
+  { no: 0, name: "DEFAULT" },
+  { no: 1, name: "SEND" },
+  { no: 2, name: "TIP" },
+]);
+
+/**
  * @generated from message flipcash.intent.v1.AppMetadata
  */
 export class AppMetadata extends Message<AppMetadata> {
@@ -76,6 +106,12 @@ export class ChatMetadata extends Message<ChatMetadata> {
      */
     value: ChatMetadata_DmPayment;
     case: "dmPayment";
+  } | {
+    /**
+     * @generated from field: flipcash.intent.v1.ChatMetadata.GroupPayment group_payment = 4;
+     */
+    value: ChatMetadata_GroupPayment;
+    case: "groupPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatMetadata>) {
@@ -89,6 +125,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "contact_dm_payment", kind: "message", T: ChatMetadata_ContactDmPayment, oneof: "type" },
     { no: 3, name: "dm_payment", kind: "message", T: ChatMetadata_DmPayment, oneof: "type" },
+    { no: 4, name: "group_payment", kind: "message", T: ChatMetadata_GroupPayment, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
@@ -170,9 +207,11 @@ export class ChatMetadata_DmPayment extends Message<ChatMetadata_DmPayment> {
   location = ChatMetadata_DmPayment_Location.FLIPCARD;
 
   /**
-   * @generated from field: flipcash.intent.v1.ChatMetadata.DmPayment.Action action = 2;
+   * The action being performed for the payment
+   *
+   * @generated from field: flipcash.intent.v1.PaymentAction action = 2;
    */
-  action = ChatMetadata_DmPayment_Action.DEFAULT;
+  action = PaymentAction.DEFAULT;
 
   constructor(data?: PartialMessage<ChatMetadata_DmPayment>) {
     super();
@@ -183,7 +222,7 @@ export class ChatMetadata_DmPayment extends Message<ChatMetadata_DmPayment> {
   static readonly typeName = "flipcash.intent.v1.ChatMetadata.DmPayment";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "location", kind: "enum", T: proto3.getEnumType(ChatMetadata_DmPayment_Location) },
-    { no: 2, name: "action", kind: "enum", T: proto3.getEnumType(ChatMetadata_DmPayment_Action) },
+    { no: 2, name: "action", kind: "enum", T: proto3.getEnumType(PaymentAction) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_DmPayment {
@@ -226,32 +265,50 @@ proto3.util.setEnumType(ChatMetadata_DmPayment_Location, "flipcash.intent.v1.Cha
 ]);
 
 /**
- * The action being performed for the payment
+ * For sending a payment directly to another member of a group chat. The
+ * chat_id must be a group, and the payment's destination owner account
+ * names the recipient, who must be a Flipcash user and a member of the
+ * group. The sender must be able to speak in the group: the payment posts
+ * a CashContent message into it as the sender, naming the recipient as
+ * its receiver.
  *
- * @generated from enum flipcash.intent.v1.ChatMetadata.DmPayment.Action
+ * @generated from message flipcash.intent.v1.ChatMetadata.GroupPayment
  */
-export enum ChatMetadata_DmPayment_Action {
+export class ChatMetadata_GroupPayment extends Message<ChatMetadata_GroupPayment> {
   /**
-   * Same as SEND: the payment is shown as "sent", not "tipped"
+   * The action being performed for the payment. Only DEFAULT and SEND
+   * are supported today, and the payment is shown as SENT; the server
+   * denies TIP.
    *
-   * @generated from enum value: DEFAULT = 0;
+   * @generated from field: flipcash.intent.v1.PaymentAction action = 1;
    */
-  DEFAULT = 0,
+  action = PaymentAction.DEFAULT;
 
-  /**
-   * @generated from enum value: SEND = 1;
-   */
-  SEND = 1,
+  constructor(data?: PartialMessage<ChatMetadata_GroupPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
 
-  /**
-   * @generated from enum value: TIP = 2;
-   */
-  TIP = 2,
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.intent.v1.ChatMetadata.GroupPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "action", kind: "enum", T: proto3.getEnumType(PaymentAction) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_GroupPayment {
+    return new ChatMetadata_GroupPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_GroupPayment {
+    return new ChatMetadata_GroupPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_GroupPayment {
+    return new ChatMetadata_GroupPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatMetadata_GroupPayment | PlainMessage<ChatMetadata_GroupPayment> | undefined, b: ChatMetadata_GroupPayment | PlainMessage<ChatMetadata_GroupPayment> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata_GroupPayment, a, b);
+  }
 }
-// Retrieve enum metadata with: proto3.getEnumType(ChatMetadata_DmPayment_Action)
-proto3.util.setEnumType(ChatMetadata_DmPayment_Action, "flipcash.intent.v1.ChatMetadata.DmPayment.Action", [
-  { no: 0, name: "DEFAULT" },
-  { no: 1, name: "SEND" },
-  { no: 2, name: "TIP" },
-]);
 
