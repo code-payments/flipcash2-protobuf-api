@@ -1210,12 +1210,22 @@ export enum RemoveReactionResponse_Result {
    * @generated from enum value: MESSAGE_NOT_FOUND = 2;
    */
   MESSAGE_NOT_FOUND = 2,
+
+  /**
+   * The caller has paid to boost this emoji on the message (see
+   * Reactor.boost_usd), and a boosted reaction is permanent. Nothing
+   * changed.
+   *
+   * @generated from enum value: CANNOT_REMOVE_BOOSTED = 3;
+   */
+  CANNOT_REMOVE_BOOSTED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(RemoveReactionResponse_Result)
 proto3.util.setEnumType(RemoveReactionResponse_Result, "flipcash.messaging.v1.RemoveReactionResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "MESSAGE_NOT_FOUND" },
+  { no: 3, name: "CANNOT_REMOVE_BOOSTED" },
 ]);
 
 /**
@@ -1240,13 +1250,16 @@ export class GetReactorsRequest extends Message<GetReactorsRequest> {
   emoji?: Emoji;
 
   /**
-   * Paging over the reactor list. The order is fixed: reaction order, newest
-   * first — descending Reactor.version, never reacted_ts. Leave
+   * Paging over the reactor list. The order is fixed: most boosted first
+   * (descending Reactor.boost_usd), then reaction order, newest first
+   * (descending Reactor.version), never reacted_ts. Leave
    * options.paging_token unset on the first request; on every subsequent
    * request, set it to the paging_token from the most recent response to
    * advance through the list. The token is opaque and server-generated; do
-   * not construct it. options.page_size above 100 is clamped to 100, the most
-   * a response carries; options.order is ignored.
+   * not construct it, and do not keep it: a token the server no longer
+   * recognises (one issued under an earlier order, say) is answered with
+   * the first page, not an error. options.page_size above 100 is clamped to
+   * 100, the most a response carries; options.order is ignored.
    *
    * @generated from field: flipcash.common.v1.QueryOptions options = 4;
    */
@@ -1299,9 +1312,9 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
   result = GetReactorsResponse_Result.OK;
 
   /**
-   * A page of users who reacted with the requested emoji, newest first (see
-   * Reactor.version). Empty when the message exists but has no reactors for
-   * the emoji.
+   * A page of users who reacted with the requested emoji, most boosted
+   * first and then newest first (see Reactor.version). Empty when the
+   * message exists but has no reactors for the emoji.
    *
    * @generated from field: repeated flipcash.messaging.v1.Reactor reactors = 2;
    */
@@ -1333,8 +1346,15 @@ export class GetReactorsResponse extends Message<GetReactorsResponse> {
    * keeping an open reactor list live applies ReactionUpdates for this
    * (message, emoji) whose version exceeds this value; any it re-applies are
    * idempotent (an ADDED actor already listed dedupes, a REMOVED actor already
-   * absent is a no-op). 0 when the emoji has never been reacted with on the
-   * message. Set when result is OK.
+   * absent is a no-op, a BOOSTED actor already at the update's
+   * actor_boost_usd stays put). The boosted head of the list may be
+   * served from an index that trails a boost by a moment, so a boost that
+   * landed just before the page can be absent from it, or show the actor
+   * at an earlier total; no update repairs that (the boost's version is at
+   * or below this value), and the reactor appears on the next read. A
+   * client may apply a BOOSTED update's actor_boost_usd whatever its
+   * version, since a total re-applied is the same total. 0 when the emoji
+   * has never been reacted with on the message. Set when result is OK.
    *
    * @generated from field: uint64 version = 5;
    */

@@ -6,6 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { ChatId, PhoneNumber } from "../../common/v1/common_pb";
+import { Emoji, MessageId } from "../../messaging/v1/model_pb";
 
 /**
  * The action being performed for a payment in a chat
@@ -112,6 +113,12 @@ export class ChatMetadata extends Message<ChatMetadata> {
      */
     value: ChatMetadata_GroupPayment;
     case: "groupPayment";
+  } | {
+    /**
+     * @generated from field: flipcash.intent.v1.ChatMetadata.ReactionBoost reaction_boost = 5;
+     */
+    value: ChatMetadata_ReactionBoost;
+    case: "reactionBoost";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatMetadata>) {
@@ -126,6 +133,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
     { no: 2, name: "contact_dm_payment", kind: "message", T: ChatMetadata_ContactDmPayment, oneof: "type" },
     { no: 3, name: "dm_payment", kind: "message", T: ChatMetadata_DmPayment, oneof: "type" },
     { no: 4, name: "group_payment", kind: "message", T: ChatMetadata_GroupPayment, oneof: "type" },
+    { no: 5, name: "reaction_boost", kind: "message", T: ChatMetadata_ReactionBoost, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
@@ -309,6 +317,71 @@ export class ChatMetadata_GroupPayment extends Message<ChatMetadata_GroupPayment
 
   static equals(a: ChatMetadata_GroupPayment | PlainMessage<ChatMetadata_GroupPayment> | undefined, b: ChatMetadata_GroupPayment | PlainMessage<ChatMetadata_GroupPayment> | undefined): boolean {
     return proto3.util.equals(ChatMetadata_GroupPayment, a, b);
+  }
+}
+
+/**
+ * For paying to boost a reaction on a message in a group chat: the
+ * payer's reaction with the emoji carries money, shown as
+ * messaging.v1.Reactor.boost_usd and summed into
+ * messaging.v1.EmojiReaction.boost_usd, which orders a message's
+ * reactions. The chat_id must be a group the payer is a member
+ * of, and the message one of its reactable messages. The payment is
+ * divided between the group's creator and the message's sender as the
+ * payer chooses, under one rule the server enforces: the creator is
+ * always paid, and when both are paid neither gets less than a minimum
+ * share of the whole (10% today; a server constant, not negotiated). A
+ * sender who is the creator, or who is the payer, is not paid
+ * separately: the creator takes the whole payment, or the payer keeps
+ * the sender's part. Once the payment is made the server records the
+ * boost against the reaction: the payer's reaction with the emoji is
+ * added if absent, the emoji's and the payer's totals grow by the
+ * payment's USD market value, and a messaging.v1.ReactionUpdate with
+ * action BOOSTED is broadcast. No message is posted into the chat.
+ *
+ * @generated from message flipcash.intent.v1.ChatMetadata.ReactionBoost
+ */
+export class ChatMetadata_ReactionBoost extends Message<ChatMetadata_ReactionBoost> {
+  /**
+   * The message whose reaction is boosted.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji boosted.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 2;
+   */
+  emoji?: Emoji;
+
+  constructor(data?: PartialMessage<ChatMetadata_ReactionBoost>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.intent.v1.ChatMetadata.ReactionBoost";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+    { no: 2, name: "emoji", kind: "message", T: Emoji },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_ReactionBoost {
+    return new ChatMetadata_ReactionBoost().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_ReactionBoost {
+    return new ChatMetadata_ReactionBoost().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_ReactionBoost {
+    return new ChatMetadata_ReactionBoost().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatMetadata_ReactionBoost | PlainMessage<ChatMetadata_ReactionBoost> | undefined, b: ChatMetadata_ReactionBoost | PlainMessage<ChatMetadata_ReactionBoost> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata_ReactionBoost, a, b);
   }
 }
 

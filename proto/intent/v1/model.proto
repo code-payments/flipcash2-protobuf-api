@@ -7,6 +7,7 @@ option java_package = "com.codeinc.flipcash.gen.intent.v1";
 option objc_class_prefix = "FPBIntentV1";
 
 import "common/v1/common.proto";
+import "messaging/v1/model.proto";
 import "validate/validate.proto";
 
 message AppMetadata {
@@ -27,6 +28,7 @@ message ChatMetadata {
         ContactDmPayment contact_dm_payment = 2;
         DmPayment        dm_payment         = 3;
         GroupPayment     group_payment      = 4;
+        ReactionBoost    reaction_boost     = 5;
     }
 
     // For sending a payment to a contact in a DM
@@ -63,6 +65,31 @@ message ChatMetadata {
         // are supported today, and the payment is shown as SENT; the server
         // denies TIP.
         PaymentAction action = 1;
+    }
+
+    // For paying to boost a reaction on a message in a group chat: the
+    // payer's reaction with the emoji carries money, shown as
+    // messaging.v1.Reactor.boost_usd and summed into
+    // messaging.v1.EmojiReaction.boost_usd, which orders a message's
+    // reactions. The chat_id must be a group the payer is a member
+    // of, and the message one of its reactable messages. The payment is
+    // divided between the group's creator and the message's sender as the
+    // payer chooses, under one rule the server enforces: the creator is
+    // always paid, and when both are paid neither gets less than a minimum
+    // share of the whole (10% today; a server constant, not negotiated). A
+    // sender who is the creator, or who is the payer, is not paid
+    // separately: the creator takes the whole payment, or the payer keeps
+    // the sender's part. Once the payment is made the server records the
+    // boost against the reaction: the payer's reaction with the emoji is
+    // added if absent, the emoji's and the payer's totals grow by the
+    // payment's USD market value, and a messaging.v1.ReactionUpdate with
+    // action BOOSTED is broadcast. No message is posted into the chat.
+    message ReactionBoost {
+        // The message whose reaction is boosted.
+        messaging.v1.MessageId message_id = 1 [(validate.rules).message.required = true];
+
+        // The emoji boosted.
+        messaging.v1.Emoji emoji = 2 [(validate.rules).message.required = true];
     }
 }
 

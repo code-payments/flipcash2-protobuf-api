@@ -1527,15 +1527,31 @@ export class Reactor extends Message$1<Reactor> {
   /**
    * The emoji aggregate's version at which this reaction was added — the
    * EmojiReaction.version the add produced. Unique among an emoji's reactors,
-   * so it is the reactor list's order: descending version is reaction order,
-   * newest first, with no clock involved. A reactor who removes and re-adds
-   * comes back under a fresh, higher version, at the top. A client slotting a
-   * ReactionUpdate's actor into sample_reactors records the update's version
-   * here.
+   * so with boost_usd it makes the reactor list's order total: the list is
+   * most boosted first (descending boost_usd), then reaction order, newest
+   * first (descending version), with no clock involved. Every plain
+   * reaction sits after every boosted one. A reactor who removes and re-adds
+   * comes back under a fresh, higher version, at the top of the plain
+   * reactors. A client slotting a ReactionUpdate's actor into
+   * sample_reactors records the update's version here.
    *
    * @generated from field: uint64 version = 3;
    */
   version = protoInt64.zero;
+
+  /**
+   * The total the user has paid to boost this emoji on this message, in USD
+   * at each payment's market value when it was made (see
+   * intent.v1.ChatMetadata.ReactionBoost). 0 when they have only reacted.
+   * A boosted reaction is permanent: it cannot be removed, and the total
+   * only grows. It is the reactor list's primary order (see version): a
+   * client applying a BOOSTED ReactionUpdate records the update's
+   * actor_boost_usd here and moves the actor to their place among the
+   * boosters.
+   *
+   * @generated from field: double boost_usd = 4;
+   */
+  boostUsd = 0;
 
   constructor(data?: PartialMessage<Reactor>) {
     super();
@@ -1548,6 +1564,7 @@ export class Reactor extends Message$1<Reactor> {
     { no: 1, name: "user_id", kind: "message", T: UserId },
     { no: 2, name: "reacted_ts", kind: "message", T: Timestamp },
     { no: 3, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "boost_usd", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Reactor {
@@ -1584,7 +1601,13 @@ export class ReactionSummary extends Message$1<ReactionSummary> {
   messageId?: MessageId;
 
   /**
-   * One entry per distinct emoji reacted to this message
+   * One entry per distinct emoji reacted to this message, in the server's
+   * display order: most money first (descending EmojiReaction.boost_usd),
+   * then most reactors (descending count), then by the emoji itself. The
+   * order is total for a given state, so two reads of the same state list
+   * the same sequence. Counts and totals move as users react and boost, so
+   * a client that wants a row to hold still between refreshes keeps its own
+   * order; this is the order for a fresh render.
    *
    * @generated from field: repeated flipcash.messaging.v1.EmojiReaction reactions = 2;
    */
@@ -1667,9 +1690,10 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
 
   /**
    * A small sample of reactors (e.g. for rendering a few avatars), capped
-   * well below count: the most recent reactors by Reactor.version, newest
-   * first. The complete, paged reactor list is fetched on demand via
-   * GetReactors, in the same order.
+   * well below count: the first reactors in list order (see
+   * Reactor.version), so the top boosters by Reactor.boost_usd and then the
+   * most recent plain reactors, newest first. The complete, paged reactor
+   * list is fetched on demand via GetReactors, in the same order.
    *
    * @generated from field: repeated flipcash.messaging.v1.Reactor sample_reactors = 4;
    */
@@ -1702,6 +1726,22 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
    */
   version = protoInt64.zero;
 
+  /**
+   * The total paid to boost this emoji on this message, in USD at each
+   * payment's market value when it was made: the sum of every reactor's
+   * boost_usd. 0 when no one has boosted it. It only grows, since a boosted
+   * reaction cannot be removed, and it moves `version` like any other
+   * change to the emoji. The server keeps every boost as its own record
+   * behind these totals; there is no read of them yet.
+   *
+   * It is the primary sort key of a ReactionSummary (see there): the server
+   * lists an emoji with more money behind it ahead of one with more
+   * reactors.
+   *
+   * @generated from field: double boost_usd = 6;
+   */
+  boostUsd = 0;
+
   constructor(data?: PartialMessage<EmojiReaction>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1715,6 +1755,7 @@ export class EmojiReaction extends Message$1<EmojiReaction> {
     { no: 3, name: "self_reactor", kind: "message", T: Reactor },
     { no: 4, name: "sample_reactors", kind: "message", T: Reactor, repeated: true },
     { no: 5, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 6, name: "boost_usd", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): EmojiReaction {
@@ -1752,17 +1793,18 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
   messageId?: MessageId;
 
   /**
-   * The emoji that was added or removed.
+   * The emoji that was added, removed or boosted.
    *
    * @generated from field: flipcash.messaging.v1.Emoji emoji = 2;
    */
   emoji?: Emoji;
 
   /**
-   * The user who added or removed the reaction. A client maintains its own
-   * EmojiReaction.self_reactor by comparing this to itself (ADDED sets it
-   * from this actor, `version` and `reacted_ts` below; REMOVED clears it),
-   * so a reaction made on the user's other device is reflected.
+   * The user who added, removed or boosted the reaction. A client maintains
+   * its own EmojiReaction.self_reactor by comparing this to itself (ADDED
+   * sets it from this actor, `version` and `reacted_ts` below; REMOVED
+   * clears it; BOOSTED sets it if absent and records actor_boost_usd on
+   * it), so a reaction made on the user's other device is reflected.
    *
    * @generated from field: flipcash.common.v1.UserId actor = 3;
    */
@@ -1797,12 +1839,33 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
    * When the actor reacted. On ADDED, clients record this as the actor's
    * Reactor.reacted_ts, and `version` above as their Reactor.version, when
    * slotting them into sample_reactors or an open reactor list; ignored for
-   * REMOVED. This is a display timestamp, distinct from `version`, which is
-   * the ordering key.
+   * REMOVED. On BOOSTED it is when the actor first reacted with the emoji:
+   * the boost's time when the boost added the reaction, the original add's
+   * time otherwise, so a client slotting a new reactor records it as above,
+   * and one already listed keeps its reacted_ts and version while
+   * actor_boost_usd moves it among the boosters. This is a display
+   * timestamp, distinct from `version`, which is the ordering key.
    *
    * @generated from field: google.protobuf.Timestamp reacted_ts = 7;
    */
   reactedTs?: Timestamp;
+
+  /**
+   * The emoji's total boost after this change (EmojiReaction.boost_usd).
+   * Set on BOOSTED; on ADDED and REMOVED it is the unchanged total, carried
+   * so a client applying the update at `version` holds the whole aggregate.
+   *
+   * @generated from field: double boost_usd = 8;
+   */
+  boostUsd = 0;
+
+  /**
+   * The actor's own total on the emoji after this change (their
+   * Reactor.boost_usd). Set on BOOSTED; 0 on ADDED and REMOVED.
+   *
+   * @generated from field: double actor_boost_usd = 9;
+   */
+  actorBoostUsd = 0;
 
   constructor(data?: PartialMessage<ReactionUpdate>) {
     super();
@@ -1819,6 +1882,8 @@ export class ReactionUpdate extends Message$1<ReactionUpdate> {
     { no: 5, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 6, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 7, name: "reacted_ts", kind: "message", T: Timestamp },
+    { no: 8, name: "boost_usd", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 9, name: "actor_boost_usd", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReactionUpdate {
@@ -1856,12 +1921,26 @@ export enum ReactionUpdate_Action {
    * @generated from enum value: REMOVED = 2;
    */
   REMOVED = 2,
+
+  /**
+   * The actor paid to boost the emoji (see
+   * intent.v1.ChatMetadata.ReactionBoost). `count` is the reactor count
+   * after it, one more than before when the actor had not reacted with
+   * the emoji yet, unchanged otherwise; boost_usd and actor_boost_usd
+   * carry the new totals. Applied by `version` like any other action,
+   * so a client that missed the ADDED it implies still ends up with
+   * the actor listed.
+   *
+   * @generated from enum value: BOOSTED = 3;
+   */
+  BOOSTED = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(ReactionUpdate_Action)
 proto3.util.setEnumType(ReactionUpdate_Action, "flipcash.messaging.v1.ReactionUpdate.Action", [
   { no: 0, name: "UNKNOWN" },
   { no: 1, name: "ADDED" },
   { no: 2, name: "REMOVED" },
+  { no: 3, name: "BOOSTED" },
 ]);
 
 /**

@@ -382,6 +382,48 @@ func (m *ChatMetadata) validate(all bool) error {
 			}
 		}
 
+	case *ChatMetadata_ReactionBoost_:
+		if v == nil {
+			err := ChatMetadataValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetReactionBoost()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChatMetadataValidationError{
+						field:  "ReactionBoost",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChatMetadataValidationError{
+						field:  "ReactionBoost",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetReactionBoost()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChatMetadataValidationError{
+					field:  "ReactionBoost",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -865,3 +907,185 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ChatMetadata_GroupPaymentValidationError{}
+
+// Validate checks the field values on ChatMetadata_ReactionBoost with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ChatMetadata_ReactionBoost) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChatMetadata_ReactionBoost with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ChatMetadata_ReactionBoostMultiError, or nil if none found.
+func (m *ChatMetadata_ReactionBoost) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChatMetadata_ReactionBoost) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMessageId() == nil {
+		err := ChatMetadata_ReactionBoostValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatMetadata_ReactionBoostValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatMetadata_ReactionBoostValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatMetadata_ReactionBoostValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEmoji() == nil {
+		err := ChatMetadata_ReactionBoostValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatMetadata_ReactionBoostValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatMetadata_ReactionBoostValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatMetadata_ReactionBoostValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ChatMetadata_ReactionBoostMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChatMetadata_ReactionBoostMultiError is an error wrapping multiple
+// validation errors returned by ChatMetadata_ReactionBoost.ValidateAll() if
+// the designated constraints aren't met.
+type ChatMetadata_ReactionBoostMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChatMetadata_ReactionBoostMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChatMetadata_ReactionBoostMultiError) AllErrors() []error { return m }
+
+// ChatMetadata_ReactionBoostValidationError is the validation error returned
+// by ChatMetadata_ReactionBoost.Validate if the designated constraints aren't met.
+type ChatMetadata_ReactionBoostValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChatMetadata_ReactionBoostValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChatMetadata_ReactionBoostValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChatMetadata_ReactionBoostValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChatMetadata_ReactionBoostValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChatMetadata_ReactionBoostValidationError) ErrorName() string {
+	return "ChatMetadata_ReactionBoostValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChatMetadata_ReactionBoostValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChatMetadata_ReactionBoost.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChatMetadata_ReactionBoostValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChatMetadata_ReactionBoostValidationError{}

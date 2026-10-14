@@ -3016,6 +3016,17 @@ func (m *Reactor) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if m.GetBoostUsd() < 0 {
+		err := ReactorValidationError{
+			field:  "BoostUsd",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ReactorMultiError(errors)
 	}
@@ -3416,6 +3427,17 @@ func (m *EmojiReaction) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if m.GetBoostUsd() < 0 {
+		err := EmojiReactionValidationError{
+			field:  "BoostUsd",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return EmojiReactionMultiError(errors)
 	}
@@ -3664,6 +3686,28 @@ func (m *ReactionUpdate) validate(all bool) error {
 		err := ReactionUpdateValidationError{
 			field:  "ReactedTs",
 			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetBoostUsd() < 0 {
+		err := ReactionUpdateValidationError{
+			field:  "BoostUsd",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetActorBoostUsd() < 0 {
+		err := ReactionUpdateValidationError{
+			field:  "ActorBoostUsd",
+			reason: "value must be greater than or equal to 0",
 		}
 		if !all {
 			return err
