@@ -491,7 +491,10 @@ export class TextContent extends Message$1<TextContent> {
  * description and image are the sender's claim about the page. Clients
  * therefore show the host of `url` on the card, always and never the title
  * alone, and open `url` when the card is tapped, so a forged card sits beside
- * a true domain and leads only where the text already leads.
+ * a true domain and leads only where the text already leads. They render the
+ * host apart from the sender's text, in a style the title and description
+ * never take, and clamp the title and description to a few lines each, so
+ * neither can pass for the host or push it out of view.
  *
  * @generated from message flipcash.messaging.v1.LinkPreview
  */
@@ -529,11 +532,13 @@ export class LinkPreview extends Message$1<LinkPreview> {
   /**
    * The page's title. Something visible: at least one character that is
    * neither whitespace nor an invisible format character (such as a
-   * zero-width space). No control characters but a line break, and no
-   * bidirectional embedding, override or isolate (U+202A–U+202E,
-   * U+2066–U+2069); the marks U+200E, U+200F and U+061C are allowed. A
-   * sender removes what is refused from the title it scraped, or drops
-   * the preview.
+   * zero-width space). One line: no line break (line feed, U+2028 or
+   * U+2029), so a title cannot draw a line beneath it that reads as the
+   * host. No control characters, and no bidirectional embedding, override
+   * or isolate (U+202A–U+202E, U+2066–U+2069); the marks U+200E, U+200F
+   * and U+061C are allowed. A sender removes what is refused from the
+   * title it scraped (replacing a line break with a space), or drops the
+   * preview.
    *
    * @generated from field: string title = 2;
    */
@@ -541,7 +546,7 @@ export class LinkPreview extends Message$1<LinkPreview> {
 
   /**
    * The page's description, if it has one. Empty for none; otherwise held
-   * to the same rules as the title.
+   * to the same rules as the title, except that it may hold line feeds.
    *
    * @generated from field: string description = 3;
    */

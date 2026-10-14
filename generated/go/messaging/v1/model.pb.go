@@ -886,7 +886,10 @@ func (x *TextContent) GetLinkPreviews() []*LinkPreview {
 // description and image are the sender's claim about the page. Clients
 // therefore show the host of `url` on the card, always and never the title
 // alone, and open `url` when the card is tapped, so a forged card sits beside
-// a true domain and leads only where the text already leads.
+// a true domain and leads only where the text already leads. They render the
+// host apart from the sender's text, in a style the title and description
+// never take, and clamp the title and description to a few lines each, so
+// neither can pass for the host or push it out of view.
 type LinkPreview struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -919,14 +922,16 @@ type LinkPreview struct {
 	Url string `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
 	// The page's title. Something visible: at least one character that is
 	// neither whitespace nor an invisible format character (such as a
-	// zero-width space). No control characters but a line break, and no
-	// bidirectional embedding, override or isolate (U+202A–U+202E,
-	// U+2066–U+2069); the marks U+200E, U+200F and U+061C are allowed. A
-	// sender removes what is refused from the title it scraped, or drops
-	// the preview.
+	// zero-width space). One line: no line break (line feed, U+2028 or
+	// U+2029), so a title cannot draw a line beneath it that reads as the
+	// host. No control characters, and no bidirectional embedding, override
+	// or isolate (U+202A–U+202E, U+2066–U+2069); the marks U+200E, U+200F
+	// and U+061C are allowed. A sender removes what is refused from the
+	// title it scraped (replacing a line break with a space), or drops the
+	// preview.
 	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	// The page's description, if it has one. Empty for none; otherwise held
-	// to the same rules as the title.
+	// to the same rules as the title, except that it may hold line feeds.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// The page's image, if it has one. Like a MediaContent item: on
 	// SendMessage the client supplies exactly one ORIGINAL rendition, a blob
