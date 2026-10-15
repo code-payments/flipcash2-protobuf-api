@@ -397,6 +397,35 @@ func (m *Metadata) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetHoldingsSummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MetadataValidationError{
+					field:  "HoldingsSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MetadataValidationError{
+					field:  "HoldingsSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetHoldingsSummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MetadataValidationError{
+				field:  "HoldingsSummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for UseE2Ee
 
 	if len(errors) > 0 {
@@ -2337,6 +2366,161 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RosterSummaryValidationError{}
+
+// Validate checks the field values on HoldingsSummary with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *HoldingsSummary) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on HoldingsSummary with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// HoldingsSummaryMultiError, or nil if none found.
+func (m *HoldingsSummary) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *HoldingsSummary) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMint() == nil {
+		err := HoldingsSummaryValidationError{
+			field:  "Mint",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMint()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, HoldingsSummaryValidationError{
+					field:  "Mint",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, HoldingsSummaryValidationError{
+					field:  "Mint",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMint()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return HoldingsSummaryValidationError{
+				field:  "Mint",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Quarks
+
+	// no validation rules for HolderCount
+
+	if m.GetAsOf() == nil {
+		err := HoldingsSummaryValidationError{
+			field:  "AsOf",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return HoldingsSummaryMultiError(errors)
+	}
+
+	return nil
+}
+
+// HoldingsSummaryMultiError is an error wrapping multiple validation errors
+// returned by HoldingsSummary.ValidateAll() if the designated constraints
+// aren't met.
+type HoldingsSummaryMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m HoldingsSummaryMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m HoldingsSummaryMultiError) AllErrors() []error { return m }
+
+// HoldingsSummaryValidationError is the validation error returned by
+// HoldingsSummary.Validate if the designated constraints aren't met.
+type HoldingsSummaryValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e HoldingsSummaryValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e HoldingsSummaryValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e HoldingsSummaryValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e HoldingsSummaryValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e HoldingsSummaryValidationError) ErrorName() string { return "HoldingsSummaryValidationError" }
+
+// Error satisfies the builtin error interface
+func (e HoldingsSummaryValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHoldingsSummary.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = HoldingsSummaryValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = HoldingsSummaryValidationError{}
 
 // Validate checks the field values on MetadataUpdate with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
