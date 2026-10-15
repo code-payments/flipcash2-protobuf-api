@@ -472,7 +472,10 @@ func (x *ChatMetadata_GroupPayment) GetAction() PaymentAction {
 // messaging.v1.Reactor.boost_usd and summed into
 // messaging.v1.EmojiReaction.boost_usd, which orders a message's
 // reactions. The chat_id must be a group the payer is a member
-// of, and the message one of its reactable messages. The payment is
+// of, the message one of its reactable messages, and the payer must
+// already have reacted to it with the emoji: a boost puts money behind
+// a reaction the payer holds, so a client adds the reaction first
+// (messaging.v1.AddReaction) and pays after. The payment is
 // divided between the group's creator and the message's sender as the
 // payer chooses, under one rule the server enforces: the creator is
 // always paid, and when both are paid neither gets less than a minimum
@@ -480,10 +483,10 @@ func (x *ChatMetadata_GroupPayment) GetAction() PaymentAction {
 // sender who is the creator, or who is the payer, is not paid
 // separately: the creator takes the whole payment, or the payer keeps
 // the sender's part. Once the payment is made the server records the
-// boost against the reaction: the payer's reaction with the emoji is
-// added if absent, the emoji's and the payer's totals grow by the
-// payment's USD market value, and a messaging.v1.ReactionUpdate with
-// action BOOSTED is broadcast. No message is posted into the chat.
+// boost against the reaction: the emoji's and the payer's totals grow
+// by the payment's USD market value (the reaction is added back if the
+// payer removed it after paying), and a messaging.v1.ReactionUpdate
+// with action BOOSTED is broadcast. No message is posted into the chat.
 type ChatMetadata_ReactionBoost struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
