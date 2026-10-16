@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package flipcash.community.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/community/v1;communitypb";
+option java_package = "com.codeinc.flipcash.gen.community.v1";
+option objc_class_prefix = "FPBCommunityV1";
+
+import "chat/v1/model.proto";
+import "common/v1/common.proto";
+import "profile/v1/model.proto";
+import "validate/validate.proto";
+
+// CommunityMetadata is what Flipcash shows about the people and groups around
+// one currency launched on Flipcash. A community is identified by its
+// currency's mint, and there is exactly one per launched currency.
+//
+// More fields will be added as the community surface grows.
+message CommunityMetadata {
+    // The mint of the community's currency.
+    common.v1.PublicKey mint = 1 [(validate.rules).message.required = true];
+
+    // The name of the community's currency, as it was launched. Bounded as
+    // OCP bounds a currency's name.
+    string name = 2 [(validate.rules).string = {
+        min_len: 1
+        max_len: 32
+    }];
+
+    // The community's leader: the Flipcash user who launched its currency.
+    // Unset when the account that launched it does not belong to a Flipcash
+    // user, or belongs to one who has not set a display name.
+    CommunityLeader leader = 3;
+
+    // The public groups gated on this currency whose members hold the most of
+    // it, most first by chat.v1.HoldingsSummary.quarks. Empty when no group
+    // qualifies or none has been ranked yet.
+    //
+    // A group qualifies when it is a public group gated on this currency
+    // alone: its minimum balance requirements, listener and speaker alike,
+    // all name this currency's mint and no other (see chat.v1.HoldingsSummary
+    // for the full definition). Private groups never qualify. Every group
+    // listed carries holdings_summary.
+    //
+    // The ranking is a periodic snapshot taken one group at a time, so the
+    // groups' holdings may have been computed at different times (see
+    // chat.v1.HoldingsSummary.as_of) and the order may trail recent balance
+    // changes. How many groups are returned, how often they are refreshed,
+    // and any minimum a group must meet to be listed (such as a number of
+    // holders) are the server's to decide and may change.
+    //
+    // Each group is returned as a list view shows it: chat_id, type, title,
+    // description, profile_picture, roster_summary, rules, creator,
+    // last_activity and holdings_summary. Nothing about the viewer's place in
+    // the group is set (members, is_hidden, viewer_state, in_lobby), nor its
+    // messaging state (last_message, latest_event_sequence), nor its
+    // cover_picture: a client opening the group fetches the rest with
+    // chat.v1.Chat.GetChat. The group is read when the community is, so its
+    // title and pictures are current even when its holdings are not.
+    repeated chat.v1.Metadata top_holder_chats = 4 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 25 // todo: arbitrary
+    }];
+}
+
+// CommunityLeader is the user who leads a community (see
+// CommunityMetadata.leader). More fields will be added as the community
+// surface grows.
+message CommunityLeader {
+    // The leader's public profile, as a chat member row shows it: user ID,
+    // display name (never empty), username, profile picture and Flipcard
+    // customization.
+    profile.v1.UserProfile profile = 1 [(validate.rules).message.required = true];
+}

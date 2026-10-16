@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package flipcash.community.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/community/v1;communitypb";
+option java_package = "com.codeinc.flipcash.gen.community.v1";
+option objc_class_prefix = "FPBCommunityV1";
+
+import "common/v1/common.proto";
+import "community/v1/model.proto";
+import "validate/validate.proto";
+
+// Community serves what Flipcash shows about the community around a currency
+// launched on Flipcash (see CommunityMetadata).
+//
+// Everything it returns is public and the same for every viewer.
+service Community {
+    // GetCommunity returns a currency's community.
+    //
+    // Auth is optional; when set it must be valid, but it changes nothing
+    // about what is returned.
+    rpc GetCommunity(GetCommunityRequest) returns (GetCommunityResponse);
+}
+
+message GetCommunityRequest {
+    // The community to fetch. Only a mint is supported for now; the oneof
+    // leaves room for other identifiers.
+    oneof identifier {
+        option (validate.required) = true;
+
+        // The mint of the community's currency.
+        common.v1.PublicKey mint = 1;
+    }
+
+    // Optional. When set it must be valid, but the community is the same with
+    // or without it (see Community.GetCommunity).
+    common.v1.Auth auth = 10;
+}
+
+message GetCommunityResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        // The mint is not a currency launched on Flipcash, or is not yet
+        // available.
+        NOT_FOUND = 1;
+    }
+
+    // Set only when result == OK.
+    CommunityMetadata community = 2;
+}

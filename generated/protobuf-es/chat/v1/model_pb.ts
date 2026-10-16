@@ -231,6 +231,23 @@ export class Metadata extends Message<Metadata> {
   coverPicture?: Media;
 
   /**
+   * What the group's members hold of the currency the group is gated on.
+   * Only supported for public group chats gated on a single currency
+   * launched on Flipcash (see HoldingsSummary for what that means). Unset
+   * for every other chat, for such a group until the server has first
+   * computed it, and whenever too few of its members hold the currency:
+   * the server sets a minimum number of holders (and a positive total)
+   * below which it shows no summary, and may change it. A group whose
+   * holders fall below the minimum loses its summary at the next refresh.
+   *
+   * A periodic snapshot (see HoldingsSummary.as_of), not live: no event
+   * announces a change, and a client refetches the chat to refresh it.
+   *
+   * @generated from field: flipcash.chat.v1.HoldingsSummary holdings_summary = 18;
+   */
+  holdingsSummary?: HoldingsSummary;
+
+  /**
    * Whether messages in this chat are end-to-end encrypted (see
    * messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
    * always false for group chats. A private group is always end-to-end
@@ -274,6 +291,7 @@ export class Metadata extends Message<Metadata> {
     { no: 15, name: "in_lobby", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 16, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 17, name: "cover_picture", kind: "message", T: Media },
+    { no: 18, name: "holdings_summary", kind: "message", T: HoldingsSummary },
     { no: 100, name: "use_e2ee", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
@@ -901,6 +919,86 @@ export class RosterSummary extends Message<RosterSummary> {
 
   static equals(a: RosterSummary | PlainMessage<RosterSummary> | undefined, b: RosterSummary | PlainMessage<RosterSummary> | undefined): boolean {
     return proto3.util.equals(RosterSummary, a, b);
+  }
+}
+
+/**
+ * HoldingsSummary is what a group's members held of the currency the group is
+ * gated on, as of one moment (see Metadata.holdings_summary). Holdings are
+ * counted for the members at that moment, whether or not each still meets
+ * the group's minimum balance requirements.
+ *
+ * A group is gated on a single currency when its minimum balance
+ * requirements (see MinimumBalanceRequirement), listener and speaker alike,
+ * all name the same one mint, and that mint is a currency launched on
+ * Flipcash. The fiat currency a requirement is denominated in does not
+ * matter. A group with no minimum balance requirement is not gated on a
+ * currency, nor is one with a requirement that names no mint (and so applies
+ * to every mint), nor one whose requirements name different mints.
+ *
+ * @generated from message flipcash.chat.v1.HoldingsSummary
+ */
+export class HoldingsSummary extends Message<HoldingsSummary> {
+  /**
+   * The mint of the currency the group is gated on: the one mint its
+   * minimum balance requirements name.
+   *
+   * @generated from field: flipcash.common.v1.PublicKey mint = 1;
+   */
+  mint?: PublicKey;
+
+  /**
+   * The total amount of the currency held by the group's members, in the
+   * mint's quarks. Clients value it in fiat with the currency's price they
+   * already show.
+   *
+   * @generated from field: uint64 quarks = 2;
+   */
+  quarks = protoInt64.zero;
+
+  /**
+   * The number of the group's members who held any of the currency.
+   *
+   * @generated from field: uint64 holder_count = 3;
+   */
+  holderCount = protoInt64.zero;
+
+  /**
+   * When quarks and holder_count were computed. How often the server
+   * recomputes them is its to decide and may change.
+   *
+   * @generated from field: google.protobuf.Timestamp as_of = 4;
+   */
+  asOf?: Timestamp;
+
+  constructor(data?: PartialMessage<HoldingsSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.HoldingsSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mint", kind: "message", T: PublicKey },
+    { no: 2, name: "quarks", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 3, name: "holder_count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "as_of", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): HoldingsSummary {
+    return new HoldingsSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): HoldingsSummary {
+    return new HoldingsSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): HoldingsSummary {
+    return new HoldingsSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: HoldingsSummary | PlainMessage<HoldingsSummary> | undefined, b: HoldingsSummary | PlainMessage<HoldingsSummary> | undefined): boolean {
+    return proto3.util.equals(HoldingsSummary, a, b);
   }
 }
 

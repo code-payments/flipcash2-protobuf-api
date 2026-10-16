@@ -145,6 +145,19 @@ message Metadata {
     // feed result clear a cover picture the client already holds.
     blob.v1.Media cover_picture = 17;
 
+    // What the group's members hold of the currency the group is gated on.
+    // Only supported for public group chats gated on a single currency
+    // launched on Flipcash (see HoldingsSummary for what that means). Unset
+    // for every other chat, for such a group until the server has first
+    // computed it, and whenever too few of its members hold the currency:
+    // the server sets a minimum number of holders (and a positive total)
+    // below which it shows no summary, and may change it. A group whose
+    // holders fall below the minimum loses its summary at the next refresh.
+    //
+    // A periodic snapshot (see HoldingsSummary.as_of), not live: no event
+    // announces a change, and a client refetches the chat to refresh it.
+    HoldingsSummary holdings_summary = 18;
+
     // Whether messages in this chat are end-to-end encrypted (see
     // messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
     // always false for group chats. A private group is always end-to-end
@@ -340,6 +353,36 @@ message RosterSummary {
     // and, like it, is NOT the chat event sequence: there is no delta to fetch
     // against it, only a refetch of the members.
     uint64 version = 2;
+}
+
+// HoldingsSummary is what a group's members held of the currency the group is
+// gated on, as of one moment (see Metadata.holdings_summary). Holdings are
+// counted for the members at that moment, whether or not each still meets
+// the group's minimum balance requirements.
+//
+// A group is gated on a single currency when its minimum balance
+// requirements (see MinimumBalanceRequirement), listener and speaker alike,
+// all name the same one mint, and that mint is a currency launched on
+// Flipcash. The fiat currency a requirement is denominated in does not
+// matter. A group with no minimum balance requirement is not gated on a
+// currency, nor is one with a requirement that names no mint (and so applies
+// to every mint), nor one whose requirements name different mints.
+message HoldingsSummary {
+    // The mint of the currency the group is gated on: the one mint its
+    // minimum balance requirements name.
+    common.v1.PublicKey mint = 1 [(validate.rules).message.required = true];
+
+    // The total amount of the currency held by the group's members, in the
+    // mint's quarks. Clients value it in fiat with the currency's price they
+    // already show.
+    uint64 quarks = 2;
+
+    // The number of the group's members who held any of the currency.
+    uint64 holder_count = 3;
+
+    // When quarks and holder_count were computed. How often the server
+    // recomputes them is its to decide and may change.
+    google.protobuf.Timestamp as_of = 4 [(validate.rules).timestamp.required = true];
 }
 
 message MetadataUpdate {
