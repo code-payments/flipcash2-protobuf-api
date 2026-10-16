@@ -83,8 +83,13 @@ message ChatMetadata {
     //   - A boost by anyone but the creator of a message the creator did
     //     not send pays the creator 20% of the whole and the sender the
     //     rest, as one SendPublicMultiPayment to the two of them. The
-    //     creator's share may be rounded either way: it must be within one
-    //     quark of exactly 20%.
+    //     split is judged on each payment's fiat amount (its exchange data's
+    //     native_amount), which must be within half the currency's smallest
+    //     unit of the payee's share of the whole, so round each share to that
+    //     unit (e.g. a cent) either way. Each payment's quarks are the ones
+    //     worth its own amount, computed from that amount alone at the shared
+    //     exchange rate and reserve state; on a bonding curve they are not
+    //     an 80/20 of the quarks for the whole.
     //   - A boost of the creator's own message pays the creator the whole.
     //   - A boost by the creator pays the sender the whole.
     //
