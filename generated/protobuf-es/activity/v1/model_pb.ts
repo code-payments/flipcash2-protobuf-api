@@ -5,7 +5,8 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
-import { CryptoPaymentAmount, FiatPaymentAmount, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
+import { ChatId, CryptoPaymentAmount, FiatPaymentAmount, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
+import { Emoji, MessageId } from "../../messaging/v1/model_pb";
 
 /**
  * ActivityFeedType enables multiple activity feeds, where notifications may be
@@ -312,6 +313,16 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
     case: "userId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Set when the payment boosted a reaction (see BoostedReaction). A boost
+   * that paid one person names them in destination_identifier; one that
+   * paid both the message's sender and the group's creator names neither,
+   * and payment_amount is the whole boost.
+   *
+   * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
+   */
+  boostedReaction?: BoostedReaction;
+
   constructor(data?: PartialMessage<DirectlySentCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -322,6 +333,7 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "destination_identifier" },
     { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "destination_identifier" },
+    { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DirectlySentCryptoNotificationMetadata {
@@ -362,6 +374,16 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
     case: "userId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Set when the payment was the recipient's share of a boost of a
+   * reaction (see BoostedReaction), paid to them as the boosted message's
+   * sender or the group's creator. source_identifier names the payer, and
+   * payment_amount is the recipient's share alone.
+   *
+   * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
+   */
+  boostedReaction?: BoostedReaction;
+
   constructor(data?: PartialMessage<ReceivedCryptoNotificationMetadata>) {
     super();
     proto3.util.initPartial(data, this);
@@ -372,6 +394,7 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "source_identifier" },
     { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "source_identifier" },
+    { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReceivedCryptoNotificationMetadata {
@@ -388,6 +411,67 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
 
   static equals(a: ReceivedCryptoNotificationMetadata | PlainMessage<ReceivedCryptoNotificationMetadata> | undefined, b: ReceivedCryptoNotificationMetadata | PlainMessage<ReceivedCryptoNotificationMetadata> | undefined): boolean {
     return proto3.util.equals(ReceivedCryptoNotificationMetadata, a, b);
+  }
+}
+
+/**
+ * The reaction a payment boosted: the payer's reaction with emoji on a
+ * message in a group chat (see intent.v1.ChatMetadata.ReactionBoost). It is
+ * what the payment was for when it was made and is not kept up to date: the
+ * message may since have been deleted, and the viewer may no longer be a
+ * member of the chat.
+ *
+ * @generated from message flipcash.activity.v1.BoostedReaction
+ */
+export class BoostedReaction extends Message<BoostedReaction> {
+  /**
+   * The group chat the boosted message is in.
+   *
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The message whose reaction was boosted.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The emoji of the boosted reaction.
+   *
+   * @generated from field: flipcash.messaging.v1.Emoji emoji = 3;
+   */
+  emoji?: Emoji;
+
+  constructor(data?: PartialMessage<BoostedReaction>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.activity.v1.BoostedReaction";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 3, name: "emoji", kind: "message", T: Emoji },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BoostedReaction {
+    return new BoostedReaction().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BoostedReaction {
+    return new BoostedReaction().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BoostedReaction {
+    return new BoostedReaction().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BoostedReaction | PlainMessage<BoostedReaction> | undefined, b: BoostedReaction | PlainMessage<BoostedReaction> | undefined): boolean {
+    return proto3.util.equals(BoostedReaction, a, b);
   }
 }
 

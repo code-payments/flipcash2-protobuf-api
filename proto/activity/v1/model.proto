@@ -7,6 +7,7 @@ option java_package = "com.codeinc.flipcash.gen.activity.v1";
 option objc_class_prefix = "FCPBActivityV1";
 
 import "common/v1/common.proto";
+import "messaging/v1/model.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
@@ -64,6 +65,12 @@ message DirectlySentCryptoNotificationMetadata {
         common.v1.PhoneNumber phone   = 1;
         common.v1.UserId      user_id = 2;
     }
+
+    // Set when the payment boosted a reaction (see BoostedReaction). A boost
+    // that paid one person names them in destination_identifier; one that
+    // paid both the message's sender and the group's creator names neither,
+    // and payment_amount is the whole boost.
+    BoostedReaction boosted_reaction = 3;
 }
 
 message ReceivedCryptoNotificationMetadata {
@@ -71,6 +78,28 @@ message ReceivedCryptoNotificationMetadata {
         common.v1.PhoneNumber phone   = 1;
         common.v1.UserId      user_id = 2;
     }
+
+    // Set when the payment was the recipient's share of a boost of a
+    // reaction (see BoostedReaction), paid to them as the boosted message's
+    // sender or the group's creator. source_identifier names the payer, and
+    // payment_amount is the recipient's share alone.
+    BoostedReaction boosted_reaction = 3;
+}
+
+// The reaction a payment boosted: the payer's reaction with emoji on a
+// message in a group chat (see intent.v1.ChatMetadata.ReactionBoost). It is
+// what the payment was for when it was made and is not kept up to date: the
+// message may since have been deleted, and the viewer may no longer be a
+// member of the chat.
+message BoostedReaction {
+    // The group chat the boosted message is in.
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The message whose reaction was boosted.
+    messaging.v1.MessageId message_id = 2 [(validate.rules).message.required = true];
+
+    // The emoji of the boosted reaction.
+    messaging.v1.Emoji emoji = 3 [(validate.rules).message.required = true];
 }
 
 message WithdrewCryptoNotificationMetadata {

@@ -742,6 +742,35 @@ func (m *DirectlySentCryptoNotificationMetadata) validate(all bool) error {
 
 	var errors []error
 
+	if all {
+		switch v := interface{}(m.GetBoostedReaction()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "BoostedReaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "BoostedReaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBoostedReaction()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DirectlySentCryptoNotificationMetadataValidationError{
+				field:  "BoostedReaction",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.DestinationIdentifier.(type) {
 	case *DirectlySentCryptoNotificationMetadata_Phone:
 		if v == nil {
@@ -934,6 +963,35 @@ func (m *ReceivedCryptoNotificationMetadata) validate(all bool) error {
 
 	var errors []error
 
+	if all {
+		switch v := interface{}(m.GetBoostedReaction()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+					field:  "BoostedReaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+					field:  "BoostedReaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBoostedReaction()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReceivedCryptoNotificationMetadataValidationError{
+				field:  "BoostedReaction",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.SourceIdentifier.(type) {
 	case *ReceivedCryptoNotificationMetadata_Phone:
 		if v == nil {
@@ -1102,6 +1160,226 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ReceivedCryptoNotificationMetadataValidationError{}
+
+// Validate checks the field values on BoostedReaction with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *BoostedReaction) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BoostedReaction with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BoostedReactionMultiError, or nil if none found.
+func (m *BoostedReaction) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BoostedReaction) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := BoostedReactionValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BoostedReactionValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BoostedReactionValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BoostedReactionValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := BoostedReactionValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BoostedReactionValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BoostedReactionValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BoostedReactionValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetEmoji() == nil {
+		err := BoostedReactionValidationError{
+			field:  "Emoji",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmoji()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BoostedReactionValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BoostedReactionValidationError{
+					field:  "Emoji",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmoji()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BoostedReactionValidationError{
+				field:  "Emoji",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return BoostedReactionMultiError(errors)
+	}
+
+	return nil
+}
+
+// BoostedReactionMultiError is an error wrapping multiple validation errors
+// returned by BoostedReaction.ValidateAll() if the designated constraints
+// aren't met.
+type BoostedReactionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BoostedReactionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BoostedReactionMultiError) AllErrors() []error { return m }
+
+// BoostedReactionValidationError is the validation error returned by
+// BoostedReaction.Validate if the designated constraints aren't met.
+type BoostedReactionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BoostedReactionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BoostedReactionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BoostedReactionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BoostedReactionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BoostedReactionValidationError) ErrorName() string { return "BoostedReactionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BoostedReactionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBoostedReaction.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BoostedReactionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BoostedReactionValidationError{}
 
 // Validate checks the field values on WithdrewCryptoNotificationMetadata with
 // the rules defined in the proto definition for this message. If any rules

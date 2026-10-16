@@ -475,14 +475,27 @@ func (x *ChatMetadata_GroupPayment) GetAction() PaymentAction {
 // of, the message one of its reactable messages, and the payer must
 // already have reacted to it with the emoji: a boost puts money behind
 // a reaction the payer holds, so a client adds the reaction first
-// (messaging.v1.AddReaction) and pays after. The payment is
-// divided between the group's creator and the message's sender as the
-// payer chooses, under one rule the server enforces: the creator is
-// always paid, and when both are paid neither gets less than a minimum
-// share of the whole (10% today; a server constant, not negotiated). A
-// sender who is the creator, or who is the payer, is not paid
-// separately: the creator takes the whole payment, or the payer keeps
-// the sender's part. Once the payment is made the server records the
+// (messaging.v1.AddReaction) and pays after. No one boosts their own
+// message, the group's creator included. The payment is divided
+// between the message's sender and the group's creator by a fixed rule
+// the server enforces; the payer does not choose it:
+//
+//   - A boost by anyone but the creator of a message the creator did
+//     not send pays the creator 20% of the whole and the sender the
+//     rest, as one SendPublicMultiPayment to the two of them. The
+//     creator's share may be rounded either way: it must be within one
+//     quark of exactly 20%.
+//   - A boost of the creator's own message pays the creator the whole.
+//   - A boost by the creator pays the sender the whole.
+//
+// A boost that pays one person is a SendPublicPayment, and one that pays
+// two a SendPublicMultiPayment; the server refuses either intent for the
+// other case. Every share, each destination's amount, must be at least
+// the currency's minimum transfer value (one minor unit, e.g. $0.01), so
+// a boost that pays two is at least five of them. Either way the reaction
+// is credited with the whole payment.
+//
+// Once the payment is made the server records the
 // boost against the reaction: the emoji's and the payer's totals grow
 // by the payment's USD market value (the reaction is added back if the
 // payer removed it after paying), and a messaging.v1.ReactionUpdate
