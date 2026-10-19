@@ -612,20 +612,40 @@ export class CashContent extends Message$1<CashContent> {
   intentId?: IntentId;
 
   /**
-   * The amount of cash that was sent
+   * The total amount of cash that was sent. For a payment to several people
+   * (see multi_receiver), the whole payment, every receiver's part together.
    *
-   * @generated from field: flipcash.common.v1.CryptoPaymentAmount amount = 2;
+   * @generated from field: flipcash.common.v1.CryptoPaymentAmount total_amount = 2;
    */
-  amount?: CryptoPaymentAmount;
+  totalAmount?: CryptoPaymentAmount;
 
   /**
-   * The user who received the cash. Always set in a group chat, where it
-   * names which member was paid. In a DM it is set on new messages but unset
-   * on older ones, whose receiver is the DM member who is not the sender.
+   * Who received the cash. Always set in a group chat. In a DM,
+   * single_receiver is set on new messages, and neither is set on older
+   * ones, whose receiver is the DM member who is not the sender.
    *
-   * @generated from field: flipcash.common.v1.UserId receiver = 3;
+   * @generated from oneof flipcash.messaging.v1.CashContent.recipient
    */
-  receiver?: UserId;
+  recipient: {
+    /**
+     * The user who received the cash, for a payment to one person
+     *
+     * @generated from field: flipcash.common.v1.UserId single_receiver = 3;
+     */
+    value: UserId;
+    case: "singleReceiver";
+  } | {
+    /**
+     * Who was paid and how much, for a payment to several people at once,
+     * made in a group chat alone. total_amount is the whole payment, so a
+     * client that does not know this field shows the sender paying the
+     * total to no one in particular.
+     *
+     * @generated from field: flipcash.messaging.v1.CashContent.Payments multi_receiver = 5;
+     */
+    value: CashContent_Payments;
+    case: "multiReceiver";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
    * @generated from field: flipcash.messaging.v1.CashContent.Verb verb = 4;
@@ -641,8 +661,9 @@ export class CashContent extends Message$1<CashContent> {
   static readonly typeName = "flipcash.messaging.v1.CashContent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "intent_id", kind: "message", T: IntentId },
-    { no: 2, name: "amount", kind: "message", T: CryptoPaymentAmount },
-    { no: 3, name: "receiver", kind: "message", T: UserId },
+    { no: 2, name: "total_amount", kind: "message", T: CryptoPaymentAmount },
+    { no: 3, name: "single_receiver", kind: "message", T: UserId, oneof: "recipient" },
+    { no: 5, name: "multi_receiver", kind: "message", T: CashContent_Payments, oneof: "recipient" },
     { no: 4, name: "verb", kind: "enum", T: proto3.getEnumType(CashContent_Verb) },
   ]);
 
@@ -665,7 +686,8 @@ export class CashContent extends Message$1<CashContent> {
 
 /**
  * Verb for how the cash was sent. Clients should always show SENT as a
- * fallback.
+ * fallback. For a payment to several people, it applies to every one of
+ * them.
  *
  * @generated from enum flipcash.messaging.v1.CashContent.Verb
  */
@@ -685,6 +707,107 @@ proto3.util.setEnumType(CashContent_Verb, "flipcash.messaging.v1.CashContent.Ver
   { no: 0, name: "SENT" },
   { no: 1, name: "TIPPED" },
 ]);
+
+/**
+ * The receivers of a payment to several people at once
+ *
+ * @generated from message flipcash.messaging.v1.CashContent.Payments
+ */
+export class CashContent_Payments extends Message$1<CashContent_Payments> {
+  /**
+   * One entry per receiver, in the payment's own order. Each receiver is
+   * a distinct member of the group other than the sender, and every
+   * entry is in total_amount's currency and mint.
+   *
+   * @generated from field: repeated flipcash.messaging.v1.CashContent.Payment items = 1;
+   */
+  items: CashContent_Payment[] = [];
+
+  constructor(data?: PartialMessage<CashContent_Payments>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.CashContent.Payments";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "items", kind: "message", T: CashContent_Payment, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent_Payments {
+    return new CashContent_Payments().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CashContent_Payments {
+    return new CashContent_Payments().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CashContent_Payments {
+    return new CashContent_Payments().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CashContent_Payments | PlainMessage<CashContent_Payments> | undefined, b: CashContent_Payments | PlainMessage<CashContent_Payments> | undefined): boolean {
+    return proto3.util.equals(CashContent_Payments, a, b);
+  }
+}
+
+/**
+ * One receiver's part of a payment to several people (see Payments). The
+ * currency and mint are total_amount's.
+ *
+ * @generated from message flipcash.messaging.v1.CashContent.Payment
+ */
+export class CashContent_Payment extends Message$1<CashContent_Payment> {
+  /**
+   * The user who received this part
+   *
+   * @generated from field: flipcash.common.v1.UserId receiver = 1;
+   */
+  receiver?: UserId;
+
+  /**
+   * The amount this receiver was paid, in total_amount's currency
+   *
+   * @generated from field: double native_amount = 2;
+   */
+  nativeAmount = 0;
+
+  /**
+   * The amount in quarks of total_amount's mint this receiver was paid
+   *
+   * @generated from field: uint64 quarks = 3;
+   */
+  quarks = protoInt64.zero;
+
+  constructor(data?: PartialMessage<CashContent_Payment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.CashContent.Payment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "receiver", kind: "message", T: UserId },
+    { no: 2, name: "native_amount", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 3, name: "quarks", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent_Payment {
+    return new CashContent_Payment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CashContent_Payment {
+    return new CashContent_Payment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CashContent_Payment {
+    return new CashContent_Payment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CashContent_Payment | PlainMessage<CashContent_Payment> | undefined, b: CashContent_Payment | PlainMessage<CashContent_Payment> | undefined): boolean {
+    return proto3.util.equals(CashContent_Payment, a, b);
+  }
+}
 
 /**
  * Reply content

@@ -273,12 +273,20 @@ proto3.util.setEnumType(ChatMetadata_DmPayment_Location, "flipcash.intent.v1.Cha
 ]);
 
 /**
- * For sending a payment directly to another member of a group chat. The
- * chat_id must be a group, and the payment's destination owner account
- * names the recipient, who must be a Flipcash user and a member of the
- * group. The sender must be able to speak in the group: the payment posts
- * a CashContent message into it as the sender, naming the recipient as
- * its receiver.
+ * For sending a payment directly to other members of a group chat. The
+ * chat_id must be a group, and the sender must be able to speak in it:
+ * the payment posts one CashContent message into the group as the sender.
+ *
+ *   - A payment to one member is a SendPublicPayment, whose destination
+ *     owner account names the recipient. The message names them as its
+ *     single_receiver.
+ *   - A payment to several members at once is a SendPublicMultiPayment
+ *     to 2 to 10 of them, each a distinct destination owner account and
+ *     none the sender. The message lists each recipient with their part
+ *     in its multi_receiver, and carries the whole payment as its
+ *     total_amount.
+ *
+ * Every recipient must be a Flipcash user and a member of the group.
  *
  * @generated from message flipcash.intent.v1.ChatMetadata.GroupPayment
  */
