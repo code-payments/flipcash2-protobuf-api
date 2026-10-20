@@ -180,7 +180,7 @@ const (
 	// The content is EncryptedContent and the chat is neither a DM nor a
 	// private group, or its scheme is not the one the chat uses.
 	SendMessageResponse_ENCRYPTION_NOT_ALLOWED SendMessageResponse_Result = 2
-	// The chat is a private group and the content is not EncryptedContent.
+	// The chat is a DM or a private group and the content is not EncryptedContent.
 	SendMessageResponse_ENCRYPTION_REQUIRED SendMessageResponse_Result = 3
 )
 
@@ -241,7 +241,7 @@ const (
 	// The content is EncryptedContent and the chat is neither a DM nor a
 	// private group, or its scheme is not the one the chat uses.
 	EditMessageResponse_ENCRYPTION_NOT_ALLOWED EditMessageResponse_Result = 5
-	// The chat is a private group and the content is not EncryptedContent.
+	// The chat is a DM or a private group and the content is not EncryptedContent.
 	EditMessageResponse_ENCRYPTION_REQUIRED EditMessageResponse_Result = 6
 )
 

@@ -601,7 +601,7 @@ export enum SendMessageResponse_Result {
   ENCRYPTION_NOT_ALLOWED = 2,
 
   /**
-   * The chat is a private group and the content is not EncryptedContent.
+   * The chat is a DM or a private group and the content is not EncryptedContent.
    *
    * @generated from enum value: ENCRYPTION_REQUIRED = 3;
    */
@@ -779,7 +779,7 @@ export enum EditMessageResponse_Result {
   ENCRYPTION_NOT_ALLOWED = 5,
 
   /**
-   * The chat is a private group and the content is not EncryptedContent.
+   * The chat is a DM or a private group and the content is not EncryptedContent.
    *
    * @generated from enum value: ENCRYPTION_REQUIRED = 6;
    */
