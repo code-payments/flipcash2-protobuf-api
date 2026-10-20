@@ -575,8 +575,10 @@ export class Share extends Message<Share> {
 }
 
 /**
- * PaidShare records how a share was paid. A share is paid all at once, and
- * once paid it stays paid and never changes.
+ * PaidShare records how a share was paid. A share is paid all at once, for
+ * exactly its native_amount (a payment pays the share exactly, all or
+ * nothing, and a share marked paid by hand, or the creator's own, is taken
+ * as settled in full), and once paid it stays paid and never changes.
  *
  * @generated from message flipcash.paymentrequest.v1.PaidShare
  */
@@ -589,16 +591,6 @@ export class PaidShare extends Message<PaidShare> {
   paidAt?: Timestamp;
 
   /**
-   * What was paid, in the request's currency. It equals the share's
-   * native_amount: a payment must pay the share exactly, all or nothing, and
-   * a share marked paid by hand, or the creator's own, is recorded at its
-   * amount.
-   *
-   * @generated from field: double native_amount = 2;
-   */
-  nativeAmount = 0;
-
-  /**
    * How the share was paid.
    *
    * @generated from oneof flipcash.paymentrequest.v1.PaidShare.how
@@ -609,7 +601,7 @@ export class PaidShare extends Message<PaidShare> {
      * also posted a messaging.v1.CashContent message into the chat,
      * carrying this request's ID in payment_request_id.
      *
-     * @generated from field: flipcash.common.v1.IntentId intent = 3;
+     * @generated from field: flipcash.common.v1.IntentId intent = 2;
      */
     value: IntentId;
     case: "intent";
@@ -618,7 +610,7 @@ export class PaidShare extends Message<PaidShare> {
      * Marked paid by the creator, for a share settled some other way.
      * Nothing was paid through Flipcash and no message was posted.
      *
-     * @generated from field: flipcash.paymentrequest.v1.PaidShare.Manual manual = 4;
+     * @generated from field: flipcash.paymentrequest.v1.PaidShare.Manual manual = 3;
      */
     value: PaidShare_Manual;
     case: "manual";
@@ -628,7 +620,7 @@ export class PaidShare extends Message<PaidShare> {
      * it by themself. Nothing was paid and no message was posted.
      * paid_at is the request's created_at.
      *
-     * @generated from field: flipcash.paymentrequest.v1.PaidShare.Creator creator = 5;
+     * @generated from field: flipcash.paymentrequest.v1.PaidShare.Creator creator = 4;
      */
     value: PaidShare_Creator;
     case: "creator";
@@ -643,10 +635,9 @@ export class PaidShare extends Message<PaidShare> {
   static readonly typeName = "flipcash.paymentrequest.v1.PaidShare";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "paid_at", kind: "message", T: Timestamp },
-    { no: 2, name: "native_amount", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 3, name: "intent", kind: "message", T: IntentId, oneof: "how" },
-    { no: 4, name: "manual", kind: "message", T: PaidShare_Manual, oneof: "how" },
-    { no: 5, name: "creator", kind: "message", T: PaidShare_Creator, oneof: "how" },
+    { no: 2, name: "intent", kind: "message", T: IntentId, oneof: "how" },
+    { no: 3, name: "manual", kind: "message", T: PaidShare_Manual, oneof: "how" },
+    { no: 4, name: "creator", kind: "message", T: PaidShare_Creator, oneof: "how" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaidShare {
@@ -667,19 +658,12 @@ export class PaidShare extends Message<PaidShare> {
 }
 
 /**
- * A share marked paid by hand (see PaymentRequest.MarkPaid).
+ * A share marked paid by hand (see PaymentRequest.MarkPaid), which only
+ * the request's creator can do.
  *
  * @generated from message flipcash.paymentrequest.v1.PaidShare.Manual
  */
 export class PaidShare_Manual extends Message<PaidShare_Manual> {
-  /**
-   * The user that marked the share paid, which is always the request's
-   * creator.
-   *
-   * @generated from field: flipcash.common.v1.UserId marked_by = 1;
-   */
-  markedBy?: UserId;
-
   constructor(data?: PartialMessage<PaidShare_Manual>) {
     super();
     proto3.util.initPartial(data, this);
@@ -688,7 +672,6 @@ export class PaidShare_Manual extends Message<PaidShare_Manual> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "flipcash.paymentrequest.v1.PaidShare.Manual";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "marked_by", kind: "message", T: UserId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaidShare_Manual {
@@ -847,9 +830,10 @@ export enum PaymentRequestState_Status {
   CLOSED = 3,
 
   /**
-   * The request reached its ends_at while still OPEN. Final. Derived
-   * from the clock, never stored, like poll.v1.PollState's TALLYING:
-   * it moves no version.
+   * The request reached its ends_at while still OPEN. Final. Decided
+   * by the clock, like poll.v1.PollState's TALLYING: it moves no
+   * version, and a client judges an OPEN request past its ends_at as
+   * EXPIRED itself rather than waiting for the server to say so.
    *
    * @generated from enum value: EXPIRED = 4;
    */

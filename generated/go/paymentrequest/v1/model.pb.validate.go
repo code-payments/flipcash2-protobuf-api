@@ -1490,17 +1490,6 @@ func (m *PaidShare) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if m.GetNativeAmount() < 0 {
-		err := PaidShareValidationError{
-			field:  "NativeAmount",
-			reason: "value must be greater than or equal to 0",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	oneofHowPresent := false
 	switch v := m.How.(type) {
 	case *PaidShare_Intent:
@@ -1892,46 +1881,6 @@ func (m *PaidShare_Manual) validate(all bool) error {
 	}
 
 	var errors []error
-
-	if m.GetMarkedBy() == nil {
-		err := PaidShare_ManualValidationError{
-			field:  "MarkedBy",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetMarkedBy()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, PaidShare_ManualValidationError{
-					field:  "MarkedBy",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, PaidShare_ManualValidationError{
-					field:  "MarkedBy",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMarkedBy()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return PaidShare_ManualValidationError{
-				field:  "MarkedBy",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
 
 	if len(errors) > 0 {
 		return PaidShare_ManualMultiError(errors)

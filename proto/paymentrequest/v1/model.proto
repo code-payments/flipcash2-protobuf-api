@@ -225,17 +225,13 @@ message Share {
     PaidShare paid = 3;
 }
 
-// PaidShare records how a share was paid. A share is paid all at once, and
-// once paid it stays paid and never changes.
+// PaidShare records how a share was paid. A share is paid all at once, for
+// exactly its native_amount (a payment pays the share exactly, all or
+// nothing, and a share marked paid by hand, or the creator's own, is taken
+// as settled in full), and once paid it stays paid and never changes.
 message PaidShare {
     // When the share was paid, or marked paid.
     google.protobuf.Timestamp paid_at = 1 [(validate.rules).timestamp.required = true];
-
-    // What was paid, in the request's currency. It equals the share's
-    // native_amount: a payment must pay the share exactly, all or nothing, and
-    // a share marked paid by hand, or the creator's own, is recorded at its
-    // amount.
-    double native_amount = 2 [(validate.rules).double.gte = 0];
 
     // How the share was paid.
     oneof how {
@@ -244,24 +240,21 @@ message PaidShare {
         // Paid with a Flipcash payment: the payment's intent. The payment
         // also posted a messaging.v1.CashContent message into the chat,
         // carrying this request's ID in payment_request_id.
-        common.v1.IntentId intent = 3;
+        common.v1.IntentId intent = 2;
 
         // Marked paid by the creator, for a share settled some other way.
         // Nothing was paid through Flipcash and no message was posted.
-        Manual             manual = 4;
+        Manual             manual = 3;
 
         // The creator's own share, paid from creation: the creator is owed
         // it by themself. Nothing was paid and no message was posted.
         // paid_at is the request's created_at.
-        Creator            creator = 5;
+        Creator            creator = 4;
     }
 
-    // A share marked paid by hand (see PaymentRequest.MarkPaid).
-    message Manual {
-        // The user that marked the share paid, which is always the request's
-        // creator.
-        common.v1.UserId marked_by = 1 [(validate.rules).message.required = true];
-    }
+    // A share marked paid by hand (see PaymentRequest.MarkPaid), which only
+    // the request's creator can do.
+    message Manual {}
 
     // The creator's own share, paid from creation.
     message Creator {}
@@ -296,9 +289,10 @@ message PaymentRequestState {
         // The creator closed the request (PaymentRequest.ClosePaymentRequest)
         // while it was still OPEN. Final.
         CLOSED    = 3;
-        // The request reached its ends_at while still OPEN. Final. Derived
-        // from the clock, never stored, like poll.v1.PollState's TALLYING:
-        // it moves no version.
+        // The request reached its ends_at while still OPEN. Final. Decided
+        // by the clock, like poll.v1.PollState's TALLYING: it moves no
+        // version, and a client judges an OPEN request past its ends_at as
+        // EXPIRED itself rather than waiting for the server to say so.
         EXPIRED   = 4;
     }
 

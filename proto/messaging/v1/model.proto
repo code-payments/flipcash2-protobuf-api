@@ -440,8 +440,8 @@ message WidgetContent {
     oneof type {
         option (validate.required) = true;
 
-        ShareProfileWidget share_profile = 1;
-        PollWidget         poll          = 2;
+        ShareProfileWidget   share_profile   = 1;
+        PollWidget           poll            = 2;
         PaymentRequestWidget payment_request = 3;
     }
 }

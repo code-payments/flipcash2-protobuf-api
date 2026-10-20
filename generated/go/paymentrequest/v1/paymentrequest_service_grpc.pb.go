@@ -99,11 +99,11 @@ type PaymentRequestClient interface {
 	// can close. Closing a request that is not OPEN (already COMPLETED,
 	// CLOSED or EXPIRED) is a no-op that returns OK.
 	ClosePaymentRequest(ctx context.Context, in *ClosePaymentRequestRequest, opts ...grpc.CallOption) (*ClosePaymentRequestResponse, error)
-	// MarkPaid records a debtor's share of a split as paid by hand, for
-	// a share settled outside Flipcash. Only the creator can mark a share
-	// paid. The share is recorded as a PaidShare.Manual at its amount and
-	// the version advances; if it was the last unpaid share, the request
-	// becomes COMPLETED. No message is posted into the chat.
+	// MarkPaid records a debtor's share of a split as paid by hand, for a
+	// share settled outside Flipcash. Only the creator can mark a share paid.
+	// The share is recorded as a PaidShare.Manual and the version advances;
+	// if it was the last unpaid share, the request becomes COMPLETED. No
+	// message is posted into the chat.
 	//
 	// Marking a share that is already paid, by payment or by hand, is a no-op
 	// that returns OK, whatever the request's status.
@@ -241,11 +241,11 @@ type PaymentRequestServer interface {
 	// can close. Closing a request that is not OPEN (already COMPLETED,
 	// CLOSED or EXPIRED) is a no-op that returns OK.
 	ClosePaymentRequest(context.Context, *ClosePaymentRequestRequest) (*ClosePaymentRequestResponse, error)
-	// MarkPaid records a debtor's share of a split as paid by hand, for
-	// a share settled outside Flipcash. Only the creator can mark a share
-	// paid. The share is recorded as a PaidShare.Manual at its amount and
-	// the version advances; if it was the last unpaid share, the request
-	// becomes COMPLETED. No message is posted into the chat.
+	// MarkPaid records a debtor's share of a split as paid by hand, for a
+	// share settled outside Flipcash. Only the creator can mark a share paid.
+	// The share is recorded as a PaidShare.Manual and the version advances;
+	// if it was the last unpaid share, the request becomes COMPLETED. No
+	// message is posted into the chat.
 	//
 	// Marking a share that is already paid, by payment or by hand, is a no-op
 	// that returns OK, whatever the request's status.
