@@ -19,6 +19,7 @@ The APIs and models for communication between Flipcash clients and server.
 - [IAP](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/iap/v1/iap_service.proto)
 - [Messaging](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/messaging/v1/messaging_service.proto)
 - [Moderation](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/moderation/v1/moderation_service.proto)
+- [Payment Request](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/paymentrequest/v1/paymentrequest_service.proto)
 - [Phone Verification](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/phone/v1/phone_verification_service.proto)
 - [Poll](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/poll/v1/poll_service.proto)
 - [Profile](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/profile/v1/profile_service.proto)
