@@ -28,6 +28,8 @@ export * as Event from './event/v1';
 export * as Event from './event/v1';
 export * as Thirdparty from './thirdparty/v1';
 export * as Thirdparty from './thirdparty/v1';
+export * as Paymentrequest from './paymentrequest/v1';
+export * as Paymentrequest from './paymentrequest/v1';
 export * as Email from './email/v1';
 export * as Email from './email/v1';
 export * as Resolver from './resolver/v1';
