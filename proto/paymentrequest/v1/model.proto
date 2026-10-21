@@ -134,10 +134,13 @@ message Split {
     //
     // On CreatePaymentRequest, every share has paid unset.
     //
-    // The upper bound is a sanity bound, not a product limit.
+    // At most 100 shares for now. A request is one record that grows with its
+    // shares and is rewritten whole each time one is paid, so the bound keeps
+    // that record, and a page of GetChatPaymentRequests, small. It may be
+    // raised later.
     repeated Share shares = 5 [(validate.rules).repeated = {
         min_items: 1
-        max_items: 1000
+        max_items: 100
     }];
 }
 

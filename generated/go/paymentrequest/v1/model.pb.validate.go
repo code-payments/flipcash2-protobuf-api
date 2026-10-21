@@ -791,10 +791,10 @@ func (m *Split) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if l := len(m.GetShares()); l < 1 || l > 1000 {
+	if l := len(m.GetShares()); l < 1 || l > 100 {
 		err := SplitValidationError{
 			field:  "Shares",
-			reason: "value must contain between 1 and 1000 items, inclusive",
+			reason: "value must contain between 1 and 100 items, inclusive",
 		}
 		if !all {
 			return err
