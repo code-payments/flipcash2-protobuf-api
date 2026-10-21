@@ -473,7 +473,7 @@ type Split struct {
 	// creator's own share, their part of what is being split, is paid from
 	// creation (see PaidShare.Creator), and at least one share names someone
 	// else. The shares are fixed at creation: nothing adds, removes or
-	// reprices one, and a paid share never changes.
+	// reprices one, and a paid share stays paid (see PaidShare).
 	//
 	// On CreatePaymentRequest, every share has paid unset.
 	//
@@ -796,7 +796,14 @@ func (x *Share) GetPaid() *PaidShare {
 // PaidShare records how a share was paid. A share is paid all at once, for
 // exactly its native_amount (a payment pays the share exactly, all or
 // nothing, and a share marked paid by hand, or the creator's own, is taken
-// as settled in full), and once paid it stays paid and never changes.
+// as settled in full), and once paid it stays paid.
+//
+// It changes in one case only: a share marked paid by hand (manual) is
+// replaced by a payment (intent) that lands after the mark, one the debtor
+// made while the share was still unpaid. The record then shows the money
+// that arrived, the request's version advances, and its status and
+// closed_at stay as they were. Nothing replaces a payment or the creator's
+// own share, and a hand mark never replaces anything.
 type PaidShare struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

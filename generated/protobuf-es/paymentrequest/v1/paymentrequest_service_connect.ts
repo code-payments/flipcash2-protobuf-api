@@ -125,7 +125,9 @@ export const PaymentRequest = {
      * message is posted into the chat.
      *
      * Marking a share that is already paid, by payment or by hand, is a no-op
-     * that returns OK, whatever the request's status.
+     * that returns OK, whatever the request's status. A debtor's payment in
+     * flight when the share is marked replaces the mark once it lands (see
+     * PaidShare).
      *
      * @generated from rpc flipcash.paymentrequest.v1.PaymentRequest.MarkPaid
      */

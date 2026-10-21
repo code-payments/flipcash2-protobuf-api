@@ -106,7 +106,9 @@ type PaymentRequestClient interface {
 	// message is posted into the chat.
 	//
 	// Marking a share that is already paid, by payment or by hand, is a no-op
-	// that returns OK, whatever the request's status.
+	// that returns OK, whatever the request's status. A debtor's payment in
+	// flight when the share is marked replaces the mark once it lands (see
+	// PaidShare).
 	MarkPaid(ctx context.Context, in *MarkPaidRequest, opts ...grpc.CallOption) (*MarkPaidResponse, error)
 }
 
@@ -248,7 +250,9 @@ type PaymentRequestServer interface {
 	// message is posted into the chat.
 	//
 	// Marking a share that is already paid, by payment or by hand, is a no-op
-	// that returns OK, whatever the request's status.
+	// that returns OK, whatever the request's status. A debtor's payment in
+	// flight when the share is marked replaces the mark once it lands (see
+	// PaidShare).
 	MarkPaid(context.Context, *MarkPaidRequest) (*MarkPaidResponse, error)
 	mustEmbedUnimplementedPaymentRequestServer()
 }
