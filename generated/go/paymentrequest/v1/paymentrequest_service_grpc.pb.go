@@ -78,6 +78,10 @@ type PaymentRequestClient interface {
 	// not private, its members and anyone who satisfies its listener rules;
 	// in a private group, only its members. Being able to preview the chat is
 	// not enough.
+	//
+	// A caller who holds an unpaid share of the request is also given the
+	// intent ID their payment of it must use (see
+	// GetPaymentRequestResponse.payment_intent_id).
 	GetPaymentRequest(ctx context.Context, in *GetPaymentRequestRequest, opts ...grpc.CallOption) (*GetPaymentRequestResponse, error)
 	// GetChatPaymentRequests pages one section of the payment requests made
 	// in a group chat (every kind whose first layer is that chat): the OPEN
@@ -222,6 +226,10 @@ type PaymentRequestServer interface {
 	// not private, its members and anyone who satisfies its listener rules;
 	// in a private group, only its members. Being able to preview the chat is
 	// not enough.
+	//
+	// A caller who holds an unpaid share of the request is also given the
+	// intent ID their payment of it must use (see
+	// GetPaymentRequestResponse.payment_intent_id).
 	GetPaymentRequest(context.Context, *GetPaymentRequestRequest) (*GetPaymentRequestResponse, error)
 	// GetChatPaymentRequests pages one section of the payment requests made
 	// in a group chat (every kind whose first layer is that chat): the OPEN

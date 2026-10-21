@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { GroupChatPaymentRequest, IdempotencyKey, PaymentRequestId, PaymentRequestMetadata } from "./model_pb";
-import { Auth, ChatId, PagingToken, QueryOptions, UserId } from "../../common/v1/common_pb";
+import { Auth, ChatId, IntentId, PagingToken, QueryOptions, UserId } from "../../common/v1/common_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
 /**
@@ -274,6 +274,23 @@ export class GetPaymentRequestResponse extends Message<GetPaymentRequestResponse
    */
   paymentRequest?: PaymentRequestMetadata;
 
+  /**
+   * The intent ID the caller's payment of their share must use (see
+   * intent.v1.ChatMetadata.RequestedPayment), set only when result == OK
+   * and the caller holds a share of the request that is unpaid.
+   *
+   * The server generates one at random for each debtor's share when the
+   * request is created, and gives it to that debtor alone. A payment of the
+   * share with any other intent ID is refused, and an intent ID is used at
+   * most once, so a share is paid at most once: a retry, a second tap or a
+   * second device all pay under this one ID, and only the first payment
+   * goes through. Keep it to the payment: anyone who learns it before the
+   * share is paid can use it up and block the payment.
+   *
+   * @generated from field: flipcash.common.v1.IntentId payment_intent_id = 3;
+   */
+  paymentIntentId?: IntentId;
+
   constructor(data?: PartialMessage<GetPaymentRequestResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -284,6 +301,7 @@ export class GetPaymentRequestResponse extends Message<GetPaymentRequestResponse
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetPaymentRequestResponse_Result) },
     { no: 2, name: "payment_request", kind: "message", T: PaymentRequestMetadata },
+    { no: 3, name: "payment_intent_id", kind: "message", T: IntentId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPaymentRequestResponse {

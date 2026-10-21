@@ -139,6 +139,11 @@ message ChatMetadata {
     //   - The request must be OPEN: not COMPLETED, not closed, and not past
     //     its ends_at.
     //   - The payer must hold an unpaid share of the request.
+    //   - The intent's ID must be the one the server generated for the
+    //     payer's share, which paymentrequest.v1.GetPaymentRequest gives the
+    //     payer alone (GetPaymentRequestResponse.payment_intent_id). An intent
+    //     ID is used at most once, so this is what makes a share payable at
+    //     most once.
     //   - Neither the payer nor the creator may be the Flipcash team account.
     //
     // Once the payment is made the server marks the share paid (a

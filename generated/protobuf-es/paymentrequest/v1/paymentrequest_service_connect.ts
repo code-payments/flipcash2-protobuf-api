@@ -71,6 +71,10 @@ export const PaymentRequest = {
      * in a private group, only its members. Being able to preview the chat is
      * not enough.
      *
+     * A caller who holds an unpaid share of the request is also given the
+     * intent ID their payment of it must use (see
+     * GetPaymentRequestResponse.payment_intent_id).
+     *
      * @generated from rpc flipcash.paymentrequest.v1.PaymentRequest.GetPaymentRequest
      */
     getPaymentRequest: {

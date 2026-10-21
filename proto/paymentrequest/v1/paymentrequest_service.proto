@@ -61,6 +61,10 @@ service PaymentRequest {
     // not private, its members and anyone who satisfies its listener rules;
     // in a private group, only its members. Being able to preview the chat is
     // not enough.
+    //
+    // A caller who holds an unpaid share of the request is also given the
+    // intent ID their payment of it must use (see
+    // GetPaymentRequestResponse.payment_intent_id).
     rpc GetPaymentRequest(GetPaymentRequestRequest) returns (GetPaymentRequestResponse);
 
     // GetChatPaymentRequests pages one section of the payment requests made
@@ -174,6 +178,19 @@ message GetPaymentRequestResponse {
 
     // Set only when result == OK.
     PaymentRequestMetadata payment_request = 2;
+
+    // The intent ID the caller's payment of their share must use (see
+    // intent.v1.ChatMetadata.RequestedPayment), set only when result == OK
+    // and the caller holds a share of the request that is unpaid.
+    //
+    // The server generates one at random for each debtor's share when the
+    // request is created, and gives it to that debtor alone. A payment of the
+    // share with any other intent ID is refused, and an intent ID is used at
+    // most once, so a share is paid at most once: a retry, a second tap or a
+    // second device all pay under this one ID, and only the first payment
+    // goes through. Keep it to the payment: anyone who learns it before the
+    // share is paid can use it up and block the payment.
+    common.v1.IntentId payment_intent_id = 3;
 }
 
 message GetChatPaymentRequestsRequest {
