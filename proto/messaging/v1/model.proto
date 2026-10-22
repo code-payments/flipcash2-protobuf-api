@@ -492,6 +492,8 @@ message DeletedContent {
 //    described under "Media" below
 //  - MediaContent, as described under "Media" below
 //  - ReplyContent, whose own content is a TextContent or a MediaContent
+//  - WidgetContent holding a PollWidget, in a private group only, as
+//    described under PollWidget
 // The server cannot enforce this, nor anything TextContent says of its link
 // previews: a recipient applies those rules itself after decrypting, and
 // renders a preview that breaks one as unsupported. A client that decrypts
