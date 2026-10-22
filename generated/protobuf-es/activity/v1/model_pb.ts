@@ -377,7 +377,7 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
   /**
    * Set when the payment was the recipient's share of a boost of a
    * reaction (see BoostedReaction), paid to them as the boosted message's
-   * sender or the group's creator. source_identifier names the payer, and
+   * sender or its group's creator. source_identifier names the payer, and
    * payment_amount is the recipient's share alone.
    *
    * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
@@ -416,16 +416,16 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
 
 /**
  * The reaction a payment boosted: the payer's reaction with emoji on a
- * message in a group chat (see intent.v1.ChatMetadata.ReactionBoost). It is
- * what the payment was for when it was made and is not kept up to date: the
- * message may since have been deleted, and the viewer may no longer be a
+ * message in a group chat or a DM (see intent.v1.ChatMetadata.ReactionBoost).
+ * It is what the payment was for when it was made and is not kept up to date:
+ * the message may since have been deleted, and the viewer may no longer be a
  * member of the chat.
  *
  * @generated from message flipcash.activity.v1.BoostedReaction
  */
 export class BoostedReaction extends Message<BoostedReaction> {
   /**
-   * The group chat the boosted message is in.
+   * The chat, a group or a DM, the boosted message is in.
    *
    * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
    */

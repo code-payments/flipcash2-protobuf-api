@@ -559,7 +559,7 @@ type ReceivedCryptoNotificationMetadata struct {
 	SourceIdentifier isReceivedCryptoNotificationMetadata_SourceIdentifier `protobuf_oneof:"source_identifier"`
 	// Set when the payment was the recipient's share of a boost of a
 	// reaction (see BoostedReaction), paid to them as the boosted message's
-	// sender or the group's creator. source_identifier names the payer, and
+	// sender or its group's creator. source_identifier names the payer, and
 	// payment_amount is the recipient's share alone.
 	BoostedReaction *BoostedReaction `protobuf:"bytes,3,opt,name=boosted_reaction,json=boostedReaction,proto3" json:"boosted_reaction,omitempty"`
 }
@@ -641,16 +641,16 @@ func (*ReceivedCryptoNotificationMetadata_UserId) isReceivedCryptoNotificationMe
 }
 
 // The reaction a payment boosted: the payer's reaction with emoji on a
-// message in a group chat (see intent.v1.ChatMetadata.ReactionBoost). It is
-// what the payment was for when it was made and is not kept up to date: the
-// message may since have been deleted, and the viewer may no longer be a
+// message in a group chat or a DM (see intent.v1.ChatMetadata.ReactionBoost).
+// It is what the payment was for when it was made and is not kept up to date:
+// the message may since have been deleted, and the viewer may no longer be a
 // member of the chat.
 type BoostedReaction struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The group chat the boosted message is in.
+	// The chat, a group or a DM, the boosted message is in.
 	ChatId *v1.ChatId `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	// The message whose reaction was boosted.
 	MessageId *v11.MessageId `protobuf:"bytes,2,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
