@@ -1,0 +1,320 @@
+syntax = "proto3";
+
+package flipcash.paymentrequest.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/paymentrequest/v1;paymentrequestpb";
+option java_package = "com.codeinc.flipcash.gen.paymentrequest.v1";
+option objc_class_prefix = "FPBPaymentRequestV1";
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// PaymentRequestId is the server-assigned identity of a payment request, of any
+// kind. It is what a messaging.v1.PaymentRequestWidget carries, and what every
+// PaymentRequest RPC is keyed by.
+message PaymentRequestId {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}
+
+// IdempotencyKey lets a client safely retry CreatePaymentRequest. The server
+// derives the request's identity from the caller and this key, so a retry
+// with the same key returns the original request instead of creating a
+// duplicate. Which parameters were sent is not part of the identity: a retry
+// with different parameters, or of a different kind, still returns the
+// original.
+//
+// The key is owned by the client and is typically a randomly generated UUID.
+// It is never exposed as the request's identity.
+message IdempotencyKey {
+    bytes value = 1 [(validate.rules).bytes = {
+        min_len: 16
+        max_len: 16
+    }];
+}
+
+// PaymentRequestMetadata is a payment request: what every kind of request
+// shares (its identity, creator, creation time, status and version), and in
+// `kind` what the request is and where it was made.
+//
+// The message is versioned whole: every change to anything in it, a share
+// paid (by payment or by hand) or a close, advances version by exactly one,
+// and an idempotent no-op leaves it alone. Clients keep the copy with the
+// greater version, comparing it like chat.v1.RosterSummary.version, and
+// replace the whole message, so delivery order does not matter. Expiry is
+// not a change: it comes from the clock and moves no version (see
+// PAYMENT_REQUEST_STATUS_EXPIRED), so at an equal version a client keeps
+// EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
+// itself.
+//
+// Nothing announces a change in real time: no event carries a payment request
+// today. Clients refetch a request to see payments and closes land, for
+// example when they show its widget.
+//
+// Requests are layered. The first layer is where the request lives: today a
+// group chat (GroupChatPaymentRequest). Within it, the second layer is the
+// type of request: today a split (Split). Kinds and types added later each
+// get a new arm; a client renders a request whose arm it does not know as
+// unsupported.
+message PaymentRequestMetadata {
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    // The user that created the request, who is paid and is the only user
+    // that can close it or mark a share paid by hand.
+    common.v1.UserId creator = 2 [(validate.rules).message.required = true];
+
+    // When the request was created.
+    google.protobuf.Timestamp created_at = 3 [(validate.rules).timestamp.required = true];
+
+    // Where the request is in its life. It only moves forward: from OPEN to
+    // one of COMPLETED, CLOSED or EXPIRED, which are final.
+    PaymentRequestStatus status = 4 [(validate.rules).enum = {
+        in: [1, 2, 3, 4] // OPEN, COMPLETED, CLOSED, EXPIRED
+    }];
+
+    // When the request stopped being OPEN. Set once status is not OPEN: the
+    // request's ends_at when EXPIRED, when the creator closed it when CLOSED,
+    // and when its last unpaid share was paid when COMPLETED.
+    google.protobuf.Timestamp closed_at = 5;
+
+    // Advances by exactly one on every change to anything in this message
+    // (see above). Opaque to clients: compare it against the last value seen
+    // and keep the greater. There is no delta to fetch against it, only a
+    // refetch of the request.
+    uint64 version = 6;
+
+    // What the request is and where it was made.
+    oneof kind {
+        option (validate.required) = true;
+
+        // A request made in a group chat.
+        GroupChatPaymentRequest group_chat = 10;
+    }
+}
+
+// GroupChatPaymentRequest is a payment request made in a group chat, private or
+// not. It is shown in that chat as a message carrying a
+// messaging.v1.PaymentRequestWidget, and who may see or act on it is decided
+// by the chat.
+message GroupChatPaymentRequest {
+    // The chat the request was created for. Anyone who can read this chat in
+    // full can see the request: its members and anyone who satisfies its
+    // listener rules in a group that is not private, and only its members in
+    // a private group. Someone who can only preview the chat sees the
+    // PaymentRequestWidget but not the request. Clients render a
+    // PaymentRequestWidget whose request belongs to a different chat than the
+    // message carrying it as unsupported.
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The type of request.
+    oneof type {
+        option (validate.required) = true;
+
+        // Named members each owe the creator a share.
+        Split split = 2;
+    }
+}
+
+// Split asks named members of the chat (its debtors) each to pay the creator
+// an amount (their share) in one currency, for example to split a bill. Each
+// debtor pays their share with a Flipcash payment (see
+// intent.v1.ChatMetadata.RequestedPayment) or the creator marks it paid by
+// hand (PaymentRequest.MarkPaid); the request is COMPLETED once every
+// share is paid.
+//
+// The title and description are in `text`, which is plaintext in a group
+// that is not private and encrypted in a private group. Everything else is
+// plaintext everywhere, because the server needs it to check each payment
+// against its share and to decide when the request is complete.
+message Split {
+    // The title and description.
+    oneof text {
+        option (validate.required) = true;
+
+        // Set in a group that is not private, and moderated.
+        PaymentRequestText          plaintext = 1;
+
+        // Set in a private group. Not moderated, since the server cannot
+        // read it.
+        EncryptedPaymentRequestText encrypted = 2;
+    }
+
+    // ISO 4217 alpha-3 currency code that every share, and every payment of
+    // one, is in. The server must be able to value it.
+    string currency = 3 [(validate.rules).string = { pattern: "^[a-z]{3,4}$" }];
+
+    // When the request stops accepting payments. It is in the future when the
+    // request is created, and at most 4 weeks after it, and is the request's
+    // one deadline: after it, no share can be paid, by payment or by hand,
+    // and a request with shares still unpaid is EXPIRED.
+    google.protobuf.Timestamp ends_at = 4 [(validate.rules).timestamp.required = true];
+
+    // Who is asked to pay, and how much, in the order the creator listed
+    // them. Each share names a distinct member of the chat (or one who was a
+    // member when the request was created), the creator included: the
+    // creator's own share, their part of what is being split, is paid from
+    // creation (see PaidShare.Creator), and at least one share names someone
+    // else. The shares are fixed at creation: nothing adds, removes or
+    // reprices one, and a paid share stays paid (see PaidShare).
+    //
+    // On CreatePaymentRequest, every share has paid unset.
+    //
+    // At most 100 shares for now. A request is one record that grows with its
+    // shares and is rewritten whole each time one is paid, so the bound keeps
+    // that record, and a page of GetChatPaymentRequests, small. It may be
+    // raised later.
+    repeated Share shares = 5 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
+}
+
+// PaymentRequestText is the human-readable part of a payment request.
+message PaymentRequestText {
+    // What the money is for.
+    string title = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 100
+    }];
+
+    // More detail about the request. Optional: empty means none.
+    string description = 2 [(validate.rules).string = {
+        max_len: 500
+    }];
+}
+
+// EncryptedPaymentRequestText is a private group's PaymentRequestText,
+// encrypted with the chat key every member holds. The server stores it as-is
+// and cannot read it.
+//
+// For scheme CHAT_KEY_XCHACHA20POLY1305, the creator encrypts with
+// XChaCha20-Poly1305, as for messaging.v1.EncryptedContent but with its own
+// aad:
+//   key       = the group's chat key
+//   nonce     = 24 fresh random bytes, set in `nonce` below
+//   plaintext = the serialized PaymentRequestText
+//   aad       = "flipcash-group-payment-request-e2ee-v1" || chat_id || creator_id
+// chat_id is the raw bytes of common.v1.ChatId.value for the request's chat,
+// and creator_id is the raw bytes of common.v1.UserId.value for
+// PaymentRequestMetadata.creator. Never reuse a nonce, and do not substitute a
+// 12-byte-nonce AEAD.
+//
+// A member decrypts with the chat key and the same aad, so the server cannot
+// move the text to another chat or attribute it to another creator, and the
+// distinct prefix keeps payment request text, poll text and message content
+// from being swapped for each other. The request ID is not bound, since the
+// server assigns it after the text is encrypted.
+message EncryptedPaymentRequestText {
+    // The encryption scheme used. Clients render a request with an
+    // unrecognized scheme as unsupported.
+    Scheme scheme = 1 [(validate.rules).enum = {
+        in: [1] // CHAT_KEY_XCHACHA20POLY1305
+    }];
+    enum Scheme {
+        UNKNOWN                    = 0;
+        // The private group's chat key.
+        CHAT_KEY_XCHACHA20POLY1305 = 1;
+    }
+
+    // The random XChaCha20-Poly1305 nonce, unique per encryption.
+    bytes nonce = 2 [(validate.rules).bytes = {
+        min_len: 24
+        max_len: 24
+    }];
+
+    // The encrypted, serialized PaymentRequestText with the 16-byte Poly1305
+    // tag appended. The upper bound fits a PaymentRequestText with a
+    // maximum-length title and description: 100 + 500 characters of up to 4
+    // bytes each is 2400 bytes, each field's tag and length prefix add 3
+    // bytes (6 in all), and the tag adds 16, for 2422 bytes, rounded up to
+    // 2560.
+    bytes ciphertext = 3 [(validate.rules).bytes = {
+        min_len: 17
+        max_len: 2560
+    }];
+}
+
+// Share is one debtor's part of a payment request: who is asked to pay, how
+// much, and whether they have.
+message Share {
+    // The member asked to pay.
+    common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+    // The amount asked of them, in the request's currency. The server
+    // requires a whole number, at least one, of the currency's minimum
+    // transfer value (its smallest unit, e.g. $0.01): $12.34, not $12.345.
+    // A client dividing an amount rounds each share to that unit itself.
+    double native_amount = 2 [(validate.rules).double.gte = 0];
+
+    // How the share was paid. Unset while it is unpaid. Clients never set it:
+    // a share is paid only by a payment (see
+    // intent.v1.ChatMetadata.RequestedPayment), by the creator with
+    // PaymentRequest.MarkPaid, or, for the creator's own share, from
+    // creation.
+    PaidShare paid = 3;
+}
+
+// PaidShare records how a share was paid. A share is paid all at once, for
+// exactly its native_amount (a payment pays the share exactly, all or
+// nothing, and a share marked paid by hand, or the creator's own, is taken
+// as settled in full), and once paid it stays paid.
+//
+// It changes in one case only: a share marked paid by hand (manual) is
+// replaced by a payment (intent) that lands after the mark, one the debtor
+// made while the share was still unpaid. The record then shows the money
+// that arrived, the request's version advances, and its status and
+// closed_at stay as they were. Nothing replaces a payment or the creator's
+// own share, and a hand mark never replaces anything.
+message PaidShare {
+    // When the share was paid, or marked paid.
+    google.protobuf.Timestamp paid_at = 1 [(validate.rules).timestamp.required = true];
+
+    // How the share was paid.
+    oneof how {
+        option (validate.required) = true;
+
+        // Paid with a Flipcash payment: the payment's intent. The payment
+        // also posted a messaging.v1.CashContent message into the chat,
+        // carrying this request's ID in payment_request_id.
+        common.v1.IntentId intent = 2;
+
+        // Marked paid by the creator, for a share settled some other way.
+        // Nothing was paid through Flipcash and no message was posted.
+        Manual             manual = 3;
+
+        // The creator's own share, paid from creation: the creator is owed
+        // it by themself. Nothing was paid and no message was posted.
+        // paid_at is the request's created_at.
+        Creator            creator = 4;
+    }
+
+    // A share marked paid by hand (see PaymentRequest.MarkPaid), which only
+    // the request's creator can do.
+    message Manual {}
+
+    // The creator's own share, paid from creation.
+    message Creator {}
+}
+
+// PaymentRequestStatus is where a payment request is in its life (see
+// PaymentRequestMetadata.status).
+enum PaymentRequestStatus {
+    PAYMENT_REQUEST_STATUS_UNKNOWN   = 0;
+    // Accepting payments: the request is before its ends_at and has something
+    // left to pay (for a Split, at least one unpaid share).
+    PAYMENT_REQUEST_STATUS_OPEN      = 1;
+    // Everything asked for is paid (for a Split, every share). Final.
+    PAYMENT_REQUEST_STATUS_COMPLETED = 2;
+    // The creator closed the request (PaymentRequest.ClosePaymentRequest)
+    // while it was still OPEN. Final.
+    PAYMENT_REQUEST_STATUS_CLOSED    = 3;
+    // The request reached its ends_at while still OPEN. Final. Decided by the
+    // clock, like poll.v1.PollState's TALLYING: it moves no version, and a
+    // client judges an OPEN request past its ends_at as EXPIRED itself rather
+    // than waiting for the server to say so.
+    PAYMENT_REQUEST_STATUS_EXPIRED   = 4;
+}
+

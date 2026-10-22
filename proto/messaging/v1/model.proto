@@ -9,6 +9,7 @@ option objc_class_prefix = "FPBMessagingV1";
 import "blob/v1/model.proto";
 import "common/v1/common.proto";
 import "google/protobuf/timestamp.proto";
+import "paymentrequest/v1/model.proto";
 import "poll/v1/model.proto";
 import "validate/validate.proto";
 
@@ -318,6 +319,14 @@ message CashContent {
     }
     Verb verb = 4;
 
+    // The payment request whose share this payment paid. Set only on the cash
+    // message posted when a debtor pays their share with a payment (see
+    // intent.v1.ChatMetadata.RequestedPayment), so clients render it
+    // against the request; such a message is from the debtor, with the
+    // request's creator as its single_receiver. Unset on every other cash
+    // message.
+    paymentrequest.v1.PaymentRequestId payment_request_id = 6;
+
     // The receivers of a payment to several people at once
     message Payments {
         // One entry per receiver, in the payment's own order. Each receiver is
@@ -431,8 +440,9 @@ message WidgetContent {
     oneof type {
         option (validate.required) = true;
 
-        ShareProfileWidget share_profile = 1;
-        PollWidget         poll          = 2;
+        ShareProfileWidget   share_profile   = 1;
+        PollWidget           poll            = 2;
+        PaymentRequestWidget payment_request = 3;
     }
 }
 
@@ -459,6 +469,29 @@ message ShareProfileWidget {
 // message's sender.
 message PollWidget {
     poll.v1.PollId poll_id = 1 [(validate.rules).message.required = true];
+}
+
+// A widget that shows a payment request. It carries only the request's ID:
+// clients get the title, shares, and state from
+// paymentrequest.v1.PaymentRequest's GetPaymentRequest.
+//
+// The creator sends it after calling
+// paymentrequest.v1.PaymentRequest.CreatePaymentRequest, and may send the same
+// request in its chat any number of times. The request is live from creation,
+// whether or not it has been sent. Deleting a message that carries it does not
+// touch the request.
+//
+// In a group that is not private, it is sent as plain WidgetContent:
+// SendMessage accepts it only from the request's creator, in the chat the
+// request was created for, whatever the request's status; otherwise the send
+// is DENIED.
+//
+// In a private group, it is sent inside EncryptedContent, so the server cannot
+// check any of this. Clients render the widget as unsupported if the request's
+// chat (GroupChatPaymentRequest.chat_id) is not the chat the message is in, or
+// the request's creator is not the message's sender.
+message PaymentRequestWidget {
+    paymentrequest.v1.PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
 }
 
 // Deleted message content

@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message as Message$1, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { CryptoPaymentAmount, IntentId, UserId, Username } from "../../common/v1/common_pb";
 import { Media } from "../../blob/v1/model_pb";
+import { PaymentRequestId } from "../../paymentrequest/v1/model_pb";
 import { PollId } from "../../poll/v1/model_pb";
 
 /**
@@ -652,6 +653,18 @@ export class CashContent extends Message$1<CashContent> {
    */
   verb = CashContent_Verb.SENT;
 
+  /**
+   * The payment request whose share this payment paid. Set only on the cash
+   * message posted when a debtor pays their share with a payment (see
+   * intent.v1.ChatMetadata.RequestedPayment), so clients render it
+   * against the request; such a message is from the debtor, with the
+   * request's creator as its single_receiver. Unset on every other cash
+   * message.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 6;
+   */
+  paymentRequestId?: PaymentRequestId;
+
   constructor(data?: PartialMessage<CashContent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -665,6 +678,7 @@ export class CashContent extends Message$1<CashContent> {
     { no: 3, name: "single_receiver", kind: "message", T: UserId, oneof: "recipient" },
     { no: 5, name: "multi_receiver", kind: "message", T: CashContent_Payments, oneof: "recipient" },
     { no: 4, name: "verb", kind: "enum", T: proto3.getEnumType(CashContent_Verb) },
+    { no: 6, name: "payment_request_id", kind: "message", T: PaymentRequestId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent {
@@ -1139,6 +1153,12 @@ export class WidgetContent extends Message$1<WidgetContent> {
      */
     value: PollWidget;
     case: "poll";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.PaymentRequestWidget payment_request = 3;
+     */
+    value: PaymentRequestWidget;
+    case: "paymentRequest";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<WidgetContent>) {
@@ -1151,6 +1171,7 @@ export class WidgetContent extends Message$1<WidgetContent> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "share_profile", kind: "message", T: ShareProfileWidget, oneof: "type" },
     { no: 2, name: "poll", kind: "message", T: PollWidget, oneof: "type" },
+    { no: 3, name: "payment_request", kind: "message", T: PaymentRequestWidget, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WidgetContent {
@@ -1260,6 +1281,63 @@ export class PollWidget extends Message$1<PollWidget> {
 
   static equals(a: PollWidget | PlainMessage<PollWidget> | undefined, b: PollWidget | PlainMessage<PollWidget> | undefined): boolean {
     return proto3.util.equals(PollWidget, a, b);
+  }
+}
+
+/**
+ * A widget that shows a payment request. It carries only the request's ID:
+ * clients get the title, shares, and state from
+ * paymentrequest.v1.PaymentRequest's GetPaymentRequest.
+ *
+ * The creator sends it after calling
+ * paymentrequest.v1.PaymentRequest.CreatePaymentRequest, and may send the same
+ * request in its chat any number of times. The request is live from creation,
+ * whether or not it has been sent. Deleting a message that carries it does not
+ * touch the request.
+ *
+ * In a group that is not private, it is sent as plain WidgetContent:
+ * SendMessage accepts it only from the request's creator, in the chat the
+ * request was created for, whatever the request's status; otherwise the send
+ * is DENIED.
+ *
+ * In a private group, it is sent inside EncryptedContent, so the server cannot
+ * check any of this. Clients render the widget as unsupported if the request's
+ * chat (GroupChatPaymentRequest.chat_id) is not the chat the message is in, or
+ * the request's creator is not the message's sender.
+ *
+ * @generated from message flipcash.messaging.v1.PaymentRequestWidget
+ */
+export class PaymentRequestWidget extends Message$1<PaymentRequestWidget> {
+  /**
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 1;
+   */
+  paymentRequestId?: PaymentRequestId;
+
+  constructor(data?: PartialMessage<PaymentRequestWidget>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.PaymentRequestWidget";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestWidget {
+    return new PaymentRequestWidget().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestWidget {
+    return new PaymentRequestWidget().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestWidget {
+    return new PaymentRequestWidget().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestWidget | PlainMessage<PaymentRequestWidget> | undefined, b: PaymentRequestWidget | PlainMessage<PaymentRequestWidget> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestWidget, a, b);
   }
 }
 

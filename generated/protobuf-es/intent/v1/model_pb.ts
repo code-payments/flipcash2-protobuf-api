@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { ChatId, PhoneNumber } from "../../common/v1/common_pb";
 import { Emoji, MessageId } from "../../messaging/v1/model_pb";
+import { PaymentRequestId } from "../../paymentrequest/v1/model_pb";
 
 /**
  * The action being performed for a payment in a chat
@@ -119,6 +120,12 @@ export class ChatMetadata extends Message<ChatMetadata> {
      */
     value: ChatMetadata_ReactionBoost;
     case: "reactionBoost";
+  } | {
+    /**
+     * @generated from field: flipcash.intent.v1.ChatMetadata.RequestedPayment requested_payment = 6;
+     */
+    value: ChatMetadata_RequestedPayment;
+    case: "requestedPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatMetadata>) {
@@ -134,6 +141,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
     { no: 3, name: "dm_payment", kind: "message", T: ChatMetadata_DmPayment, oneof: "type" },
     { no: 4, name: "group_payment", kind: "message", T: ChatMetadata_GroupPayment, oneof: "type" },
     { no: 5, name: "reaction_boost", kind: "message", T: ChatMetadata_ReactionBoost, oneof: "type" },
+    { no: 6, name: "requested_payment", kind: "message", T: ChatMetadata_RequestedPayment, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
@@ -416,6 +424,76 @@ export class ChatMetadata_ReactionBoost extends Message<ChatMetadata_ReactionBoo
 
   static equals(a: ChatMetadata_ReactionBoost | PlainMessage<ChatMetadata_ReactionBoost> | undefined, b: ChatMetadata_ReactionBoost | PlainMessage<ChatMetadata_ReactionBoost> | undefined): boolean {
     return proto3.util.equals(ChatMetadata_ReactionBoost, a, b);
+  }
+}
+
+/**
+ * For paying the payer's share of a payment request made in a group chat,
+ * today a paymentrequest.v1.Split (see paymentrequest.v1.PaymentRequest; a
+ * kind with no shares takes no such payment). The payment is a
+ * SendPublicPayment, never a multi payment, from a debtor of the request
+ * to its creator, and pays the debtor's own unpaid share exactly:
+ *
+ *   - The chat_id must be the group the request was created for.
+ *   - The payment's one destination must be the creator's owner account.
+ *   - The payment's currency must be the request's, and its native amount
+ *     (its exchange data's native_amount) must be the share's
+ *     native_amount to within half the currency's smallest unit. Any mint
+ *     may pay. A partial payment or an overpayment is refused: a share is
+ *     paid all at once.
+ *   - The request must be OPEN: not COMPLETED, not closed, and not past
+ *     its ends_at.
+ *   - The payer must hold an unpaid share of the request.
+ *   - The intent's ID must be the one the server generated for the
+ *     payer's share, which paymentrequest.v1.GetPaymentRequest gives the
+ *     payer alone (GetPaymentRequestResponse.payment_intent_id). An intent
+ *     ID is used at most once, so this is what makes a share payable at
+ *     most once.
+ *   - Neither the payer nor the creator may be the Flipcash team account.
+ *
+ * Once the payment is made the server marks the share paid (a
+ * paymentrequest.v1.PaidShare carrying the payment's intent), posts one
+ * messaging.v1.CashContent message into the group as the payer, with the
+ * creator as its single_receiver and the request's ID in its
+ * payment_request_id. If it was the last unpaid share, the request becomes
+ * COMPLETED. No event announces the change; clients see it by refetching
+ * the request.
+ *
+ * @generated from message flipcash.intent.v1.ChatMetadata.RequestedPayment
+ */
+export class ChatMetadata_RequestedPayment extends Message<ChatMetadata_RequestedPayment> {
+  /**
+   * The payment request whose share is paid.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 1;
+   */
+  paymentRequestId?: PaymentRequestId;
+
+  constructor(data?: PartialMessage<ChatMetadata_RequestedPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.intent.v1.ChatMetadata.RequestedPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_RequestedPayment {
+    return new ChatMetadata_RequestedPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_RequestedPayment {
+    return new ChatMetadata_RequestedPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_RequestedPayment {
+    return new ChatMetadata_RequestedPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatMetadata_RequestedPayment | PlainMessage<ChatMetadata_RequestedPayment> | undefined, b: ChatMetadata_RequestedPayment | PlainMessage<ChatMetadata_RequestedPayment> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata_RequestedPayment, a, b);
   }
 }
 

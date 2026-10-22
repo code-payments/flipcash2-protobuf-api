@@ -8,6 +8,7 @@ option objc_class_prefix = "FPBIntentV1";
 
 import "common/v1/common.proto";
 import "messaging/v1/model.proto";
+import "paymentrequest/v1/model.proto";
 import "validate/validate.proto";
 
 message AppMetadata {
@@ -25,10 +26,11 @@ message ChatMetadata {
     oneof type {
         option (validate.required) = true;
 
-        ContactDmPayment contact_dm_payment = 2;
-        DmPayment        dm_payment         = 3;
-        GroupPayment     group_payment      = 4;
-        ReactionBoost    reaction_boost     = 5;
+        ContactDmPayment    contact_dm_payment    = 2;
+        DmPayment           dm_payment            = 3;
+        GroupPayment        group_payment         = 4;
+        ReactionBoost       reaction_boost        = 5;
+        RequestedPayment    requested_payment     = 6;
     }
 
     // For sending a payment to a contact in a DM
@@ -124,6 +126,41 @@ message ChatMetadata {
 
         // The emoji boosted.
         messaging.v1.Emoji emoji = 2 [(validate.rules).message.required = true];
+    }
+
+    // For paying the payer's share of a payment request made in a group chat,
+    // today a paymentrequest.v1.Split (see paymentrequest.v1.PaymentRequest; a
+    // kind with no shares takes no such payment). The payment is a
+    // SendPublicPayment, never a multi payment, from a debtor of the request
+    // to its creator, and pays the debtor's own unpaid share exactly:
+    //
+    //   - The chat_id must be the group the request was created for.
+    //   - The payment's one destination must be the creator's owner account.
+    //   - The payment's currency must be the request's, and its native amount
+    //     (its exchange data's native_amount) must be the share's
+    //     native_amount to within half the currency's smallest unit. Any mint
+    //     may pay. A partial payment or an overpayment is refused: a share is
+    //     paid all at once.
+    //   - The request must be OPEN: not COMPLETED, not closed, and not past
+    //     its ends_at.
+    //   - The payer must hold an unpaid share of the request.
+    //   - The intent's ID must be the one the server generated for the
+    //     payer's share, which paymentrequest.v1.GetPaymentRequest gives the
+    //     payer alone (GetPaymentRequestResponse.payment_intent_id). An intent
+    //     ID is used at most once, so this is what makes a share payable at
+    //     most once.
+    //   - Neither the payer nor the creator may be the Flipcash team account.
+    //
+    // Once the payment is made the server marks the share paid (a
+    // paymentrequest.v1.PaidShare carrying the payment's intent), posts one
+    // messaging.v1.CashContent message into the group as the payer, with the
+    // creator as its single_receiver and the request's ID in its
+    // payment_request_id. If it was the last unpaid share, the request becomes
+    // COMPLETED. No event announces the change; clients see it by refetching
+    // the request.
+    message RequestedPayment {
+        // The payment request whose share is paid.
+        paymentrequest.v1.PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
     }
 }
 

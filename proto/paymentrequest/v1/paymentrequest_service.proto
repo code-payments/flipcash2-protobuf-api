@@ -1,0 +1,315 @@
+syntax = "proto3";
+
+package flipcash.paymentrequest.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/paymentrequest/v1;paymentrequestpb";
+option java_package = "com.codeinc.flipcash.gen.paymentrequest.v1";
+option objc_class_prefix = "FPBPaymentRequestV1";
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+import "moderation/v1/model.proto";
+import "paymentrequest/v1/model.proto";
+import "validate/validate.proto";
+
+// PaymentRequest manages payment requests: a creator asking others for money.
+// Requests are layered (see PaymentRequestMetadata): the first layer is where
+// a request is made, today a group chat (GroupChatPaymentRequest), and the
+// second is its type, today a split (Split). Every kind shares its identity,
+// creator, status, version and the RPCs below; what each layer adds is documented on
+// its message. DMs are not supported.
+//
+// A group chat request is shown in its chat as a message. The creator first
+// calls CreatePaymentRequest, then sends the returned PaymentRequestId with
+// Messaging.SendMessage as a messaging.v1.PaymentRequestWidget. The message
+// carries only the PaymentRequestId; clients get the request's kind, shares
+// and status from GetPaymentRequest. The request is live from creation, sent
+// or not.
+//
+// A request belongs to the chat it was created for. Its creator may send it
+// in that chat any number of times, for example to bring an older request
+// back to the bottom of the chat. Every message carrying it shows the same
+// request. Deleting a message that carries a request does not touch the
+// request.
+//
+// Anyone who can read the chat in full sees the request, its shares and
+// who has paid; someone who can only preview the chat sees the widget but
+// not the request. No event announces a change to a request: clients
+// refetch it to see payments and closes land.
+//
+// In a group that is not private, a split's title and description are
+// plaintext and moderated, and the widget is sent as plain WidgetContent.
+//
+// In a private group, they are encrypted with the chat key (see
+// EncryptedPaymentRequestText), and the widget is sent inside
+// messaging.v1.EncryptedContent like everything else. The server still sees
+// everything else (the currency, ends_at, the shares and every payment),
+// since it has to check payments against the shares and decide when the
+// request is complete.
+service PaymentRequest {
+    // CreatePaymentRequest creates a payment request of the kind the request
+    // carries. For a group chat request, the caller, who becomes its
+    // creator, must be able to send messages in the chat; a split's
+    // plaintext title and description are moderated together, as one text,
+    // and encrypted text is not. The request is OPEN and accepts payments as
+    // soon as it is created; the widget message the creator sends announces
+    // it.
+    rpc CreatePaymentRequest(CreatePaymentRequestRequest) returns (CreatePaymentRequestResponse);
+
+    // GetPaymentRequest gets a payment request. The caller must be able to read
+    // the chat in full (see messaging.v1.ViewMode FULL): in a group that is
+    // not private, its members and anyone who satisfies its listener rules;
+    // in a private group, only its members. Being able to preview the chat is
+    // not enough.
+    //
+    // A caller who holds an unpaid share of the request is also given the
+    // intent ID their payment of it must use (see
+    // GetPaymentRequestResponse.payment_intent_id).
+    rpc GetPaymentRequest(GetPaymentRequestRequest) returns (GetPaymentRequestResponse);
+
+    // GetChatPaymentRequests pages one section of the payment requests made
+    // in a group chat (every kind whose first layer is that chat): the OPEN
+    // ones, soonest to end first, or the RESOLVED ones, most recently
+    // resolved first (see GetChatPaymentRequestsRequest.section). Together
+    // the two sections are the chat's full history of requests, and a client
+    // showing both pages each on its own. The caller must be able to read the
+    // chat in full, as for GetPaymentRequest.
+    //
+    // A page's requests are current as of its read, and clients apply them by
+    // version (see PaymentRequestMetadata) against what they already hold. A
+    // request moves from OPEN to RESOLVED while a client walks either
+    // section, so a walk may miss it or see it in both; clients learn of a
+    // new request from its widget message, and refresh a section to see one
+    // resolve.
+    rpc GetChatPaymentRequests(GetChatPaymentRequestsRequest) returns (GetChatPaymentRequestsResponse);
+
+    // ClosePaymentRequest closes an OPEN request, which then accepts no more
+    // payments: it becomes CLOSED and advances the version. Only the creator
+    // can close. Closing a request that is not OPEN (already COMPLETED,
+    // CLOSED or EXPIRED) is a no-op that returns OK.
+    rpc ClosePaymentRequest(ClosePaymentRequestRequest) returns (ClosePaymentRequestResponse);
+
+    // MarkPaid records a debtor's share of a split as paid by hand, for a
+    // share settled outside Flipcash. Only the creator can mark a share paid.
+    // The share is recorded as a PaidShare.Manual and the version advances;
+    // if it was the last unpaid share, the request becomes COMPLETED. No
+    // message is posted into the chat.
+    //
+    // Marking a share that is already paid, by payment or by hand, is a no-op
+    // that returns OK, whatever the request's status. A debtor's payment in
+    // flight when the share is marked replaces the mark once it lands (see
+    // PaidShare).
+    rpc MarkPaid(MarkPaidRequest) returns (MarkPaidResponse);
+}
+
+message CreatePaymentRequestRequest {
+    // Key for retrying this request safely. A retry with the same key from
+    // the same caller returns the payment request the first attempt created,
+    // with result OK, even if the parameters, or the kind, differ.
+    IdempotencyKey idempotency_key = 1 [(validate.rules).message.required = true];
+
+    // What to create and where. The same messages the created request
+    // carries in PaymentRequestMetadata.kind, with nothing the server sets
+    // (for a split, every share has paid unset).
+    oneof kind {
+        option (validate.required) = true;
+
+        // A request in a group chat. The caller may list themself among a
+        // split's shares; that share is created paid (PaidShare.Creator),
+        // and at least one share must name someone else.
+        GroupChatPaymentRequest group_chat = 2;
+    }
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message CreatePaymentRequestResponse {
+    Result result = 1;
+    enum Result {
+        OK                     = 0;
+        // The caller is not a member of the chat, or does not satisfy its
+        // speaker rules.
+        DENIED                 = 1;
+        // The chat a group chat request names is a DM.
+        CHAT_NOT_SUPPORTED     = 2;
+        // The text is encrypted and the chat is not a private group.
+        ENCRYPTION_NOT_ALLOWED = 3;
+        // The chat is a private group and the text is not encrypted.
+        ENCRYPTION_REQUIRED    = 4;
+        // A split's ends_at is not in the future, or is more than 4 weeks
+        // away.
+        INVALID_ENDS_AT        = 5;
+        // A split's share names a user who is not a member of the chat, or
+        // a user another share already names; is not a whole number, at
+        // least one, of the currency's minimum transfer value; or has paid
+        // set. Or no share names anyone but the caller.
+        INVALID_SHARES         = 6;
+        // A split's currency is one the server cannot value.
+        INVALID_CURRENCY       = 7;
+        // The plaintext title and description, moderated together as one
+        // text, were flagged.
+        TEXT_MODERATED         = 8;
+    }
+
+    // The created request, or on a retry the request the first attempt
+    // created. Set only when result == OK.
+    PaymentRequestMetadata payment_request = 2;
+
+    // The best-fit category that tripped moderation, mirroring the Moderation
+    // service's vocabulary. Set only when result == TEXT_MODERATED; NONE
+    // otherwise.
+    moderation.v1.FlaggedCategory flagged_category = 3;
+}
+
+message GetPaymentRequestRequest {
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetPaymentRequestResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        // The caller cannot read the request's chat in full.
+        DENIED    = 1;
+        // The request doesn't exist.
+        NOT_FOUND = 2;
+    }
+
+    // Set only when result == OK.
+    PaymentRequestMetadata payment_request = 2;
+
+    // The intent ID the caller's payment of their share must use (see
+    // intent.v1.ChatMetadata.RequestedPayment), set only when result == OK
+    // and the caller holds a share of the request that is unpaid.
+    //
+    // The server generates one at random for each debtor's share when the
+    // request is created, and gives it to that debtor alone. A payment of the
+    // share with any other intent ID is refused, and an intent ID is used at
+    // most once, so a share is paid at most once: a retry, a second tap or a
+    // second device all pay under this one ID, and only the first payment
+    // goes through. Keep it to the payment: anyone who learns it before the
+    // share is paid can use it up and block the payment.
+    common.v1.IntentId payment_intent_id = 3;
+}
+
+message GetChatPaymentRequestsRequest {
+    // The group chat whose requests to page: every request whose
+    // GroupChatPaymentRequest.chat_id is this chat.
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // Which requests to page, and in what order. A request is in exactly one
+    // section at any moment, decided by its status (see
+    // PaymentRequestMetadata.status).
+    Section section = 2 [(validate.rules).enum = {
+        in: [1, 2] // OPEN, RESOLVED
+    }];
+    enum Section {
+        UNKNOWN  = 0;
+
+        // Requests that are OPEN: still accepting payments. Ordered by
+        // ends_at ascending, the one ending soonest first, so the most urgent
+        // leads. The section is the same for every member: a request stays
+        // here until every share is paid, the creator closes it or it
+        // reaches its ends_at, whether or not the caller has paid their own
+        // share.
+        OPEN     = 1;
+
+        // Requests that are COMPLETED, CLOSED or EXPIRED: no longer accepting
+        // payments. Ordered by PaymentRequestMetadata.closed_at descending, the
+        // most recently resolved first: when its last share was paid, when
+        // the creator closed it, or its ends_at when it expired.
+        RESOLVED = 2;
+    }
+
+    // QueryOptions controls page_size, capped at 100. Ordering is fixed by
+    // the section and is not client-selectable.
+    //
+    // Leave query_options.paging_token unset on the first request. On every
+    // subsequent request, set it to the paging_token from the most recent
+    // response. The token is opaque and server-generated; do not construct
+    // it. It is bound to chat_id and section and refused with another.
+    common.v1.QueryOptions query_options = 3;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetChatPaymentRequestsResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        // The caller cannot read the chat in full, or the chat is a DM.
+        DENIED    = 1;
+        // The chat doesn't exist.
+        NOT_FOUND = 2;
+    }
+
+    // The page, in the section's order. Set when result is OK.
+    repeated PaymentRequestMetadata payment_requests = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // PagingToken carries the cursor after the last request returned. The
+    // client MUST send it back in query_options.paging_token on the next
+    // GetChatPaymentRequestsRequest. Set when result is OK and has_more is
+    // true.
+    common.v1.PagingToken paging_token = 3;
+
+    // HasMore indicates whether further pages remain. When false, every
+    // request in the section as of the walk has been read. When true, the
+    // client should issue another GetChatPaymentRequestsRequest with the
+    // returned paging_token.
+    bool has_more = 4;
+}
+
+message ClosePaymentRequestRequest {
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message ClosePaymentRequestResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        // The caller is not the request's creator.
+        DENIED    = 1;
+        // The request doesn't exist.
+        NOT_FOUND = 2;
+    }
+
+    // The request after the close, or as it is when it was not OPEN. Set
+    // only when result == OK.
+    PaymentRequestMetadata payment_request = 2;
+}
+
+message MarkPaidRequest {
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    // The debtor whose share to mark paid.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message MarkPaidResponse {
+    Result result = 1;
+    enum Result {
+        OK          = 0;
+        // The caller is not the request's creator.
+        DENIED      = 1;
+        // The request doesn't exist.
+        NOT_FOUND   = 2;
+        // The share is unpaid and the request is not OPEN: it is CLOSED or
+        // EXPIRED.
+        NOT_OPEN    = 3;
+        // The request has no share for user_id.
+        NOT_A_SHARE = 4;
+    }
+
+    // The request after the share was marked paid, or as it is when the
+    // share was already paid. Set only when result == OK.
+    PaymentRequestMetadata payment_request = 2;
+}
