@@ -167,7 +167,7 @@ const (
 	// share.
 	GetChatPaymentRequestsRequest_OPEN GetChatPaymentRequestsRequest_Section = 1
 	// Requests that are COMPLETED, CLOSED or EXPIRED: no longer accepting
-	// payments. Ordered by PaymentRequestState.closed_at descending, the
+	// payments. Ordered by PaymentRequestMetadata.closed_at descending, the
 	// most recently resolved first: when its last share was paid, when
 	// the creator closed it, or its ends_at when it expired.
 	GetChatPaymentRequestsRequest_RESOLVED GetChatPaymentRequestsRequest_Section = 2
@@ -669,7 +669,7 @@ type GetChatPaymentRequestsRequest struct {
 	ChatId *v1.ChatId `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	// Which requests to page, and in what order. A request is in exactly one
 	// section at any moment, decided by its status (see
-	// PaymentRequestState.Status).
+	// PaymentRequestMetadata.status).
 	Section GetChatPaymentRequestsRequest_Section `protobuf:"varint,2,opt,name=section,proto3,enum=flipcash.paymentrequest.v1.GetChatPaymentRequestsRequest_Section" json:"section,omitempty"`
 	// QueryOptions controls page_size, capped at 100. Ordering is fixed by
 	// the section and is not client-selectable.

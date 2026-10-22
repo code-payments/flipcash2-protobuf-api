@@ -37,8 +37,22 @@ message IdempotencyKey {
 }
 
 // PaymentRequestMetadata is a payment request: what every kind of request
-// shares (its identity, creator, creation time and state), and in `kind`
-// what the request is and where it was made.
+// shares (its identity, creator, creation time, status and version), and in
+// `kind` what the request is and where it was made.
+//
+// The message is versioned whole: every change to anything in it, a share
+// paid (by payment or by hand) or a close, advances version by exactly one,
+// and an idempotent no-op leaves it alone. Clients keep the copy with the
+// greater version, comparing it like chat.v1.RosterSummary.version, and
+// replace the whole message, so delivery order does not matter. Expiry is
+// not a change: it comes from the clock and moves no version (see
+// PAYMENT_REQUEST_STATUS_EXPIRED), so at an equal version a client keeps
+// EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
+// itself.
+//
+// Nothing announces a change in real time: no event carries a payment request
+// today. Clients refetch a request to see payments and closes land, for
+// example when they show its widget.
 //
 // Requests are layered. The first layer is where the request lives: today a
 // group chat (GroupChatPaymentRequest). Within it, the second layer is the
@@ -55,8 +69,22 @@ message PaymentRequestMetadata {
     // When the request was created.
     google.protobuf.Timestamp created_at = 3 [(validate.rules).timestamp.required = true];
 
-    // The request's current state, the same shape for every kind.
-    PaymentRequestState state = 4 [(validate.rules).message.required = true];
+    // Where the request is in its life. It only moves forward: from OPEN to
+    // one of COMPLETED, CLOSED or EXPIRED, which are final.
+    PaymentRequestStatus status = 4 [(validate.rules).enum = {
+        in: [1, 2, 3, 4] // OPEN, COMPLETED, CLOSED, EXPIRED
+    }];
+
+    // When the request stopped being OPEN. Set once status is not OPEN: the
+    // request's ends_at when EXPIRED, when the creator closed it when CLOSED,
+    // and when its last unpaid share was paid when COMPLETED.
+    google.protobuf.Timestamp closed_at = 5;
+
+    // Advances by exactly one on every change to anything in this message
+    // (see above). Opaque to clients: compare it against the last value seen
+    // and keep the greater. There is no delta to fetch against it, only a
+    // refetch of the request.
+    uint64 version = 6;
 
     // What the request is and where it was made.
     oneof kind {
@@ -270,50 +298,22 @@ message PaidShare {
     message Creator {}
 }
 
-// PaymentRequestState is the changing part of a payment request, the same shape
-// for every kind.
-//
-// Status only moves forward: from OPEN to one of COMPLETED, CLOSED or
-// EXPIRED, which are final. Every change to a request (a share paid, by
-// payment or by hand, or a close) advances version by exactly one, and an
-// idempotent no-op leaves it alone. Clients keep the copy with the greater
-// version, comparing it like chat.v1.RosterSummary.version, so delivery order
-// does not matter. Expiry is not a change: it comes from the clock and moves
-// no version (see EXPIRED), so at an equal version a client keeps EXPIRED
-// over OPEN, and judges an OPEN request past its ends_at as EXPIRED itself.
-//
-// Nothing announces a change in real time: no event carries a payment request
-// today. Clients refetch a request to see payments and closes land, for
-// example when they show its widget.
-message PaymentRequestState {
-    Status status = 1 [(validate.rules).enum = {
-        in: [1, 2, 3, 4] // OPEN, COMPLETED, CLOSED, EXPIRED
-    }];
-    enum Status {
-        UNKNOWN   = 0;
-        // Accepting payments: the request is before its ends_at and has
-        // something left to pay (for a Split, at least one unpaid share).
-        OPEN      = 1;
-        // Everything asked for is paid (for a Split, every share). Final.
-        COMPLETED = 2;
-        // The creator closed the request (PaymentRequest.ClosePaymentRequest)
-        // while it was still OPEN. Final.
-        CLOSED    = 3;
-        // The request reached its ends_at while still OPEN. Final. Decided
-        // by the clock, like poll.v1.PollState's TALLYING: it moves no
-        // version, and a client judges an OPEN request past its ends_at as
-        // EXPIRED itself rather than waiting for the server to say so.
-        EXPIRED   = 4;
-    }
-
-    // Advances by exactly one on every change to the request. Opaque to
-    // clients: compare it against the last value seen and keep the greater.
-    // There is no delta to fetch against it, only a refetch of the request.
-    uint64 version = 2;
-
-    // When the request stopped being OPEN. Set once status is not OPEN: the
-    // request's ends_at when EXPIRED, when the creator closed it when CLOSED,
-    // and when its last unpaid share was paid when COMPLETED.
-    google.protobuf.Timestamp closed_at = 3;
+// PaymentRequestStatus is where a payment request is in its life (see
+// PaymentRequestMetadata.status).
+enum PaymentRequestStatus {
+    PAYMENT_REQUEST_STATUS_UNKNOWN   = 0;
+    // Accepting payments: the request is before its ends_at and has something
+    // left to pay (for a Split, at least one unpaid share).
+    PAYMENT_REQUEST_STATUS_OPEN      = 1;
+    // Everything asked for is paid (for a Split, every share). Final.
+    PAYMENT_REQUEST_STATUS_COMPLETED = 2;
+    // The creator closed the request (PaymentRequest.ClosePaymentRequest)
+    // while it was still OPEN. Final.
+    PAYMENT_REQUEST_STATUS_CLOSED    = 3;
+    // The request reached its ends_at while still OPEN. Final. Decided by the
+    // clock, like poll.v1.PollState's TALLYING: it moves no version, and a
+    // client judges an OPEN request past its ends_at as EXPIRED itself rather
+    // than waiting for the server to say so.
+    PAYMENT_REQUEST_STATUS_EXPIRED   = 4;
 }
 
