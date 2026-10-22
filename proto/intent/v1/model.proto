@@ -108,10 +108,11 @@ message ChatMetadata {
     //
     // A boost that pays one person is a SendPublicPayment, and one that pays
     // two a SendPublicMultiPayment; the server refuses either intent for the
-    // other case. Every share, each destination's amount, must be at least
-    // the currency's minimum transfer value (one minor unit, e.g. $0.01), so
-    // a boost that pays two is at least five of them. Either way the reaction
-    // is credited with the whole payment.
+    // other case. Every share, each destination's amount, must round to at
+    // least the currency's minimum transfer value (one minor unit, e.g.
+    // $0.01). The server checks each share, not the total, so the smallest
+    // USD boost that pays two is $0.03 (2.4c and 0.6c round to 2c and 1c).
+    // Either way the reaction is credited with the whole payment.
     //
     // Once the payment is made the server records the
     // boost against the reaction: the emoji's and the payer's totals grow
