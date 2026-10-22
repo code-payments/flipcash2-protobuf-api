@@ -475,18 +475,23 @@ func (x *ChatMetadata_GroupPayment) GetAction() PaymentAction {
 	return PaymentAction_DEFAULT
 }
 
-// For paying to boost a reaction on a message in a group chat: the
-// payer's reaction with the emoji carries money, shown as
+// For paying to boost a reaction on a message in a group chat or a DM:
+// the payer's reaction with the emoji carries money, shown as
 // messaging.v1.Reactor.boost_usd and summed into
 // messaging.v1.EmojiReaction.boost_usd, which orders a message's
-// reactions. The chat_id must be a group the payer is a member
+// reactions. The chat_id must be a group or a DM the payer is a member
 // of, the message one of its reactable messages, and the payer must
 // already have reacted to it with the emoji: a boost puts money behind
 // a reaction the payer holds, so a client adds the reaction first
 // (messaging.v1.AddReaction) and pays after. No one boosts their own
-// message, the group's creator included. The payment is divided
-// between the message's sender and the group's creator by a fixed rule
-// the server enforces; the payer does not choose it:
+// message, a group's creator included. Who is paid is a fixed rule the
+// server enforces; the payer does not choose it.
+//
+// In a DM, the payer boosts the other member's message, and the
+// payment pays them the whole, as one SendPublicPayment.
+//
+// In a group, the payment is divided between the message's sender and
+// the group's creator:
 //
 //   - A boost by anyone but the creator of a message the creator did
 //     not send pays the creator 20% of the whole and the sender the
