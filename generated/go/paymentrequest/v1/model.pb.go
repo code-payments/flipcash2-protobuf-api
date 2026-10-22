@@ -503,9 +503,9 @@ type Split struct {
 	// one, is in. The server must be able to value it.
 	Currency string `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
 	// When the request stops accepting payments. It is in the future when the
-	// request is created and is the request's one deadline: after it, no
-	// share can be paid, by payment or by hand, and a request with shares
-	// still unpaid is EXPIRED. The server imposes no other bound on it.
+	// request is created, and at most 4 weeks after it, and is the request's
+	// one deadline: after it, no share can be paid, by payment or by hand,
+	// and a request with shares still unpaid is EXPIRED.
 	EndsAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=ends_at,json=endsAt,proto3" json:"ends_at,omitempty"`
 	// Who is asked to pay, and how much, in the order the creator listed
 	// them. Each share names a distinct member of the chat (or one who was a
@@ -774,8 +774,9 @@ type Share struct {
 	// The member asked to pay.
 	UserId *v1.UserId `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// The amount asked of them, in the request's currency. The server
-	// requires at least the currency's minimum transfer value (its smallest
-	// unit, e.g. $0.01).
+	// requires a whole number, at least one, of the currency's minimum
+	// transfer value (its smallest unit, e.g. $0.01): $12.34, not $12.345.
+	// A client dividing an amount rounds each share to that unit itself.
 	NativeAmount float64 `protobuf:"fixed64,2,opt,name=native_amount,json=nativeAmount,proto3" json:"native_amount,omitempty"`
 	// How the share was paid. Unset while it is unpaid. Clients never set it:
 	// a share is paid only by a payment (see

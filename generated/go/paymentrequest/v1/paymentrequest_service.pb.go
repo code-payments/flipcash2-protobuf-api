@@ -37,12 +37,13 @@ const (
 	CreatePaymentRequestResponse_ENCRYPTION_NOT_ALLOWED CreatePaymentRequestResponse_Result = 3
 	// The chat is a private group and the text is not encrypted.
 	CreatePaymentRequestResponse_ENCRYPTION_REQUIRED CreatePaymentRequestResponse_Result = 4
-	// A split's ends_at is not in the future.
+	// A split's ends_at is not in the future, or is more than 4 weeks
+	// away.
 	CreatePaymentRequestResponse_INVALID_ENDS_AT CreatePaymentRequestResponse_Result = 5
 	// A split's share names a user who is not a member of the chat, or
-	// a user another share already names; is below the currency's
-	// minimum transfer value; or has paid set. Or no share names anyone
-	// but the caller.
+	// a user another share already names; is not a whole number, at
+	// least one, of the currency's minimum transfer value; or has paid
+	// set. Or no share names anyone but the caller.
 	CreatePaymentRequestResponse_INVALID_SHARES CreatePaymentRequestResponse_Result = 6
 	// A split's currency is one the server cannot value.
 	CreatePaymentRequestResponse_INVALID_CURRENCY CreatePaymentRequestResponse_Result = 7

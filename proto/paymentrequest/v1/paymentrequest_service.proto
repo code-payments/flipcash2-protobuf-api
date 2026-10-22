@@ -136,12 +136,13 @@ message CreatePaymentRequestResponse {
         ENCRYPTION_NOT_ALLOWED = 3;
         // The chat is a private group and the text is not encrypted.
         ENCRYPTION_REQUIRED    = 4;
-        // A split's ends_at is not in the future.
+        // A split's ends_at is not in the future, or is more than 4 weeks
+        // away.
         INVALID_ENDS_AT        = 5;
         // A split's share names a user who is not a member of the chat, or
-        // a user another share already names; is below the currency's
-        // minimum transfer value; or has paid set. Or no share names anyone
-        // but the caller.
+        // a user another share already names; is not a whole number, at
+        // least one, of the currency's minimum transfer value; or has paid
+        // set. Or no share names anyone but the caller.
         INVALID_SHARES         = 6;
         // A split's currency is one the server cannot value.
         INVALID_CURRENCY       = 7;

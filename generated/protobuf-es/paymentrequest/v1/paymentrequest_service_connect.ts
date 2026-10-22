@@ -11,14 +11,14 @@ import { MethodKind } from "@bufbuild/protobuf";
  * Requests are layered (see PaymentRequestMetadata): the first layer is where
  * a request is made, today a group chat (GroupChatPaymentRequest), and the
  * second is its type, today a split (Split). Every kind shares its identity,
- * creator, state and the RPCs below; what each layer adds is documented on
+ * creator, status, version and the RPCs below; what each layer adds is documented on
  * its message. DMs are not supported.
  *
  * A group chat request is shown in its chat as a message. The creator first
  * calls CreatePaymentRequest, then sends the returned PaymentRequestId with
  * Messaging.SendMessage as a messaging.v1.PaymentRequestWidget. The message
  * carries only the PaymentRequestId; clients get the request's kind, shares
- * and state from GetPaymentRequest. The request is live from creation, sent
+ * and status from GetPaymentRequest. The request is live from creation, sent
  * or not.
  *
  * A request belongs to the chat it was created for. Its creator may send it
@@ -93,7 +93,7 @@ export const PaymentRequest = {
      * chat in full, as for GetPaymentRequest.
      *
      * A page's requests are current as of its read, and clients apply them by
-     * version (see PaymentRequestState) against what they already hold. A
+     * version (see PaymentRequestMetadata) against what they already hold. A
      * request moves from OPEN to RESOLVED while a client walks either
      * section, so a walk may miss it or see it in both; clients learn of a
      * new request from its widget message, and refresh a section to see one

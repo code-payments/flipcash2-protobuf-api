@@ -8,6 +8,60 @@ import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, IntentId, UserId } from "../../common/v1/common_pb";
 
 /**
+ * PaymentRequestStatus is where a payment request is in its life (see
+ * PaymentRequestMetadata.status).
+ *
+ * @generated from enum flipcash.paymentrequest.v1.PaymentRequestStatus
+ */
+export enum PaymentRequestStatus {
+  /**
+   * @generated from enum value: PAYMENT_REQUEST_STATUS_UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * Accepting payments: the request is before its ends_at and has something
+   * left to pay (for a Split, at least one unpaid share).
+   *
+   * @generated from enum value: PAYMENT_REQUEST_STATUS_OPEN = 1;
+   */
+  OPEN = 1,
+
+  /**
+   * Everything asked for is paid (for a Split, every share). Final.
+   *
+   * @generated from enum value: PAYMENT_REQUEST_STATUS_COMPLETED = 2;
+   */
+  COMPLETED = 2,
+
+  /**
+   * The creator closed the request (PaymentRequest.ClosePaymentRequest)
+   * while it was still OPEN. Final.
+   *
+   * @generated from enum value: PAYMENT_REQUEST_STATUS_CLOSED = 3;
+   */
+  CLOSED = 3,
+
+  /**
+   * The request reached its ends_at while still OPEN. Final. Decided by the
+   * clock, like poll.v1.PollState's TALLYING: it moves no version, and a
+   * client judges an OPEN request past its ends_at as EXPIRED itself rather
+   * than waiting for the server to say so.
+   *
+   * @generated from enum value: PAYMENT_REQUEST_STATUS_EXPIRED = 4;
+   */
+  EXPIRED = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(PaymentRequestStatus)
+proto3.util.setEnumType(PaymentRequestStatus, "flipcash.paymentrequest.v1.PaymentRequestStatus", [
+  { no: 0, name: "PAYMENT_REQUEST_STATUS_UNKNOWN" },
+  { no: 1, name: "PAYMENT_REQUEST_STATUS_OPEN" },
+  { no: 2, name: "PAYMENT_REQUEST_STATUS_COMPLETED" },
+  { no: 3, name: "PAYMENT_REQUEST_STATUS_CLOSED" },
+  { no: 4, name: "PAYMENT_REQUEST_STATUS_EXPIRED" },
+]);
+
+/**
  * PaymentRequestId is the server-assigned identity of a payment request, of any
  * kind. It is what a messaging.v1.PaymentRequestWidget carries, and what every
  * PaymentRequest RPC is keyed by.
@@ -97,8 +151,22 @@ export class IdempotencyKey extends Message<IdempotencyKey> {
 
 /**
  * PaymentRequestMetadata is a payment request: what every kind of request
- * shares (its identity, creator, creation time and state), and in `kind`
- * what the request is and where it was made.
+ * shares (its identity, creator, creation time, status and version), and in
+ * `kind` what the request is and where it was made.
+ *
+ * The message is versioned whole: every change to anything in it, a share
+ * paid (by payment or by hand) or a close, advances version by exactly one,
+ * and an idempotent no-op leaves it alone. Clients keep the copy with the
+ * greater version, comparing it like chat.v1.RosterSummary.version, and
+ * replace the whole message, so delivery order does not matter. Expiry is
+ * not a change: it comes from the clock and moves no version (see
+ * PAYMENT_REQUEST_STATUS_EXPIRED), so at an equal version a client keeps
+ * EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
+ * itself.
+ *
+ * Nothing announces a change in real time: no event carries a payment request
+ * today. Clients refetch a request to see payments and closes land, for
+ * example when they show its widget.
  *
  * Requests are layered. The first layer is where the request lives: today a
  * group chat (GroupChatPaymentRequest). Within it, the second layer is the
@@ -130,11 +198,31 @@ export class PaymentRequestMetadata extends Message<PaymentRequestMetadata> {
   createdAt?: Timestamp;
 
   /**
-   * The request's current state, the same shape for every kind.
+   * Where the request is in its life. It only moves forward: from OPEN to
+   * one of COMPLETED, CLOSED or EXPIRED, which are final.
    *
-   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestState state = 4;
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestStatus status = 4;
    */
-  state?: PaymentRequestState;
+  status = PaymentRequestStatus.UNKNOWN;
+
+  /**
+   * When the request stopped being OPEN. Set once status is not OPEN: the
+   * request's ends_at when EXPIRED, when the creator closed it when CLOSED,
+   * and when its last unpaid share was paid when COMPLETED.
+   *
+   * @generated from field: google.protobuf.Timestamp closed_at = 5;
+   */
+  closedAt?: Timestamp;
+
+  /**
+   * Advances by exactly one on every change to anything in this message
+   * (see above). Opaque to clients: compare it against the last value seen
+   * and keep the greater. There is no delta to fetch against it, only a
+   * refetch of the request.
+   *
+   * @generated from field: uint64 version = 6;
+   */
+  version = protoInt64.zero;
 
   /**
    * What the request is and where it was made.
@@ -162,7 +250,9 @@ export class PaymentRequestMetadata extends Message<PaymentRequestMetadata> {
     { no: 1, name: "payment_request_id", kind: "message", T: PaymentRequestId },
     { no: 2, name: "creator", kind: "message", T: UserId },
     { no: 3, name: "created_at", kind: "message", T: Timestamp },
-    { no: 4, name: "state", kind: "message", T: PaymentRequestState },
+    { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(PaymentRequestStatus) },
+    { no: 5, name: "closed_at", kind: "message", T: Timestamp },
+    { no: 6, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 10, name: "group_chat", kind: "message", T: GroupChatPaymentRequest, oneof: "kind" },
   ]);
 
@@ -299,9 +389,9 @@ export class Split extends Message<Split> {
 
   /**
    * When the request stops accepting payments. It is in the future when the
-   * request is created and is the request's one deadline: after it, no
-   * share can be paid, by payment or by hand, and a request with shares
-   * still unpaid is EXPIRED. The server imposes no other bound on it.
+   * request is created, and at most 4 weeks after it, and is the request's
+   * one deadline: after it, no share can be paid, by payment or by hand,
+   * and a request with shares still unpaid is EXPIRED.
    *
    * @generated from field: google.protobuf.Timestamp ends_at = 4;
    */
@@ -318,7 +408,10 @@ export class Split extends Message<Split> {
    *
    * On CreatePaymentRequest, every share has paid unset.
    *
-   * The upper bound is a sanity bound, not a product limit.
+   * At most 100 shares for now. A request is one record that grows with its
+   * shares and is rewritten whole each time one is paid, so the bound keeps
+   * that record, and a page of GetChatPaymentRequests, small. It may be
+   * raised later.
    *
    * @generated from field: repeated flipcash.paymentrequest.v1.Share shares = 5;
    */
@@ -526,8 +619,9 @@ export class Share extends Message<Share> {
 
   /**
    * The amount asked of them, in the request's currency. The server
-   * requires at least the currency's minimum transfer value (its smallest
-   * unit, e.g. $0.01).
+   * requires a whole number, at least one, of the currency's minimum
+   * transfer value (its smallest unit, e.g. $0.01): $12.34, not $12.345.
+   * A client dividing an amount rounds each share to that unit itself.
    *
    * @generated from field: double native_amount = 2;
    */
@@ -730,128 +824,4 @@ export class PaidShare_Creator extends Message<PaidShare_Creator> {
     return proto3.util.equals(PaidShare_Creator, a, b);
   }
 }
-
-/**
- * PaymentRequestState is the changing part of a payment request, the same shape
- * for every kind.
- *
- * Status only moves forward: from OPEN to one of COMPLETED, CLOSED or
- * EXPIRED, which are final. Every change to a request (a share paid, by
- * payment or by hand, or a close) advances version by exactly one, and an
- * idempotent no-op leaves it alone. Clients keep the copy with the greater
- * version, comparing it like chat.v1.RosterSummary.version, so delivery order
- * does not matter. Expiry is not a change: it comes from the clock and moves
- * no version (see EXPIRED), so at an equal version a client keeps EXPIRED
- * over OPEN, and judges an OPEN request past its ends_at as EXPIRED itself.
- *
- * Nothing announces a change in real time: no event carries a payment request
- * today. Clients refetch a request to see payments and closes land, for
- * example when they show its widget.
- *
- * @generated from message flipcash.paymentrequest.v1.PaymentRequestState
- */
-export class PaymentRequestState extends Message<PaymentRequestState> {
-  /**
-   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestState.Status status = 1;
-   */
-  status = PaymentRequestState_Status.UNKNOWN;
-
-  /**
-   * Advances by exactly one on every change to the request. Opaque to
-   * clients: compare it against the last value seen and keep the greater.
-   * There is no delta to fetch against it, only a refetch of the request.
-   *
-   * @generated from field: uint64 version = 2;
-   */
-  version = protoInt64.zero;
-
-  /**
-   * When the request stopped being OPEN. Set once status is not OPEN: the
-   * request's ends_at when EXPIRED, when the creator closed it when CLOSED,
-   * and when its last unpaid share was paid when COMPLETED.
-   *
-   * @generated from field: google.protobuf.Timestamp closed_at = 3;
-   */
-  closedAt?: Timestamp;
-
-  constructor(data?: PartialMessage<PaymentRequestState>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestState";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "status", kind: "enum", T: proto3.getEnumType(PaymentRequestState_Status) },
-    { no: 2, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
-    { no: 3, name: "closed_at", kind: "message", T: Timestamp },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestState {
-    return new PaymentRequestState().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestState {
-    return new PaymentRequestState().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestState {
-    return new PaymentRequestState().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: PaymentRequestState | PlainMessage<PaymentRequestState> | undefined, b: PaymentRequestState | PlainMessage<PaymentRequestState> | undefined): boolean {
-    return proto3.util.equals(PaymentRequestState, a, b);
-  }
-}
-
-/**
- * @generated from enum flipcash.paymentrequest.v1.PaymentRequestState.Status
- */
-export enum PaymentRequestState_Status {
-  /**
-   * @generated from enum value: UNKNOWN = 0;
-   */
-  UNKNOWN = 0,
-
-  /**
-   * Accepting payments: the request is before its ends_at and has
-   * something left to pay (for a Split, at least one unpaid share).
-   *
-   * @generated from enum value: OPEN = 1;
-   */
-  OPEN = 1,
-
-  /**
-   * Everything asked for is paid (for a Split, every share). Final.
-   *
-   * @generated from enum value: COMPLETED = 2;
-   */
-  COMPLETED = 2,
-
-  /**
-   * The creator closed the request (PaymentRequest.ClosePaymentRequest)
-   * while it was still OPEN. Final.
-   *
-   * @generated from enum value: CLOSED = 3;
-   */
-  CLOSED = 3,
-
-  /**
-   * The request reached its ends_at while still OPEN. Final. Decided
-   * by the clock, like poll.v1.PollState's TALLYING: it moves no
-   * version, and a client judges an OPEN request past its ends_at as
-   * EXPIRED itself rather than waiting for the server to say so.
-   *
-   * @generated from enum value: EXPIRED = 4;
-   */
-  EXPIRED = 4,
-}
-// Retrieve enum metadata with: proto3.getEnumType(PaymentRequestState_Status)
-proto3.util.setEnumType(PaymentRequestState_Status, "flipcash.paymentrequest.v1.PaymentRequestState.Status", [
-  { no: 0, name: "UNKNOWN" },
-  { no: 1, name: "OPEN" },
-  { no: 2, name: "COMPLETED" },
-  { no: 3, name: "CLOSED" },
-  { no: 4, name: "EXPIRED" },
-]);
 

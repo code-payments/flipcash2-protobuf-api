@@ -171,7 +171,8 @@ export enum CreatePaymentRequestResponse_Result {
   ENCRYPTION_REQUIRED = 4,
 
   /**
-   * A split's ends_at is not in the future.
+   * A split's ends_at is not in the future, or is more than 4 weeks
+   * away.
    *
    * @generated from enum value: INVALID_ENDS_AT = 5;
    */
@@ -179,9 +180,9 @@ export enum CreatePaymentRequestResponse_Result {
 
   /**
    * A split's share names a user who is not a member of the chat, or
-   * a user another share already names; is below the currency's
-   * minimum transfer value; or has paid set. Or no share names anyone
-   * but the caller.
+   * a user another share already names; is not a whole number, at
+   * least one, of the currency's minimum transfer value; or has paid
+   * set. Or no share names anyone but the caller.
    *
    * @generated from enum value: INVALID_SHARES = 6;
    */
@@ -366,7 +367,7 @@ export class GetChatPaymentRequestsRequest extends Message<GetChatPaymentRequest
   /**
    * Which requests to page, and in what order. A request is in exactly one
    * section at any moment, decided by its status (see
-   * PaymentRequestState.Status).
+   * PaymentRequestMetadata.status).
    *
    * @generated from field: flipcash.paymentrequest.v1.GetChatPaymentRequestsRequest.Section section = 2;
    */
@@ -444,7 +445,7 @@ export enum GetChatPaymentRequestsRequest_Section {
 
   /**
    * Requests that are COMPLETED, CLOSED or EXPIRED: no longer accepting
-   * payments. Ordered by PaymentRequestState.closed_at descending, the
+   * payments. Ordered by PaymentRequestMetadata.closed_at descending, the
    * most recently resolved first: when its last share was paid, when
    * the creator closed it, or its ends_at when it expired.
    *

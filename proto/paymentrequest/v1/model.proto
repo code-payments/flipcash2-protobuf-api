@@ -147,9 +147,9 @@ message Split {
     string currency = 3 [(validate.rules).string = { pattern: "^[a-z]{3,4}$" }];
 
     // When the request stops accepting payments. It is in the future when the
-    // request is created and is the request's one deadline: after it, no
-    // share can be paid, by payment or by hand, and a request with shares
-    // still unpaid is EXPIRED. The server imposes no other bound on it.
+    // request is created, and at most 4 weeks after it, and is the request's
+    // one deadline: after it, no share can be paid, by payment or by hand,
+    // and a request with shares still unpaid is EXPIRED.
     google.protobuf.Timestamp ends_at = 4 [(validate.rules).timestamp.required = true];
 
     // Who is asked to pay, and how much, in the order the creator listed
@@ -244,8 +244,9 @@ message Share {
     common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
 
     // The amount asked of them, in the request's currency. The server
-    // requires at least the currency's minimum transfer value (its smallest
-    // unit, e.g. $0.01).
+    // requires a whole number, at least one, of the currency's minimum
+    // transfer value (its smallest unit, e.g. $0.01): $12.34, not $12.345.
+    // A client dividing an amount rounds each share to that unit itself.
     double native_amount = 2 [(validate.rules).double.gte = 0];
 
     // How the share was paid. Unset while it is unpaid. Clients never set it:
