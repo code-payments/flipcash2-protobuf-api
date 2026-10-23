@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, StartChatRequest, StartChatResponse, UnmuteChatRequest, UnmuteChatResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, BanUserRequest, BanUserResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -538,6 +538,115 @@ export const Chat = {
       name: "GetFeaturedGroups",
       I: GetFeaturedGroupsRequest,
       O: GetFeaturedGroupsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SilenceUser silences a user in a group chat, until a time or
+     * indefinitely: they may still read the chat, react and vote, but not
+     * send, edit, show typing, or do anything else that requires speaking
+     * in it (see ViewerState.Restrictions.silence). They may still delete
+     * their own messages.
+     *
+     * Public and private groups alike. Only a member the server permits to
+     * silence users in the chat may call it, as reported by
+     * ViewerState.Permissions.moderation.can_silence; anyone else, and any
+     * DM, is DENIED. The chat's creator cannot be silenced.
+     *
+     * The user need not be a member: a silence survives leaving and
+     * rejoining, and may be set before the user ever joins. Calling it again
+     * with a different duration replaces the silence; an identical request
+     * is a no-op that returns OK. A timed silence must end in the future;
+     * the server rejects one that does not.
+     *
+     * A real change reaches the silenced user's devices, while they are a
+     * member, as a MetadataUpdate.ViewerStateChanged on the event stream.
+     * Nobody else is told.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.SilenceUser
+     */
+    silenceUser: {
+      name: "SilenceUser",
+      I: SilenceUserRequest,
+      O: SilenceUserResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * UnsilenceUser clears a user's silence in a group chat. Gated as
+     * SilenceUser. Unsilencing a user who is not silenced is a no-op that
+     * returns OK. A real change reaches the user's devices as SilenceUser's
+     * does.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.UnsilenceUser
+     */
+    unsilenceUser: {
+      name: "UnsilenceUser",
+      I: UnsilenceUserRequest,
+      O: UnsilenceUserResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * BanUser bans a user from a group chat: a member is removed from its
+     * roster, a user waiting in a private group's lobby is removed from it,
+     * and the user cannot join, enter the lobby or be admitted until they
+     * are unbanned. A banned user may not read the chat as a non-member
+     * either (see the listener rules), though anyone may still see its
+     * redacted public view. Only a member the server permits to ban users
+     * in the chat may call it, as reported by
+     * ViewerState.Permissions.moderation.can_ban; anyone else, and any DM,
+     * is DENIED. The chat's creator cannot be banned.
+     *
+     * The user need not be a member, so a creator can ban someone before
+     * they join. Banning a user who is already banned is a no-op that
+     * returns OK. A ban leaves a silence as it is, and the user's messages
+     * stay in the chat.
+     *
+     * Removing a member is announced exactly like a departure: a
+     * RosterUpdate.MemberLeft to the banned user's devices, which does not
+     * say why, and the roster change to the chat's other members. A banned
+     * member of a private group loses their key envelope (see KeyEnvelope),
+     * as when leaving. They cannot fetch anything from the chat afterwards,
+     * but the server cannot take back the chat key they already opened:
+     * ciphertext of later messages that reached them some other way is
+     * readable to them, since the key is not rotated.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.BanUser
+     */
+    banUser: {
+      name: "BanUser",
+      I: BanUserRequest,
+      O: BanUserResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * UnbanUser lifts a user's ban from a group chat. Gated as BanUser.
+     * It does not return them to the chat: they join (or enter a private
+     * group's lobby) again like anyone else. Unbanning a user who is not
+     * banned is a no-op that returns OK. Nothing is published.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.UnbanUser
+     */
+    unbanUser: {
+      name: "UnbanUser",
+      I: UnbanUserRequest,
+      O: UnbanUserResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetRestrictedUsers pages the users silenced or banned in a group chat,
+     * most recently restricted first, by the time of the latest silence or
+     * ban set on them. A silence that has lapsed is left out. Only a member
+     * the server permits to silence or to ban users in the chat may call it
+     * (see ViewerState.Permissions.moderation); anyone else, and any DM, is
+     * DENIED. The page is read from an index that trails writes
+     * briefly, so a user just restricted may be absent and one just
+     * released may be present.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetRestrictedUsers
+     */
+    getRestrictedUsers: {
+      name: "GetRestrictedUsers",
+      I: GetRestrictedUsersRequest,
+      O: GetRestrictedUsersResponse,
       kind: MethodKind.Unary,
     },
   }

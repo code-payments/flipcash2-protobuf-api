@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, QueryOptions, UserId, Username } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RosterSummary, Rules, SampledChatter, ViewerState } from "./model_pb";
+import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -1331,6 +1331,13 @@ export enum JoinChatResponse_Result {
    * @generated from enum value: RULES_NOT_SATISFIED = 3;
    */
   RULES_NOT_SATISFIED = 3,
+
+  /**
+   * The chat's creator banned the caller (see BanUser)
+   *
+   * @generated from enum value: BANNED = 4;
+   */
+  BANNED = 4,
 }
 // Retrieve enum metadata with: proto3.getEnumType(JoinChatResponse_Result)
 proto3.util.setEnumType(JoinChatResponse_Result, "flipcash.chat.v1.JoinChatResponse.Result", [
@@ -1338,6 +1345,7 @@ proto3.util.setEnumType(JoinChatResponse_Result, "flipcash.chat.v1.JoinChatRespo
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "RULES_NOT_SATISFIED" },
+  { no: 4, name: "BANNED" },
 ]);
 
 /**
@@ -2156,6 +2164,13 @@ export enum EnterLobbyResponse_Result {
    * @generated from enum value: TOO_MANY_LOBBIES = 5;
    */
   TOO_MANY_LOBBIES = 5,
+
+  /**
+   * The chat's creator banned the caller (see BanUser)
+   *
+   * @generated from enum value: BANNED = 6;
+   */
+  BANNED = 6,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EnterLobbyResponse_Result)
 proto3.util.setEnumType(EnterLobbyResponse_Result, "flipcash.chat.v1.EnterLobbyResponse.Result", [
@@ -2165,6 +2180,7 @@ proto3.util.setEnumType(EnterLobbyResponse_Result, "flipcash.chat.v1.EnterLobbyR
   { no: 3, name: "ALREADY_MEMBER" },
   { no: 4, name: "LOBBY_FULL" },
   { no: 5, name: "TOO_MANY_LOBBIES" },
+  { no: 6, name: "BANNED" },
 ]);
 
 /**
@@ -3180,5 +3196,644 @@ export enum GetFeaturedGroupsResponse_Result {
 proto3.util.setEnumType(GetFeaturedGroupsResponse_Result, "flipcash.chat.v1.GetFeaturedGroupsResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.SilenceUserRequest
+ */
+export class SilenceUserRequest extends Message<SilenceUserRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user to silence.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 2;
+   */
+  userId?: UserId;
+
+  /**
+   * How long to silence them for. A timed silence must end in the future;
+   * the server rejects one that does not.
+   *
+   * @generated from field: flipcash.chat.v1.SilenceState silence = 3;
+   */
+  silence?: SilenceState;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SilenceUserRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SilenceUserRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "user_id", kind: "message", T: UserId },
+    { no: 3, name: "silence", kind: "message", T: SilenceState },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SilenceUserRequest {
+    return new SilenceUserRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SilenceUserRequest {
+    return new SilenceUserRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SilenceUserRequest {
+    return new SilenceUserRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SilenceUserRequest | PlainMessage<SilenceUserRequest> | undefined, b: SilenceUserRequest | PlainMessage<SilenceUserRequest> | undefined): boolean {
+    return proto3.util.equals(SilenceUserRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.SilenceUserResponse
+ */
+export class SilenceUserResponse extends Message<SilenceUserResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.SilenceUserResponse.Result result = 1;
+   */
+  result = SilenceUserResponse_Result.OK;
+
+  constructor(data?: PartialMessage<SilenceUserResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SilenceUserResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SilenceUserResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SilenceUserResponse {
+    return new SilenceUserResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SilenceUserResponse {
+    return new SilenceUserResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SilenceUserResponse {
+    return new SilenceUserResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SilenceUserResponse | PlainMessage<SilenceUserResponse> | undefined, b: SilenceUserResponse | PlainMessage<SilenceUserResponse> | undefined): boolean {
+    return proto3.util.equals(SilenceUserResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.SilenceUserResponse.Result
+ */
+export enum SilenceUserResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not silence users in this chat (see SilenceUser)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * The user is the chat's creator
+   *
+   * @generated from enum value: CANNOT_RESTRICT_CREATOR = 3;
+   */
+  CANNOT_RESTRICT_CREATOR = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SilenceUserResponse_Result)
+proto3.util.setEnumType(SilenceUserResponse_Result, "flipcash.chat.v1.SilenceUserResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "CANNOT_RESTRICT_CREATOR" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.UnsilenceUserRequest
+ */
+export class UnsilenceUserRequest extends Message<UnsilenceUserRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user to unsilence.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 2;
+   */
+  userId?: UserId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<UnsilenceUserRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnsilenceUserRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "user_id", kind: "message", T: UserId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnsilenceUserRequest {
+    return new UnsilenceUserRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnsilenceUserRequest {
+    return new UnsilenceUserRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnsilenceUserRequest {
+    return new UnsilenceUserRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnsilenceUserRequest | PlainMessage<UnsilenceUserRequest> | undefined, b: UnsilenceUserRequest | PlainMessage<UnsilenceUserRequest> | undefined): boolean {
+    return proto3.util.equals(UnsilenceUserRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.UnsilenceUserResponse
+ */
+export class UnsilenceUserResponse extends Message<UnsilenceUserResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.UnsilenceUserResponse.Result result = 1;
+   */
+  result = UnsilenceUserResponse_Result.OK;
+
+  constructor(data?: PartialMessage<UnsilenceUserResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnsilenceUserResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(UnsilenceUserResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnsilenceUserResponse {
+    return new UnsilenceUserResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnsilenceUserResponse {
+    return new UnsilenceUserResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnsilenceUserResponse {
+    return new UnsilenceUserResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnsilenceUserResponse | PlainMessage<UnsilenceUserResponse> | undefined, b: UnsilenceUserResponse | PlainMessage<UnsilenceUserResponse> | undefined): boolean {
+    return proto3.util.equals(UnsilenceUserResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.UnsilenceUserResponse.Result
+ */
+export enum UnsilenceUserResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not silence users in this chat (see SilenceUser)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UnsilenceUserResponse_Result)
+proto3.util.setEnumType(UnsilenceUserResponse_Result, "flipcash.chat.v1.UnsilenceUserResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.BanUserRequest
+ */
+export class BanUserRequest extends Message<BanUserRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user to ban.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 2;
+   */
+  userId?: UserId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<BanUserRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.BanUserRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "user_id", kind: "message", T: UserId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BanUserRequest {
+    return new BanUserRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BanUserRequest {
+    return new BanUserRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BanUserRequest {
+    return new BanUserRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BanUserRequest | PlainMessage<BanUserRequest> | undefined, b: BanUserRequest | PlainMessage<BanUserRequest> | undefined): boolean {
+    return proto3.util.equals(BanUserRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.BanUserResponse
+ */
+export class BanUserResponse extends Message<BanUserResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.BanUserResponse.Result result = 1;
+   */
+  result = BanUserResponse_Result.OK;
+
+  constructor(data?: PartialMessage<BanUserResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.BanUserResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(BanUserResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BanUserResponse {
+    return new BanUserResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BanUserResponse {
+    return new BanUserResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BanUserResponse {
+    return new BanUserResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BanUserResponse | PlainMessage<BanUserResponse> | undefined, b: BanUserResponse | PlainMessage<BanUserResponse> | undefined): boolean {
+    return proto3.util.equals(BanUserResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.BanUserResponse.Result
+ */
+export enum BanUserResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not ban users in this chat (see BanUser)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * The user is the chat's creator
+   *
+   * @generated from enum value: CANNOT_RESTRICT_CREATOR = 3;
+   */
+  CANNOT_RESTRICT_CREATOR = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(BanUserResponse_Result)
+proto3.util.setEnumType(BanUserResponse_Result, "flipcash.chat.v1.BanUserResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "CANNOT_RESTRICT_CREATOR" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.UnbanUserRequest
+ */
+export class UnbanUserRequest extends Message<UnbanUserRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user to unban.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 2;
+   */
+  userId?: UserId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<UnbanUserRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnbanUserRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "user_id", kind: "message", T: UserId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnbanUserRequest {
+    return new UnbanUserRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnbanUserRequest {
+    return new UnbanUserRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnbanUserRequest {
+    return new UnbanUserRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnbanUserRequest | PlainMessage<UnbanUserRequest> | undefined, b: UnbanUserRequest | PlainMessage<UnbanUserRequest> | undefined): boolean {
+    return proto3.util.equals(UnbanUserRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.UnbanUserResponse
+ */
+export class UnbanUserResponse extends Message<UnbanUserResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.UnbanUserResponse.Result result = 1;
+   */
+  result = UnbanUserResponse_Result.OK;
+
+  constructor(data?: PartialMessage<UnbanUserResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnbanUserResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(UnbanUserResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnbanUserResponse {
+    return new UnbanUserResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnbanUserResponse {
+    return new UnbanUserResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnbanUserResponse {
+    return new UnbanUserResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnbanUserResponse | PlainMessage<UnbanUserResponse> | undefined, b: UnbanUserResponse | PlainMessage<UnbanUserResponse> | undefined): boolean {
+    return proto3.util.equals(UnbanUserResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.UnbanUserResponse.Result
+ */
+export enum UnbanUserResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not ban users in this chat (see BanUser)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UnbanUserResponse_Result)
+proto3.util.setEnumType(UnbanUserResponse_Result, "flipcash.chat.v1.UnbanUserResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetRestrictedUsersRequest
+ */
+export class GetRestrictedUsersRequest extends Message<GetRestrictedUsersRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * QueryOptions controls page_size, capped at 100. Ordering is fixed to
+   * most recently restricted first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request. On every
+   * subsequent request, set it to the paging_token from the most recent
+   * response. The token is opaque and server-generated; do not construct
+   * it. It is bound to chat_id and refused with another chat.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 2;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetRestrictedUsersRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetRestrictedUsersRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRestrictedUsersRequest {
+    return new GetRestrictedUsersRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRestrictedUsersRequest {
+    return new GetRestrictedUsersRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRestrictedUsersRequest {
+    return new GetRestrictedUsersRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRestrictedUsersRequest | PlainMessage<GetRestrictedUsersRequest> | undefined, b: GetRestrictedUsersRequest | PlainMessage<GetRestrictedUsersRequest> | undefined): boolean {
+    return proto3.util.equals(GetRestrictedUsersRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetRestrictedUsersResponse
+ */
+export class GetRestrictedUsersResponse extends Message<GetRestrictedUsersResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetRestrictedUsersResponse.Result result = 1;
+   */
+  result = GetRestrictedUsersResponse_Result.OK;
+
+  /**
+   * The page, most recently restricted first. Set when result is OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.RestrictedUser users = 2;
+   */
+  users: RestrictedUser[] = [];
+
+  /**
+   * PagingToken carries the cursor after the last user returned. The
+   * client MUST send it back in query_options.paging_token on the next
+   * GetRestrictedUsersRequest. Set when result is OK and has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain. When true, the client
+   * should issue another GetRestrictedUsersRequest with the returned
+   * paging_token.
+   *
+   * @generated from field: bool has_more = 4;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetRestrictedUsersResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetRestrictedUsersResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetRestrictedUsersResponse_Result) },
+    { no: 2, name: "users", kind: "message", T: RestrictedUser, repeated: true },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRestrictedUsersResponse {
+    return new GetRestrictedUsersResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRestrictedUsersResponse {
+    return new GetRestrictedUsersResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRestrictedUsersResponse {
+    return new GetRestrictedUsersResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRestrictedUsersResponse | PlainMessage<GetRestrictedUsersResponse> | undefined, b: GetRestrictedUsersResponse | PlainMessage<GetRestrictedUsersResponse> | undefined): boolean {
+    return proto3.util.equals(GetRestrictedUsersResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetRestrictedUsersResponse.Result
+ */
+export enum GetRestrictedUsersResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may neither silence nor ban users in this chat (see GetRestrictedUsers)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetRestrictedUsersResponse_Result)
+proto3.util.setEnumType(GetRestrictedUsersResponse_Result, "flipcash.chat.v1.GetRestrictedUsersResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
 ]);
 
