@@ -549,6 +549,10 @@ message ViewerState {
     // MetadataUpdate.ViewerStateChanged.
     Permissions permissions = 2;
 
+    // State the chat's creator set on the viewer (see Chat.SilenceUser).
+    // Absent when the creator has set none.
+    Restrictions restrictions = 3;
+
     // Advanced by exactly one on every real change to any field of this
     // message, never by a no-op. Compared like RosterSummary.version: apply
     // the greater value and drop the rest, so delivery order does not matter.
@@ -570,7 +574,75 @@ message ViewerState {
         // every DM, and for a group member the server does not permit to
         // edit it.
         bool can_edit = 1;
+
+        // What the viewer may do to moderate the chat's users. Unset when
+        // they may do none of it, as for every DM.
+        ModerationPermissions moderation = 2;
     }
+
+    // ModerationPermissions are the moderation actions the viewer may take
+    // in the chat. Like Permissions, each flag defaults to false. A viewer
+    // holding either may call Chat.GetRestrictedUsers.
+    message ModerationPermissions {
+        // Whether the viewer may call Chat.SilenceUser and
+        // Chat.UnsilenceUser on this chat.
+        bool can_silence = 1;
+
+        // Whether the viewer may call Chat.BanUser and Chat.UnbanUser on
+        // this chat.
+        bool can_ban = 2;
+    }
+
+    // Restrictions are what the chat's creator has imposed on the viewer.
+    // A ban is not carried here: a banned user is not a member, and a
+    // non-member is shown no ViewerState. A banned member's devices receive
+    // the RosterUpdate.MemberLeft of any departure, which does not say why;
+    // they learn of the ban from a BANNED result when they try to return.
+    message Restrictions {
+        // Present if and only if the viewer is silenced in the chat: they
+        // may read, react and vote, but not send, edit, show typing, or do
+        // anything else that requires speaking in the chat. They may still
+        // delete their own messages. A client hides the composer while a
+        // silence is in force. A timed silence lapses on its own and nothing
+        // is sent when it does, so the client owns the countdown.
+        SilenceState silence = 1;
+    }
+}
+
+message SilenceState {
+    oneof duration {
+        option (validate.required) = true;
+
+        // Silenced until this time, after which the silence lapses.
+        google.protobuf.Timestamp until = 1;
+
+        // Silenced until explicitly unsilenced.
+        Forever forever = 2;
+    }
+
+    message Forever {}
+}
+
+// BanState is a ban the chat's creator has set on a user (see Chat.BanUser).
+// A ban lasts until it is lifted (see Chat.UnbanUser).
+message BanState {
+    // When the ban was made.
+    google.protobuf.Timestamp banned_at = 1 [(validate.rules).timestamp.required = true];
+}
+
+// RestrictedUser is a user the chat's creator has silenced or banned, as
+// listed by Chat.GetRestrictedUsers. At least one of silence and ban is set.
+message RestrictedUser {
+    common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+    // The user's public profile.
+    profile.v1.UserProfile user_profile = 2 [(validate.rules).message.required = true];
+
+    // Set when the user is silenced (see Chat.SilenceUser).
+    SilenceState silence = 3;
+
+    // Set when the user is banned (see Chat.BanUser).
+    BanState ban = 4;
 }
 
 message MuteState {

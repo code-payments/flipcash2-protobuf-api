@@ -1675,6 +1675,14 @@ export class ViewerState extends Message<ViewerState> {
   permissions?: ViewerState_Permissions;
 
   /**
+   * State the chat's creator set on the viewer (see Chat.SilenceUser).
+   * Absent when the creator has set none.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState.Restrictions restrictions = 3;
+   */
+  restrictions?: ViewerState_Restrictions;
+
+  /**
    * Advanced by exactly one on every real change to any field of this
    * message, never by a no-op. Compared like RosterSummary.version: apply
    * the greater value and drop the rest, so delivery order does not matter.
@@ -1694,6 +1702,7 @@ export class ViewerState extends Message<ViewerState> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "settings", kind: "message", T: ViewerState_Settings },
     { no: 2, name: "permissions", kind: "message", T: ViewerState_Permissions },
+    { no: 3, name: "restrictions", kind: "message", T: ViewerState_Restrictions },
     { no: 10, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
@@ -1772,6 +1781,14 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
    */
   canEdit = false;
 
+  /**
+   * What the viewer may do to moderate the chat's users. Unset when
+   * they may do none of it, as for every DM.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState.ModerationPermissions moderation = 2;
+   */
+  moderation?: ViewerState_ModerationPermissions;
+
   constructor(data?: PartialMessage<ViewerState_Permissions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1781,6 +1798,7 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
   static readonly typeName = "flipcash.chat.v1.ViewerState.Permissions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "can_edit", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "moderation", kind: "message", T: ViewerState_ModerationPermissions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Permissions {
@@ -1797,6 +1815,300 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
 
   static equals(a: ViewerState_Permissions | PlainMessage<ViewerState_Permissions> | undefined, b: ViewerState_Permissions | PlainMessage<ViewerState_Permissions> | undefined): boolean {
     return proto3.util.equals(ViewerState_Permissions, a, b);
+  }
+}
+
+/**
+ * ModerationPermissions are the moderation actions the viewer may take
+ * in the chat. Like Permissions, each flag defaults to false. A viewer
+ * holding either may call Chat.GetRestrictedUsers.
+ *
+ * @generated from message flipcash.chat.v1.ViewerState.ModerationPermissions
+ */
+export class ViewerState_ModerationPermissions extends Message<ViewerState_ModerationPermissions> {
+  /**
+   * Whether the viewer may call Chat.SilenceUser and
+   * Chat.UnsilenceUser on this chat.
+   *
+   * @generated from field: bool can_silence = 1;
+   */
+  canSilence = false;
+
+  /**
+   * Whether the viewer may call Chat.BanUser and Chat.UnbanUser on
+   * this chat.
+   *
+   * @generated from field: bool can_ban = 2;
+   */
+  canBan = false;
+
+  constructor(data?: PartialMessage<ViewerState_ModerationPermissions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ViewerState.ModerationPermissions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "can_silence", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "can_ban", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_ModerationPermissions {
+    return new ViewerState_ModerationPermissions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ViewerState_ModerationPermissions {
+    return new ViewerState_ModerationPermissions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ViewerState_ModerationPermissions {
+    return new ViewerState_ModerationPermissions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ViewerState_ModerationPermissions | PlainMessage<ViewerState_ModerationPermissions> | undefined, b: ViewerState_ModerationPermissions | PlainMessage<ViewerState_ModerationPermissions> | undefined): boolean {
+    return proto3.util.equals(ViewerState_ModerationPermissions, a, b);
+  }
+}
+
+/**
+ * Restrictions are what the chat's creator has imposed on the viewer.
+ * A ban is not carried here: a banned user is not a member, and a
+ * non-member is shown no ViewerState. A banned member's devices receive
+ * the RosterUpdate.MemberLeft of any departure, which does not say why;
+ * they learn of the ban from a BANNED result when they try to return.
+ *
+ * @generated from message flipcash.chat.v1.ViewerState.Restrictions
+ */
+export class ViewerState_Restrictions extends Message<ViewerState_Restrictions> {
+  /**
+   * Present if and only if the viewer is silenced in the chat: they
+   * may read, react and vote, but not send, edit, show typing, or do
+   * anything else that requires speaking in the chat. They may still
+   * delete their own messages. A client hides the composer while a
+   * silence is in force. A timed silence lapses on its own and nothing
+   * is sent when it does, so the client owns the countdown.
+   *
+   * @generated from field: flipcash.chat.v1.SilenceState silence = 1;
+   */
+  silence?: SilenceState;
+
+  constructor(data?: PartialMessage<ViewerState_Restrictions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ViewerState.Restrictions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "silence", kind: "message", T: SilenceState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Restrictions {
+    return new ViewerState_Restrictions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ViewerState_Restrictions {
+    return new ViewerState_Restrictions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ViewerState_Restrictions {
+    return new ViewerState_Restrictions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ViewerState_Restrictions | PlainMessage<ViewerState_Restrictions> | undefined, b: ViewerState_Restrictions | PlainMessage<ViewerState_Restrictions> | undefined): boolean {
+    return proto3.util.equals(ViewerState_Restrictions, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.SilenceState
+ */
+export class SilenceState extends Message<SilenceState> {
+  /**
+   * @generated from oneof flipcash.chat.v1.SilenceState.duration
+   */
+  duration: {
+    /**
+     * Silenced until this time, after which the silence lapses.
+     *
+     * @generated from field: google.protobuf.Timestamp until = 1;
+     */
+    value: Timestamp;
+    case: "until";
+  } | {
+    /**
+     * Silenced until explicitly unsilenced.
+     *
+     * @generated from field: flipcash.chat.v1.SilenceState.Forever forever = 2;
+     */
+    value: SilenceState_Forever;
+    case: "forever";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<SilenceState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SilenceState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "until", kind: "message", T: Timestamp, oneof: "duration" },
+    { no: 2, name: "forever", kind: "message", T: SilenceState_Forever, oneof: "duration" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SilenceState {
+    return new SilenceState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SilenceState {
+    return new SilenceState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SilenceState {
+    return new SilenceState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SilenceState | PlainMessage<SilenceState> | undefined, b: SilenceState | PlainMessage<SilenceState> | undefined): boolean {
+    return proto3.util.equals(SilenceState, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.SilenceState.Forever
+ */
+export class SilenceState_Forever extends Message<SilenceState_Forever> {
+  constructor(data?: PartialMessage<SilenceState_Forever>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.SilenceState.Forever";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SilenceState_Forever {
+    return new SilenceState_Forever().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SilenceState_Forever {
+    return new SilenceState_Forever().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SilenceState_Forever {
+    return new SilenceState_Forever().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SilenceState_Forever | PlainMessage<SilenceState_Forever> | undefined, b: SilenceState_Forever | PlainMessage<SilenceState_Forever> | undefined): boolean {
+    return proto3.util.equals(SilenceState_Forever, a, b);
+  }
+}
+
+/**
+ * BanState is a ban the chat's creator has set on a user (see Chat.BanUser).
+ * A ban lasts until it is lifted (see Chat.UnbanUser).
+ *
+ * @generated from message flipcash.chat.v1.BanState
+ */
+export class BanState extends Message<BanState> {
+  /**
+   * When the ban was made.
+   *
+   * @generated from field: google.protobuf.Timestamp banned_at = 1;
+   */
+  bannedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<BanState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.BanState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "banned_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): BanState {
+    return new BanState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): BanState {
+    return new BanState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): BanState {
+    return new BanState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: BanState | PlainMessage<BanState> | undefined, b: BanState | PlainMessage<BanState> | undefined): boolean {
+    return proto3.util.equals(BanState, a, b);
+  }
+}
+
+/**
+ * RestrictedUser is a user the chat's creator has silenced or banned, as
+ * listed by Chat.GetRestrictedUsers. At least one of silence and ban is set.
+ *
+ * @generated from message flipcash.chat.v1.RestrictedUser
+ */
+export class RestrictedUser extends Message<RestrictedUser> {
+  /**
+   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   */
+  userId?: UserId;
+
+  /**
+   * The user's public profile.
+   *
+   * @generated from field: flipcash.profile.v1.UserProfile user_profile = 2;
+   */
+  userProfile?: UserProfile;
+
+  /**
+   * Set when the user is silenced (see Chat.SilenceUser).
+   *
+   * @generated from field: flipcash.chat.v1.SilenceState silence = 3;
+   */
+  silence?: SilenceState;
+
+  /**
+   * Set when the user is banned (see Chat.BanUser).
+   *
+   * @generated from field: flipcash.chat.v1.BanState ban = 4;
+   */
+  ban?: BanState;
+
+  constructor(data?: PartialMessage<RestrictedUser>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RestrictedUser";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "message", T: UserId },
+    { no: 2, name: "user_profile", kind: "message", T: UserProfile },
+    { no: 3, name: "silence", kind: "message", T: SilenceState },
+    { no: 4, name: "ban", kind: "message", T: BanState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RestrictedUser {
+    return new RestrictedUser().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RestrictedUser {
+    return new RestrictedUser().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RestrictedUser {
+    return new RestrictedUser().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RestrictedUser | PlainMessage<RestrictedUser> | undefined, b: RestrictedUser | PlainMessage<RestrictedUser> | undefined): boolean {
+    return proto3.util.equals(RestrictedUser, a, b);
   }
 }
 

@@ -40,6 +40,11 @@ const (
 	Chat_GetKeyEnvelope_FullMethodName        = "/flipcash.chat.v1.Chat/GetKeyEnvelope"
 	Chat_SetFeaturedGroups_FullMethodName     = "/flipcash.chat.v1.Chat/SetFeaturedGroups"
 	Chat_GetFeaturedGroups_FullMethodName     = "/flipcash.chat.v1.Chat/GetFeaturedGroups"
+	Chat_SilenceUser_FullMethodName           = "/flipcash.chat.v1.Chat/SilenceUser"
+	Chat_UnsilenceUser_FullMethodName         = "/flipcash.chat.v1.Chat/UnsilenceUser"
+	Chat_BanUser_FullMethodName               = "/flipcash.chat.v1.Chat/BanUser"
+	Chat_UnbanUser_FullMethodName             = "/flipcash.chat.v1.Chat/UnbanUser"
+	Chat_GetRestrictedUsers_FullMethodName    = "/flipcash.chat.v1.Chat/GetRestrictedUsers"
 )
 
 // ChatClient is the client API for Chat service.
@@ -385,6 +390,70 @@ type ChatClient interface {
 	// so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
 	// its featured groups at once.
 	GetFeaturedGroups(ctx context.Context, in *GetFeaturedGroupsRequest, opts ...grpc.CallOption) (*GetFeaturedGroupsResponse, error)
+	// SilenceUser silences a user in a group chat, until a time or
+	// indefinitely: they may still read the chat, react and vote, but not
+	// send, edit, show typing, or do anything else that requires speaking
+	// in it (see ViewerState.Restrictions.silence). They may still delete
+	// their own messages.
+	//
+	// Public and private groups alike. Only a member the server permits to
+	// silence users in the chat may call it, as reported by
+	// ViewerState.Permissions.moderation.can_silence; anyone else, and any
+	// DM, is DENIED. The chat's creator cannot be silenced.
+	//
+	// The user need not be a member: a silence survives leaving and
+	// rejoining, and may be set before the user ever joins. Calling it again
+	// with a different duration replaces the silence; an identical request
+	// is a no-op that returns OK. A timed silence must end in the future;
+	// the server rejects one that does not.
+	//
+	// A real change reaches the silenced user's devices, while they are a
+	// member, as a MetadataUpdate.ViewerStateChanged on the event stream.
+	// Nobody else is told.
+	SilenceUser(ctx context.Context, in *SilenceUserRequest, opts ...grpc.CallOption) (*SilenceUserResponse, error)
+	// UnsilenceUser clears a user's silence in a group chat. Gated as
+	// SilenceUser. Unsilencing a user who is not silenced is a no-op that
+	// returns OK. A real change reaches the user's devices as SilenceUser's
+	// does.
+	UnsilenceUser(ctx context.Context, in *UnsilenceUserRequest, opts ...grpc.CallOption) (*UnsilenceUserResponse, error)
+	// BanUser bans a user from a group chat: a member is removed from its
+	// roster, a user waiting in a private group's lobby is removed from it,
+	// and the user cannot join, enter the lobby or be admitted until they
+	// are unbanned. A banned user may not read the chat as a non-member
+	// either (see the listener rules), though anyone may still see its
+	// redacted public view. Only a member the server permits to ban users
+	// in the chat may call it, as reported by
+	// ViewerState.Permissions.moderation.can_ban; anyone else, and any DM,
+	// is DENIED. The chat's creator cannot be banned.
+	//
+	// The user need not be a member, so a creator can ban someone before
+	// they join. Banning a user who is already banned is a no-op that
+	// returns OK. A ban leaves a silence as it is, and the user's messages
+	// stay in the chat.
+	//
+	// Removing a member is announced exactly like a departure: a
+	// RosterUpdate.MemberLeft to the banned user's devices, which does not
+	// say why, and the roster change to the chat's other members. A banned
+	// member of a private group loses their key envelope (see KeyEnvelope),
+	// as when leaving. They cannot fetch anything from the chat afterwards,
+	// but the server cannot take back the chat key they already opened:
+	// ciphertext of later messages that reached them some other way is
+	// readable to them, since the key is not rotated.
+	BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error)
+	// UnbanUser lifts a user's ban from a group chat. Gated as BanUser.
+	// It does not return them to the chat: they join (or enter a private
+	// group's lobby) again like anyone else. Unbanning a user who is not
+	// banned is a no-op that returns OK. Nothing is published.
+	UnbanUser(ctx context.Context, in *UnbanUserRequest, opts ...grpc.CallOption) (*UnbanUserResponse, error)
+	// GetRestrictedUsers pages the users silenced or banned in a group chat,
+	// most recently restricted first, by the time of the latest silence or
+	// ban set on them. A silence that has lapsed is left out. Only a member
+	// the server permits to silence or to ban users in the chat may call it
+	// (see ViewerState.Permissions.moderation); anyone else, and any DM, is
+	// DENIED. The page is read from an index that trails writes
+	// briefly, so a user just restricted may be absent and one just
+	// released may be present.
+	GetRestrictedUsers(ctx context.Context, in *GetRestrictedUsersRequest, opts ...grpc.CallOption) (*GetRestrictedUsersResponse, error)
 }
 
 type chatClient struct {
@@ -599,6 +668,56 @@ func (c *chatClient) GetFeaturedGroups(ctx context.Context, in *GetFeaturedGroup
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFeaturedGroupsResponse)
 	err := c.cc.Invoke(ctx, Chat_GetFeaturedGroups_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) SilenceUser(ctx context.Context, in *SilenceUserRequest, opts ...grpc.CallOption) (*SilenceUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SilenceUserResponse)
+	err := c.cc.Invoke(ctx, Chat_SilenceUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) UnsilenceUser(ctx context.Context, in *UnsilenceUserRequest, opts ...grpc.CallOption) (*UnsilenceUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnsilenceUserResponse)
+	err := c.cc.Invoke(ctx, Chat_UnsilenceUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) BanUser(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*BanUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BanUserResponse)
+	err := c.cc.Invoke(ctx, Chat_BanUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) UnbanUser(ctx context.Context, in *UnbanUserRequest, opts ...grpc.CallOption) (*UnbanUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnbanUserResponse)
+	err := c.cc.Invoke(ctx, Chat_UnbanUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetRestrictedUsers(ctx context.Context, in *GetRestrictedUsersRequest, opts ...grpc.CallOption) (*GetRestrictedUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRestrictedUsersResponse)
+	err := c.cc.Invoke(ctx, Chat_GetRestrictedUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -948,6 +1067,70 @@ type ChatServer interface {
 	// so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
 	// its featured groups at once.
 	GetFeaturedGroups(context.Context, *GetFeaturedGroupsRequest) (*GetFeaturedGroupsResponse, error)
+	// SilenceUser silences a user in a group chat, until a time or
+	// indefinitely: they may still read the chat, react and vote, but not
+	// send, edit, show typing, or do anything else that requires speaking
+	// in it (see ViewerState.Restrictions.silence). They may still delete
+	// their own messages.
+	//
+	// Public and private groups alike. Only a member the server permits to
+	// silence users in the chat may call it, as reported by
+	// ViewerState.Permissions.moderation.can_silence; anyone else, and any
+	// DM, is DENIED. The chat's creator cannot be silenced.
+	//
+	// The user need not be a member: a silence survives leaving and
+	// rejoining, and may be set before the user ever joins. Calling it again
+	// with a different duration replaces the silence; an identical request
+	// is a no-op that returns OK. A timed silence must end in the future;
+	// the server rejects one that does not.
+	//
+	// A real change reaches the silenced user's devices, while they are a
+	// member, as a MetadataUpdate.ViewerStateChanged on the event stream.
+	// Nobody else is told.
+	SilenceUser(context.Context, *SilenceUserRequest) (*SilenceUserResponse, error)
+	// UnsilenceUser clears a user's silence in a group chat. Gated as
+	// SilenceUser. Unsilencing a user who is not silenced is a no-op that
+	// returns OK. A real change reaches the user's devices as SilenceUser's
+	// does.
+	UnsilenceUser(context.Context, *UnsilenceUserRequest) (*UnsilenceUserResponse, error)
+	// BanUser bans a user from a group chat: a member is removed from its
+	// roster, a user waiting in a private group's lobby is removed from it,
+	// and the user cannot join, enter the lobby or be admitted until they
+	// are unbanned. A banned user may not read the chat as a non-member
+	// either (see the listener rules), though anyone may still see its
+	// redacted public view. Only a member the server permits to ban users
+	// in the chat may call it, as reported by
+	// ViewerState.Permissions.moderation.can_ban; anyone else, and any DM,
+	// is DENIED. The chat's creator cannot be banned.
+	//
+	// The user need not be a member, so a creator can ban someone before
+	// they join. Banning a user who is already banned is a no-op that
+	// returns OK. A ban leaves a silence as it is, and the user's messages
+	// stay in the chat.
+	//
+	// Removing a member is announced exactly like a departure: a
+	// RosterUpdate.MemberLeft to the banned user's devices, which does not
+	// say why, and the roster change to the chat's other members. A banned
+	// member of a private group loses their key envelope (see KeyEnvelope),
+	// as when leaving. They cannot fetch anything from the chat afterwards,
+	// but the server cannot take back the chat key they already opened:
+	// ciphertext of later messages that reached them some other way is
+	// readable to them, since the key is not rotated.
+	BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error)
+	// UnbanUser lifts a user's ban from a group chat. Gated as BanUser.
+	// It does not return them to the chat: they join (or enter a private
+	// group's lobby) again like anyone else. Unbanning a user who is not
+	// banned is a no-op that returns OK. Nothing is published.
+	UnbanUser(context.Context, *UnbanUserRequest) (*UnbanUserResponse, error)
+	// GetRestrictedUsers pages the users silenced or banned in a group chat,
+	// most recently restricted first, by the time of the latest silence or
+	// ban set on them. A silence that has lapsed is left out. Only a member
+	// the server permits to silence or to ban users in the chat may call it
+	// (see ViewerState.Permissions.moderation); anyone else, and any DM, is
+	// DENIED. The page is read from an index that trails writes
+	// briefly, so a user just restricted may be absent and one just
+	// released may be present.
+	GetRestrictedUsers(context.Context, *GetRestrictedUsersRequest) (*GetRestrictedUsersResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -1020,6 +1203,21 @@ func (UnimplementedChatServer) SetFeaturedGroups(context.Context, *SetFeaturedGr
 }
 func (UnimplementedChatServer) GetFeaturedGroups(context.Context, *GetFeaturedGroupsRequest) (*GetFeaturedGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFeaturedGroups not implemented")
+}
+func (UnimplementedChatServer) SilenceUser(context.Context, *SilenceUserRequest) (*SilenceUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SilenceUser not implemented")
+}
+func (UnimplementedChatServer) UnsilenceUser(context.Context, *UnsilenceUserRequest) (*UnsilenceUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnsilenceUser not implemented")
+}
+func (UnimplementedChatServer) BanUser(context.Context, *BanUserRequest) (*BanUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BanUser not implemented")
+}
+func (UnimplementedChatServer) UnbanUser(context.Context, *UnbanUserRequest) (*UnbanUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnbanUser not implemented")
+}
+func (UnimplementedChatServer) GetRestrictedUsers(context.Context, *GetRestrictedUsersRequest) (*GetRestrictedUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRestrictedUsers not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -1420,6 +1618,96 @@ func _Chat_GetFeaturedGroups_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_SilenceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SilenceUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).SilenceUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_SilenceUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).SilenceUser(ctx, req.(*SilenceUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_UnsilenceUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsilenceUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).UnsilenceUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_UnsilenceUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).UnsilenceUser(ctx, req.(*UnsilenceUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_BanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BanUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).BanUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_BanUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).BanUser(ctx, req.(*BanUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_UnbanUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnbanUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).UnbanUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_UnbanUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).UnbanUser(ctx, req.(*UnbanUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetRestrictedUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRestrictedUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetRestrictedUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetRestrictedUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetRestrictedUsers(ctx, req.(*GetRestrictedUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1510,6 +1798,26 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFeaturedGroups",
 			Handler:    _Chat_GetFeaturedGroups_Handler,
+		},
+		{
+			MethodName: "SilenceUser",
+			Handler:    _Chat_SilenceUser_Handler,
+		},
+		{
+			MethodName: "UnsilenceUser",
+			Handler:    _Chat_UnsilenceUser_Handler,
+		},
+		{
+			MethodName: "BanUser",
+			Handler:    _Chat_BanUser_Handler,
+		},
+		{
+			MethodName: "UnbanUser",
+			Handler:    _Chat_UnbanUser_Handler,
+		},
+		{
+			MethodName: "GetRestrictedUsers",
+			Handler:    _Chat_GetRestrictedUsers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

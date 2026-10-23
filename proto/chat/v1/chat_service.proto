@@ -373,6 +373,75 @@ service Chat {
     // so a client can fetch a profile (see profile.v1.Profile.GetProfile) and
     // its featured groups at once.
     rpc GetFeaturedGroups(GetFeaturedGroupsRequest) returns (GetFeaturedGroupsResponse);
+
+    // SilenceUser silences a user in a group chat, until a time or
+    // indefinitely: they may still read the chat, react and vote, but not
+    // send, edit, show typing, or do anything else that requires speaking
+    // in it (see ViewerState.Restrictions.silence). They may still delete
+    // their own messages.
+    //
+    // Public and private groups alike. Only a member the server permits to
+    // silence users in the chat may call it, as reported by
+    // ViewerState.Permissions.moderation.can_silence; anyone else, and any
+    // DM, is DENIED. The chat's creator cannot be silenced.
+    //
+    // The user need not be a member: a silence survives leaving and
+    // rejoining, and may be set before the user ever joins. Calling it again
+    // with a different duration replaces the silence; an identical request
+    // is a no-op that returns OK. A timed silence must end in the future;
+    // the server rejects one that does not.
+    //
+    // A real change reaches the silenced user's devices, while they are a
+    // member, as a MetadataUpdate.ViewerStateChanged on the event stream.
+    // Nobody else is told.
+    rpc SilenceUser(SilenceUserRequest) returns (SilenceUserResponse);
+
+    // UnsilenceUser clears a user's silence in a group chat. Gated as
+    // SilenceUser. Unsilencing a user who is not silenced is a no-op that
+    // returns OK. A real change reaches the user's devices as SilenceUser's
+    // does.
+    rpc UnsilenceUser(UnsilenceUserRequest) returns (UnsilenceUserResponse);
+
+    // BanUser bans a user from a group chat: a member is removed from its
+    // roster, a user waiting in a private group's lobby is removed from it,
+    // and the user cannot join, enter the lobby or be admitted until they
+    // are unbanned. A banned user may not read the chat as a non-member
+    // either (see the listener rules), though anyone may still see its
+    // redacted public view. Only a member the server permits to ban users
+    // in the chat may call it, as reported by
+    // ViewerState.Permissions.moderation.can_ban; anyone else, and any DM,
+    // is DENIED. The chat's creator cannot be banned.
+    //
+    // The user need not be a member, so a creator can ban someone before
+    // they join. Banning a user who is already banned is a no-op that
+    // returns OK. A ban leaves a silence as it is, and the user's messages
+    // stay in the chat.
+    //
+    // Removing a member is announced exactly like a departure: a
+    // RosterUpdate.MemberLeft to the banned user's devices, which does not
+    // say why, and the roster change to the chat's other members. A banned
+    // member of a private group loses their key envelope (see KeyEnvelope),
+    // as when leaving. They cannot fetch anything from the chat afterwards,
+    // but the server cannot take back the chat key they already opened:
+    // ciphertext of later messages that reached them some other way is
+    // readable to them, since the key is not rotated.
+    rpc BanUser(BanUserRequest) returns (BanUserResponse);
+
+    // UnbanUser lifts a user's ban from a group chat. Gated as BanUser.
+    // It does not return them to the chat: they join (or enter a private
+    // group's lobby) again like anyone else. Unbanning a user who is not
+    // banned is a no-op that returns OK. Nothing is published.
+    rpc UnbanUser(UnbanUserRequest) returns (UnbanUserResponse);
+
+    // GetRestrictedUsers pages the users silenced or banned in a group chat,
+    // most recently restricted first, by the time of the latest silence or
+    // ban set on them. A silence that has lapsed is left out. Only a member
+    // the server permits to silence or to ban users in the chat may call it
+    // (see ViewerState.Permissions.moderation); anyone else, and any DM, is
+    // DENIED. The page is read from an index that trails writes
+    // briefly, so a user just restricted may be absent and one just
+    // released may be present.
+    rpc GetRestrictedUsers(GetRestrictedUsersRequest) returns (GetRestrictedUsersResponse);
 }
 
 message GetChatRequest {
@@ -748,6 +817,7 @@ message JoinChatResponse {
         DENIED              = 1;
         NOT_FOUND           = 2;
         RULES_NOT_SATISFIED = 3;
+        BANNED              = 4; // The chat's creator banned the caller (see BanUser)
     }
 
     // The metadata for the joined chat, as seen by the caller. Set only when
@@ -895,6 +965,7 @@ message EnterLobbyResponse {
         ALREADY_MEMBER   = 3; // Caller is already a member of the chat
         LOBBY_FULL       = 4; // The chat's lobby holds as many users as the server allows
         TOO_MANY_LOBBIES = 5; // Caller is waiting in as many lobbies as the server allows
+        BANNED           = 6; // The chat's creator banned the caller (see BanUser)
     }
 
     // The caller's place in the lobby, so the client can record the chat it
@@ -1100,4 +1171,122 @@ message GetFeaturedGroupsResponse {
         min_items: 0
         max_items: 10
     }];
+}
+
+message SilenceUserRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The user to silence.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    // How long to silence them for. A timed silence must end in the future;
+    // the server rejects one that does not.
+    SilenceState silence = 3 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SilenceUserResponse {
+    Result result = 1;
+    enum Result {
+        OK                      = 0;
+        DENIED                  = 1; // Caller may not silence users in this chat (see SilenceUser)
+        NOT_FOUND               = 2;
+        CANNOT_RESTRICT_CREATOR = 3; // The user is the chat's creator
+    }
+}
+
+message UnsilenceUserRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The user to unsilence.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message UnsilenceUserResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // Caller may not silence users in this chat (see SilenceUser)
+        NOT_FOUND = 2;
+    }
+}
+
+message BanUserRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The user to ban.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message BanUserResponse {
+    Result result = 1;
+    enum Result {
+        OK                      = 0;
+        DENIED                  = 1; // Caller may not ban users in this chat (see BanUser)
+        NOT_FOUND               = 2;
+        CANNOT_RESTRICT_CREATOR = 3; // The user is the chat's creator
+    }
+}
+
+message UnbanUserRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The user to unban.
+    common.v1.UserId user_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message UnbanUserResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // Caller may not ban users in this chat (see BanUser)
+        NOT_FOUND = 2;
+    }
+}
+
+message GetRestrictedUsersRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // QueryOptions controls page_size, capped at 100. Ordering is fixed to
+    // most recently restricted first and is not client-selectable.
+    //
+    // Leave query_options.paging_token unset on the first request. On every
+    // subsequent request, set it to the paging_token from the most recent
+    // response. The token is opaque and server-generated; do not construct
+    // it. It is bound to chat_id and refused with another chat.
+    common.v1.QueryOptions query_options = 2;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetRestrictedUsersResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        DENIED    = 1; // Caller may neither silence nor ban users in this chat (see GetRestrictedUsers)
+        NOT_FOUND = 2;
+    }
+
+    // The page, most recently restricted first. Set when result is OK.
+    repeated RestrictedUser users = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // PagingToken carries the cursor after the last user returned. The
+    // client MUST send it back in query_options.paging_token on the next
+    // GetRestrictedUsersRequest. Set when result is OK and has_more is true.
+    common.v1.PagingToken paging_token = 3;
+
+    // HasMore indicates whether further pages remain. When true, the client
+    // should issue another GetRestrictedUsersRequest with the returned
+    // paging_token.
+    bool has_more = 4;
 }

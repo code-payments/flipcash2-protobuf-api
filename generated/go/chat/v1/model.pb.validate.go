@@ -3440,6 +3440,35 @@ func (m *ViewerState) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetRestrictions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ViewerStateValidationError{
+					field:  "Restrictions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ViewerStateValidationError{
+					field:  "Restrictions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRestrictions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ViewerStateValidationError{
+				field:  "Restrictions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	// no validation rules for Version
 
 	if len(errors) > 0 {
@@ -3518,6 +3547,553 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ViewerStateValidationError{}
+
+// Validate checks the field values on SilenceState with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SilenceState) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SilenceState with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SilenceStateMultiError, or
+// nil if none found.
+func (m *SilenceState) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SilenceState) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofDurationPresent := false
+	switch v := m.Duration.(type) {
+	case *SilenceState_Until:
+		if v == nil {
+			err := SilenceStateValidationError{
+				field:  "Duration",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofDurationPresent = true
+
+		if all {
+			switch v := interface{}(m.GetUntil()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SilenceStateValidationError{
+						field:  "Until",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SilenceStateValidationError{
+						field:  "Until",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUntil()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SilenceStateValidationError{
+					field:  "Until",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *SilenceState_Forever_:
+		if v == nil {
+			err := SilenceStateValidationError{
+				field:  "Duration",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofDurationPresent = true
+
+		if all {
+			switch v := interface{}(m.GetForever()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SilenceStateValidationError{
+						field:  "Forever",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SilenceStateValidationError{
+						field:  "Forever",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetForever()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SilenceStateValidationError{
+					field:  "Forever",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofDurationPresent {
+		err := SilenceStateValidationError{
+			field:  "Duration",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return SilenceStateMultiError(errors)
+	}
+
+	return nil
+}
+
+// SilenceStateMultiError is an error wrapping multiple validation errors
+// returned by SilenceState.ValidateAll() if the designated constraints aren't met.
+type SilenceStateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SilenceStateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SilenceStateMultiError) AllErrors() []error { return m }
+
+// SilenceStateValidationError is the validation error returned by
+// SilenceState.Validate if the designated constraints aren't met.
+type SilenceStateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SilenceStateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SilenceStateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SilenceStateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SilenceStateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SilenceStateValidationError) ErrorName() string { return "SilenceStateValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SilenceStateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSilenceState.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SilenceStateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SilenceStateValidationError{}
+
+// Validate checks the field values on BanState with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *BanState) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BanState with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in BanStateMultiError, or nil
+// if none found.
+func (m *BanState) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BanState) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetBannedAt() == nil {
+		err := BanStateValidationError{
+			field:  "BannedAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return BanStateMultiError(errors)
+	}
+
+	return nil
+}
+
+// BanStateMultiError is an error wrapping multiple validation errors returned
+// by BanState.ValidateAll() if the designated constraints aren't met.
+type BanStateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BanStateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BanStateMultiError) AllErrors() []error { return m }
+
+// BanStateValidationError is the validation error returned by
+// BanState.Validate if the designated constraints aren't met.
+type BanStateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BanStateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BanStateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BanStateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BanStateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BanStateValidationError) ErrorName() string { return "BanStateValidationError" }
+
+// Error satisfies the builtin error interface
+func (e BanStateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBanState.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BanStateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BanStateValidationError{}
+
+// Validate checks the field values on RestrictedUser with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RestrictedUser) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RestrictedUser with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RestrictedUserMultiError,
+// or nil if none found.
+func (m *RestrictedUser) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RestrictedUser) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetUserId() == nil {
+		err := RestrictedUserValidationError{
+			field:  "UserId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUserId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RestrictedUserValidationError{
+				field:  "UserId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetUserProfile() == nil {
+		err := RestrictedUserValidationError{
+			field:  "UserProfile",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetUserProfile()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "UserProfile",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUserProfile()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RestrictedUserValidationError{
+				field:  "UserProfile",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSilence()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "Silence",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "Silence",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSilence()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RestrictedUserValidationError{
+				field:  "Silence",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetBan()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "Ban",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RestrictedUserValidationError{
+					field:  "Ban",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBan()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RestrictedUserValidationError{
+				field:  "Ban",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RestrictedUserMultiError(errors)
+	}
+
+	return nil
+}
+
+// RestrictedUserMultiError is an error wrapping multiple validation errors
+// returned by RestrictedUser.ValidateAll() if the designated constraints
+// aren't met.
+type RestrictedUserMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RestrictedUserMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RestrictedUserMultiError) AllErrors() []error { return m }
+
+// RestrictedUserValidationError is the validation error returned by
+// RestrictedUser.Validate if the designated constraints aren't met.
+type RestrictedUserValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RestrictedUserValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RestrictedUserValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RestrictedUserValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RestrictedUserValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RestrictedUserValidationError) ErrorName() string { return "RestrictedUserValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RestrictedUserValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRestrictedUser.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RestrictedUserValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RestrictedUserValidationError{}
 
 // Validate checks the field values on MuteState with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -6142,6 +6718,35 @@ func (m *ViewerState_Permissions) validate(all bool) error {
 
 	// no validation rules for CanEdit
 
+	if all {
+		switch v := interface{}(m.GetModeration()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ViewerState_PermissionsValidationError{
+					field:  "Moderation",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ViewerState_PermissionsValidationError{
+					field:  "Moderation",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetModeration()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ViewerState_PermissionsValidationError{
+				field:  "Moderation",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return ViewerState_PermissionsMultiError(errors)
 	}
@@ -6221,6 +6826,348 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ViewerState_PermissionsValidationError{}
+
+// Validate checks the field values on ViewerState_ModerationPermissions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ViewerState_ModerationPermissions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ViewerState_ModerationPermissions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ViewerState_ModerationPermissionsMultiError, or nil if none found.
+func (m *ViewerState_ModerationPermissions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ViewerState_ModerationPermissions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CanSilence
+
+	// no validation rules for CanBan
+
+	if len(errors) > 0 {
+		return ViewerState_ModerationPermissionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// ViewerState_ModerationPermissionsMultiError is an error wrapping multiple
+// validation errors returned by
+// ViewerState_ModerationPermissions.ValidateAll() if the designated
+// constraints aren't met.
+type ViewerState_ModerationPermissionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ViewerState_ModerationPermissionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ViewerState_ModerationPermissionsMultiError) AllErrors() []error { return m }
+
+// ViewerState_ModerationPermissionsValidationError is the validation error
+// returned by ViewerState_ModerationPermissions.Validate if the designated
+// constraints aren't met.
+type ViewerState_ModerationPermissionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ViewerState_ModerationPermissionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ViewerState_ModerationPermissionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ViewerState_ModerationPermissionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ViewerState_ModerationPermissionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ViewerState_ModerationPermissionsValidationError) ErrorName() string {
+	return "ViewerState_ModerationPermissionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ViewerState_ModerationPermissionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sViewerState_ModerationPermissions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ViewerState_ModerationPermissionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ViewerState_ModerationPermissionsValidationError{}
+
+// Validate checks the field values on ViewerState_Restrictions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ViewerState_Restrictions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ViewerState_Restrictions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ViewerState_RestrictionsMultiError, or nil if none found.
+func (m *ViewerState_Restrictions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ViewerState_Restrictions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetSilence()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ViewerState_RestrictionsValidationError{
+					field:  "Silence",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ViewerState_RestrictionsValidationError{
+					field:  "Silence",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSilence()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ViewerState_RestrictionsValidationError{
+				field:  "Silence",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ViewerState_RestrictionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// ViewerState_RestrictionsMultiError is an error wrapping multiple validation
+// errors returned by ViewerState_Restrictions.ValidateAll() if the designated
+// constraints aren't met.
+type ViewerState_RestrictionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ViewerState_RestrictionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ViewerState_RestrictionsMultiError) AllErrors() []error { return m }
+
+// ViewerState_RestrictionsValidationError is the validation error returned by
+// ViewerState_Restrictions.Validate if the designated constraints aren't met.
+type ViewerState_RestrictionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ViewerState_RestrictionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ViewerState_RestrictionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ViewerState_RestrictionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ViewerState_RestrictionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ViewerState_RestrictionsValidationError) ErrorName() string {
+	return "ViewerState_RestrictionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ViewerState_RestrictionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sViewerState_Restrictions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ViewerState_RestrictionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ViewerState_RestrictionsValidationError{}
+
+// Validate checks the field values on SilenceState_Forever with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SilenceState_Forever) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SilenceState_Forever with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SilenceState_ForeverMultiError, or nil if none found.
+func (m *SilenceState_Forever) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SilenceState_Forever) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return SilenceState_ForeverMultiError(errors)
+	}
+
+	return nil
+}
+
+// SilenceState_ForeverMultiError is an error wrapping multiple validation
+// errors returned by SilenceState_Forever.ValidateAll() if the designated
+// constraints aren't met.
+type SilenceState_ForeverMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SilenceState_ForeverMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SilenceState_ForeverMultiError) AllErrors() []error { return m }
+
+// SilenceState_ForeverValidationError is the validation error returned by
+// SilenceState_Forever.Validate if the designated constraints aren't met.
+type SilenceState_ForeverValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SilenceState_ForeverValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SilenceState_ForeverValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SilenceState_ForeverValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SilenceState_ForeverValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SilenceState_ForeverValidationError) ErrorName() string {
+	return "SilenceState_ForeverValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SilenceState_ForeverValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSilenceState_Forever.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SilenceState_ForeverValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SilenceState_ForeverValidationError{}
 
 // Validate checks the field values on MuteState_Forever with the rules defined
 // in the proto definition for this message. If any rules are violated, the
