@@ -418,6 +418,7 @@ message SystemContent {
 
             Direct   direct   = 2;
             Admitted admitted = 3;
+            Invited  invited  = 4;
         }
 
         // They joined on their own (e.g. a private group's creator rejoining
@@ -429,6 +430,13 @@ message SystemContent {
         message Admitted {
             // The user that let them in
             common.v1.UserId admitted_by = 1 [(validate.rules).message.required = true];
+        }
+
+        // They joined with someone's invite, needing no one's approval (see
+        // chat.v1.Invite).
+        message Invited {
+            // The user that created the invite
+            common.v1.UserId invited_by = 1 [(validate.rules).message.required = true];
         }
     }
 }
