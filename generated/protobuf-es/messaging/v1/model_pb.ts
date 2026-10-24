@@ -1022,6 +1022,12 @@ export class SystemContent_UserJoined extends Message$1<SystemContent_UserJoined
      */
     value: SystemContent_UserJoined_Admitted;
     case: "admitted";
+  } | {
+    /**
+     * @generated from field: flipcash.messaging.v1.SystemContent.UserJoined.Invited invited = 4;
+     */
+    value: SystemContent_UserJoined_Invited;
+    case: "invited";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<SystemContent_UserJoined>) {
@@ -1035,6 +1041,7 @@ export class SystemContent_UserJoined extends Message$1<SystemContent_UserJoined
     { no: 1, name: "user_id", kind: "message", T: UserId },
     { no: 2, name: "direct", kind: "message", T: SystemContent_UserJoined_Direct, oneof: "method" },
     { no: 3, name: "admitted", kind: "message", T: SystemContent_UserJoined_Admitted, oneof: "method" },
+    { no: 4, name: "invited", kind: "message", T: SystemContent_UserJoined_Invited, oneof: "method" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent_UserJoined {
@@ -1127,6 +1134,48 @@ export class SystemContent_UserJoined_Admitted extends Message$1<SystemContent_U
 
   static equals(a: SystemContent_UserJoined_Admitted | PlainMessage<SystemContent_UserJoined_Admitted> | undefined, b: SystemContent_UserJoined_Admitted | PlainMessage<SystemContent_UserJoined_Admitted> | undefined): boolean {
     return proto3.util.equals(SystemContent_UserJoined_Admitted, a, b);
+  }
+}
+
+/**
+ * They joined with someone's invite, needing no one's approval (see
+ * chat.v1.Invite).
+ *
+ * @generated from message flipcash.messaging.v1.SystemContent.UserJoined.Invited
+ */
+export class SystemContent_UserJoined_Invited extends Message$1<SystemContent_UserJoined_Invited> {
+  /**
+   * The user that created the invite
+   *
+   * @generated from field: flipcash.common.v1.UserId invited_by = 1;
+   */
+  invitedBy?: UserId;
+
+  constructor(data?: PartialMessage<SystemContent_UserJoined_Invited>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.SystemContent.UserJoined.Invited";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "invited_by", kind: "message", T: UserId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemContent_UserJoined_Invited {
+    return new SystemContent_UserJoined_Invited().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SystemContent_UserJoined_Invited {
+    return new SystemContent_UserJoined_Invited().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SystemContent_UserJoined_Invited {
+    return new SystemContent_UserJoined_Invited().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SystemContent_UserJoined_Invited | PlainMessage<SystemContent_UserJoined_Invited> | undefined, b: SystemContent_UserJoined_Invited | PlainMessage<SystemContent_UserJoined_Invited> | undefined): boolean {
+    return proto3.util.equals(SystemContent_UserJoined_Invited, a, b);
   }
 }
 

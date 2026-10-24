@@ -141,7 +141,7 @@ export class Metadata extends Message<Metadata> {
    * Rules governing participation in this chat. Only supported for group
    * chats. If not set, the chat has no participation requirements. Never
    * set for a private group (see is_private), which admits a user by its
-   * creator's approval instead.
+   * creator's approval or an invite instead.
    *
    * @generated from field: flipcash.chat.v1.Rules rules = 11;
    */
@@ -167,9 +167,10 @@ export class Metadata extends Message<Metadata> {
    * and fixed when the chat is created (see
    * StartChatRequest.private_group).
    *
-   * A private group has no rules. Nobody joins it with Chat.JoinChat: a
-   * user enters its lobby with Chat.EnterLobby and is admitted by its
-   * creator. Only its members can read its messages, under any
+   * A private group has no rules. A user joins it in one of two ways: they
+   * enter its lobby with Chat.EnterLobby and are admitted by its creator,
+   * or they join with Chat.JoinChat carrying an invite the creator made
+   * (see Invite). Only its members can read its messages, under any
    * messaging.v1.ViewMode, and every message a client sends in it is
    * messaging.v1.EncryptedContent, encrypted with the group's chat key
    * (see KeyEnvelope).
@@ -1789,6 +1790,18 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
    */
   moderation?: ViewerState_ModerationPermissions;
 
+  /**
+   * Whether the viewer may call Chat.CreateInvite, Chat.GetChatInvites
+   * and Chat.RevokeInvite on this chat. Today that is a private group's
+   * creator while a member, and no one else: false for every other
+   * member, and for every chat that is not a private group. Granting
+   * it to anyone else would let them hand joiners a wrong chat key (see
+   * Invite).
+   *
+   * @generated from field: bool can_invite = 3;
+   */
+  canInvite = false;
+
   constructor(data?: PartialMessage<ViewerState_Permissions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1799,6 +1812,7 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "can_edit", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "moderation", kind: "message", T: ViewerState_ModerationPermissions },
+    { no: 3, name: "can_invite", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Permissions {
@@ -2317,14 +2331,48 @@ export class IdempotencyKey extends Message<IdempotencyKey> {
  * the wrapper. When wrapped_by is the recipient, that is the recipient's own
  * key. Otherwise wrapped_by must be Metadata.creator, and the client uses
  * the creator's public key, preferring one it learned outside this service
- * (for example, from the invitation that led it to the chat) over one the
- * server reports. A client rejects an envelope that names any other wrapper
- * or that fails to open, and does not send in the chat.
+ * over the one the server reports with the envelope (wrapped_by_public_key
+ * in Chat.GetKeyEnvelope's response). A client rejects an envelope that
+ * names any other wrapper or that fails to open, and does not send in the
+ * chat.
  *
  * A member who opens an envelope wrapped by the creator wraps the chat key
  * again for itself and stores that envelope with Chat.SetKeyEnvelope, so
  * that opening it later, on any of the member's devices, depends on no one
  * else's key.
+ *
+ * A member who joins with an invite (Chat.JoinChat) is given, along with
+ * their membership, the invite's copy of the chat key (see
+ * InviteKeyEnvelope) in place of an envelope the creator wrapped.
+ * Chat.GetKeyEnvelope returns it until they replace it: they check its
+ * signature, open it with the link's secret, wrap the chat key for
+ * themself and store that envelope with Chat.SetKeyEnvelope, as a member
+ * admitted from the lobby does. Until they have, opening their key depends
+ * on the link's secret, which they encrypted for themself when joining (see
+ * InviteSecretEnvelope) and which is stored and returned with the copy, so
+ * any of their devices can do this, whether or not it holds the link.
+ *
+ * The copy carries the creator's signature, which the member checks against
+ * the creator's public key, preferring one learned outside this service as
+ * above. So the copy holds as far as an envelope the creator wrapped does:
+ * substituting a chat key in it takes the creator's private key, or the
+ * server reporting a false public key for the creator. A member whose copy
+ * fails that check, or fails to open, treats it as the wrong key.
+ *
+ * A member whose chat's messages do not open under their key treats it as
+ * the wrong key, warns the user and does not send in the chat. That catches
+ * a key made wrong by mistake, but is no defence against the server, which
+ * decides what messages a member is shown and who sent them.
+ *
+ * A member holding the wrong key, or an invite's copy none of their devices
+ * can open, has one way to repair it: leave the chat
+ * (Chat.LeaveChat), which discards their envelope, then enter its lobby
+ * (Chat.EnterLobby) and be admitted by the creator, who wraps the chat key
+ * for them. Nothing else gives them another key: Chat.SetKeyEnvelope keeps an
+ * envelope they wrapped themself (ALREADY_SET), Chat.AdmitLobbyMember leaves
+ * a member's envelope as it is, and joining with the same invite again gives
+ * the same copy. An invite whose copy holds the wrong key should be revoked
+ * (Chat.RevokeInvite).
  *
  * Like EncryptedContent, this has no forward secrecy: anyone who later
  * obtains a member's private key can open that member's envelope and read
@@ -2620,9 +2668,9 @@ export class LobbyUpdate_MemberEntered extends Message<LobbyUpdate_MemberEntered
 
 /**
  * A user is no longer in the lobby: they withdrew (Chat.LeaveLobby),
- * were denied (Chat.DenyLobbyMember) or were admitted
- * (Chat.AdmitLobbyMember). An admission also arrives as a
- * RosterUpdate.MemberJoined.
+ * were denied (Chat.DenyLobbyMember), were admitted
+ * (Chat.AdmitLobbyMember) or joined with an invite (Chat.JoinChat).
+ * Either of the last two also arrives as a RosterUpdate.MemberJoined.
  *
  * @generated from message flipcash.chat.v1.LobbyUpdate.MemberLeft
  */
@@ -2698,4 +2746,562 @@ export class LobbyUpdateBatch extends Message<LobbyUpdateBatch> {
     return proto3.util.equals(LobbyUpdateBatch, a, b);
   }
 }
+
+/**
+ * InviteId names an invite to a private group (see Invite). Clients derive
+ * it from the invite's link; it is not secret, and does not let anyone join.
+ *
+ * @generated from message flipcash.chat.v1.InviteId
+ */
+export class InviteId extends Message<InviteId> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<InviteId>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.InviteId";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InviteId {
+    return new InviteId().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InviteId {
+    return new InviteId().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InviteId {
+    return new InviteId().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InviteId | PlainMessage<InviteId> | undefined, b: InviteId | PlainMessage<InviteId> | undefined): boolean {
+    return proto3.util.equals(InviteId, a, b);
+  }
+}
+
+/**
+ * InviteToken proves its sender holds an invite's link (see Invite). Clients
+ * derive it from the link's secret and send it only to preview the invite
+ * (Chat.GetInvite) or join with it (Chat.JoinChat). The server never stores
+ * it, in its records or its logs: anyone who reads a token can join with the
+ * invite and use up its limit.
+ *
+ * @generated from message flipcash.chat.v1.InviteToken
+ */
+export class InviteToken extends Message<InviteToken> {
+  /**
+   * @generated from field: bytes value = 1;
+   */
+  value = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<InviteToken>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.InviteToken";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InviteToken {
+    return new InviteToken().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InviteToken {
+    return new InviteToken().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InviteToken {
+    return new InviteToken().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InviteToken | PlainMessage<InviteToken> | undefined, b: InviteToken | PlainMessage<InviteToken> | undefined): boolean {
+    return proto3.util.equals(InviteToken, a, b);
+  }
+}
+
+/**
+ * Invite is a link that lets users join a private group (see
+ * Metadata.is_private) without its creator's approval, up to a number of
+ * distinct users or without limit. It is created with Chat.CreateInvite by a
+ * member the server permits to invite (see
+ * ViewerState.Permissions.can_invite), which today is the group's creator
+ * alone. An invite admits whoever holds the link, including a user the
+ * creator denied from the lobby (Chat.DenyLobbyMember).
+ *
+ * Should the server ever let members other than the creator invite, such a
+ * member's invites must stop admitting anyone once they are banned, leave
+ * the chat, or otherwise lose can_invite, and those permitted to ban
+ * (ViewerState.Permissions.moderation.can_ban) must be able to revoke any
+ * invite. That rule is for them alone: the chat's creator also loses
+ * can_invite while not a member, but their invites keep working (see
+ * below).
+ *
+ * Letting other members invite would also weaken what a joiner can trust:
+ * today only the creator can hand out the chat key, but a member permitted
+ * to invite could give the users who join with their invite a wrong key,
+ * which the signature on the copy (see InviteKeyEnvelope) cannot catch,
+ * since it proves only who made the copy. Clients would then also need a way
+ * to check a key against one the creator vouches for.
+ *
+ * A user joins with an invite with Chat.JoinChat, which in one step makes
+ * them a member, counts their use of the invite, and stores the invite's
+ * copy of the chat key (see InviteKeyEnvelope) as their key envelope, with
+ * the link's secret the joiner encrypted for themself (see
+ * InviteSecretEnvelope). Any of their devices then fetches both with
+ * Chat.GetKeyEnvelope, checks the copy's signature, opens the secret and
+ * then the copy, wraps the chat key for the joiner and stores that envelope
+ * with Chat.SetKeyEnvelope, as a member admitted from the lobby does (see
+ * KeyEnvelope). The server gives the copy to members alone, so it reaches no
+ * more users than the invite's limit allows.
+ *
+ * The link carries one secret: 32 random bytes the inviter's client
+ * generates for this invite alone. It travels in the link's URL fragment,
+ * which a browser never sends in a request, and the server never learns it.
+ * A web page that a link opens can still read the fragment, so such a page
+ * must never send it anywhere or log it. It is not the chat key. Every
+ * client derives three values from it, with HKDF-SHA256 (RFC 5869):
+ *
+ *   invite_token = HKDF(ikm  = secret,
+ *                       salt = "",
+ *                       info = "flipcash-group-invite-token-v1",
+ *                       L    = 32)
+ *   wrap_key     = HKDF(ikm  = secret,
+ *                       salt = "",
+ *                       info = "flipcash-group-invite-wrap-v1" || chat_id,
+ *                       L    = 32)
+ *   invite_id    = SHA-256("flipcash-group-invite-id-v1" || invite_token)[:16]
+ *
+ * where chat_id is the raw bytes of common.v1.ChatId.value. The link holds
+ * no chat ID, so a joiner learns it from Chat.GetInvite and derives the wrap
+ * key only then.
+ *
+ *  - The invite token (InviteToken) proves the caller holds the link. The
+ *    server finds the invite by computing its ID from the token, so neither
+ *    the server's records nor anything it returns lets anyone join.
+ *  - The wrap key opens the invite's copy of the chat key (see
+ *    InviteKeyEnvelope). It is never sent anywhere, so the token does not
+ *    let anyone open the copy. Binding the chat ID into it makes the copy
+ *    open only as the key of the chat it was made for, so the server cannot
+ *    steer a joiner into another chat.
+ *  - The invite ID (InviteId) names the invite. The inviter sends it at
+ *    creation, and lists and revokes the invite by it.
+ *
+ * The limit counts distinct users who joined with the invite. A retry, or
+ * joining again after leaving, uses no more of it, and leaving gives no use
+ * back. An invite admits anyone, those who joined with it before included,
+ * only while it is ACTIVE: once it is used up, expires or is revoked, it
+ * admits no one, and a user returning to the chat is admitted from the lobby
+ * instead. The users it already admitted stay members. Nothing about the
+ * chat's creator's own standing stops an invite they made: it keeps working
+ * while they are not a member, though they cannot list or revoke it until
+ * they rejoin.
+ *
+ * An invite never changes the chat key. Revoking a link that leaked keeps
+ * new users out, but cannot take the key from anyone who already joined
+ * with it.
+ *
+ * A ban (Chat.BanUser) applies to one account, not to a link. A banned user
+ * who still holds a link that admits users can join with it from another
+ * account, so a creator banning someone who joined with an invite
+ * should revoke that invite too (Chat.RevokeInvite), and make another for
+ * everyone else.
+ *
+ * @generated from message flipcash.chat.v1.Invite
+ */
+export class Invite extends Message<Invite> {
+  /**
+   * @generated from field: flipcash.chat.v1.InviteId invite_id = 1;
+   */
+  inviteId?: InviteId;
+
+  /**
+   * The private group the invite admits users to.
+   *
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 2;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The user that created the invite.
+   *
+   * @generated from field: flipcash.common.v1.UserId created_by = 3;
+   */
+  createdBy?: UserId;
+
+  /**
+   * How many distinct users may join with the invite. 0 means unlimited.
+   *
+   * @generated from field: uint32 max_uses = 4;
+   */
+  maxUses = 0;
+
+  /**
+   * How many distinct users have joined with the invite, whether or not
+   * they are still members. Never decreases.
+   *
+   * @generated from field: uint32 use_count = 5;
+   */
+  useCount = 0;
+
+  /**
+   * When the invite was created.
+   *
+   * @generated from field: google.protobuf.Timestamp created_at = 6;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * When the invite stops admitting anyone. Unset when it never expires.
+   *
+   * @generated from field: google.protobuf.Timestamp expires_at = 7;
+   */
+  expiresAt?: Timestamp;
+
+  /**
+   * What the invite still allows. When more than one reason applies, the
+   * status is the first of REVOKED, EXPIRED and EXHAUSTED.
+   *
+   * @generated from field: flipcash.chat.v1.Invite.Status status = 8;
+   */
+  status = Invite_Status.UNKNOWN;
+
+  /**
+   * The link's secret, encrypted so that only the invite's creator can open
+   * it, so that any of their devices can rebuild the link to share it again.
+   *
+   * @generated from field: flipcash.chat.v1.InviteSecretEnvelope secret_envelope = 9;
+   */
+  secretEnvelope?: InviteSecretEnvelope;
+
+  constructor(data?: PartialMessage<Invite>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.Invite";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "invite_id", kind: "message", T: InviteId },
+    { no: 2, name: "chat_id", kind: "message", T: ChatId },
+    { no: 3, name: "created_by", kind: "message", T: UserId },
+    { no: 4, name: "max_uses", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 5, name: "use_count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 6, name: "created_at", kind: "message", T: Timestamp },
+    { no: 7, name: "expires_at", kind: "message", T: Timestamp },
+    { no: 8, name: "status", kind: "enum", T: proto3.getEnumType(Invite_Status) },
+    { no: 9, name: "secret_envelope", kind: "message", T: InviteSecretEnvelope },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Invite {
+    return new Invite().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Invite {
+    return new Invite().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Invite {
+    return new Invite().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Invite | PlainMessage<Invite> | undefined, b: Invite | PlainMessage<Invite> | undefined): boolean {
+    return proto3.util.equals(Invite, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.Invite.Status
+ */
+export enum Invite_Status {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * The invite admits users
+   *
+   * @generated from enum value: ACTIVE = 1;
+   */
+  ACTIVE = 1,
+
+  /**
+   * max_uses distinct users have joined with it; it admits no one
+   *
+   * @generated from enum value: EXHAUSTED = 2;
+   */
+  EXHAUSTED = 2,
+
+  /**
+   * expires_at has passed; it admits no one
+   *
+   * @generated from enum value: EXPIRED = 3;
+   */
+  EXPIRED = 3,
+
+  /**
+   * It was revoked (see Chat.RevokeInvite); it admits no one
+   *
+   * @generated from enum value: REVOKED = 4;
+   */
+  REVOKED = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(Invite_Status)
+proto3.util.setEnumType(Invite_Status, "flipcash.chat.v1.Invite.Status", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "ACTIVE" },
+  { no: 2, name: "EXHAUSTED" },
+  { no: 3, name: "EXPIRED" },
+  { no: 4, name: "REVOKED" },
+]);
+
+/**
+ * InviteKeyEnvelope is an invite's copy of a private group's chat key,
+ * encrypted under the invite's wrap key (see Invite), so that anyone holding
+ * the link can open it and nobody else can, the server included, and signed
+ * by the user who created the invite, so that a joiner can tell it came from
+ * them. The inviter makes it when creating the invite (Chat.CreateInvite).
+ * Joining with the invite (Chat.JoinChat) stores it as the joiner's key
+ * envelope, which Chat.GetKeyEnvelope returns
+ * (GetKeyEnvelopeResponse.invite_key_bundle), with the link's secret the
+ * member encrypted for themself (see InviteSecretEnvelope), until the member
+ * checks its signature, opens it, wraps the chat key for themself and stores
+ * that envelope with Chat.SetKeyEnvelope (see KeyEnvelope).
+ *
+ * For scheme XCHACHA20POLY1305, encrypt with XChaCha20-Poly1305 (the IETF
+ * construction in libsodium's crypto_aead_xchacha20poly1305_ietf_encrypt):
+ *   key       = the invite's wrap key
+ *   nonce     = 24 fresh random bytes, set in `nonce` below
+ *   plaintext = the 32-byte chat key
+ *   aad       = "flipcash-group-invite-wrap-v1" || chat_id || invite_id
+ * where chat_id and invite_id are the raw bytes of common.v1.ChatId.value and
+ * InviteId.value. The ciphertext, with its 16-byte Poly1305 tag appended, is
+ * set in `ciphertext` below.
+ *
+ * The inviter then signs the copy with the Ed25519 private key of their
+ * account:
+ *   message   = "flipcash-group-invite-sig-v1" || chat_id || invite_id
+ *               || nonce || ciphertext
+ *   signature = Ed25519-Sign(inviter_private_key, message), set in
+ *               `signature` below
+ * with chat_id and invite_id as above. The inviter is Invite.created_by,
+ * reported to a member holding the copy as GetKeyEnvelopeResponse.wrapped_by.
+ * Today only the chat's creator may invite (see
+ * ViewerState.Permissions.can_invite), so the member first checks that
+ * wrapped_by is Metadata.creator, and rejects the copy otherwise: without
+ * that check, a server could name an account it controls as the inviter and
+ * sign with that account's key. The member then verifies the signature
+ * against the inviter's public key (wrapped_by_public_key in the same
+ * response, or one learned outside this service, which it prefers), and
+ * only then opens the copy.
+ *
+ * Only a holder of the link's secret can derive the wrap key, so a copy that
+ * opens was made by one, and only the creator can sign it. Neither the
+ * server, even with a link it made itself, nor anyone else holding the link
+ * can substitute a chat key of its choosing, except by the server reporting
+ * a false public key for the creator, the trust every KeyEnvelope rests on
+ * too. A client rejects a copy whose inviter is not the creator, whose
+ * signature does not verify or that fails to open, treats it as the wrong
+ * key (see KeyEnvelope), and does not send in the chat. Since the copy is
+ * given only on joining, a user who joined with a forged link is a member
+ * by the time their client finds this out.
+ *
+ * @generated from message flipcash.chat.v1.InviteKeyEnvelope
+ */
+export class InviteKeyEnvelope extends Message<InviteKeyEnvelope> {
+  /**
+   * The scheme used, which determines how every other field is
+   * interpreted. Clients treat an unrecognized scheme as a copy they cannot
+   * open.
+   *
+   * @generated from field: flipcash.chat.v1.InviteKeyEnvelope.Scheme scheme = 1;
+   */
+  scheme = InviteKeyEnvelope_Scheme.UNKNOWN;
+
+  /**
+   * The random XChaCha20-Poly1305 nonce, unique per envelope.
+   *
+   * @generated from field: bytes nonce = 2;
+   */
+  nonce = new Uint8Array(0);
+
+  /**
+   * The encrypted 32-byte chat key with the 16-byte Poly1305 tag appended.
+   *
+   * @generated from field: bytes ciphertext = 3;
+   */
+  ciphertext = new Uint8Array(0);
+
+  /**
+   * The inviter's Ed25519 signature over the copy, as described above.
+   *
+   * @generated from field: bytes signature = 4;
+   */
+  signature = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<InviteKeyEnvelope>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.InviteKeyEnvelope";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "scheme", kind: "enum", T: proto3.getEnumType(InviteKeyEnvelope_Scheme) },
+    { no: 2, name: "nonce", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: "ciphertext", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 4, name: "signature", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InviteKeyEnvelope {
+    return new InviteKeyEnvelope().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InviteKeyEnvelope {
+    return new InviteKeyEnvelope().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InviteKeyEnvelope {
+    return new InviteKeyEnvelope().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InviteKeyEnvelope | PlainMessage<InviteKeyEnvelope> | undefined, b: InviteKeyEnvelope | PlainMessage<InviteKeyEnvelope> | undefined): boolean {
+    return proto3.util.equals(InviteKeyEnvelope, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.InviteKeyEnvelope.Scheme
+ */
+export enum InviteKeyEnvelope_Scheme {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: XCHACHA20POLY1305 = 1;
+   */
+  XCHACHA20POLY1305 = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(InviteKeyEnvelope_Scheme)
+proto3.util.setEnumType(InviteKeyEnvelope_Scheme, "flipcash.chat.v1.InviteKeyEnvelope.Scheme", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "XCHACHA20POLY1305" },
+]);
+
+/**
+ * InviteSecretEnvelope is an invite link's secret (see Invite), encrypted by
+ * a user for themself, so that only they can open it, on any of their
+ * devices, and the server cannot. Two users make one:
+ *
+ *  - The user who creates the invite (Invite.created_by, not necessarily
+ *    the chat's creator), with Chat.CreateInvite. The server returns it with
+ *    the invite (Chat.GetChatInvites), so that any of their devices can
+ *    rebuild the link to share it again.
+ *  - A user joining with the invite, with Chat.JoinChat. The server stores
+ *    it with the invite's copy of the chat key and returns it with the copy
+ *    (Chat.GetKeyEnvelope), so that any of their devices can open the copy
+ *    until they replace it with an envelope of their own.
+ *
+ * "Owner" below is the user who made it. For scheme
+ * X25519_XCHACHA20POLY1305, it is made exactly as a KeyEnvelope a user wraps
+ * for themself, with the owner as both wrapper and recipient (so the peer
+ * key in step 1 is the owner's own public key), and these values in place of
+ * the KeyEnvelope ones:
+ *   info (step 3)      = "flipcash-group-invite-secret-v1" || chat_id
+ *                        || invite_id
+ *   plaintext (step 4) = the link's 32-byte secret
+ *   aad (step 4)       = "flipcash-group-invite-secret-v1" || chat_id
+ *                        || invite_id || owner_pk || owner_pk
+ * where chat_id and invite_id are the raw bytes of common.v1.ChatId.value and
+ * InviteId.value, and owner_pk is the owner's 32-byte Ed25519 public key. So
+ * it opens only as the secret of the invite and chat it was made for.
+ *
+ * @generated from message flipcash.chat.v1.InviteSecretEnvelope
+ */
+export class InviteSecretEnvelope extends Message<InviteSecretEnvelope> {
+  /**
+   * The scheme used, which determines how every other field is
+   * interpreted. Clients treat an unrecognized scheme as an envelope they
+   * cannot open.
+   *
+   * @generated from field: flipcash.chat.v1.InviteSecretEnvelope.Scheme scheme = 1;
+   */
+  scheme = InviteSecretEnvelope_Scheme.UNKNOWN;
+
+  /**
+   * The random XChaCha20-Poly1305 nonce, unique per envelope.
+   *
+   * @generated from field: bytes nonce = 2;
+   */
+  nonce = new Uint8Array(0);
+
+  /**
+   * The encrypted 32-byte secret with the 16-byte Poly1305 tag appended.
+   *
+   * @generated from field: bytes ciphertext = 3;
+   */
+  ciphertext = new Uint8Array(0);
+
+  constructor(data?: PartialMessage<InviteSecretEnvelope>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.InviteSecretEnvelope";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "scheme", kind: "enum", T: proto3.getEnumType(InviteSecretEnvelope_Scheme) },
+    { no: 2, name: "nonce", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+    { no: 3, name: "ciphertext", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InviteSecretEnvelope {
+    return new InviteSecretEnvelope().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InviteSecretEnvelope {
+    return new InviteSecretEnvelope().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InviteSecretEnvelope {
+    return new InviteSecretEnvelope().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InviteSecretEnvelope | PlainMessage<InviteSecretEnvelope> | undefined, b: InviteSecretEnvelope | PlainMessage<InviteSecretEnvelope> | undefined): boolean {
+    return proto3.util.equals(InviteSecretEnvelope, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.InviteSecretEnvelope.Scheme
+ */
+export enum InviteSecretEnvelope_Scheme {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * @generated from enum value: X25519_XCHACHA20POLY1305 = 1;
+   */
+  X25519_XCHACHA20POLY1305 = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(InviteSecretEnvelope_Scheme)
+proto3.util.setEnumType(InviteSecretEnvelope_Scheme, "flipcash.chat.v1.InviteSecretEnvelope.Scheme", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "X25519_XCHACHA20POLY1305" },
+]);
 

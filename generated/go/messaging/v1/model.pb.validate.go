@@ -6154,6 +6154,48 @@ func (m *SystemContent_UserJoined) validate(all bool) error {
 			}
 		}
 
+	case *SystemContent_UserJoined_Invited_:
+		if v == nil {
+			err := SystemContent_UserJoinedValidationError{
+				field:  "Method",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofMethodPresent = true
+
+		if all {
+			switch v := interface{}(m.GetInvited()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SystemContent_UserJoinedValidationError{
+						field:  "Invited",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SystemContent_UserJoinedValidationError{
+						field:  "Invited",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetInvited()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SystemContent_UserJoinedValidationError{
+					field:  "Invited",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -6495,3 +6537,148 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SystemContent_UserJoined_AdmittedValidationError{}
+
+// Validate checks the field values on SystemContent_UserJoined_Invited with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SystemContent_UserJoined_Invited) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SystemContent_UserJoined_Invited with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SystemContent_UserJoined_InvitedMultiError, or nil if none found.
+func (m *SystemContent_UserJoined_Invited) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SystemContent_UserJoined_Invited) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetInvitedBy() == nil {
+		err := SystemContent_UserJoined_InvitedValidationError{
+			field:  "InvitedBy",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetInvitedBy()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SystemContent_UserJoined_InvitedValidationError{
+					field:  "InvitedBy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SystemContent_UserJoined_InvitedValidationError{
+					field:  "InvitedBy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetInvitedBy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SystemContent_UserJoined_InvitedValidationError{
+				field:  "InvitedBy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SystemContent_UserJoined_InvitedMultiError(errors)
+	}
+
+	return nil
+}
+
+// SystemContent_UserJoined_InvitedMultiError is an error wrapping multiple
+// validation errors returned by
+// SystemContent_UserJoined_Invited.ValidateAll() if the designated
+// constraints aren't met.
+type SystemContent_UserJoined_InvitedMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SystemContent_UserJoined_InvitedMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SystemContent_UserJoined_InvitedMultiError) AllErrors() []error { return m }
+
+// SystemContent_UserJoined_InvitedValidationError is the validation error
+// returned by SystemContent_UserJoined_Invited.Validate if the designated
+// constraints aren't met.
+type SystemContent_UserJoined_InvitedValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SystemContent_UserJoined_InvitedValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SystemContent_UserJoined_InvitedValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SystemContent_UserJoined_InvitedValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SystemContent_UserJoined_InvitedValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SystemContent_UserJoined_InvitedValidationError) ErrorName() string {
+	return "SystemContent_UserJoined_InvitedValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SystemContent_UserJoined_InvitedValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSystemContent_UserJoined_Invited.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SystemContent_UserJoined_InvitedValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SystemContent_UserJoined_InvitedValidationError{}
