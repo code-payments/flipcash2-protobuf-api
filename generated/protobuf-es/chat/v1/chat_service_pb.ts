@@ -4,10 +4,10 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
-import { Auth, ChatId, PagingToken, QueryOptions, UserId, Username } from "../../common/v1/common_pb";
+import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Auth, ChatId, PagingToken, PublicKey, QueryOptions, UserId, Username } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
+import { ChatType, IdempotencyKey, Invite, Invite_Status, InviteId, InviteKeyEnvelope, InviteSecretEnvelope, InviteToken, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -1020,9 +1020,10 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
 
 /**
  * Parameters for creating a private group chat (see Metadata.is_private):
- * one whose creator admits each member from its lobby, and whose messages
- * are end-to-end encrypted. Whether a group is private is fixed for the
- * life of the chat. A private group has no rules.
+ * one whose members are admitted by its creator from its lobby or join
+ * with an invite, and whose messages are end-to-end encrypted. Whether a
+ * group is private is fixed for the life of the chat. A private group has
+ * no rules.
  *
  * Creating a private group takes two steps. A key envelope is bound to
  * the chat's ID, which the caller learns only from the response, so the
@@ -1035,6 +1036,7 @@ export class StartChatRequest_PublicGroupChatParameters extends Message<StartCha
  * happen in it, and the server refuses each of these as DENIED:
  *  - EnterLobby, by anyone
  *  - AdmitLobbyMember
+ *  - CreateInvite
  *  - Messaging.SendMessage and Messaging.EditMessage
  *  - BlobStorage.InitiateExternalUpload of a blob encrypted for the chat
  * The creator's client must keep attempting SetKeyEnvelope until it
@@ -1229,6 +1231,13 @@ export class JoinChatRequest extends Message<JoinChatRequest> {
   chatId?: ChatId;
 
   /**
+   * Set to join a private group with an invite (see JoinChat).
+   *
+   * @generated from field: flipcash.chat.v1.JoinChatRequest.InviteParameters invite = 2;
+   */
+  invite?: JoinChatRequest_InviteParameters;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -1242,6 +1251,7 @@ export class JoinChatRequest extends Message<JoinChatRequest> {
   static readonly typeName = "flipcash.chat.v1.JoinChatRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "invite", kind: "message", T: JoinChatRequest_InviteParameters },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -1259,6 +1269,61 @@ export class JoinChatRequest extends Message<JoinChatRequest> {
 
   static equals(a: JoinChatRequest | PlainMessage<JoinChatRequest> | undefined, b: JoinChatRequest | PlainMessage<JoinChatRequest> | undefined): boolean {
     return proto3.util.equals(JoinChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.JoinChatRequest.InviteParameters
+ */
+export class JoinChatRequest_InviteParameters extends Message<JoinChatRequest_InviteParameters> {
+  /**
+   * The token derived from the invite link's secret (see Invite). It
+   * must be a token for an invite to chat_id.
+   *
+   * @generated from field: flipcash.chat.v1.InviteToken invite_token = 1;
+   */
+  inviteToken?: InviteToken;
+
+  /**
+   * The link's secret encrypted by the caller for themself (see
+   * InviteSecretEnvelope). A join that stores the invite's copy of the
+   * chat key for the caller stores this with it, so that any of the
+   * caller's devices can open the copy until they replace it with an
+   * envelope of their own. A caller who is already a member changes
+   * nothing, so it is not stored. The server cannot open it or check
+   * what it holds: one that does not hold the link's secret leaves the
+   * copy openable only on a device that still has the link.
+   *
+   * @generated from field: flipcash.chat.v1.InviteSecretEnvelope secret_envelope = 2;
+   */
+  secretEnvelope?: InviteSecretEnvelope;
+
+  constructor(data?: PartialMessage<JoinChatRequest_InviteParameters>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.JoinChatRequest.InviteParameters";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "invite_token", kind: "message", T: InviteToken },
+    { no: 2, name: "secret_envelope", kind: "message", T: InviteSecretEnvelope },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JoinChatRequest_InviteParameters {
+    return new JoinChatRequest_InviteParameters().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JoinChatRequest_InviteParameters {
+    return new JoinChatRequest_InviteParameters().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JoinChatRequest_InviteParameters {
+    return new JoinChatRequest_InviteParameters().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JoinChatRequest_InviteParameters | PlainMessage<JoinChatRequest_InviteParameters> | undefined, b: JoinChatRequest_InviteParameters | PlainMessage<JoinChatRequest_InviteParameters> | undefined): boolean {
+    return proto3.util.equals(JoinChatRequest_InviteParameters, a, b);
   }
 }
 
@@ -1338,6 +1403,34 @@ export enum JoinChatResponse_Result {
    * @generated from enum value: BANNED = 4;
    */
   BANNED = 4,
+
+  /**
+   * No invite to this chat matches the token, or the chat is not a private group
+   *
+   * @generated from enum value: INVITE_NOT_FOUND = 5;
+   */
+  INVITE_NOT_FOUND = 5,
+
+  /**
+   * The invite's max_uses distinct users have joined with it
+   *
+   * @generated from enum value: INVITE_EXHAUSTED = 6;
+   */
+  INVITE_EXHAUSTED = 6,
+
+  /**
+   * The invite's expires_at has passed
+   *
+   * @generated from enum value: INVITE_EXPIRED = 7;
+   */
+  INVITE_EXPIRED = 7,
+
+  /**
+   * The invite was revoked (see RevokeInvite)
+   *
+   * @generated from enum value: INVITE_REVOKED = 8;
+   */
+  INVITE_REVOKED = 8,
 }
 // Retrieve enum metadata with: proto3.getEnumType(JoinChatResponse_Result)
 proto3.util.setEnumType(JoinChatResponse_Result, "flipcash.chat.v1.JoinChatResponse.Result", [
@@ -1346,6 +1439,10 @@ proto3.util.setEnumType(JoinChatResponse_Result, "flipcash.chat.v1.JoinChatRespo
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "RULES_NOT_SATISFIED" },
   { no: 4, name: "BANNED" },
+  { no: 5, name: "INVITE_NOT_FOUND" },
+  { no: 6, name: "INVITE_EXHAUSTED" },
+  { no: 7, name: "INVITE_EXPIRED" },
+  { no: 8, name: "INVITE_REVOKED" },
 ]);
 
 /**
@@ -2869,22 +2966,57 @@ export class GetKeyEnvelopeResponse extends Message<GetKeyEnvelopeResponse> {
   result = GetKeyEnvelopeResponse_Result.OK;
 
   /**
-   * The caller's key envelope. Set only when result == OK.
+   * The envelope stored for the caller. Set only when result == OK.
    *
-   * @generated from field: flipcash.chat.v1.KeyEnvelope key_envelope = 2;
+   * @generated from oneof flipcash.chat.v1.GetKeyEnvelopeResponse.envelope
    */
-  keyEnvelope?: KeyEnvelope;
+  envelope: {
+    /**
+     * The caller's key envelope, wrapped by themself or by the chat's
+     * creator.
+     *
+     * @generated from field: flipcash.chat.v1.KeyEnvelope key_envelope = 2;
+     */
+    value: KeyEnvelope;
+    case: "keyEnvelope";
+  } | {
+    /**
+     * An invite's copy of the chat key, stored for the caller when they
+     * joined with an invite (see JoinChat) and kept until they replace it
+     * with an envelope of their own (SetKeyEnvelope). It holds everything
+     * the client needs to open the copy (see InviteKeyEnvelope).
+     *
+     * @generated from field: flipcash.chat.v1.GetKeyEnvelopeResponse.InviteKeyBundle invite_key_bundle = 5;
+     */
+    value: GetKeyEnvelopeResponse_InviteKeyBundle;
+    case: "inviteKeyBundle";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
    * The user who stored the envelope, as the server authenticated them:
-   * the caller, or the chat's creator. It tells the client whose public
-   * key to open the envelope against (see KeyEnvelope), and is only a
-   * hint: an envelope that does not open against that key is rejected. Set
-   * only when result == OK.
+   * the caller, or the chat's creator. For an invite's copy
+   * (invite_key_bundle) it is the user who created the invite and signed
+   * the copy (Invite.created_by), which must be the chat's creator (see
+   * InviteKeyEnvelope). It tells the client whose public key to open or
+   * verify the envelope against, and is only a hint: an envelope that does
+   * not open or verify against that key is rejected. Set only when result
+   * == OK.
    *
    * @generated from field: flipcash.common.v1.UserId wrapped_by = 3;
    */
   wrappedBy?: UserId;
+
+  /**
+   * The public key of the user named by wrapped_by, as the server reports
+   * it: the key the client opens the envelope against, or verifies an
+   * invite's copy against, when it has learned none for that user outside
+   * this service (see KeyEnvelope). For a self-wrapped envelope it is the
+   * caller's own key, which the client already holds. Set only when result
+   * == OK.
+   *
+   * @generated from field: flipcash.common.v1.PublicKey wrapped_by_public_key = 4;
+   */
+  wrappedByPublicKey?: PublicKey;
 
   constructor(data?: PartialMessage<GetKeyEnvelopeResponse>) {
     super();
@@ -2895,8 +3027,10 @@ export class GetKeyEnvelopeResponse extends Message<GetKeyEnvelopeResponse> {
   static readonly typeName = "flipcash.chat.v1.GetKeyEnvelopeResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetKeyEnvelopeResponse_Result) },
-    { no: 2, name: "key_envelope", kind: "message", T: KeyEnvelope },
+    { no: 2, name: "key_envelope", kind: "message", T: KeyEnvelope, oneof: "envelope" },
+    { no: 5, name: "invite_key_bundle", kind: "message", T: GetKeyEnvelopeResponse_InviteKeyBundle, oneof: "envelope" },
     { no: 3, name: "wrapped_by", kind: "message", T: UserId },
+    { no: 4, name: "wrapped_by_public_key", kind: "message", T: PublicKey },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKeyEnvelopeResponse {
@@ -2950,6 +3084,648 @@ proto3.util.setEnumType(GetKeyEnvelopeResponse_Result, "flipcash.chat.v1.GetKeyE
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
   { no: 3, name: "NO_ENVELOPE" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetKeyEnvelopeResponse.InviteKeyBundle
+ */
+export class GetKeyEnvelopeResponse_InviteKeyBundle extends Message<GetKeyEnvelopeResponse_InviteKeyBundle> {
+  /**
+   * The invite whose copy this is.
+   *
+   * @generated from field: flipcash.chat.v1.InviteId invite_id = 1;
+   */
+  inviteId?: InviteId;
+
+  /**
+   * The invite's copy of the chat key. The client checks its
+   * signature, opens it with the link's secret from secret_envelope,
+   * and wraps the chat key for the caller.
+   *
+   * @generated from field: flipcash.chat.v1.InviteKeyEnvelope key_envelope = 2;
+   */
+  keyEnvelope?: InviteKeyEnvelope;
+
+  /**
+   * The link's secret, encrypted by the caller for themself when they
+   * joined (JoinChatRequest.InviteParameters.secret_envelope). It opens
+   * with the caller's account key on any of their devices.
+   *
+   * @generated from field: flipcash.chat.v1.InviteSecretEnvelope secret_envelope = 3;
+   */
+  secretEnvelope?: InviteSecretEnvelope;
+
+  constructor(data?: PartialMessage<GetKeyEnvelopeResponse_InviteKeyBundle>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetKeyEnvelopeResponse.InviteKeyBundle";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "invite_id", kind: "message", T: InviteId },
+    { no: 2, name: "key_envelope", kind: "message", T: InviteKeyEnvelope },
+    { no: 3, name: "secret_envelope", kind: "message", T: InviteSecretEnvelope },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetKeyEnvelopeResponse_InviteKeyBundle {
+    return new GetKeyEnvelopeResponse_InviteKeyBundle().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetKeyEnvelopeResponse_InviteKeyBundle {
+    return new GetKeyEnvelopeResponse_InviteKeyBundle().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetKeyEnvelopeResponse_InviteKeyBundle {
+    return new GetKeyEnvelopeResponse_InviteKeyBundle().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetKeyEnvelopeResponse_InviteKeyBundle | PlainMessage<GetKeyEnvelopeResponse_InviteKeyBundle> | undefined, b: GetKeyEnvelopeResponse_InviteKeyBundle | PlainMessage<GetKeyEnvelopeResponse_InviteKeyBundle> | undefined): boolean {
+    return proto3.util.equals(GetKeyEnvelopeResponse_InviteKeyBundle, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.CreateInviteRequest
+ */
+export class CreateInviteRequest extends Message<CreateInviteRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The token derived from the invite link's secret (see Invite), from
+   * which the server computes the invite's ID. A retry with the same token
+   * returns the invite the first attempt created.
+   *
+   * @generated from field: flipcash.chat.v1.InviteToken invite_token = 2;
+   */
+  inviteToken?: InviteToken;
+
+  /**
+   * The chat key encrypted under the invite's wrap key and signed by the
+   * caller.
+   *
+   * @generated from field: flipcash.chat.v1.InviteKeyEnvelope key_envelope = 3;
+   */
+  keyEnvelope?: InviteKeyEnvelope;
+
+  /**
+   * The link's secret encrypted by the caller for themself.
+   *
+   * @generated from field: flipcash.chat.v1.InviteSecretEnvelope secret_envelope = 4;
+   */
+  secretEnvelope?: InviteSecretEnvelope;
+
+  /**
+   * How many distinct users may join with the invite. 0 means unlimited.
+   *
+   * @generated from field: uint32 max_uses = 5;
+   */
+  maxUses = 0;
+
+  /**
+   * When the invite stops admitting anyone. Optional; unset never expires.
+   * If set, it must be in the future and no further away than the server
+   * allows (INVALID_EXPIRES_AT otherwise).
+   *
+   * @generated from field: google.protobuf.Timestamp expires_at = 6;
+   */
+  expiresAt?: Timestamp;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<CreateInviteRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.CreateInviteRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "invite_token", kind: "message", T: InviteToken },
+    { no: 3, name: "key_envelope", kind: "message", T: InviteKeyEnvelope },
+    { no: 4, name: "secret_envelope", kind: "message", T: InviteSecretEnvelope },
+    { no: 5, name: "max_uses", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 6, name: "expires_at", kind: "message", T: Timestamp },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateInviteRequest {
+    return new CreateInviteRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateInviteRequest {
+    return new CreateInviteRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateInviteRequest {
+    return new CreateInviteRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateInviteRequest | PlainMessage<CreateInviteRequest> | undefined, b: CreateInviteRequest | PlainMessage<CreateInviteRequest> | undefined): boolean {
+    return proto3.util.equals(CreateInviteRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.CreateInviteResponse
+ */
+export class CreateInviteResponse extends Message<CreateInviteResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.CreateInviteResponse.Result result = 1;
+   */
+  result = CreateInviteResponse_Result.OK;
+
+  /**
+   * The created invite, or the one a retry with the same ID created. Set
+   * only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Invite invite = 2;
+   */
+  invite?: Invite;
+
+  constructor(data?: PartialMessage<CreateInviteResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.CreateInviteResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(CreateInviteResponse_Result) },
+    { no: 2, name: "invite", kind: "message", T: Invite },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateInviteResponse {
+    return new CreateInviteResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateInviteResponse {
+    return new CreateInviteResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateInviteResponse {
+    return new CreateInviteResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateInviteResponse | PlainMessage<CreateInviteResponse> | undefined, b: CreateInviteResponse | PlainMessage<CreateInviteResponse> | undefined): boolean {
+    return proto3.util.equals(CreateInviteResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.CreateInviteResponse.Result
+ */
+export enum CreateInviteResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not invite to this chat (see CreateInvite)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * expires_at is not in the future, or further away than the server allows
+   *
+   * @generated from enum value: INVALID_EXPIRES_AT = 3;
+   */
+  INVALID_EXPIRES_AT = 3,
+
+  /**
+   * The chat holds as many ACTIVE invites as the server allows
+   *
+   * @generated from enum value: TOO_MANY_INVITES = 4;
+   */
+  TOO_MANY_INVITES = 4,
+
+  /**
+   * key_envelope's signature does not verify against the caller's public key
+   *
+   * @generated from enum value: INVALID_SIGNATURE = 5;
+   */
+  INVALID_SIGNATURE = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(CreateInviteResponse_Result)
+proto3.util.setEnumType(CreateInviteResponse_Result, "flipcash.chat.v1.CreateInviteResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "INVALID_EXPIRES_AT" },
+  { no: 4, name: "TOO_MANY_INVITES" },
+  { no: 5, name: "INVALID_SIGNATURE" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetInviteRequest
+ */
+export class GetInviteRequest extends Message<GetInviteRequest> {
+  /**
+   * The token derived from the invite link's secret (see Invite).
+   *
+   * @generated from field: flipcash.chat.v1.InviteToken invite_token = 1;
+   */
+  inviteToken?: InviteToken;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetInviteRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetInviteRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "invite_token", kind: "message", T: InviteToken },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetInviteRequest {
+    return new GetInviteRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetInviteRequest {
+    return new GetInviteRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetInviteRequest {
+    return new GetInviteRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetInviteRequest | PlainMessage<GetInviteRequest> | undefined, b: GetInviteRequest | PlainMessage<GetInviteRequest> | undefined): boolean {
+    return proto3.util.equals(GetInviteRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetInviteResponse
+ */
+export class GetInviteResponse extends Message<GetInviteResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetInviteResponse.Result result = 1;
+   */
+  result = GetInviteResponse_Result.OK;
+
+  /**
+   * The chat the invite admits users to, as the caller sees it (see
+   * GetInvite). Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Metadata chat = 2;
+   */
+  chat?: Metadata;
+
+  /**
+   * Whether the invite still admits anyone. Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.Invite.Status status = 3;
+   */
+  status = Invite_Status.UNKNOWN;
+
+  constructor(data?: PartialMessage<GetInviteResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetInviteResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetInviteResponse_Result) },
+    { no: 2, name: "chat", kind: "message", T: Metadata },
+    { no: 3, name: "status", kind: "enum", T: proto3.getEnumType(Invite_Status) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetInviteResponse {
+    return new GetInviteResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetInviteResponse {
+    return new GetInviteResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetInviteResponse {
+    return new GetInviteResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetInviteResponse | PlainMessage<GetInviteResponse> | undefined, b: GetInviteResponse | PlainMessage<GetInviteResponse> | undefined): boolean {
+    return proto3.util.equals(GetInviteResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetInviteResponse.Result
+ */
+export enum GetInviteResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * No invite matches the token
+   *
+   * @generated from enum value: NOT_FOUND = 1;
+   */
+  NOT_FOUND = 1,
+
+  /**
+   * The chat's creator banned the caller (see BanUser)
+   *
+   * @generated from enum value: BANNED = 2;
+   */
+  BANNED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetInviteResponse_Result)
+proto3.util.setEnumType(GetInviteResponse_Result, "flipcash.chat.v1.GetInviteResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "NOT_FOUND" },
+  { no: 2, name: "BANNED" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetChatInvitesRequest
+ */
+export class GetChatInvitesRequest extends Message<GetChatInvitesRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * QueryOptions controls page_size, capped at 100. Ordering is fixed to
+   * most recently created first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request. On every
+   * subsequent request, set it to the paging_token from the most recent
+   * response. The token is opaque and server-generated; do not construct
+   * it. It is bound to chat_id and refused with another chat.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 2;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetChatInvitesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetChatInvitesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChatInvitesRequest {
+    return new GetChatInvitesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChatInvitesRequest {
+    return new GetChatInvitesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChatInvitesRequest {
+    return new GetChatInvitesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetChatInvitesRequest | PlainMessage<GetChatInvitesRequest> | undefined, b: GetChatInvitesRequest | PlainMessage<GetChatInvitesRequest> | undefined): boolean {
+    return proto3.util.equals(GetChatInvitesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetChatInvitesResponse
+ */
+export class GetChatInvitesResponse extends Message<GetChatInvitesResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetChatInvitesResponse.Result result = 1;
+   */
+  result = GetChatInvitesResponse_Result.OK;
+
+  /**
+   * The page, most recently created first. Set when result is OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.Invite invites = 2;
+   */
+  invites: Invite[] = [];
+
+  /**
+   * PagingToken carries the cursor after the last invite returned. The
+   * client MUST send it back in query_options.paging_token on the next
+   * GetChatInvitesRequest. Set when result is OK and has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain. When true, the client
+   * should issue another GetChatInvitesRequest with the returned
+   * paging_token.
+   *
+   * @generated from field: bool has_more = 4;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetChatInvitesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetChatInvitesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetChatInvitesResponse_Result) },
+    { no: 2, name: "invites", kind: "message", T: Invite, repeated: true },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetChatInvitesResponse {
+    return new GetChatInvitesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetChatInvitesResponse {
+    return new GetChatInvitesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetChatInvitesResponse {
+    return new GetChatInvitesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetChatInvitesResponse | PlainMessage<GetChatInvitesResponse> | undefined, b: GetChatInvitesResponse | PlainMessage<GetChatInvitesResponse> | undefined): boolean {
+    return proto3.util.equals(GetChatInvitesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetChatInvitesResponse.Result
+ */
+export enum GetChatInvitesResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not invite to this chat (see GetChatInvites)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetChatInvitesResponse_Result)
+proto3.util.setEnumType(GetChatInvitesResponse_Result, "flipcash.chat.v1.GetChatInvitesResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.RevokeInviteRequest
+ */
+export class RevokeInviteRequest extends Message<RevokeInviteRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The invite to revoke, which must be an invite to chat_id.
+   *
+   * @generated from field: flipcash.chat.v1.InviteId invite_id = 2;
+   */
+  inviteId?: InviteId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<RevokeInviteRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RevokeInviteRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "invite_id", kind: "message", T: InviteId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RevokeInviteRequest {
+    return new RevokeInviteRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RevokeInviteRequest {
+    return new RevokeInviteRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RevokeInviteRequest {
+    return new RevokeInviteRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RevokeInviteRequest | PlainMessage<RevokeInviteRequest> | undefined, b: RevokeInviteRequest | PlainMessage<RevokeInviteRequest> | undefined): boolean {
+    return proto3.util.equals(RevokeInviteRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.RevokeInviteResponse
+ */
+export class RevokeInviteResponse extends Message<RevokeInviteResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.RevokeInviteResponse.Result result = 1;
+   */
+  result = RevokeInviteResponse_Result.OK;
+
+  constructor(data?: PartialMessage<RevokeInviteResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.RevokeInviteResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(RevokeInviteResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RevokeInviteResponse {
+    return new RevokeInviteResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RevokeInviteResponse {
+    return new RevokeInviteResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RevokeInviteResponse {
+    return new RevokeInviteResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RevokeInviteResponse | PlainMessage<RevokeInviteResponse> | undefined, b: RevokeInviteResponse | PlainMessage<RevokeInviteResponse> | undefined): boolean {
+    return proto3.util.equals(RevokeInviteResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.RevokeInviteResponse.Result
+ */
+export enum RevokeInviteResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not invite to this chat (see RevokeInvite)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * No such chat, or no invite to it with this ID
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(RevokeInviteResponse_Result)
+proto3.util.setEnumType(RevokeInviteResponse_Result, "flipcash.chat.v1.RevokeInviteResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
 ]);
 
 /**
