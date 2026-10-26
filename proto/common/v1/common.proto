@@ -65,7 +65,7 @@ message UserId {
 // set as X — letters, digits and underscores — with the exception that it must
 // be lowercase.
 message Username {
-    string value = 1 [(validate.rules).string.pattern = "^[a-z0-9_]{2,15}$"];
+    string value = 1 [(validate.rules).string.pattern = "^[a-z0-9_]{2,30}$"];
 }
 
 message ChatId {
