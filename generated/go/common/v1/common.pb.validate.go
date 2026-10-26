@@ -654,7 +654,7 @@ func (m *Username) validate(all bool) error {
 	if !_Username_Value_Pattern.MatchString(m.GetValue()) {
 		err := UsernameValidationError{
 			field:  "Value",
-			reason: "value does not match regex pattern \"^[a-z0-9_]{2,15}$\"",
+			reason: "value does not match regex pattern \"^[a-z0-9_]{2,30}$\"",
 		}
 		if !all {
 			return err
@@ -739,7 +739,7 @@ var _ interface {
 	ErrorName() string
 } = UsernameValidationError{}
 
-var _Username_Value_Pattern = regexp.MustCompile("^[a-z0-9_]{2,15}$")
+var _Username_Value_Pattern = regexp.MustCompile("^[a-z0-9_]{2,30}$")
 
 // Validate checks the field values on ChatId with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
