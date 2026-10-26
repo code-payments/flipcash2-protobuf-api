@@ -124,6 +124,153 @@ func (KeyEnvelope_Scheme) EnumDescriptor() ([]byte, []int) {
 	return file_chat_v1_model_proto_rawDescGZIP(), []int{22, 0}
 }
 
+type Invite_Status int32
+
+const (
+	Invite_UNKNOWN   Invite_Status = 0
+	Invite_ACTIVE    Invite_Status = 1 // The invite admits users
+	Invite_EXHAUSTED Invite_Status = 2 // It has admitted max_uses joins; it admits no one
+	Invite_EXPIRED   Invite_Status = 3 // expires_at has passed; it admits no one
+	Invite_REVOKED   Invite_Status = 4 // It was revoked (see Chat.RevokeInvite); it admits no one
+)
+
+// Enum value maps for Invite_Status.
+var (
+	Invite_Status_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "ACTIVE",
+		2: "EXHAUSTED",
+		3: "EXPIRED",
+		4: "REVOKED",
+	}
+	Invite_Status_value = map[string]int32{
+		"UNKNOWN":   0,
+		"ACTIVE":    1,
+		"EXHAUSTED": 2,
+		"EXPIRED":   3,
+		"REVOKED":   4,
+	}
+)
+
+func (x Invite_Status) Enum() *Invite_Status {
+	p := new(Invite_Status)
+	*p = x
+	return p
+}
+
+func (x Invite_Status) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Invite_Status) Descriptor() protoreflect.EnumDescriptor {
+	return file_chat_v1_model_proto_enumTypes[2].Descriptor()
+}
+
+func (Invite_Status) Type() protoreflect.EnumType {
+	return &file_chat_v1_model_proto_enumTypes[2]
+}
+
+func (x Invite_Status) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Invite_Status.Descriptor instead.
+func (Invite_Status) EnumDescriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{29, 0}
+}
+
+type InviteKeyEnvelope_Scheme int32
+
+const (
+	InviteKeyEnvelope_UNKNOWN           InviteKeyEnvelope_Scheme = 0
+	InviteKeyEnvelope_XCHACHA20POLY1305 InviteKeyEnvelope_Scheme = 1
+)
+
+// Enum value maps for InviteKeyEnvelope_Scheme.
+var (
+	InviteKeyEnvelope_Scheme_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "XCHACHA20POLY1305",
+	}
+	InviteKeyEnvelope_Scheme_value = map[string]int32{
+		"UNKNOWN":           0,
+		"XCHACHA20POLY1305": 1,
+	}
+)
+
+func (x InviteKeyEnvelope_Scheme) Enum() *InviteKeyEnvelope_Scheme {
+	p := new(InviteKeyEnvelope_Scheme)
+	*p = x
+	return p
+}
+
+func (x InviteKeyEnvelope_Scheme) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (InviteKeyEnvelope_Scheme) Descriptor() protoreflect.EnumDescriptor {
+	return file_chat_v1_model_proto_enumTypes[3].Descriptor()
+}
+
+func (InviteKeyEnvelope_Scheme) Type() protoreflect.EnumType {
+	return &file_chat_v1_model_proto_enumTypes[3]
+}
+
+func (x InviteKeyEnvelope_Scheme) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use InviteKeyEnvelope_Scheme.Descriptor instead.
+func (InviteKeyEnvelope_Scheme) EnumDescriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{30, 0}
+}
+
+type InviteSecretEnvelope_Scheme int32
+
+const (
+	InviteSecretEnvelope_UNKNOWN                  InviteSecretEnvelope_Scheme = 0
+	InviteSecretEnvelope_X25519_XCHACHA20POLY1305 InviteSecretEnvelope_Scheme = 1
+)
+
+// Enum value maps for InviteSecretEnvelope_Scheme.
+var (
+	InviteSecretEnvelope_Scheme_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "X25519_XCHACHA20POLY1305",
+	}
+	InviteSecretEnvelope_Scheme_value = map[string]int32{
+		"UNKNOWN":                  0,
+		"X25519_XCHACHA20POLY1305": 1,
+	}
+)
+
+func (x InviteSecretEnvelope_Scheme) Enum() *InviteSecretEnvelope_Scheme {
+	p := new(InviteSecretEnvelope_Scheme)
+	*p = x
+	return p
+}
+
+func (x InviteSecretEnvelope_Scheme) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (InviteSecretEnvelope_Scheme) Descriptor() protoreflect.EnumDescriptor {
+	return file_chat_v1_model_proto_enumTypes[4].Descriptor()
+}
+
+func (InviteSecretEnvelope_Scheme) Type() protoreflect.EnumType {
+	return &file_chat_v1_model_proto_enumTypes[4]
+}
+
+func (x InviteSecretEnvelope_Scheme) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use InviteSecretEnvelope_Scheme.Descriptor instead.
+func (InviteSecretEnvelope_Scheme) EnumDescriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{31, 0}
+}
+
 type Metadata struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -174,7 +321,7 @@ type Metadata struct {
 	// Rules governing participation in this chat. Only supported for group
 	// chats. If not set, the chat has no participation requirements. Never
 	// set for a private group (see is_private), which admits a user by its
-	// creator's approval instead.
+	// creator's approval or an invite instead.
 	Rules *Rules `protobuf:"bytes,11,opt,name=rules,proto3" json:"rules,omitempty"`
 	// Per-viewer chat state, including what the viewer may do in the chat.
 	// Absent when the chat holds nothing about them; always set for a member.
@@ -185,9 +332,10 @@ type Metadata struct {
 	// and fixed when the chat is created (see
 	// StartChatRequest.private_group).
 	//
-	// A private group has no rules. Nobody joins it with Chat.JoinChat: a
-	// user enters its lobby with Chat.EnterLobby and is admitted by its
-	// creator. Only its members can read its messages, under any
+	// A private group has no rules. A user joins it in one of two ways: they
+	// enter its lobby with Chat.EnterLobby and are admitted by its creator,
+	// or they join with Chat.JoinChat carrying an invite the creator made
+	// (see Invite). Only its members can read its messages, under any
 	// messaging.v1.ViewMode, and every message a client sends in it is
 	// messaging.v1.EncryptedContent, encrypted with the group's chat key
 	// (see KeyEnvelope).
@@ -2056,14 +2204,48 @@ func (x *IdempotencyKey) GetValue() []byte {
 // the wrapper. When wrapped_by is the recipient, that is the recipient's own
 // key. Otherwise wrapped_by must be Metadata.creator, and the client uses
 // the creator's public key, preferring one it learned outside this service
-// (for example, from the invitation that led it to the chat) over one the
-// server reports. A client rejects an envelope that names any other wrapper
-// or that fails to open, and does not send in the chat.
+// over the one the server reports with the envelope (wrapped_by_public_key
+// in Chat.GetKeyEnvelope's response). A client rejects an envelope that
+// names any other wrapper or that fails to open, and does not send in the
+// chat.
 //
 // A member who opens an envelope wrapped by the creator wraps the chat key
 // again for itself and stores that envelope with Chat.SetKeyEnvelope, so
 // that opening it later, on any of the member's devices, depends on no one
 // else's key.
+//
+// A member who joins with an invite (Chat.JoinChat) is given, along with
+// their membership, the invite's copy of the chat key (see
+// InviteKeyEnvelope) in place of an envelope the creator wrapped.
+// Chat.GetKeyEnvelope returns it until they replace it: they check its
+// signature, open it with the link's secret, wrap the chat key for
+// themself and store that envelope with Chat.SetKeyEnvelope, as a member
+// admitted from the lobby does. Until they have, opening their key depends
+// on the link's secret, which they encrypted for themself when joining (see
+// InviteSecretEnvelope) and which is stored and returned with the copy, so
+// any of their devices can do this, whether or not it holds the link.
+//
+// The copy carries the creator's signature, which the member checks against
+// the creator's public key, preferring one learned outside this service as
+// above. So the copy holds as far as an envelope the creator wrapped does:
+// substituting a chat key in it takes the creator's private key, or the
+// server reporting a false public key for the creator. A member whose copy
+// fails that check, or fails to open, treats it as the wrong key.
+//
+// A member whose chat's messages do not open under their key treats it as
+// the wrong key, warns the user and does not send in the chat. That catches
+// a key made wrong by mistake, but is no defence against the server, which
+// decides what messages a member is shown and who sent them.
+//
+// A member holding the wrong key, or an invite's copy none of their devices
+// can open, has one way to repair it: leave the chat
+// (Chat.LeaveChat), which discards their envelope, then enter its lobby
+// (Chat.EnterLobby) and be admitted by the creator, who wraps the chat key
+// for them. Nothing else gives them another key: Chat.SetKeyEnvelope keeps an
+// envelope they wrapped themself (ALREADY_SET), Chat.AdmitLobbyMember leaves
+// a member's envelope as it is, and joining with the same invite again gives
+// the same copy. An invite whose copy holds the wrong key should be revoked
+// (Chat.RevokeInvite).
 //
 // Like EncryptedContent, this has no forward secrecy: anyone who later
 // obtains a member's private key can open that member's envelope and read
@@ -2395,6 +2577,560 @@ func (x *LobbyUpdateBatch) GetLobbyUpdates() []*LobbyUpdate {
 	return nil
 }
 
+// InviteId names an invite to a private group (see Invite). Clients derive
+// it from the invite's link; it is not secret, and does not let anyone join.
+type InviteId struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *InviteId) Reset() {
+	*x = InviteId{}
+	mi := &file_chat_v1_model_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteId) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteId) ProtoMessage() {}
+
+func (x *InviteId) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteId.ProtoReflect.Descriptor instead.
+func (*InviteId) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *InviteId) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+// InviteToken proves its sender holds an invite's link (see Invite). Clients
+// derive it from the link's secret and send it only to create the invite
+// (Chat.CreateInvite), preview it (Chat.GetInvite) or join with it
+// (Chat.JoinChat). The server never stores it, in its records or its logs:
+// anyone who reads a token can join with the invite and use up its limit.
+type InviteToken struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *InviteToken) Reset() {
+	*x = InviteToken{}
+	mi := &file_chat_v1_model_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteToken) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteToken) ProtoMessage() {}
+
+func (x *InviteToken) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteToken.ProtoReflect.Descriptor instead.
+func (*InviteToken) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *InviteToken) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+// Invite is a link that lets users join a private group (see
+// Metadata.is_private) without its creator's approval, up to a number of
+// joins or without limit. It is created with Chat.CreateInvite by a
+// member the server permits to invite (see
+// ViewerState.Permissions.can_invite), which today is the group's creator
+// alone. An invite admits whoever holds the link, including a user the
+// creator denied from the lobby (Chat.DenyLobbyMember).
+//
+// Should the server ever let members other than the creator invite, such a
+// member's invites must stop admitting anyone once they are banned, leave
+// the chat, or otherwise lose can_invite, and those permitted to ban
+// (ViewerState.Permissions.moderation.can_ban) must be able to revoke any
+// invite. That rule is for them alone: the chat's creator also loses
+// can_invite while not a member, but their invites keep working (see
+// below).
+//
+// Letting other members invite would also weaken what a joiner can trust:
+// today only the creator can hand out the chat key, but a member permitted
+// to invite could give the users who join with their invite a wrong key,
+// which the signature on the copy (see InviteKeyEnvelope) cannot catch,
+// since it proves only who made the copy. Clients would then also need a way
+// to check a key against one the creator vouches for.
+//
+// A user joins with an invite with Chat.JoinChat, which in one step makes
+// them a member, counts their use of the invite, and stores the invite's
+// copy of the chat key (see InviteKeyEnvelope) as their key envelope, with
+// the link's secret the joiner encrypted for themself (see
+// InviteSecretEnvelope). Any of their devices then fetches both with
+// Chat.GetKeyEnvelope, checks the copy's signature, opens the secret and
+// then the copy, wraps the chat key for the joiner and stores that envelope
+// with Chat.SetKeyEnvelope, as a member admitted from the lobby does (see
+// KeyEnvelope). The server gives the copy to members alone, so it reaches no
+// more users than the invite's limit allows.
+//
+// The link carries one secret: 32 random bytes the inviter's client
+// generates for this invite alone. It travels in the link's URL fragment,
+// which a browser never sends in a request, and the server never learns it.
+// A web page that a link opens can still read the fragment, so such a page
+// must never send it anywhere or log it. It is not the chat key. Every
+// client derives three values from it, with HKDF-SHA256 (RFC 5869):
+//
+//	invite_token = HKDF(ikm  = secret,
+//	                    salt = "",
+//	                    info = "flipcash-group-invite-token-v1",
+//	                    L    = 32)
+//	wrap_key     = HKDF(ikm  = secret,
+//	                    salt = "",
+//	                    info = "flipcash-group-invite-wrap-v1" || chat_id,
+//	                    L    = 32)
+//	invite_id    = SHA-256("flipcash-group-invite-id-v1" || invite_token)[:16]
+//
+// where chat_id is the raw bytes of common.v1.ChatId.value. The link holds
+// no chat ID, so a joiner learns it from Chat.GetInvite and derives the wrap
+// key only then.
+//
+//   - The invite token (InviteToken) proves the caller holds the link. The
+//     server finds the invite by computing its ID from the token, so neither
+//     the server's records nor anything it returns lets anyone join.
+//   - The wrap key opens the invite's copy of the chat key (see
+//     InviteKeyEnvelope). It is never sent anywhere, so the token does not
+//     let anyone open the copy. Binding the chat ID into it makes the copy
+//     open only as the key of the chat it was made for, so the server cannot
+//     steer a joiner into another chat.
+//   - The invite ID (InviteId) names the invite. The server computes it from
+//     the token whenever one is sent, creation included, and the inviter
+//     lists and revokes the invite by it.
+//
+// The limit counts joins: each join with the invite that makes someone a
+// member uses one, so a user who leaves and joins again with it uses
+// another, and leaving gives no use back. A retry of a join that succeeded
+// uses none, since the caller is a member by then (see Chat.JoinChat). The
+// server does not record who joined with which invite. An invite admits
+// anyone, those who joined with it before included,
+// only while it is ACTIVE: once it is used up, expires or is revoked, it
+// admits no one, and a user returning to the chat is admitted from the lobby
+// instead. The users it already admitted stay members. Nothing about the
+// chat's creator's own standing stops an invite they made: it keeps working
+// while they are not a member, though they cannot list or revoke it until
+// they rejoin.
+//
+// An invite never changes the chat key. Revoking a link that leaked keeps
+// new users out, but cannot take the key from anyone who already joined
+// with it.
+//
+// The link and the server's records together are as good as the chat key:
+// anyone holding the link who can read what the server stores can open a
+// copy of the chat key (see InviteKeyEnvelope), and with it every message
+// in the chat, without ever joining. The server deletes each copy once it
+// is no longer needed (see InviteKeyEnvelope), which bounds this but does
+// not end it. A copy that opens with the link is still stored:
+//   - while the invite is ACTIVE, which is inherent, since anyone holding
+//     the link could join with it anyway;
+//   - for each member who joined with the invite and has not yet replaced
+//     their copy, for as long as that takes, whether or not the invite has
+//     since stopped admitting anyone;
+//   - in the server's backups, which deleting a copy does not reach.
+//
+// So a link is to be treated like the chat key, and shared only with those
+// who may read the chat.
+//
+// A ban (Chat.BanUser) applies to one account, not to a link. A banned user
+// who still holds a link that admits users can join with it from another
+// account, so a creator banning someone who joined with an invite
+// should revoke that invite too (Chat.RevokeInvite), and make another for
+// everyone else.
+type Invite struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	InviteId *InviteId `protobuf:"bytes,1,opt,name=invite_id,json=inviteId,proto3" json:"invite_id,omitempty"`
+	// The private group the invite admits users to.
+	ChatId *v1.ChatId `protobuf:"bytes,2,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	// The user that created the invite.
+	CreatedBy *v1.UserId `protobuf:"bytes,3,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	// How many joins the invite allows (see Invite). 0 means unlimited.
+	MaxUses uint32 `protobuf:"varint,4,opt,name=max_uses,json=maxUses,proto3" json:"max_uses,omitempty"`
+	// How many joins the invite has admitted, whether or not those users are
+	// still members. Never decreases.
+	UseCount uint32 `protobuf:"varint,5,opt,name=use_count,json=useCount,proto3" json:"use_count,omitempty"`
+	// When the invite was created.
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// When the invite stops admitting anyone. Unset when it never expires.
+	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// What the invite still allows. When more than one reason applies, the
+	// status is the first of REVOKED, EXPIRED and EXHAUSTED.
+	Status Invite_Status `protobuf:"varint,8,opt,name=status,proto3,enum=flipcash.chat.v1.Invite_Status" json:"status,omitempty"`
+	// The link's secret, encrypted so that only the invite's creator can open
+	// it, so that any of their devices can rebuild the link to share it again.
+	SecretEnvelope *InviteSecretEnvelope `protobuf:"bytes,9,opt,name=secret_envelope,json=secretEnvelope,proto3" json:"secret_envelope,omitempty"`
+}
+
+func (x *Invite) Reset() {
+	*x = Invite{}
+	mi := &file_chat_v1_model_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Invite) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Invite) ProtoMessage() {}
+
+func (x *Invite) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Invite.ProtoReflect.Descriptor instead.
+func (*Invite) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *Invite) GetInviteId() *InviteId {
+	if x != nil {
+		return x.InviteId
+	}
+	return nil
+}
+
+func (x *Invite) GetChatId() *v1.ChatId {
+	if x != nil {
+		return x.ChatId
+	}
+	return nil
+}
+
+func (x *Invite) GetCreatedBy() *v1.UserId {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return nil
+}
+
+func (x *Invite) GetMaxUses() uint32 {
+	if x != nil {
+		return x.MaxUses
+	}
+	return 0
+}
+
+func (x *Invite) GetUseCount() uint32 {
+	if x != nil {
+		return x.UseCount
+	}
+	return 0
+}
+
+func (x *Invite) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *Invite) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *Invite) GetStatus() Invite_Status {
+	if x != nil {
+		return x.Status
+	}
+	return Invite_UNKNOWN
+}
+
+func (x *Invite) GetSecretEnvelope() *InviteSecretEnvelope {
+	if x != nil {
+		return x.SecretEnvelope
+	}
+	return nil
+}
+
+// InviteKeyEnvelope is an invite's copy of a private group's chat key,
+// encrypted under the invite's wrap key (see Invite), so that anyone holding
+// the link can open it and nobody else can, the server included, and signed
+// by the user who created the invite, so that a joiner can tell it came from
+// them. The inviter makes it when creating the invite (Chat.CreateInvite).
+// Joining with the invite (Chat.JoinChat) stores it as the joiner's key
+// envelope, which Chat.GetKeyEnvelope returns
+// (GetKeyEnvelopeResponse.invite_key_bundle), with the link's secret the
+// member encrypted for themself (see InviteSecretEnvelope), until the member
+// checks its signature, opens it, wraps the chat key for themself and stores
+// that envelope with Chat.SetKeyEnvelope (see KeyEnvelope).
+//
+// The server deletes copies it no longer needs, since anyone holding the
+// link who can read them can open them (see Invite). It deletes the
+// invite's own copy once the invite stops being ACTIVE: in the same step
+// that revokes it (Chat.RevokeInvite) or counts its last use
+// (Chat.JoinChat), and at or soon after expires_at for one that expires.
+// It deletes a member's copy, and the secret envelope stored with it, in
+// the same step that stores the envelope replacing them
+// (Chat.SetKeyEnvelope). A member who never replaces their copy keeps it,
+// whatever becomes of the invite, since it is their only key.
+//
+// For scheme XCHACHA20POLY1305, encrypt with XChaCha20-Poly1305 (the IETF
+// construction in libsodium's crypto_aead_xchacha20poly1305_ietf_encrypt):
+//
+//	key       = the invite's wrap key
+//	nonce     = 24 fresh random bytes, set in `nonce` below
+//	plaintext = the 32-byte chat key
+//	aad       = "flipcash-group-invite-wrap-v1" || chat_id || invite_id
+//
+// where chat_id and invite_id are the raw bytes of common.v1.ChatId.value and
+// InviteId.value. The ciphertext, with its 16-byte Poly1305 tag appended, is
+// set in `ciphertext` below.
+//
+// The inviter then signs the copy with the Ed25519 private key of their
+// account:
+//
+//	message   = "flipcash-group-invite-sig-v1" || chat_id || invite_id
+//	            || nonce || ciphertext
+//	signature = Ed25519-Sign(inviter_private_key, message), set in
+//	            `signature` below
+//
+// with chat_id and invite_id as above. The inviter is Invite.created_by,
+// reported to a member holding the copy as GetKeyEnvelopeResponse.wrapped_by.
+// Today only the chat's creator may invite (see
+// ViewerState.Permissions.can_invite), so the member first checks that
+// wrapped_by is Metadata.creator, and rejects the copy otherwise: without
+// that check, a server could name an account it controls as the inviter and
+// sign with that account's key. The member then verifies the signature
+// against the inviter's public key (wrapped_by_public_key in the same
+// response, or one learned outside this service, which it prefers), and
+// only then opens the copy.
+//
+// Only a holder of the link's secret can derive the wrap key, so a copy that
+// opens was made by one, and only the creator can sign it. Neither the
+// server, even with a link it made itself, nor anyone else holding the link
+// can substitute a chat key of its choosing, except by the server reporting
+// a false public key for the creator, the trust every KeyEnvelope rests on
+// too. A client rejects a copy whose inviter is not the creator, whose
+// signature does not verify or that fails to open, treats it as the wrong
+// key (see KeyEnvelope), and does not send in the chat. Since the copy is
+// given only on joining, a user who joined with a forged link is a member
+// by the time their client finds this out.
+type InviteKeyEnvelope struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The scheme used, which determines how every other field is
+	// interpreted. Clients treat an unrecognized scheme as a copy they cannot
+	// open.
+	Scheme InviteKeyEnvelope_Scheme `protobuf:"varint,1,opt,name=scheme,proto3,enum=flipcash.chat.v1.InviteKeyEnvelope_Scheme" json:"scheme,omitempty"`
+	// The random XChaCha20-Poly1305 nonce, unique per envelope.
+	Nonce []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	// The encrypted 32-byte chat key with the 16-byte Poly1305 tag appended.
+	Ciphertext []byte `protobuf:"bytes,3,opt,name=ciphertext,proto3" json:"ciphertext,omitempty"`
+	// The inviter's Ed25519 signature over the copy, as described above.
+	Signature []byte `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
+}
+
+func (x *InviteKeyEnvelope) Reset() {
+	*x = InviteKeyEnvelope{}
+	mi := &file_chat_v1_model_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteKeyEnvelope) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteKeyEnvelope) ProtoMessage() {}
+
+func (x *InviteKeyEnvelope) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteKeyEnvelope.ProtoReflect.Descriptor instead.
+func (*InviteKeyEnvelope) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *InviteKeyEnvelope) GetScheme() InviteKeyEnvelope_Scheme {
+	if x != nil {
+		return x.Scheme
+	}
+	return InviteKeyEnvelope_UNKNOWN
+}
+
+func (x *InviteKeyEnvelope) GetNonce() []byte {
+	if x != nil {
+		return x.Nonce
+	}
+	return nil
+}
+
+func (x *InviteKeyEnvelope) GetCiphertext() []byte {
+	if x != nil {
+		return x.Ciphertext
+	}
+	return nil
+}
+
+func (x *InviteKeyEnvelope) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
+}
+
+// InviteSecretEnvelope is an invite link's secret (see Invite), encrypted by
+// a user for themself, so that only they can open it, on any of their
+// devices, and the server cannot. Two users make one:
+//
+//   - The user who creates the invite (Invite.created_by, not necessarily
+//     the chat's creator), with Chat.CreateInvite. The server returns it with
+//     the invite (Chat.GetChatInvites), so that any of their devices can
+//     rebuild the link to share it again.
+//   - A user joining with the invite, with Chat.JoinChat. The server stores
+//     it with the invite's copy of the chat key and returns it with the copy
+//     (Chat.GetKeyEnvelope), so that any of their devices can open the copy
+//     until they replace it with an envelope of their own.
+//
+// "Owner" below is the user who made it. For scheme
+// X25519_XCHACHA20POLY1305, it is made exactly as a KeyEnvelope a user wraps
+// for themself, with the owner as both wrapper and recipient (so the peer
+// key in step 1 is the owner's own public key), and these values in place of
+// the KeyEnvelope ones:
+//
+//	info (step 3)      = "flipcash-group-invite-secret-v1" || chat_id
+//	                     || invite_id
+//	plaintext (step 4) = the link's 32-byte secret
+//	aad (step 4)       = "flipcash-group-invite-secret-v1" || chat_id
+//	                     || invite_id || owner_pk || owner_pk
+//
+// where chat_id and invite_id are the raw bytes of common.v1.ChatId.value and
+// InviteId.value, and owner_pk is the owner's 32-byte Ed25519 public key. So
+// it opens only as the secret of the invite and chat it was made for.
+type InviteSecretEnvelope struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The scheme used, which determines how every other field is
+	// interpreted. Clients treat an unrecognized scheme as an envelope they
+	// cannot open.
+	Scheme InviteSecretEnvelope_Scheme `protobuf:"varint,1,opt,name=scheme,proto3,enum=flipcash.chat.v1.InviteSecretEnvelope_Scheme" json:"scheme,omitempty"`
+	// The random XChaCha20-Poly1305 nonce, unique per envelope.
+	Nonce []byte `protobuf:"bytes,2,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	// The encrypted 32-byte secret with the 16-byte Poly1305 tag appended.
+	Ciphertext []byte `protobuf:"bytes,3,opt,name=ciphertext,proto3" json:"ciphertext,omitempty"`
+}
+
+func (x *InviteSecretEnvelope) Reset() {
+	*x = InviteSecretEnvelope{}
+	mi := &file_chat_v1_model_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InviteSecretEnvelope) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InviteSecretEnvelope) ProtoMessage() {}
+
+func (x *InviteSecretEnvelope) ProtoReflect() protoreflect.Message {
+	mi := &file_chat_v1_model_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InviteSecretEnvelope.ProtoReflect.Descriptor instead.
+func (*InviteSecretEnvelope) Descriptor() ([]byte, []int) {
+	return file_chat_v1_model_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *InviteSecretEnvelope) GetScheme() InviteSecretEnvelope_Scheme {
+	if x != nil {
+		return x.Scheme
+	}
+	return InviteSecretEnvelope_UNKNOWN
+}
+
+func (x *InviteSecretEnvelope) GetNonce() []byte {
+	if x != nil {
+		return x.Nonce
+	}
+	return nil
+}
+
+func (x *InviteSecretEnvelope) GetCiphertext() []byte {
+	if x != nil {
+		return x.Ciphertext
+	}
+	return nil
+}
+
 // Refreshes the entire chat metadata
 type MetadataUpdate_FullRefresh struct {
 	state         protoimpl.MessageState
@@ -2406,7 +3142,7 @@ type MetadataUpdate_FullRefresh struct {
 
 func (x *MetadataUpdate_FullRefresh) Reset() {
 	*x = MetadataUpdate_FullRefresh{}
-	mi := &file_chat_v1_model_proto_msgTypes[27]
+	mi := &file_chat_v1_model_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2418,7 +3154,7 @@ func (x *MetadataUpdate_FullRefresh) String() string {
 func (*MetadataUpdate_FullRefresh) ProtoMessage() {}
 
 func (x *MetadataUpdate_FullRefresh) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[27]
+	mi := &file_chat_v1_model_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2452,7 +3188,7 @@ type MetadataUpdate_LastActivityChanged struct {
 
 func (x *MetadataUpdate_LastActivityChanged) Reset() {
 	*x = MetadataUpdate_LastActivityChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[28]
+	mi := &file_chat_v1_model_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2464,7 +3200,7 @@ func (x *MetadataUpdate_LastActivityChanged) String() string {
 func (*MetadataUpdate_LastActivityChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_LastActivityChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[28]
+	mi := &file_chat_v1_model_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2498,7 +3234,7 @@ type MetadataUpdate_ViewerStateChanged struct {
 
 func (x *MetadataUpdate_ViewerStateChanged) Reset() {
 	*x = MetadataUpdate_ViewerStateChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[29]
+	mi := &file_chat_v1_model_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2510,7 +3246,7 @@ func (x *MetadataUpdate_ViewerStateChanged) String() string {
 func (*MetadataUpdate_ViewerStateChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_ViewerStateChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[29]
+	mi := &file_chat_v1_model_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2548,7 +3284,7 @@ type MetadataUpdate_TitleChanged struct {
 
 func (x *MetadataUpdate_TitleChanged) Reset() {
 	*x = MetadataUpdate_TitleChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[30]
+	mi := &file_chat_v1_model_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2560,7 +3296,7 @@ func (x *MetadataUpdate_TitleChanged) String() string {
 func (*MetadataUpdate_TitleChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_TitleChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[30]
+	mi := &file_chat_v1_model_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2599,7 +3335,7 @@ type MetadataUpdate_ProfilePictureChanged struct {
 
 func (x *MetadataUpdate_ProfilePictureChanged) Reset() {
 	*x = MetadataUpdate_ProfilePictureChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[31]
+	mi := &file_chat_v1_model_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2611,7 +3347,7 @@ func (x *MetadataUpdate_ProfilePictureChanged) String() string {
 func (*MetadataUpdate_ProfilePictureChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_ProfilePictureChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[31]
+	mi := &file_chat_v1_model_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2650,7 +3386,7 @@ type MetadataUpdate_DescriptionChanged struct {
 
 func (x *MetadataUpdate_DescriptionChanged) Reset() {
 	*x = MetadataUpdate_DescriptionChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[32]
+	mi := &file_chat_v1_model_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2662,7 +3398,7 @@ func (x *MetadataUpdate_DescriptionChanged) String() string {
 func (*MetadataUpdate_DescriptionChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_DescriptionChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[32]
+	mi := &file_chat_v1_model_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2701,7 +3437,7 @@ type MetadataUpdate_CoverPictureChanged struct {
 
 func (x *MetadataUpdate_CoverPictureChanged) Reset() {
 	*x = MetadataUpdate_CoverPictureChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[33]
+	mi := &file_chat_v1_model_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2713,7 +3449,7 @@ func (x *MetadataUpdate_CoverPictureChanged) String() string {
 func (*MetadataUpdate_CoverPictureChanged) ProtoMessage() {}
 
 func (x *MetadataUpdate_CoverPictureChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[33]
+	mi := &file_chat_v1_model_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2761,7 +3497,7 @@ type RosterUpdate_MemberJoined struct {
 
 func (x *RosterUpdate_MemberJoined) Reset() {
 	*x = RosterUpdate_MemberJoined{}
-	mi := &file_chat_v1_model_proto_msgTypes[34]
+	mi := &file_chat_v1_model_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2773,7 +3509,7 @@ func (x *RosterUpdate_MemberJoined) String() string {
 func (*RosterUpdate_MemberJoined) ProtoMessage() {}
 
 func (x *RosterUpdate_MemberJoined) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[34]
+	mi := &file_chat_v1_model_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2817,7 +3553,7 @@ type RosterUpdate_MemberLeft struct {
 
 func (x *RosterUpdate_MemberLeft) Reset() {
 	*x = RosterUpdate_MemberLeft{}
-	mi := &file_chat_v1_model_proto_msgTypes[35]
+	mi := &file_chat_v1_model_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2829,7 +3565,7 @@ func (x *RosterUpdate_MemberLeft) String() string {
 func (*RosterUpdate_MemberLeft) ProtoMessage() {}
 
 func (x *RosterUpdate_MemberLeft) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[35]
+	mi := &file_chat_v1_model_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2870,7 +3606,7 @@ type RosterUpdate_MembershipChanged struct {
 
 func (x *RosterUpdate_MembershipChanged) Reset() {
 	*x = RosterUpdate_MembershipChanged{}
-	mi := &file_chat_v1_model_proto_msgTypes[36]
+	mi := &file_chat_v1_model_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2882,7 +3618,7 @@ func (x *RosterUpdate_MembershipChanged) String() string {
 func (*RosterUpdate_MembershipChanged) ProtoMessage() {}
 
 func (x *RosterUpdate_MembershipChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[36]
+	mi := &file_chat_v1_model_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2911,7 +3647,7 @@ type ViewerState_Settings struct {
 
 func (x *ViewerState_Settings) Reset() {
 	*x = ViewerState_Settings{}
-	mi := &file_chat_v1_model_proto_msgTypes[37]
+	mi := &file_chat_v1_model_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2923,7 +3659,7 @@ func (x *ViewerState_Settings) String() string {
 func (*ViewerState_Settings) ProtoMessage() {}
 
 func (x *ViewerState_Settings) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[37]
+	mi := &file_chat_v1_model_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2961,11 +3697,18 @@ type ViewerState_Permissions struct {
 	// What the viewer may do to moderate the chat's users. Unset when
 	// they may do none of it, as for every DM.
 	Moderation *ViewerState_ModerationPermissions `protobuf:"bytes,2,opt,name=moderation,proto3" json:"moderation,omitempty"`
+	// Whether the viewer may call Chat.CreateInvite, Chat.GetChatInvites
+	// and Chat.RevokeInvite on this chat. Today that is a private group's
+	// creator while a member, and no one else: false for every other
+	// member, and for every chat that is not a private group. Granting
+	// it to anyone else would let them hand joiners a wrong chat key (see
+	// Invite).
+	CanInvite bool `protobuf:"varint,3,opt,name=can_invite,json=canInvite,proto3" json:"can_invite,omitempty"`
 }
 
 func (x *ViewerState_Permissions) Reset() {
 	*x = ViewerState_Permissions{}
-	mi := &file_chat_v1_model_proto_msgTypes[38]
+	mi := &file_chat_v1_model_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2977,7 +3720,7 @@ func (x *ViewerState_Permissions) String() string {
 func (*ViewerState_Permissions) ProtoMessage() {}
 
 func (x *ViewerState_Permissions) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[38]
+	mi := &file_chat_v1_model_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3007,6 +3750,13 @@ func (x *ViewerState_Permissions) GetModeration() *ViewerState_ModerationPermiss
 	return nil
 }
 
+func (x *ViewerState_Permissions) GetCanInvite() bool {
+	if x != nil {
+		return x.CanInvite
+	}
+	return false
+}
+
 // ModerationPermissions are the moderation actions the viewer may take
 // in the chat. Like Permissions, each flag defaults to false. A viewer
 // holding either may call Chat.GetRestrictedUsers.
@@ -3025,7 +3775,7 @@ type ViewerState_ModerationPermissions struct {
 
 func (x *ViewerState_ModerationPermissions) Reset() {
 	*x = ViewerState_ModerationPermissions{}
-	mi := &file_chat_v1_model_proto_msgTypes[39]
+	mi := &file_chat_v1_model_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3037,7 +3787,7 @@ func (x *ViewerState_ModerationPermissions) String() string {
 func (*ViewerState_ModerationPermissions) ProtoMessage() {}
 
 func (x *ViewerState_ModerationPermissions) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[39]
+	mi := &file_chat_v1_model_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3088,7 +3838,7 @@ type ViewerState_Restrictions struct {
 
 func (x *ViewerState_Restrictions) Reset() {
 	*x = ViewerState_Restrictions{}
-	mi := &file_chat_v1_model_proto_msgTypes[40]
+	mi := &file_chat_v1_model_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3100,7 +3850,7 @@ func (x *ViewerState_Restrictions) String() string {
 func (*ViewerState_Restrictions) ProtoMessage() {}
 
 func (x *ViewerState_Restrictions) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[40]
+	mi := &file_chat_v1_model_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3131,7 +3881,7 @@ type SilenceState_Forever struct {
 
 func (x *SilenceState_Forever) Reset() {
 	*x = SilenceState_Forever{}
-	mi := &file_chat_v1_model_proto_msgTypes[41]
+	mi := &file_chat_v1_model_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3143,7 +3893,7 @@ func (x *SilenceState_Forever) String() string {
 func (*SilenceState_Forever) ProtoMessage() {}
 
 func (x *SilenceState_Forever) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[41]
+	mi := &file_chat_v1_model_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3167,7 +3917,7 @@ type MuteState_Forever struct {
 
 func (x *MuteState_Forever) Reset() {
 	*x = MuteState_Forever{}
-	mi := &file_chat_v1_model_proto_msgTypes[42]
+	mi := &file_chat_v1_model_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3179,7 +3929,7 @@ func (x *MuteState_Forever) String() string {
 func (*MuteState_Forever) ProtoMessage() {}
 
 func (x *MuteState_Forever) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[42]
+	mi := &file_chat_v1_model_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3206,7 +3956,7 @@ type LobbyUpdate_MemberEntered struct {
 
 func (x *LobbyUpdate_MemberEntered) Reset() {
 	*x = LobbyUpdate_MemberEntered{}
-	mi := &file_chat_v1_model_proto_msgTypes[43]
+	mi := &file_chat_v1_model_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3218,7 +3968,7 @@ func (x *LobbyUpdate_MemberEntered) String() string {
 func (*LobbyUpdate_MemberEntered) ProtoMessage() {}
 
 func (x *LobbyUpdate_MemberEntered) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[43]
+	mi := &file_chat_v1_model_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3242,9 +3992,9 @@ func (x *LobbyUpdate_MemberEntered) GetMember() *LobbyMember {
 }
 
 // A user is no longer in the lobby: they withdrew (Chat.LeaveLobby),
-// were denied (Chat.DenyLobbyMember) or were admitted
-// (Chat.AdmitLobbyMember). An admission also arrives as a
-// RosterUpdate.MemberJoined.
+// were denied (Chat.DenyLobbyMember), were admitted
+// (Chat.AdmitLobbyMember) or joined with an invite (Chat.JoinChat).
+// Either of the last two also arrives as a RosterUpdate.MemberJoined.
 type LobbyUpdate_MemberLeft struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3256,7 +4006,7 @@ type LobbyUpdate_MemberLeft struct {
 
 func (x *LobbyUpdate_MemberLeft) Reset() {
 	*x = LobbyUpdate_MemberLeft{}
-	mi := &file_chat_v1_model_proto_msgTypes[44]
+	mi := &file_chat_v1_model_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3268,7 +4018,7 @@ func (x *LobbyUpdate_MemberLeft) String() string {
 func (*LobbyUpdate_MemberLeft) ProtoMessage() {}
 
 func (x *LobbyUpdate_MemberLeft) ProtoReflect() protoreflect.Message {
-	mi := &file_chat_v1_model_proto_msgTypes[44]
+	mi := &file_chat_v1_model_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3611,7 +4361,7 @@ var file_chat_v1_model_proto_rawDesc = []byte{
 	0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x55,
 	0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x0a, 0xfa, 0x42, 0x07, 0x92, 0x01, 0x04, 0x08, 0x01, 0x10,
 	0x64, 0x52, 0x0d, 0x72, 0x6f, 0x73, 0x74, 0x65, 0x72, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73,
-	0x22, 0xe1, 0x04, 0x0a, 0x0b, 0x56, 0x69, 0x65, 0x77, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x65,
+	0x22, 0x81, 0x05, 0x0a, 0x0b, 0x56, 0x69, 0x65, 0x77, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74, 0x65,
 	0x12, 0x42, 0x0a, 0x08, 0x73, 0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x26, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68,
 	0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x69, 0x65, 0x77, 0x65, 0x72, 0x53, 0x74, 0x61, 0x74,
@@ -3631,15 +4381,17 @@ var file_chat_v1_model_proto_rawDesc = []byte{
 	0x65, 0x74, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x12, 0x2f, 0x0a, 0x04, 0x6d, 0x75, 0x74, 0x65, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68,
 	0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x75, 0x74, 0x65, 0x53, 0x74, 0x61,
-	0x74, 0x65, 0x52, 0x04, 0x6d, 0x75, 0x74, 0x65, 0x1a, 0x7d, 0x0a, 0x0b, 0x50, 0x65, 0x72, 0x6d,
-	0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x61, 0x6e, 0x5f, 0x65,
-	0x64, 0x69, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x63, 0x61, 0x6e, 0x45, 0x64,
-	0x69, 0x74, 0x12, 0x53, 0x0a, 0x0a, 0x6d, 0x6f, 0x64, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x33, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73,
-	0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x69, 0x65, 0x77, 0x65, 0x72,
-	0x53, 0x74, 0x61, 0x74, 0x65, 0x2e, 0x4d, 0x6f, 0x64, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x0a, 0x6d, 0x6f, 0x64,
-	0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x1a, 0x51, 0x0a, 0x15, 0x4d, 0x6f, 0x64, 0x65, 0x72,
+	0x74, 0x65, 0x52, 0x04, 0x6d, 0x75, 0x74, 0x65, 0x1a, 0x9c, 0x01, 0x0a, 0x0b, 0x50, 0x65, 0x72,
+	0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x19, 0x0a, 0x08, 0x63, 0x61, 0x6e, 0x5f,
+	0x65, 0x64, 0x69, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x63, 0x61, 0x6e, 0x45,
+	0x64, 0x69, 0x74, 0x12, 0x53, 0x0a, 0x0a, 0x6d, 0x6f, 0x64, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x33, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61,
+	0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x56, 0x69, 0x65, 0x77, 0x65,
+	0x72, 0x53, 0x74, 0x61, 0x74, 0x65, 0x2e, 0x4d, 0x6f, 0x64, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x0a, 0x6d, 0x6f,
+	0x64, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1d, 0x0a, 0x0a, 0x63, 0x61, 0x6e, 0x5f,
+	0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x09, 0x63, 0x61,
+	0x6e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x1a, 0x51, 0x0a, 0x15, 0x4d, 0x6f, 0x64, 0x65, 0x72,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x73,
 	0x12, 0x1f, 0x0a, 0x0b, 0x63, 0x61, 0x6e, 0x5f, 0x73, 0x69, 0x6c, 0x65, 0x6e, 0x63, 0x65, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0a, 0x63, 0x61, 0x6e, 0x53, 0x69, 0x6c, 0x65, 0x6e, 0x63,
@@ -3759,19 +4511,94 @@ var file_chat_v1_model_proto_rawDesc = []byte{
 	0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x4c,
 	0x6f, 0x62, 0x62, 0x79, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x0a, 0xfa, 0x42, 0x07, 0x92,
 	0x01, 0x04, 0x08, 0x01, 0x10, 0x64, 0x52, 0x0c, 0x6c, 0x6f, 0x62, 0x62, 0x79, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x73, 0x2a, 0x3a, 0x0a, 0x08, 0x43, 0x68, 0x61, 0x74, 0x54, 0x79, 0x70, 0x65,
-	0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0e, 0x0a,
-	0x0a, 0x43, 0x4f, 0x4e, 0x54, 0x41, 0x43, 0x54, 0x5f, 0x44, 0x4d, 0x10, 0x01, 0x12, 0x06, 0x0a,
-	0x02, 0x44, 0x4d, 0x10, 0x02, 0x12, 0x09, 0x0a, 0x05, 0x47, 0x52, 0x4f, 0x55, 0x50, 0x10, 0x03,
-	0x42, 0x7b, 0x0a, 0x20, 0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e,
-	0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x63, 0x68, 0x61,
-	0x74, 0x2e, 0x76, 0x31, 0x5a, 0x4b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x66,
-	0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x32, 0x2d, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
-	0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2f,
-	0x67, 0x6f, 0x2f, 0x63, 0x68, 0x61, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x68, 0x61, 0x74, 0x70,
-	0x62, 0xa2, 0x02, 0x09, 0x46, 0x50, 0x42, 0x43, 0x68, 0x61, 0x74, 0x56, 0x31, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x74, 0x65, 0x73, 0x22, 0x2b, 0x0a, 0x08, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x49, 0x64,
+	0x12, 0x1f, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x42,
+	0x09, 0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x10, 0x18, 0x10, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x22, 0x2e, 0x0a, 0x0b, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e,
+	0x12, 0x1f, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x42,
+	0x09, 0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x20, 0x18, 0x20, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x22, 0xe7, 0x04, 0x0a, 0x06, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x12, 0x41, 0x0a, 0x09,
+	0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1a, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e,
+	0x76, 0x31, 0x2e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x49, 0x64, 0x42, 0x08, 0xfa, 0x42, 0x05,
+	0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x08, 0x69, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x49, 0x64, 0x12,
+	0x3d, 0x0a, 0x07, 0x63, 0x68, 0x61, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x6f, 0x6d, 0x6d,
+	0x6f, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x68, 0x61, 0x74, 0x49, 0x64, 0x42, 0x08, 0xfa, 0x42,
+	0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x06, 0x63, 0x68, 0x61, 0x74, 0x49, 0x64, 0x12, 0x43,
+	0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x62, 0x79, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x6f,
+	0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x76, 0x31, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x42, 0x08,
+	0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x64, 0x42, 0x79, 0x12, 0x19, 0x0a, 0x08, 0x6d, 0x61, 0x78, 0x5f, 0x75, 0x73, 0x65, 0x73, 0x18,
+	0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x07, 0x6d, 0x61, 0x78, 0x55, 0x73, 0x65, 0x73, 0x12, 0x1b,
+	0x0a, 0x09, 0x75, 0x73, 0x65, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x0d, 0x52, 0x08, 0x75, 0x73, 0x65, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x43, 0x0a, 0x0a, 0x63,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75,
+	0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x08, 0xfa, 0x42, 0x05,
+	0xb2, 0x01, 0x02, 0x08, 0x01, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74,
+	0x12, 0x39, 0x0a, 0x0a, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x5f, 0x61, 0x74, 0x18, 0x07,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70,
+	0x52, 0x09, 0x65, 0x78, 0x70, 0x69, 0x72, 0x65, 0x73, 0x41, 0x74, 0x12, 0x37, 0x0a, 0x06, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1f, 0x2e, 0x66, 0x6c,
+	0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x49,
+	0x6e, 0x76, 0x69, 0x74, 0x65, 0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x12, 0x59, 0x0a, 0x0f, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x5f, 0x65,
+	0x6e, 0x76, 0x65, 0x6c, 0x6f, 0x70, 0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e,
+	0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31,
+	0x2e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x53, 0x65, 0x63, 0x72, 0x65, 0x74, 0x45, 0x6e, 0x76,
+	0x65, 0x6c, 0x6f, 0x70, 0x65, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52,
+	0x0e, 0x73, 0x65, 0x63, 0x72, 0x65, 0x74, 0x45, 0x6e, 0x76, 0x65, 0x6c, 0x6f, 0x70, 0x65, 0x22,
+	0x4a, 0x0a, 0x06, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b,
+	0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x41, 0x43, 0x54, 0x49, 0x56, 0x45,
+	0x10, 0x01, 0x12, 0x0d, 0x0a, 0x09, 0x45, 0x58, 0x48, 0x41, 0x55, 0x53, 0x54, 0x45, 0x44, 0x10,
+	0x02, 0x12, 0x0b, 0x0a, 0x07, 0x45, 0x58, 0x50, 0x49, 0x52, 0x45, 0x44, 0x10, 0x03, 0x12, 0x0b,
+	0x0a, 0x07, 0x52, 0x45, 0x56, 0x4f, 0x4b, 0x45, 0x44, 0x10, 0x04, 0x22, 0x84, 0x02, 0x0a, 0x11,
+	0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x4b, 0x65, 0x79, 0x45, 0x6e, 0x76, 0x65, 0x6c, 0x6f, 0x70,
+	0x65, 0x12, 0x4c, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0e, 0x32, 0x2a, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61,
+	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x4b, 0x65, 0x79, 0x45, 0x6e,
+	0x76, 0x65, 0x6c, 0x6f, 0x70, 0x65, 0x2e, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x42, 0x08, 0xfa,
+	0x42, 0x05, 0x82, 0x01, 0x02, 0x18, 0x01, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x12,
+	0x1f, 0x0a, 0x05, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x09,
+	0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x18, 0x18, 0x18, 0x52, 0x05, 0x6e, 0x6f, 0x6e, 0x63, 0x65,
+	0x12, 0x29, 0x0a, 0x0a, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x0c, 0x42, 0x09, 0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x30, 0x18, 0x30, 0x52,
+	0x0a, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x12, 0x27, 0x0a, 0x09, 0x73,
+	0x69, 0x67, 0x6e, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x09,
+	0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x40, 0x18, 0x40, 0x52, 0x09, 0x73, 0x69, 0x67, 0x6e, 0x61,
+	0x74, 0x75, 0x72, 0x65, 0x22, 0x2c, 0x0a, 0x06, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x12, 0x0b,
+	0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x15, 0x0a, 0x11, 0x58,
+	0x43, 0x48, 0x41, 0x43, 0x48, 0x41, 0x32, 0x30, 0x50, 0x4f, 0x4c, 0x59, 0x31, 0x33, 0x30, 0x35,
+	0x10, 0x01, 0x22, 0xe8, 0x01, 0x0a, 0x14, 0x49, 0x6e, 0x76, 0x69, 0x74, 0x65, 0x53, 0x65, 0x63,
+	0x72, 0x65, 0x74, 0x45, 0x6e, 0x76, 0x65, 0x6c, 0x6f, 0x70, 0x65, 0x12, 0x4f, 0x0a, 0x06, 0x73,
+	0x63, 0x68, 0x65, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x2d, 0x2e, 0x66, 0x6c,
+	0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x49,
+	0x6e, 0x76, 0x69, 0x74, 0x65, 0x53, 0x65, 0x63, 0x72, 0x65, 0x74, 0x45, 0x6e, 0x76, 0x65, 0x6c,
+	0x6f, 0x70, 0x65, 0x2e, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x82,
+	0x01, 0x02, 0x18, 0x01, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x65, 0x12, 0x1f, 0x0a, 0x05,
+	0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x09, 0xfa, 0x42, 0x06,
+	0x7a, 0x04, 0x10, 0x18, 0x18, 0x18, 0x52, 0x05, 0x6e, 0x6f, 0x6e, 0x63, 0x65, 0x12, 0x29, 0x0a,
+	0x0a, 0x63, 0x69, 0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0c, 0x42, 0x09, 0xfa, 0x42, 0x06, 0x7a, 0x04, 0x10, 0x30, 0x18, 0x30, 0x52, 0x0a, 0x63, 0x69,
+	0x70, 0x68, 0x65, 0x72, 0x74, 0x65, 0x78, 0x74, 0x22, 0x33, 0x0a, 0x06, 0x53, 0x63, 0x68, 0x65,
+	0x6d, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12,
+	0x1c, 0x0a, 0x18, 0x58, 0x32, 0x35, 0x35, 0x31, 0x39, 0x5f, 0x58, 0x43, 0x48, 0x41, 0x43, 0x48,
+	0x41, 0x32, 0x30, 0x50, 0x4f, 0x4c, 0x59, 0x31, 0x33, 0x30, 0x35, 0x10, 0x01, 0x2a, 0x3a, 0x0a,
+	0x08, 0x43, 0x68, 0x61, 0x74, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b,
+	0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x0e, 0x0a, 0x0a, 0x43, 0x4f, 0x4e, 0x54, 0x41, 0x43,
+	0x54, 0x5f, 0x44, 0x4d, 0x10, 0x01, 0x12, 0x06, 0x0a, 0x02, 0x44, 0x4d, 0x10, 0x02, 0x12, 0x09,
+	0x0a, 0x05, 0x47, 0x52, 0x4f, 0x55, 0x50, 0x10, 0x03, 0x42, 0x7b, 0x0a, 0x20, 0x63, 0x6f, 0x6d,
+	0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73,
+	0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x76, 0x31, 0x5a, 0x4b, 0x67,
+	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70,
+	0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x2f, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68,
+	0x32, 0x2d, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67,
+	0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x63, 0x68, 0x61, 0x74,
+	0x2f, 0x76, 0x31, 0x3b, 0x63, 0x68, 0x61, 0x74, 0x70, 0x62, 0xa2, 0x02, 0x09, 0x46, 0x50, 0x42,
+	0x43, 0x68, 0x61, 0x74, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3786,150 +4613,167 @@ func file_chat_v1_model_proto_rawDescGZIP() []byte {
 	return file_chat_v1_model_proto_rawDescData
 }
 
-var file_chat_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_chat_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_chat_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_chat_v1_model_proto_goTypes = []any{
 	(ChatType)(0),                                // 0: flipcash.chat.v1.ChatType
 	(KeyEnvelope_Scheme)(0),                      // 1: flipcash.chat.v1.KeyEnvelope.Scheme
-	(*Metadata)(nil),                             // 2: flipcash.chat.v1.Metadata
-	(*Rules)(nil),                                // 3: flipcash.chat.v1.Rules
-	(*ListenerRules)(nil),                        // 4: flipcash.chat.v1.ListenerRules
-	(*SpeakerRules)(nil),                         // 5: flipcash.chat.v1.SpeakerRules
-	(*StaffRequirement)(nil),                     // 6: flipcash.chat.v1.StaffRequirement
-	(*Never)(nil),                                // 7: flipcash.chat.v1.Never
-	(*CreatorRequirement)(nil),                   // 8: flipcash.chat.v1.CreatorRequirement
-	(*MinimumBalanceRequirement)(nil),            // 9: flipcash.chat.v1.MinimumBalanceRequirement
-	(*Member)(nil),                               // 10: flipcash.chat.v1.Member
-	(*MentionSuggestion)(nil),                    // 11: flipcash.chat.v1.MentionSuggestion
-	(*SampledChatter)(nil),                       // 12: flipcash.chat.v1.SampledChatter
-	(*RosterSummary)(nil),                        // 13: flipcash.chat.v1.RosterSummary
-	(*HoldingsSummary)(nil),                      // 14: flipcash.chat.v1.HoldingsSummary
-	(*MetadataUpdate)(nil),                       // 15: flipcash.chat.v1.MetadataUpdate
-	(*RosterUpdate)(nil),                         // 16: flipcash.chat.v1.RosterUpdate
-	(*RosterUpdateBatch)(nil),                    // 17: flipcash.chat.v1.RosterUpdateBatch
-	(*ViewerState)(nil),                          // 18: flipcash.chat.v1.ViewerState
-	(*SilenceState)(nil),                         // 19: flipcash.chat.v1.SilenceState
-	(*BanState)(nil),                             // 20: flipcash.chat.v1.BanState
-	(*RestrictedUser)(nil),                       // 21: flipcash.chat.v1.RestrictedUser
-	(*MuteState)(nil),                            // 22: flipcash.chat.v1.MuteState
-	(*IdempotencyKey)(nil),                       // 23: flipcash.chat.v1.IdempotencyKey
-	(*KeyEnvelope)(nil),                          // 24: flipcash.chat.v1.KeyEnvelope
-	(*LobbyMember)(nil),                          // 25: flipcash.chat.v1.LobbyMember
-	(*Lobby)(nil),                                // 26: flipcash.chat.v1.Lobby
-	(*LobbyUpdate)(nil),                          // 27: flipcash.chat.v1.LobbyUpdate
-	(*LobbyUpdateBatch)(nil),                     // 28: flipcash.chat.v1.LobbyUpdateBatch
-	(*MetadataUpdate_FullRefresh)(nil),           // 29: flipcash.chat.v1.MetadataUpdate.FullRefresh
-	(*MetadataUpdate_LastActivityChanged)(nil),   // 30: flipcash.chat.v1.MetadataUpdate.LastActivityChanged
-	(*MetadataUpdate_ViewerStateChanged)(nil),    // 31: flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
-	(*MetadataUpdate_TitleChanged)(nil),          // 32: flipcash.chat.v1.MetadataUpdate.TitleChanged
-	(*MetadataUpdate_ProfilePictureChanged)(nil), // 33: flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged
-	(*MetadataUpdate_DescriptionChanged)(nil),    // 34: flipcash.chat.v1.MetadataUpdate.DescriptionChanged
-	(*MetadataUpdate_CoverPictureChanged)(nil),   // 35: flipcash.chat.v1.MetadataUpdate.CoverPictureChanged
-	(*RosterUpdate_MemberJoined)(nil),            // 36: flipcash.chat.v1.RosterUpdate.MemberJoined
-	(*RosterUpdate_MemberLeft)(nil),              // 37: flipcash.chat.v1.RosterUpdate.MemberLeft
-	(*RosterUpdate_MembershipChanged)(nil),       // 38: flipcash.chat.v1.RosterUpdate.MembershipChanged
-	(*ViewerState_Settings)(nil),                 // 39: flipcash.chat.v1.ViewerState.Settings
-	(*ViewerState_Permissions)(nil),              // 40: flipcash.chat.v1.ViewerState.Permissions
-	(*ViewerState_ModerationPermissions)(nil),    // 41: flipcash.chat.v1.ViewerState.ModerationPermissions
-	(*ViewerState_Restrictions)(nil),             // 42: flipcash.chat.v1.ViewerState.Restrictions
-	(*SilenceState_Forever)(nil),                 // 43: flipcash.chat.v1.SilenceState.Forever
-	(*MuteState_Forever)(nil),                    // 44: flipcash.chat.v1.MuteState.Forever
-	(*LobbyUpdate_MemberEntered)(nil),            // 45: flipcash.chat.v1.LobbyUpdate.MemberEntered
-	(*LobbyUpdate_MemberLeft)(nil),               // 46: flipcash.chat.v1.LobbyUpdate.MemberLeft
-	(*v1.ChatId)(nil),                            // 47: flipcash.common.v1.ChatId
-	(*v11.Message)(nil),                          // 48: flipcash.messaging.v1.Message
-	(*timestamppb.Timestamp)(nil),                // 49: google.protobuf.Timestamp
-	(*v12.Media)(nil),                            // 50: flipcash.blob.v1.Media
-	(*v1.UserId)(nil),                            // 51: flipcash.common.v1.UserId
-	(*v1.FiatPaymentAmount)(nil),                 // 52: flipcash.common.v1.FiatPaymentAmount
-	(*v1.PublicKey)(nil),                         // 53: flipcash.common.v1.PublicKey
-	(*v13.UserProfile)(nil),                      // 54: flipcash.profile.v1.UserProfile
-	(*v11.Pointer)(nil),                          // 55: flipcash.messaging.v1.Pointer
+	(Invite_Status)(0),                           // 2: flipcash.chat.v1.Invite.Status
+	(InviteKeyEnvelope_Scheme)(0),                // 3: flipcash.chat.v1.InviteKeyEnvelope.Scheme
+	(InviteSecretEnvelope_Scheme)(0),             // 4: flipcash.chat.v1.InviteSecretEnvelope.Scheme
+	(*Metadata)(nil),                             // 5: flipcash.chat.v1.Metadata
+	(*Rules)(nil),                                // 6: flipcash.chat.v1.Rules
+	(*ListenerRules)(nil),                        // 7: flipcash.chat.v1.ListenerRules
+	(*SpeakerRules)(nil),                         // 8: flipcash.chat.v1.SpeakerRules
+	(*StaffRequirement)(nil),                     // 9: flipcash.chat.v1.StaffRequirement
+	(*Never)(nil),                                // 10: flipcash.chat.v1.Never
+	(*CreatorRequirement)(nil),                   // 11: flipcash.chat.v1.CreatorRequirement
+	(*MinimumBalanceRequirement)(nil),            // 12: flipcash.chat.v1.MinimumBalanceRequirement
+	(*Member)(nil),                               // 13: flipcash.chat.v1.Member
+	(*MentionSuggestion)(nil),                    // 14: flipcash.chat.v1.MentionSuggestion
+	(*SampledChatter)(nil),                       // 15: flipcash.chat.v1.SampledChatter
+	(*RosterSummary)(nil),                        // 16: flipcash.chat.v1.RosterSummary
+	(*HoldingsSummary)(nil),                      // 17: flipcash.chat.v1.HoldingsSummary
+	(*MetadataUpdate)(nil),                       // 18: flipcash.chat.v1.MetadataUpdate
+	(*RosterUpdate)(nil),                         // 19: flipcash.chat.v1.RosterUpdate
+	(*RosterUpdateBatch)(nil),                    // 20: flipcash.chat.v1.RosterUpdateBatch
+	(*ViewerState)(nil),                          // 21: flipcash.chat.v1.ViewerState
+	(*SilenceState)(nil),                         // 22: flipcash.chat.v1.SilenceState
+	(*BanState)(nil),                             // 23: flipcash.chat.v1.BanState
+	(*RestrictedUser)(nil),                       // 24: flipcash.chat.v1.RestrictedUser
+	(*MuteState)(nil),                            // 25: flipcash.chat.v1.MuteState
+	(*IdempotencyKey)(nil),                       // 26: flipcash.chat.v1.IdempotencyKey
+	(*KeyEnvelope)(nil),                          // 27: flipcash.chat.v1.KeyEnvelope
+	(*LobbyMember)(nil),                          // 28: flipcash.chat.v1.LobbyMember
+	(*Lobby)(nil),                                // 29: flipcash.chat.v1.Lobby
+	(*LobbyUpdate)(nil),                          // 30: flipcash.chat.v1.LobbyUpdate
+	(*LobbyUpdateBatch)(nil),                     // 31: flipcash.chat.v1.LobbyUpdateBatch
+	(*InviteId)(nil),                             // 32: flipcash.chat.v1.InviteId
+	(*InviteToken)(nil),                          // 33: flipcash.chat.v1.InviteToken
+	(*Invite)(nil),                               // 34: flipcash.chat.v1.Invite
+	(*InviteKeyEnvelope)(nil),                    // 35: flipcash.chat.v1.InviteKeyEnvelope
+	(*InviteSecretEnvelope)(nil),                 // 36: flipcash.chat.v1.InviteSecretEnvelope
+	(*MetadataUpdate_FullRefresh)(nil),           // 37: flipcash.chat.v1.MetadataUpdate.FullRefresh
+	(*MetadataUpdate_LastActivityChanged)(nil),   // 38: flipcash.chat.v1.MetadataUpdate.LastActivityChanged
+	(*MetadataUpdate_ViewerStateChanged)(nil),    // 39: flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
+	(*MetadataUpdate_TitleChanged)(nil),          // 40: flipcash.chat.v1.MetadataUpdate.TitleChanged
+	(*MetadataUpdate_ProfilePictureChanged)(nil), // 41: flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged
+	(*MetadataUpdate_DescriptionChanged)(nil),    // 42: flipcash.chat.v1.MetadataUpdate.DescriptionChanged
+	(*MetadataUpdate_CoverPictureChanged)(nil),   // 43: flipcash.chat.v1.MetadataUpdate.CoverPictureChanged
+	(*RosterUpdate_MemberJoined)(nil),            // 44: flipcash.chat.v1.RosterUpdate.MemberJoined
+	(*RosterUpdate_MemberLeft)(nil),              // 45: flipcash.chat.v1.RosterUpdate.MemberLeft
+	(*RosterUpdate_MembershipChanged)(nil),       // 46: flipcash.chat.v1.RosterUpdate.MembershipChanged
+	(*ViewerState_Settings)(nil),                 // 47: flipcash.chat.v1.ViewerState.Settings
+	(*ViewerState_Permissions)(nil),              // 48: flipcash.chat.v1.ViewerState.Permissions
+	(*ViewerState_ModerationPermissions)(nil),    // 49: flipcash.chat.v1.ViewerState.ModerationPermissions
+	(*ViewerState_Restrictions)(nil),             // 50: flipcash.chat.v1.ViewerState.Restrictions
+	(*SilenceState_Forever)(nil),                 // 51: flipcash.chat.v1.SilenceState.Forever
+	(*MuteState_Forever)(nil),                    // 52: flipcash.chat.v1.MuteState.Forever
+	(*LobbyUpdate_MemberEntered)(nil),            // 53: flipcash.chat.v1.LobbyUpdate.MemberEntered
+	(*LobbyUpdate_MemberLeft)(nil),               // 54: flipcash.chat.v1.LobbyUpdate.MemberLeft
+	(*v1.ChatId)(nil),                            // 55: flipcash.common.v1.ChatId
+	(*v11.Message)(nil),                          // 56: flipcash.messaging.v1.Message
+	(*timestamppb.Timestamp)(nil),                // 57: google.protobuf.Timestamp
+	(*v12.Media)(nil),                            // 58: flipcash.blob.v1.Media
+	(*v1.UserId)(nil),                            // 59: flipcash.common.v1.UserId
+	(*v1.FiatPaymentAmount)(nil),                 // 60: flipcash.common.v1.FiatPaymentAmount
+	(*v1.PublicKey)(nil),                         // 61: flipcash.common.v1.PublicKey
+	(*v13.UserProfile)(nil),                      // 62: flipcash.profile.v1.UserProfile
+	(*v11.Pointer)(nil),                          // 63: flipcash.messaging.v1.Pointer
 }
 var file_chat_v1_model_proto_depIdxs = []int32{
-	47, // 0: flipcash.chat.v1.Metadata.chat_id:type_name -> flipcash.common.v1.ChatId
+	55, // 0: flipcash.chat.v1.Metadata.chat_id:type_name -> flipcash.common.v1.ChatId
 	0,  // 1: flipcash.chat.v1.Metadata.type:type_name -> flipcash.chat.v1.ChatType
-	10, // 2: flipcash.chat.v1.Metadata.members:type_name -> flipcash.chat.v1.Member
-	48, // 3: flipcash.chat.v1.Metadata.last_message:type_name -> flipcash.messaging.v1.Message
-	49, // 4: flipcash.chat.v1.Metadata.last_activity:type_name -> google.protobuf.Timestamp
-	50, // 5: flipcash.chat.v1.Metadata.profile_picture:type_name -> flipcash.blob.v1.Media
-	13, // 6: flipcash.chat.v1.Metadata.roster_summary:type_name -> flipcash.chat.v1.RosterSummary
-	3,  // 7: flipcash.chat.v1.Metadata.rules:type_name -> flipcash.chat.v1.Rules
-	18, // 8: flipcash.chat.v1.Metadata.viewer_state:type_name -> flipcash.chat.v1.ViewerState
-	51, // 9: flipcash.chat.v1.Metadata.creator:type_name -> flipcash.common.v1.UserId
-	50, // 10: flipcash.chat.v1.Metadata.cover_picture:type_name -> flipcash.blob.v1.Media
-	14, // 11: flipcash.chat.v1.Metadata.holdings_summary:type_name -> flipcash.chat.v1.HoldingsSummary
-	4,  // 12: flipcash.chat.v1.Rules.listener:type_name -> flipcash.chat.v1.ListenerRules
-	5,  // 13: flipcash.chat.v1.Rules.speaker:type_name -> flipcash.chat.v1.SpeakerRules
-	9,  // 14: flipcash.chat.v1.ListenerRules.minimum_balance:type_name -> flipcash.chat.v1.MinimumBalanceRequirement
-	6,  // 15: flipcash.chat.v1.ListenerRules.staff:type_name -> flipcash.chat.v1.StaffRequirement
-	9,  // 16: flipcash.chat.v1.SpeakerRules.minimum_balance:type_name -> flipcash.chat.v1.MinimumBalanceRequirement
-	6,  // 17: flipcash.chat.v1.SpeakerRules.staff:type_name -> flipcash.chat.v1.StaffRequirement
-	7,  // 18: flipcash.chat.v1.SpeakerRules.never:type_name -> flipcash.chat.v1.Never
-	8,  // 19: flipcash.chat.v1.SpeakerRules.creator:type_name -> flipcash.chat.v1.CreatorRequirement
-	52, // 20: flipcash.chat.v1.MinimumBalanceRequirement.amount:type_name -> flipcash.common.v1.FiatPaymentAmount
-	53, // 21: flipcash.chat.v1.MinimumBalanceRequirement.mints:type_name -> flipcash.common.v1.PublicKey
-	51, // 22: flipcash.chat.v1.Member.user_id:type_name -> flipcash.common.v1.UserId
-	54, // 23: flipcash.chat.v1.Member.user_profile:type_name -> flipcash.profile.v1.UserProfile
-	55, // 24: flipcash.chat.v1.Member.pointers:type_name -> flipcash.messaging.v1.Pointer
-	49, // 25: flipcash.chat.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
-	54, // 26: flipcash.chat.v1.MentionSuggestion.user_profile:type_name -> flipcash.profile.v1.UserProfile
-	49, // 27: flipcash.chat.v1.MentionSuggestion.last_sent_at:type_name -> google.protobuf.Timestamp
-	54, // 28: flipcash.chat.v1.SampledChatter.user_profile:type_name -> flipcash.profile.v1.UserProfile
-	49, // 29: flipcash.chat.v1.SampledChatter.last_sent_at:type_name -> google.protobuf.Timestamp
-	53, // 30: flipcash.chat.v1.HoldingsSummary.mint:type_name -> flipcash.common.v1.PublicKey
-	49, // 31: flipcash.chat.v1.HoldingsSummary.as_of:type_name -> google.protobuf.Timestamp
-	29, // 32: flipcash.chat.v1.MetadataUpdate.full_refresh:type_name -> flipcash.chat.v1.MetadataUpdate.FullRefresh
-	30, // 33: flipcash.chat.v1.MetadataUpdate.last_activity_changed:type_name -> flipcash.chat.v1.MetadataUpdate.LastActivityChanged
-	31, // 34: flipcash.chat.v1.MetadataUpdate.viewer_state_changed:type_name -> flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
-	32, // 35: flipcash.chat.v1.MetadataUpdate.title_changed:type_name -> flipcash.chat.v1.MetadataUpdate.TitleChanged
-	33, // 36: flipcash.chat.v1.MetadataUpdate.profile_picture_changed:type_name -> flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged
-	34, // 37: flipcash.chat.v1.MetadataUpdate.description_changed:type_name -> flipcash.chat.v1.MetadataUpdate.DescriptionChanged
-	35, // 38: flipcash.chat.v1.MetadataUpdate.cover_picture_changed:type_name -> flipcash.chat.v1.MetadataUpdate.CoverPictureChanged
-	36, // 39: flipcash.chat.v1.RosterUpdate.member_joined:type_name -> flipcash.chat.v1.RosterUpdate.MemberJoined
-	37, // 40: flipcash.chat.v1.RosterUpdate.member_left:type_name -> flipcash.chat.v1.RosterUpdate.MemberLeft
-	38, // 41: flipcash.chat.v1.RosterUpdate.membership_changed:type_name -> flipcash.chat.v1.RosterUpdate.MembershipChanged
-	13, // 42: flipcash.chat.v1.RosterUpdate.roster_summary:type_name -> flipcash.chat.v1.RosterSummary
-	16, // 43: flipcash.chat.v1.RosterUpdateBatch.roster_updates:type_name -> flipcash.chat.v1.RosterUpdate
-	39, // 44: flipcash.chat.v1.ViewerState.settings:type_name -> flipcash.chat.v1.ViewerState.Settings
-	40, // 45: flipcash.chat.v1.ViewerState.permissions:type_name -> flipcash.chat.v1.ViewerState.Permissions
-	42, // 46: flipcash.chat.v1.ViewerState.restrictions:type_name -> flipcash.chat.v1.ViewerState.Restrictions
-	49, // 47: flipcash.chat.v1.SilenceState.until:type_name -> google.protobuf.Timestamp
-	43, // 48: flipcash.chat.v1.SilenceState.forever:type_name -> flipcash.chat.v1.SilenceState.Forever
-	49, // 49: flipcash.chat.v1.BanState.banned_at:type_name -> google.protobuf.Timestamp
-	51, // 50: flipcash.chat.v1.RestrictedUser.user_id:type_name -> flipcash.common.v1.UserId
-	54, // 51: flipcash.chat.v1.RestrictedUser.user_profile:type_name -> flipcash.profile.v1.UserProfile
-	19, // 52: flipcash.chat.v1.RestrictedUser.silence:type_name -> flipcash.chat.v1.SilenceState
-	20, // 53: flipcash.chat.v1.RestrictedUser.ban:type_name -> flipcash.chat.v1.BanState
-	49, // 54: flipcash.chat.v1.MuteState.until:type_name -> google.protobuf.Timestamp
-	44, // 55: flipcash.chat.v1.MuteState.forever:type_name -> flipcash.chat.v1.MuteState.Forever
+	13, // 2: flipcash.chat.v1.Metadata.members:type_name -> flipcash.chat.v1.Member
+	56, // 3: flipcash.chat.v1.Metadata.last_message:type_name -> flipcash.messaging.v1.Message
+	57, // 4: flipcash.chat.v1.Metadata.last_activity:type_name -> google.protobuf.Timestamp
+	58, // 5: flipcash.chat.v1.Metadata.profile_picture:type_name -> flipcash.blob.v1.Media
+	16, // 6: flipcash.chat.v1.Metadata.roster_summary:type_name -> flipcash.chat.v1.RosterSummary
+	6,  // 7: flipcash.chat.v1.Metadata.rules:type_name -> flipcash.chat.v1.Rules
+	21, // 8: flipcash.chat.v1.Metadata.viewer_state:type_name -> flipcash.chat.v1.ViewerState
+	59, // 9: flipcash.chat.v1.Metadata.creator:type_name -> flipcash.common.v1.UserId
+	58, // 10: flipcash.chat.v1.Metadata.cover_picture:type_name -> flipcash.blob.v1.Media
+	17, // 11: flipcash.chat.v1.Metadata.holdings_summary:type_name -> flipcash.chat.v1.HoldingsSummary
+	7,  // 12: flipcash.chat.v1.Rules.listener:type_name -> flipcash.chat.v1.ListenerRules
+	8,  // 13: flipcash.chat.v1.Rules.speaker:type_name -> flipcash.chat.v1.SpeakerRules
+	12, // 14: flipcash.chat.v1.ListenerRules.minimum_balance:type_name -> flipcash.chat.v1.MinimumBalanceRequirement
+	9,  // 15: flipcash.chat.v1.ListenerRules.staff:type_name -> flipcash.chat.v1.StaffRequirement
+	12, // 16: flipcash.chat.v1.SpeakerRules.minimum_balance:type_name -> flipcash.chat.v1.MinimumBalanceRequirement
+	9,  // 17: flipcash.chat.v1.SpeakerRules.staff:type_name -> flipcash.chat.v1.StaffRequirement
+	10, // 18: flipcash.chat.v1.SpeakerRules.never:type_name -> flipcash.chat.v1.Never
+	11, // 19: flipcash.chat.v1.SpeakerRules.creator:type_name -> flipcash.chat.v1.CreatorRequirement
+	60, // 20: flipcash.chat.v1.MinimumBalanceRequirement.amount:type_name -> flipcash.common.v1.FiatPaymentAmount
+	61, // 21: flipcash.chat.v1.MinimumBalanceRequirement.mints:type_name -> flipcash.common.v1.PublicKey
+	59, // 22: flipcash.chat.v1.Member.user_id:type_name -> flipcash.common.v1.UserId
+	62, // 23: flipcash.chat.v1.Member.user_profile:type_name -> flipcash.profile.v1.UserProfile
+	63, // 24: flipcash.chat.v1.Member.pointers:type_name -> flipcash.messaging.v1.Pointer
+	57, // 25: flipcash.chat.v1.Member.joined_at:type_name -> google.protobuf.Timestamp
+	62, // 26: flipcash.chat.v1.MentionSuggestion.user_profile:type_name -> flipcash.profile.v1.UserProfile
+	57, // 27: flipcash.chat.v1.MentionSuggestion.last_sent_at:type_name -> google.protobuf.Timestamp
+	62, // 28: flipcash.chat.v1.SampledChatter.user_profile:type_name -> flipcash.profile.v1.UserProfile
+	57, // 29: flipcash.chat.v1.SampledChatter.last_sent_at:type_name -> google.protobuf.Timestamp
+	61, // 30: flipcash.chat.v1.HoldingsSummary.mint:type_name -> flipcash.common.v1.PublicKey
+	57, // 31: flipcash.chat.v1.HoldingsSummary.as_of:type_name -> google.protobuf.Timestamp
+	37, // 32: flipcash.chat.v1.MetadataUpdate.full_refresh:type_name -> flipcash.chat.v1.MetadataUpdate.FullRefresh
+	38, // 33: flipcash.chat.v1.MetadataUpdate.last_activity_changed:type_name -> flipcash.chat.v1.MetadataUpdate.LastActivityChanged
+	39, // 34: flipcash.chat.v1.MetadataUpdate.viewer_state_changed:type_name -> flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
+	40, // 35: flipcash.chat.v1.MetadataUpdate.title_changed:type_name -> flipcash.chat.v1.MetadataUpdate.TitleChanged
+	41, // 36: flipcash.chat.v1.MetadataUpdate.profile_picture_changed:type_name -> flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged
+	42, // 37: flipcash.chat.v1.MetadataUpdate.description_changed:type_name -> flipcash.chat.v1.MetadataUpdate.DescriptionChanged
+	43, // 38: flipcash.chat.v1.MetadataUpdate.cover_picture_changed:type_name -> flipcash.chat.v1.MetadataUpdate.CoverPictureChanged
+	44, // 39: flipcash.chat.v1.RosterUpdate.member_joined:type_name -> flipcash.chat.v1.RosterUpdate.MemberJoined
+	45, // 40: flipcash.chat.v1.RosterUpdate.member_left:type_name -> flipcash.chat.v1.RosterUpdate.MemberLeft
+	46, // 41: flipcash.chat.v1.RosterUpdate.membership_changed:type_name -> flipcash.chat.v1.RosterUpdate.MembershipChanged
+	16, // 42: flipcash.chat.v1.RosterUpdate.roster_summary:type_name -> flipcash.chat.v1.RosterSummary
+	19, // 43: flipcash.chat.v1.RosterUpdateBatch.roster_updates:type_name -> flipcash.chat.v1.RosterUpdate
+	47, // 44: flipcash.chat.v1.ViewerState.settings:type_name -> flipcash.chat.v1.ViewerState.Settings
+	48, // 45: flipcash.chat.v1.ViewerState.permissions:type_name -> flipcash.chat.v1.ViewerState.Permissions
+	50, // 46: flipcash.chat.v1.ViewerState.restrictions:type_name -> flipcash.chat.v1.ViewerState.Restrictions
+	57, // 47: flipcash.chat.v1.SilenceState.until:type_name -> google.protobuf.Timestamp
+	51, // 48: flipcash.chat.v1.SilenceState.forever:type_name -> flipcash.chat.v1.SilenceState.Forever
+	57, // 49: flipcash.chat.v1.BanState.banned_at:type_name -> google.protobuf.Timestamp
+	59, // 50: flipcash.chat.v1.RestrictedUser.user_id:type_name -> flipcash.common.v1.UserId
+	62, // 51: flipcash.chat.v1.RestrictedUser.user_profile:type_name -> flipcash.profile.v1.UserProfile
+	22, // 52: flipcash.chat.v1.RestrictedUser.silence:type_name -> flipcash.chat.v1.SilenceState
+	23, // 53: flipcash.chat.v1.RestrictedUser.ban:type_name -> flipcash.chat.v1.BanState
+	57, // 54: flipcash.chat.v1.MuteState.until:type_name -> google.protobuf.Timestamp
+	52, // 55: flipcash.chat.v1.MuteState.forever:type_name -> flipcash.chat.v1.MuteState.Forever
 	1,  // 56: flipcash.chat.v1.KeyEnvelope.scheme:type_name -> flipcash.chat.v1.KeyEnvelope.Scheme
-	54, // 57: flipcash.chat.v1.LobbyMember.user_profile:type_name -> flipcash.profile.v1.UserProfile
-	53, // 58: flipcash.chat.v1.LobbyMember.public_key:type_name -> flipcash.common.v1.PublicKey
-	49, // 59: flipcash.chat.v1.LobbyMember.entered_at:type_name -> google.protobuf.Timestamp
-	2,  // 60: flipcash.chat.v1.Lobby.chat:type_name -> flipcash.chat.v1.Metadata
-	49, // 61: flipcash.chat.v1.Lobby.entered_at:type_name -> google.protobuf.Timestamp
-	45, // 62: flipcash.chat.v1.LobbyUpdate.member_entered:type_name -> flipcash.chat.v1.LobbyUpdate.MemberEntered
-	46, // 63: flipcash.chat.v1.LobbyUpdate.member_left:type_name -> flipcash.chat.v1.LobbyUpdate.MemberLeft
-	27, // 64: flipcash.chat.v1.LobbyUpdateBatch.lobby_updates:type_name -> flipcash.chat.v1.LobbyUpdate
-	2,  // 65: flipcash.chat.v1.MetadataUpdate.FullRefresh.metadata:type_name -> flipcash.chat.v1.Metadata
-	49, // 66: flipcash.chat.v1.MetadataUpdate.LastActivityChanged.new_last_activity:type_name -> google.protobuf.Timestamp
-	18, // 67: flipcash.chat.v1.MetadataUpdate.ViewerStateChanged.viewer_state:type_name -> flipcash.chat.v1.ViewerState
-	50, // 68: flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged.new_profile_picture:type_name -> flipcash.blob.v1.Media
-	50, // 69: flipcash.chat.v1.MetadataUpdate.CoverPictureChanged.new_cover_picture:type_name -> flipcash.blob.v1.Media
-	10, // 70: flipcash.chat.v1.RosterUpdate.MemberJoined.member:type_name -> flipcash.chat.v1.Member
-	2,  // 71: flipcash.chat.v1.RosterUpdate.MemberJoined.metadata:type_name -> flipcash.chat.v1.Metadata
-	51, // 72: flipcash.chat.v1.RosterUpdate.MemberLeft.user_id:type_name -> flipcash.common.v1.UserId
-	22, // 73: flipcash.chat.v1.ViewerState.Settings.mute:type_name -> flipcash.chat.v1.MuteState
-	41, // 74: flipcash.chat.v1.ViewerState.Permissions.moderation:type_name -> flipcash.chat.v1.ViewerState.ModerationPermissions
-	19, // 75: flipcash.chat.v1.ViewerState.Restrictions.silence:type_name -> flipcash.chat.v1.SilenceState
-	25, // 76: flipcash.chat.v1.LobbyUpdate.MemberEntered.member:type_name -> flipcash.chat.v1.LobbyMember
-	51, // 77: flipcash.chat.v1.LobbyUpdate.MemberLeft.user_id:type_name -> flipcash.common.v1.UserId
-	78, // [78:78] is the sub-list for method output_type
-	78, // [78:78] is the sub-list for method input_type
-	78, // [78:78] is the sub-list for extension type_name
-	78, // [78:78] is the sub-list for extension extendee
-	0,  // [0:78] is the sub-list for field type_name
+	62, // 57: flipcash.chat.v1.LobbyMember.user_profile:type_name -> flipcash.profile.v1.UserProfile
+	61, // 58: flipcash.chat.v1.LobbyMember.public_key:type_name -> flipcash.common.v1.PublicKey
+	57, // 59: flipcash.chat.v1.LobbyMember.entered_at:type_name -> google.protobuf.Timestamp
+	5,  // 60: flipcash.chat.v1.Lobby.chat:type_name -> flipcash.chat.v1.Metadata
+	57, // 61: flipcash.chat.v1.Lobby.entered_at:type_name -> google.protobuf.Timestamp
+	53, // 62: flipcash.chat.v1.LobbyUpdate.member_entered:type_name -> flipcash.chat.v1.LobbyUpdate.MemberEntered
+	54, // 63: flipcash.chat.v1.LobbyUpdate.member_left:type_name -> flipcash.chat.v1.LobbyUpdate.MemberLeft
+	30, // 64: flipcash.chat.v1.LobbyUpdateBatch.lobby_updates:type_name -> flipcash.chat.v1.LobbyUpdate
+	32, // 65: flipcash.chat.v1.Invite.invite_id:type_name -> flipcash.chat.v1.InviteId
+	55, // 66: flipcash.chat.v1.Invite.chat_id:type_name -> flipcash.common.v1.ChatId
+	59, // 67: flipcash.chat.v1.Invite.created_by:type_name -> flipcash.common.v1.UserId
+	57, // 68: flipcash.chat.v1.Invite.created_at:type_name -> google.protobuf.Timestamp
+	57, // 69: flipcash.chat.v1.Invite.expires_at:type_name -> google.protobuf.Timestamp
+	2,  // 70: flipcash.chat.v1.Invite.status:type_name -> flipcash.chat.v1.Invite.Status
+	36, // 71: flipcash.chat.v1.Invite.secret_envelope:type_name -> flipcash.chat.v1.InviteSecretEnvelope
+	3,  // 72: flipcash.chat.v1.InviteKeyEnvelope.scheme:type_name -> flipcash.chat.v1.InviteKeyEnvelope.Scheme
+	4,  // 73: flipcash.chat.v1.InviteSecretEnvelope.scheme:type_name -> flipcash.chat.v1.InviteSecretEnvelope.Scheme
+	5,  // 74: flipcash.chat.v1.MetadataUpdate.FullRefresh.metadata:type_name -> flipcash.chat.v1.Metadata
+	57, // 75: flipcash.chat.v1.MetadataUpdate.LastActivityChanged.new_last_activity:type_name -> google.protobuf.Timestamp
+	21, // 76: flipcash.chat.v1.MetadataUpdate.ViewerStateChanged.viewer_state:type_name -> flipcash.chat.v1.ViewerState
+	58, // 77: flipcash.chat.v1.MetadataUpdate.ProfilePictureChanged.new_profile_picture:type_name -> flipcash.blob.v1.Media
+	58, // 78: flipcash.chat.v1.MetadataUpdate.CoverPictureChanged.new_cover_picture:type_name -> flipcash.blob.v1.Media
+	13, // 79: flipcash.chat.v1.RosterUpdate.MemberJoined.member:type_name -> flipcash.chat.v1.Member
+	5,  // 80: flipcash.chat.v1.RosterUpdate.MemberJoined.metadata:type_name -> flipcash.chat.v1.Metadata
+	59, // 81: flipcash.chat.v1.RosterUpdate.MemberLeft.user_id:type_name -> flipcash.common.v1.UserId
+	25, // 82: flipcash.chat.v1.ViewerState.Settings.mute:type_name -> flipcash.chat.v1.MuteState
+	49, // 83: flipcash.chat.v1.ViewerState.Permissions.moderation:type_name -> flipcash.chat.v1.ViewerState.ModerationPermissions
+	22, // 84: flipcash.chat.v1.ViewerState.Restrictions.silence:type_name -> flipcash.chat.v1.SilenceState
+	28, // 85: flipcash.chat.v1.LobbyUpdate.MemberEntered.member:type_name -> flipcash.chat.v1.LobbyMember
+	59, // 86: flipcash.chat.v1.LobbyUpdate.MemberLeft.user_id:type_name -> flipcash.common.v1.UserId
+	87, // [87:87] is the sub-list for method output_type
+	87, // [87:87] is the sub-list for method input_type
+	87, // [87:87] is the sub-list for extension type_name
+	87, // [87:87] is the sub-list for extension extendee
+	0,  // [0:87] is the sub-list for field type_name
 }
 
 func init() { file_chat_v1_model_proto_init() }
@@ -3978,8 +4822,8 @@ func file_chat_v1_model_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_chat_v1_model_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   45,
+			NumEnums:      5,
+			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

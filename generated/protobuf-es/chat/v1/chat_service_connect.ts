@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, BanUserRequest, BanUserResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, BanUserRequest, BanUserResponse, CreateInviteRequest, CreateInviteResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatInvitesRequest, GetChatInvitesResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetInviteRequest, GetInviteResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, RevokeInviteRequest, RevokeInviteResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -227,10 +227,41 @@ export const Chat = {
     /**
      * JoinChat adds the caller to a chat's roster.
      *
-     * A private group (see Metadata.is_private) cannot be joined this way and
-     * is DENIED: a user enters its lobby with EnterLobby and is admitted by
-     * its creator. The one exception is the group's creator, who needs no
-     * approval and rejoins a private group they left with this RPC.
+     * A private group (see Metadata.is_private) is joined this way only with
+     * an invite (JoinChatRequest.invite) or by its creator. Anyone else is
+     * DENIED, and enters its lobby with EnterLobby to be admitted by the
+     * creator. The creator needs neither approval nor an invite, and rejoins
+     * a private group they left with this RPC; an invite they pass is
+     * ignored.
+     *
+     * Joining with an invite (see Invite) needs no one's approval. The client
+     * previews the invite with GetInvite, which names the chat, and passes
+     * the invite's token here. The invite must be ACTIVE (INVITE_EXHAUSTED,
+     * INVITE_EXPIRED or INVITE_REVOKED otherwise), for a user who joined
+     * with it before as for anyone.
+     *
+     * The join is atomic: the caller becomes a member, the join is counted as
+     * one use of the invite (a user who left and joins again with it uses
+     * another), and the invite's copy of the chat key is stored as their key
+     * envelope, with the link's secret encrypted by the caller for themself
+     * (JoinChatRequest.InviteParameters.secret_envelope), together, or
+     * nothing happens. A caller waiting in the chat's
+     * lobby leaves it in the same step. A caller who is already a member gets
+     * OK with nothing changed: the invite is not checked, no use is counted,
+     * and their stored envelope stays as it is. Only a public group's rules
+     * or a private group's invite are checked, never both: an invite to a
+     * public group is INVITE_NOT_FOUND.
+     *
+     * Any of the joiner's devices then fetches the copy and the secret with
+     * GetKeyEnvelope (GetKeyEnvelopeResponse.invite_key_bundle), checks
+     * the copy's signature, opens the secret with the joiner's account key
+     * and the copy with the secret, wraps the chat key for the joiner and
+     * stores that envelope with SetKeyEnvelope (see KeyEnvelope). None of
+     * this needs the device the joiner joined with, or the link itself. A
+     * join with an invite is announced like an admission (see
+     * AdmitLobbyMember). A member whose copy turns out to hold the wrong key
+     * cannot fix it by joining again: they leave and are admitted from the
+     * lobby (see KeyEnvelope).
      *
      * @generated from rpc flipcash.chat.v1.Chat.JoinChat
      */
@@ -244,9 +275,9 @@ export const Chat = {
      * LeaveChat removes the caller from a chat's roster.
      *
      * Leaving a private group discards the caller's key envelope (see
-     * KeyEnvelope), so returning means entering the lobby and being admitted
-     * again. The creator's envelope is kept, since no one else could give
-     * them another.
+     * KeyEnvelope), so returning means being admitted from the lobby or
+     * joining with an invite again. The creator's envelope is kept, since no
+     * one else could give them another.
      *
      * @generated from rpc flipcash.chat.v1.Chat.LeaveChat
      */
@@ -320,8 +351,8 @@ export const Chat = {
     /**
      * EnterLobby places the caller in a private group's lobby, where they
      * wait for the group's creator to admit them. It is how a user asks to
-     * join a private group (see Metadata.is_private); JoinChat is DENIED for
-     * one.
+     * join a private group (see Metadata.is_private) when they hold no
+     * invite; JoinChat without one is DENIED for a private group.
      *
      * Entering a lobby the caller is already in is a no-op that returns OK.
      * The server caps both how many users may wait in one lobby and how many
@@ -336,10 +367,10 @@ export const Chat = {
      *
      * While the caller waits, the chat's Metadata carries in_lobby. The
      * caller leaves the lobby when they withdraw (LeaveLobby), when the
-     * creator denies them (DenyLobbyMember), or when the creator admits them
-     * (AdmitLobbyMember). An admission reaches the caller's devices as a
-     * RosterUpdate.MemberJoined naming them; a denial is not announced to
-     * them.
+     * creator denies them (DenyLobbyMember), when the creator admits them
+     * (AdmitLobbyMember), or when they join with an invite (JoinChat). An
+     * admission reaches the caller's devices as a RosterUpdate.MemberJoined
+     * naming them; a denial is not announced to them.
      *
      * There is no RPC that lists the lobbies a caller is waiting in. A client
      * keeps the chats it entered itself, and reads in_lobby from GetChat to
@@ -392,10 +423,11 @@ export const Chat = {
      * Only the group's creator may call it, and only while a member of the
      * group; anyone else is DENIED. So is a creator who has not stored their
      * own key envelope yet (see StartChatRequest.PrivateGroupChatParameters):
-     * nobody is admitted to a group before its creator holds its key. This is
-     * the only way to give another user a key envelope. Admitting a user who
-     * is already a member is a no-op that returns OK and leaves their stored
-     * envelope as it is.
+     * nobody is admitted to a group before its creator holds its key. Besides
+     * joining with an invite, which stores the invite's copy of the chat key
+     * for the joiner (see JoinChat), this is the only way to give another
+     * user a key envelope. Admitting a user who is already a member is a
+     * no-op that returns OK and leaves their stored envelope as it is.
      *
      * The admission is announced like any other join: a
      * RosterUpdate.MemberJoined to the chat's members and to the admitted
@@ -431,7 +463,7 @@ export const Chat = {
      * group. Only a member may call it, and only for themself: an envelope
      * for another user is stored by admitting them (AdmitLobbyMember).
      *
-     * It is called in two situations (see KeyEnvelope):
+     * It is called in three situations (see KeyEnvelope):
      *  - By the group's creator, right after StartChat returns the chat's
      *    ID, to store the chat key they have just generated. This is the
      *    second step of creating a private group, and nothing can happen in
@@ -442,6 +474,11 @@ export const Chat = {
      *    with NO_ENVELOPE.
      *  - By an admitted member, after first opening the envelope the creator
      *    wrapped for them, to replace it with one wrapped by themself.
+     *  - By a member who joined with an invite, after first opening the
+     *    invite's copy of the chat key with the link's secret (from the
+     *    secret envelope stored with it, or from the link), to replace it
+     *    with one wrapped by themself. Storing it deletes the copy and that
+     *    secret envelope (see InviteKeyEnvelope).
      *
      * The first envelope a caller stores for themself stands. Once the
      * stored envelope is one the caller wrapped, a call with a different
@@ -468,6 +505,14 @@ export const Chat = {
      * client calls this once per chat per install and keeps the key it
      * unwraps.
      *
+     * For a member who joined with an invite and has not yet stored their
+     * own envelope, what is stored is the invite's copy of the chat key and
+     * the link's secret the member encrypted for themself when joining. Both
+     * are returned in invite_key_bundle in place of key_envelope. Any of
+     * the member's devices opens the secret with the member's account key,
+     * then the copy with the secret, and replaces the copy with an envelope
+     * of its own with SetKeyEnvelope (see InviteKeyEnvelope).
+     *
      * NO_ENVELOPE is expected only for the creator of a group whose creation
      * stopped between StartChat and SetKeyEnvelope. A creator's client that
      * receives it generates a chat key and stores its envelope with
@@ -480,6 +525,111 @@ export const Chat = {
       name: "GetKeyEnvelope",
       I: GetKeyEnvelopeRequest,
       O: GetKeyEnvelopeResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * CreateInvite creates an invite to a private group (see Invite): a link
+     * that lets users join it with JoinChat without the creator's approval.
+     *
+     * Only a member the server permits to invite may call it, as reported by
+     * ViewerState.Permissions.can_invite; anyone else is DENIED. So is any
+     * call for a group whose creator has not stored its key yet (see
+     * StartChatRequest.PrivateGroupChatParameters).
+     *
+     * The caller's client generates the link's secret and derives the
+     * invite's token, ID and wrap key from it (see Invite). It sends the
+     * token, the chat key encrypted under the wrap key and signed by the
+     * caller (InviteKeyEnvelope), and the secret encrypted for itself
+     * (InviteSecretEnvelope); the secret and the wrap key never leave it. The
+     * server computes the invite's ID from the token, which it never stores
+     * (see InviteToken), and checks the copy's signature against the
+     * caller's public key with that ID, refusing one that does not verify
+     * (INVALID_SIGNATURE), since no joiner could accept it. So a client that
+     * derived the ID wrongly is refused here, rather than sharing a link that
+     * admits no one. The server cannot check what either envelope holds: a
+     * copy that does not hold the chat key gives everyone who joins with the
+     * invite a key that reads nothing.
+     *
+     * An existing invite with the ID computed from the request's token is
+     * looked up before anything else is checked. A retry with the same token,
+     * by the same caller for the same chat, returns the invite the first
+     * attempt created, with result OK, even if the other parameters differ
+     * and whatever its status now: it may since have been used up, expired
+     * or been revoked, so the client checks Invite.status before sharing the
+     * link. An ID already held by an invite to another chat, or by another
+     * user's, is DENIED.
+     *
+     * Otherwise, the server caps how many ACTIVE invites a chat may hold
+     * (TOO_MANY_INVITES) and how far away expires_at may be
+     * (INVALID_EXPIRES_AT).
+     *
+     * Nothing is published.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.CreateInvite
+     */
+    createInvite: {
+      name: "CreateInvite",
+      I: CreateInviteRequest,
+      O: CreateInviteResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetInvite previews an invite from its link (see Invite): the chat it
+     * admits users to, whose chat_id the caller passes to JoinChat and
+     * derives the invite's wrap key with, and whether the invite still admits
+     * anyone. Any registered user holding the link may call it. It counts no
+     * use, returns no key, and changes nothing.
+     *
+     * The chat is returned as the caller sees it with GetChat: a non-member
+     * gets its record, with in_lobby set while they wait in its lobby. A
+     * user banned from the chat gets only BANNED. Use counts are shown only
+     * to those who may invite (GetChatInvites).
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetInvite
+     */
+    getInvite: {
+      name: "GetInvite",
+      I: GetInviteRequest,
+      O: GetInviteResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetChatInvites pages a private group's invites, most recently created
+     * first, whatever their status, each with its use count and its
+     * creator's copy of the link's secret (see InviteSecretEnvelope).
+     *
+     * Only a member the server permits to invite may call it, as reported by
+     * ViewerState.Permissions.can_invite; anyone else is DENIED.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetChatInvites
+     */
+    getChatInvites: {
+      name: "GetChatInvites",
+      I: GetChatInvitesRequest,
+      O: GetChatInvitesResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * RevokeInvite stops an invite admitting anyone and, in the same step,
+     * deletes the server's copy of the chat key held for it (see
+     * InviteKeyEnvelope). Users it already admitted stay members and keep
+     * the chat key: an invite never changes it, and the copies stored for
+     * those who have not yet replaced theirs are kept, since those are their
+     * only key. So revoking a link that leaked keeps new users out, but
+     * takes the key from no one who already opened it, nor from anyone
+     * holding the link who can read those copies (see Invite). A link that
+     * leaked is replaced by revoking it and creating another.
+     *
+     * Gated like GetChatInvites. Revoking an invite already revoked is a
+     * no-op that returns OK; revoking one that has expired or been used up
+     * records it as revoked. Nothing is published.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.RevokeInvite
+     */
+    revokeInvite: {
+      name: "RevokeInvite",
+      I: RevokeInviteRequest,
+      O: RevokeInviteResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -608,6 +758,11 @@ export const Chat = {
      * but the server cannot take back the chat key they already opened:
      * ciphertext of later messages that reached them some other way is
      * readable to them, since the key is not rotated.
+     *
+     * A ban applies to the account, not to an invite link (see Invite). A
+     * banned user who still holds a link that admits users can join with it
+     * from another account, so banning someone who joined with an invite
+     * calls for revoking that invite too (RevokeInvite).
      *
      * @generated from rpc flipcash.chat.v1.Chat.BanUser
      */
