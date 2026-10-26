@@ -2833,7 +2833,7 @@ export class InviteToken extends Message<InviteToken> {
 /**
  * Invite is a link that lets users join a private group (see
  * Metadata.is_private) without its creator's approval, up to a number of
- * distinct users or without limit. It is created with Chat.CreateInvite by a
+ * joins or without limit. It is created with Chat.CreateInvite by a
  * member the server permits to invite (see
  * ViewerState.Permissions.can_invite), which today is the group's creator
  * alone. An invite admits whoever holds the link, including a user the
@@ -2898,9 +2898,12 @@ export class InviteToken extends Message<InviteToken> {
  *    the token whenever one is sent, creation included, and the inviter
  *    lists and revokes the invite by it.
  *
- * The limit counts distinct users who joined with the invite. A retry, or
- * joining again after leaving, uses no more of it, and leaving gives no use
- * back. An invite admits anyone, those who joined with it before included,
+ * The limit counts joins: each join with the invite that makes someone a
+ * member uses one, so a user who leaves and joins again with it uses
+ * another, and leaving gives no use back. A retry of a join that succeeded
+ * uses none, since the caller is a member by then (see Chat.JoinChat). The
+ * server does not record who joined with which invite. An invite admits
+ * anyone, those who joined with it before included,
  * only while it is ACTIVE: once it is used up, expires or is revoked, it
  * admits no one, and a user returning to the chat is admitted from the lobby
  * instead. The users it already admitted stay members. Nothing about the
@@ -2956,15 +2959,15 @@ export class Invite extends Message<Invite> {
   createdBy?: UserId;
 
   /**
-   * How many distinct users may join with the invite. 0 means unlimited.
+   * How many joins the invite allows (see Invite). 0 means unlimited.
    *
    * @generated from field: uint32 max_uses = 4;
    */
   maxUses = 0;
 
   /**
-   * How many distinct users have joined with the invite, whether or not
-   * they are still members. Never decreases.
+   * How many joins the invite has admitted, whether or not those users are
+   * still members. Never decreases.
    *
    * @generated from field: uint32 use_count = 5;
    */
@@ -3053,7 +3056,7 @@ export enum Invite_Status {
   ACTIVE = 1,
 
   /**
-   * max_uses distinct users have joined with it; it admits no one
+   * It has admitted max_uses joins; it admits no one
    *
    * @generated from enum value: EXHAUSTED = 2;
    */

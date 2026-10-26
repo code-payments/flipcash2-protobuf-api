@@ -393,7 +393,7 @@ const (
 	JoinChatResponse_RULES_NOT_SATISFIED JoinChatResponse_Result = 3
 	JoinChatResponse_BANNED              JoinChatResponse_Result = 4 // The chat's creator banned the caller (see BanUser)
 	JoinChatResponse_INVITE_NOT_FOUND    JoinChatResponse_Result = 5 // No invite to this chat matches the token, or the chat is not a private group
-	JoinChatResponse_INVITE_EXHAUSTED    JoinChatResponse_Result = 6 // The invite's max_uses distinct users have joined with it
+	JoinChatResponse_INVITE_EXHAUSTED    JoinChatResponse_Result = 6 // The invite has admitted max_uses joins
 	JoinChatResponse_INVITE_EXPIRED      JoinChatResponse_Result = 7 // The invite's expires_at has passed
 	JoinChatResponse_INVITE_REVOKED      JoinChatResponse_Result = 8 // The invite was revoked (see RevokeInvite)
 )
@@ -4029,7 +4029,7 @@ type CreateInviteRequest struct {
 	KeyEnvelope *InviteKeyEnvelope `protobuf:"bytes,3,opt,name=key_envelope,json=keyEnvelope,proto3" json:"key_envelope,omitempty"`
 	// The link's secret encrypted by the caller for themself.
 	SecretEnvelope *InviteSecretEnvelope `protobuf:"bytes,4,opt,name=secret_envelope,json=secretEnvelope,proto3" json:"secret_envelope,omitempty"`
-	// How many distinct users may join with the invite. 0 means unlimited.
+	// How many joins the invite allows (see Invite). 0 means unlimited.
 	MaxUses uint32 `protobuf:"varint,5,opt,name=max_uses,json=maxUses,proto3" json:"max_uses,omitempty"`
 	// When the invite stops admitting anyone. Optional; unset never expires.
 	// If set, it must be in the future and no further away than the server

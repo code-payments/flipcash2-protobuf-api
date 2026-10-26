@@ -186,9 +186,9 @@ service Chat {
     // INVITE_EXPIRED or INVITE_REVOKED otherwise), for a user who joined
     // with it before as for anyone.
     //
-    // The join is atomic: the caller becomes a member, their use of the
-    // invite is counted (once per user, so joining again after leaving counts
-    // none), and the invite's copy of the chat key is stored as their key
+    // The join is atomic: the caller becomes a member, the join is counted as
+    // one use of the invite (a user who left and joins again with it uses
+    // another), and the invite's copy of the chat key is stored as their key
     // envelope, with the link's secret encrypted by the caller for themself
     // (JoinChatRequest.InviteParameters.secret_envelope), together, or
     // nothing happens. A caller waiting in the chat's
@@ -963,7 +963,7 @@ message JoinChatResponse {
         RULES_NOT_SATISFIED = 3;
         BANNED              = 4; // The chat's creator banned the caller (see BanUser)
         INVITE_NOT_FOUND    = 5; // No invite to this chat matches the token, or the chat is not a private group
-        INVITE_EXHAUSTED    = 6; // The invite's max_uses distinct users have joined with it
+        INVITE_EXHAUSTED    = 6; // The invite has admitted max_uses joins
         INVITE_EXPIRED      = 7; // The invite's expires_at has passed
         INVITE_REVOKED      = 8; // The invite was revoked (see RevokeInvite)
     }
@@ -1314,7 +1314,7 @@ message CreateInviteRequest {
     // The link's secret encrypted by the caller for themself.
     InviteSecretEnvelope secret_envelope = 4 [(validate.rules).message.required = true];
 
-    // How many distinct users may join with the invite. 0 means unlimited.
+    // How many joins the invite allows (see Invite). 0 means unlimited.
     uint32 max_uses = 5;
 
     // When the invite stops admitting anyone. Optional; unset never expires.

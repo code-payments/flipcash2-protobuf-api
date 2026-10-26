@@ -240,9 +240,9 @@ export const Chat = {
      * INVITE_EXPIRED or INVITE_REVOKED otherwise), for a user who joined
      * with it before as for anyone.
      *
-     * The join is atomic: the caller becomes a member, their use of the
-     * invite is counted (once per user, so joining again after leaving counts
-     * none), and the invite's copy of the chat key is stored as their key
+     * The join is atomic: the caller becomes a member, the join is counted as
+     * one use of the invite (a user who left and joins again with it uses
+     * another), and the invite's copy of the chat key is stored as their key
      * envelope, with the link's secret encrypted by the caller for themself
      * (JoinChatRequest.InviteParameters.secret_envelope), together, or
      * nothing happens. A caller waiting in the chat's

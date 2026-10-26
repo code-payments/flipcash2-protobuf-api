@@ -1412,7 +1412,7 @@ export enum JoinChatResponse_Result {
   INVITE_NOT_FOUND = 5,
 
   /**
-   * The invite's max_uses distinct users have joined with it
+   * The invite has admitted max_uses joins
    *
    * @generated from enum value: INVITE_EXHAUSTED = 6;
    */
@@ -3179,7 +3179,7 @@ export class CreateInviteRequest extends Message<CreateInviteRequest> {
   secretEnvelope?: InviteSecretEnvelope;
 
   /**
-   * How many distinct users may join with the invite. 0 means unlimited.
+   * How many joins the invite allows (see Invite). 0 means unlimited.
    *
    * @generated from field: uint32 max_uses = 5;
    */

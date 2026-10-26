@@ -129,7 +129,7 @@ type Invite_Status int32
 const (
 	Invite_UNKNOWN   Invite_Status = 0
 	Invite_ACTIVE    Invite_Status = 1 // The invite admits users
-	Invite_EXHAUSTED Invite_Status = 2 // max_uses distinct users have joined with it; it admits no one
+	Invite_EXHAUSTED Invite_Status = 2 // It has admitted max_uses joins; it admits no one
 	Invite_EXPIRED   Invite_Status = 3 // expires_at has passed; it admits no one
 	Invite_REVOKED   Invite_Status = 4 // It was revoked (see Chat.RevokeInvite); it admits no one
 )
@@ -2676,7 +2676,7 @@ func (x *InviteToken) GetValue() []byte {
 
 // Invite is a link that lets users join a private group (see
 // Metadata.is_private) without its creator's approval, up to a number of
-// distinct users or without limit. It is created with Chat.CreateInvite by a
+// joins or without limit. It is created with Chat.CreateInvite by a
 // member the server permits to invite (see
 // ViewerState.Permissions.can_invite), which today is the group's creator
 // alone. An invite admits whoever holds the link, including a user the
@@ -2741,9 +2741,12 @@ func (x *InviteToken) GetValue() []byte {
 //     the token whenever one is sent, creation included, and the inviter
 //     lists and revokes the invite by it.
 //
-// The limit counts distinct users who joined with the invite. A retry, or
-// joining again after leaving, uses no more of it, and leaving gives no use
-// back. An invite admits anyone, those who joined with it before included,
+// The limit counts joins: each join with the invite that makes someone a
+// member uses one, so a user who leaves and joins again with it uses
+// another, and leaving gives no use back. A retry of a join that succeeded
+// uses none, since the caller is a member by then (see Chat.JoinChat). The
+// server does not record who joined with which invite. An invite admits
+// anyone, those who joined with it before included,
 // only while it is ACTIVE: once it is used up, expires or is revoked, it
 // admits no one, and a user returning to the chat is admitted from the lobby
 // instead. The users it already admitted stay members. Nothing about the
@@ -2786,10 +2789,10 @@ type Invite struct {
 	ChatId *v1.ChatId `protobuf:"bytes,2,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
 	// The user that created the invite.
 	CreatedBy *v1.UserId `protobuf:"bytes,3,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	// How many distinct users may join with the invite. 0 means unlimited.
+	// How many joins the invite allows (see Invite). 0 means unlimited.
 	MaxUses uint32 `protobuf:"varint,4,opt,name=max_uses,json=maxUses,proto3" json:"max_uses,omitempty"`
-	// How many distinct users have joined with the invite, whether or not
-	// they are still members. Never decreases.
+	// How many joins the invite has admitted, whether or not those users are
+	// still members. Never decreases.
 	UseCount uint32 `protobuf:"varint,5,opt,name=use_count,json=useCount,proto3" json:"use_count,omitempty"`
 	// When the invite was created.
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
