@@ -1159,15 +1159,33 @@ func (m *GetRosterRequest) validate(all bool) error {
 		}
 	}
 
-	if m.GetAuth() == nil {
-		err := GetRosterRequestValidationError{
-			field:  "Auth",
-			reason: "value is required",
+	if all {
+		switch v := interface{}(m.GetInviteToken()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "InviteToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetRosterRequestValidationError{
+					field:  "InviteToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetInviteToken()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetRosterRequestValidationError{
+				field:  "InviteToken",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if all {
@@ -7242,17 +7260,6 @@ func (m *GetInviteRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
-	}
-
-	if m.GetAuth() == nil {
-		err := GetInviteRequestValidationError{
-			field:  "Auth",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	if all {

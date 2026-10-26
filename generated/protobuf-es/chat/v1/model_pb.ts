@@ -2790,9 +2790,11 @@ export class InviteId extends Message<InviteId> {
 /**
  * InviteToken proves its sender holds an invite's link (see Invite). Clients
  * derive it from the link's secret and send it only to create the invite
- * (Chat.CreateInvite), preview it (Chat.GetInvite) or join with it
- * (Chat.JoinChat). The server never stores it, in its records or its logs:
- * anyone who reads a token can join with the invite and use up its limit.
+ * (Chat.CreateInvite), preview it (Chat.GetInvite), read the chat's roster
+ * with it (Chat.GetRoster) or join with it (Chat.JoinChat). The server never
+ * stores it, in its records or its logs: anyone who reads a token can join
+ * with the invite and use up its limit, and read the roster without an
+ * account.
  *
  * @generated from message flipcash.chat.v1.InviteToken
  */
@@ -2914,6 +2916,13 @@ export class InviteToken extends Message<InviteToken> {
  * An invite never changes the chat key. Revoking a link that leaked keeps
  * new users out, but cannot take the key from anyone who already joined
  * with it.
+ *
+ * While an invite is ACTIVE, its link also shows who is in the chat to
+ * whoever holds it, with no account needed: the token alone previews the
+ * invite (Chat.GetInvite) and reads the chat's roster (Chat.GetRoster), so
+ * that a web page the link opens can show both before anyone joins. A ban
+ * does not stop a user who holds the link from reading the roster; revoking
+ * the invite stops everyone.
  *
  * The link and the server's records together are as good as the chat key:
  * anyone holding the link who can read what the server stores can open a

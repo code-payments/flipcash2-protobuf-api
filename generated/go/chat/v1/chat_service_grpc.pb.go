@@ -66,8 +66,8 @@ type ChatClient interface {
 	// A private group (see Metadata.is_private) returns its record to any
 	// registered user, so that one who is not a member can see what they are
 	// asking to join, but its messaging state only to a member, whatever the
-	// view_mode. It has no public view: an unauthenticated read of one is
-	// DENIED. A private group whose creator has not stored its key yet (see
+	// view_mode. Its public view is that record alone, with no messaging
+	// state. A private group whose creator has not stored its key yet (see
 	// StartChatRequest.PrivateGroupChatParameters) is returned like any
 	// other: it is visible, though nothing can happen in it.
 	GetChat(ctx context.Context, in *GetChatRequest, opts ...grpc.CallOption) (*GetChatResponse, error)
@@ -145,9 +145,27 @@ type ChatClient interface {
 	// carry none: group pointer advances are never broadcast, so a page of
 	// them would be stale as soon as it was served.
 	//
-	// Requires that the caller is a member of the chat. Anyone else is
-	// DENIED, including a non-member whom a group's listener rules admit to
-	// read its messages: who is in a chat is shown only to its members.
+	// Requires that the caller is a member of the chat, or holds a link to an
+	// invite to it (see Invite) and sends the invite's token in
+	// invite_token. Anyone else is DENIED, including a non-member whom a
+	// group's listener rules admit to read its messages: who is in a chat is
+	// shown only to its members and to those holding a link that would let
+	// them join it.
+	//
+	// The token is the credential, so auth is optional when it is sent (when
+	// set, auth must be valid). It is honored while its invite is ACTIVE and
+	// to chat_id; any other token is DENIED, as is a token sent for a public
+	// group or a DM. Whoever sends an honored token gets the page a member
+	// gets, registered or not, and a user the chat's creator banned
+	// included: a ban stops a user joining, not reading the roster through a
+	// link they hold, which the creator stops by revoking the invite.
+	// Reading the roster with a token counts no use of the invite, changes
+	// nothing, and is announced to no one. The invite is checked again on
+	// every page, so a walk ends with DENIED once it stops being ACTIVE.
+	//
+	// A member is served whether or not they send a token, which is not
+	// checked for them. A request with neither auth nor invite_token is
+	// DENIED.
 	GetRoster(ctx context.Context, in *GetRosterRequest, opts ...grpc.CallOption) (*GetRosterResponse, error)
 	// SampleChatters returns a short sample of a public group's members to
 	// show: its creator first, while they are a member, then the members who
@@ -439,12 +457,16 @@ type ChatClient interface {
 	// GetInvite previews an invite from its link (see Invite): the chat it
 	// admits users to, whose chat_id the caller passes to JoinChat and
 	// derives the invite's wrap key with, and whether the invite still admits
-	// anyone. Any registered user holding the link may call it. It counts no
-	// use, returns no key, and changes nothing.
+	// anyone. Anyone holding the link may call it, registered or not: the
+	// token is the credential, and auth is optional (when set, it must be
+	// valid). It counts no use, returns no key, and changes nothing.
 	//
-	// The chat is returned as the caller sees it with GetChat: a non-member
-	// gets its record, with in_lobby set while they wait in its lobby. A
-	// user banned from the chat gets only BANNED. Use counts are shown only
+	// An authenticated caller gets the chat as they see it with GetChat: a
+	// non-member gets its record, with in_lobby set while they wait in its
+	// lobby. A user banned from the chat gets only BANNED. An
+	// unauthenticated caller gets the chat's public view (see GetChat),
+	// which for a private group is its record alone, and is never BANNED,
+	// since the server does not know who they are. Use counts are shown only
 	// to those who may invite (GetChatInvites).
 	GetInvite(ctx context.Context, in *GetInviteRequest, opts ...grpc.CallOption) (*GetInviteResponse, error)
 	// GetChatInvites pages a private group's invites, most recently created
@@ -902,8 +924,8 @@ type ChatServer interface {
 	// A private group (see Metadata.is_private) returns its record to any
 	// registered user, so that one who is not a member can see what they are
 	// asking to join, but its messaging state only to a member, whatever the
-	// view_mode. It has no public view: an unauthenticated read of one is
-	// DENIED. A private group whose creator has not stored its key yet (see
+	// view_mode. Its public view is that record alone, with no messaging
+	// state. A private group whose creator has not stored its key yet (see
 	// StartChatRequest.PrivateGroupChatParameters) is returned like any
 	// other: it is visible, though nothing can happen in it.
 	GetChat(context.Context, *GetChatRequest) (*GetChatResponse, error)
@@ -981,9 +1003,27 @@ type ChatServer interface {
 	// carry none: group pointer advances are never broadcast, so a page of
 	// them would be stale as soon as it was served.
 	//
-	// Requires that the caller is a member of the chat. Anyone else is
-	// DENIED, including a non-member whom a group's listener rules admit to
-	// read its messages: who is in a chat is shown only to its members.
+	// Requires that the caller is a member of the chat, or holds a link to an
+	// invite to it (see Invite) and sends the invite's token in
+	// invite_token. Anyone else is DENIED, including a non-member whom a
+	// group's listener rules admit to read its messages: who is in a chat is
+	// shown only to its members and to those holding a link that would let
+	// them join it.
+	//
+	// The token is the credential, so auth is optional when it is sent (when
+	// set, auth must be valid). It is honored while its invite is ACTIVE and
+	// to chat_id; any other token is DENIED, as is a token sent for a public
+	// group or a DM. Whoever sends an honored token gets the page a member
+	// gets, registered or not, and a user the chat's creator banned
+	// included: a ban stops a user joining, not reading the roster through a
+	// link they hold, which the creator stops by revoking the invite.
+	// Reading the roster with a token counts no use of the invite, changes
+	// nothing, and is announced to no one. The invite is checked again on
+	// every page, so a walk ends with DENIED once it stops being ACTIVE.
+	//
+	// A member is served whether or not they send a token, which is not
+	// checked for them. A request with neither auth nor invite_token is
+	// DENIED.
 	GetRoster(context.Context, *GetRosterRequest) (*GetRosterResponse, error)
 	// SampleChatters returns a short sample of a public group's members to
 	// show: its creator first, while they are a member, then the members who
@@ -1275,12 +1315,16 @@ type ChatServer interface {
 	// GetInvite previews an invite from its link (see Invite): the chat it
 	// admits users to, whose chat_id the caller passes to JoinChat and
 	// derives the invite's wrap key with, and whether the invite still admits
-	// anyone. Any registered user holding the link may call it. It counts no
-	// use, returns no key, and changes nothing.
+	// anyone. Anyone holding the link may call it, registered or not: the
+	// token is the credential, and auth is optional (when set, it must be
+	// valid). It counts no use, returns no key, and changes nothing.
 	//
-	// The chat is returned as the caller sees it with GetChat: a non-member
-	// gets its record, with in_lobby set while they wait in its lobby. A
-	// user banned from the chat gets only BANNED. Use counts are shown only
+	// An authenticated caller gets the chat as they see it with GetChat: a
+	// non-member gets its record, with in_lobby set while they wait in its
+	// lobby. A user banned from the chat gets only BANNED. An
+	// unauthenticated caller gets the chat's public view (see GetChat),
+	// which for a private group is its record alone, and is never BANNED,
+	// since the server does not know who they are. Use counts are shown only
 	// to those who may invite (GetChatInvites).
 	GetInvite(context.Context, *GetInviteRequest) (*GetInviteResponse, error)
 	// GetChatInvites pages a private group's invites, most recently created
