@@ -472,6 +472,18 @@ export class GetRosterRequest extends Message<GetRosterRequest> {
   queryOptions?: QueryOptions;
 
   /**
+   * Set to read the roster with an invite link (see GetRoster) rather than
+   * as a member: the token derived from the link's secret (see Invite). It
+   * must be a token for an invite to chat_id. Send it on every page.
+   *
+   * @generated from field: flipcash.chat.v1.InviteToken invite_token = 3;
+   */
+  inviteToken?: InviteToken;
+
+  /**
+   * Optional when invite_token is set, and required otherwise (see
+   * GetRoster). When set, it must be valid.
+   *
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -486,6 +498,7 @@ export class GetRosterRequest extends Message<GetRosterRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 3, name: "invite_token", kind: "message", T: InviteToken },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -3343,6 +3356,8 @@ export class GetInviteRequest extends Message<GetInviteRequest> {
   inviteToken?: InviteToken;
 
   /**
+   * Optional (see GetInvite). When set, it must be valid.
+   *
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -3447,7 +3462,7 @@ export enum GetInviteResponse_Result {
   NOT_FOUND = 1,
 
   /**
-   * The chat's creator banned the caller (see BanUser)
+   * The chat's creator banned the caller (see BanUser); authenticated callers only
    *
    * @generated from enum value: BANNED = 2;
    */
