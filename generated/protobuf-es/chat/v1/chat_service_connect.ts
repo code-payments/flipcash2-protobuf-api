@@ -320,11 +320,21 @@ export const Chat = {
      * already has is a no-op for that field, and a request that sets nothing
      * is a no-op that returns OK.
      *
+     * A public group's rules may also be edited, within limits (see
+     * EditChatRequest.rules); a private group has none to edit. New rules
+     * apply from the edit on to every check the rules decide, but never
+     * remove anyone: a member who no longer satisfies the listener rules
+     * stays a member and keeps reading, as when their balance falls, though
+     * like then they cannot speak until they satisfy them again, and once
+     * they leave they must satisfy them to rejoin. The server may take a
+     * short while to apply new rules everywhere.
+     *
      * Every real change reaches the chat's members, including the caller's
      * other devices, on the event stream as one MetadataUpdate per field
      * changed: TitleChanged for the title, ProfilePictureChanged for the
      * profile picture, DescriptionChanged for the description,
-     * CoverPictureChanged for the cover picture.
+     * CoverPictureChanged for the cover picture, RulesChanged for the
+     * rules.
      *
      * @generated from rpc flipcash.chat.v1.Chat.EditChat
      */

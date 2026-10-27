@@ -1602,6 +1602,34 @@ export class EditChatRequest extends Message<EditChatRequest> {
   coverPicture?: EditChatRequest_CoverPicture;
 
   /**
+   * The new rules, in full: every rule the chat is to carry, not only the
+   * ones that change, as Metadata.rules shows them. Left unchanged when
+   * unset. Only a public group created with a minimum listener balance
+   * can have its rules edited; a private group is DENIED, and any other
+   * group INVALID_RULES.
+   *
+   * The server currently accepts only the following changes from the
+   * group's current rules, and refuses anything else as INVALID_RULES:
+   *  - The amount of the listener MinimumBalanceRequirement, which must
+   *    stay set, in the same currency and the same mints.
+   *  - Adding, removing, or changing the amount of a speaker
+   *    MinimumBalanceRequirement. If set, it must be in the listener
+   *    MinimumBalanceRequirement's currency and mints, and its amount must
+   *    be larger by at least the currency's minimum transfer value.
+   * Every other rule (e.g. a StaffRequirement or a CreatorRequirement)
+   * must be included exactly as the group carries it, in any order. Every
+   * MinimumBalanceRequirement must be at least the currency's minimum
+   * transfer value (one unit at its last decimal place, e.g. 0.01 USD or
+   * 1 JPY), as at creation (see StartChatRequest.GroupChatParameters).
+   * The caller must satisfy the new rules, speaker rules included
+   * (RULES_NOT_SATISFIED otherwise). Rules equal to the group's current
+   * ones are a no-op.
+   *
+   * @generated from field: flipcash.chat.v1.Rules rules = 6;
+   */
+  rules?: Rules;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -1619,6 +1647,7 @@ export class EditChatRequest extends Message<EditChatRequest> {
     { no: 3, name: "profile_picture", kind: "message", T: EditChatRequest_ProfilePicture },
     { no: 4, name: "description", kind: "message", T: EditChatRequest_Description },
     { no: 5, name: "cover_picture", kind: "message", T: EditChatRequest_CoverPicture },
+    { no: 6, name: "rules", kind: "message", T: Rules },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -1892,6 +1921,16 @@ export enum EditChatResponse_Result {
    * @generated from enum value: DESCRIPTION_MODERATED = 6;
    */
   DESCRIPTION_MODERATED = 6,
+
+  /**
+   * @generated from enum value: INVALID_RULES = 7;
+   */
+  INVALID_RULES = 7,
+
+  /**
+   * @generated from enum value: RULES_NOT_SATISFIED = 8;
+   */
+  RULES_NOT_SATISFIED = 8,
 }
 // Retrieve enum metadata with: proto3.getEnumType(EditChatResponse_Result)
 proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatResponse.Result", [
@@ -1902,6 +1941,8 @@ proto3.util.setEnumType(EditChatResponse_Result, "flipcash.chat.v1.EditChatRespo
   { no: 4, name: "PROFILE_PICTURE_BLOB_NOT_ACCEPTED" },
   { no: 5, name: "COVER_PICTURE_BLOB_NOT_ACCEPTED" },
   { no: 6, name: "DESCRIPTION_MODERATED" },
+  { no: 7, name: "INVALID_RULES" },
+  { no: 8, name: "RULES_NOT_SATISFIED" },
 ]);
 
 /**

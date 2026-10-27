@@ -139,7 +139,8 @@ export class Metadata extends Message<Metadata> {
 
   /**
    * Rules governing participation in this chat. Only supported for group
-   * chats. If not set, the chat has no participation requirements. Never
+   * chats. If not set, the chat has no participation requirements. A
+   * public group's minimum balances may change (see Chat.EditChat). Never
    * set for a private group (see is_private), which admits a user by its
    * creator's approval or an invite instead.
    *
@@ -1052,6 +1053,12 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
      */
     value: MetadataUpdate_CoverPictureChanged;
     case: "coverPictureChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.RulesChanged rules_changed = 8;
+     */
+    value: MetadataUpdate_RulesChanged;
+    case: "rulesChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -1069,6 +1076,7 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     { no: 5, name: "profile_picture_changed", kind: "message", T: MetadataUpdate_ProfilePictureChanged, oneof: "kind" },
     { no: 6, name: "description_changed", kind: "message", T: MetadataUpdate_DescriptionChanged, oneof: "kind" },
     { no: 7, name: "cover_picture_changed", kind: "message", T: MetadataUpdate_CoverPictureChanged, oneof: "kind" },
+    { no: 8, name: "rules_changed", kind: "message", T: MetadataUpdate_RulesChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -1381,6 +1389,50 @@ export class MetadataUpdate_CoverPictureChanged extends Message<MetadataUpdate_C
 
   static equals(a: MetadataUpdate_CoverPictureChanged | PlainMessage<MetadataUpdate_CoverPictureChanged> | undefined, b: MetadataUpdate_CoverPictureChanged | PlainMessage<MetadataUpdate_CoverPictureChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_CoverPictureChanged, a, b);
+  }
+}
+
+/**
+ * The chat's rules have changed (e.g. its minimum balances, via
+ * Chat.EditChat). Delivered to the chat's members, including the editor's
+ * other devices. Best-effort and applied as received; a client that
+ * suspects a miss refetches the chat via Chat.GetChat.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.RulesChanged
+ */
+export class MetadataUpdate_RulesChanged extends Message<MetadataUpdate_RulesChanged> {
+  /**
+   * The chat's rules in full, replacing Metadata.rules.
+   *
+   * @generated from field: flipcash.chat.v1.Rules new_rules = 1;
+   */
+  newRules?: Rules;
+
+  constructor(data?: PartialMessage<MetadataUpdate_RulesChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.RulesChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "new_rules", kind: "message", T: Rules },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_RulesChanged {
+    return new MetadataUpdate_RulesChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_RulesChanged {
+    return new MetadataUpdate_RulesChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_RulesChanged {
+    return new MetadataUpdate_RulesChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_RulesChanged | PlainMessage<MetadataUpdate_RulesChanged> | undefined, b: MetadataUpdate_RulesChanged | PlainMessage<MetadataUpdate_RulesChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_RulesChanged, a, b);
   }
 }
 
