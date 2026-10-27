@@ -79,7 +79,8 @@ message Metadata {
     RosterSummary roster_summary = 10 [(validate.rules).message.required = true];
 
     // Rules governing participation in this chat. Only supported for group
-    // chats. If not set, the chat has no participation requirements. Never
+    // chats. If not set, the chat has no participation requirements. A
+    // public group's minimum balances may change (see Chat.EditChat). Never
     // set for a private group (see is_private), which admits a user by its
     // creator's approval or an invite instead.
     Rules rules = 11;
@@ -397,6 +398,7 @@ message MetadataUpdate {
         ProfilePictureChanged profile_picture_changed = 5;
         DescriptionChanged    description_changed     = 6;
         CoverPictureChanged   cover_picture_changed   = 7;
+        RulesChanged          rules_changed           = 8;
     }
 
     // Refreshes the entire chat metadata
@@ -456,6 +458,15 @@ message MetadataUpdate {
         // The new cover picture, with the renditions the server derived,
         // replacing Metadata.cover_picture.
         blob.v1.Media new_cover_picture = 1 [(validate.rules).message.required = true];
+    }
+
+    // The chat's rules have changed (e.g. its minimum balances, via
+    // Chat.EditChat). Delivered to the chat's members, including the editor's
+    // other devices. Best-effort and applied as received; a client that
+    // suspects a miss refetches the chat via Chat.GetChat.
+    message RulesChanged {
+        // The chat's rules in full, replacing Metadata.rules.
+        Rules new_rules = 1 [(validate.rules).message.required = true];
     }
 }
 

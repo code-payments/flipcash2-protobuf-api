@@ -250,11 +250,21 @@ service Chat {
     // already has is a no-op for that field, and a request that sets nothing
     // is a no-op that returns OK.
     //
+    // A public group's rules may also be edited, within limits (see
+    // EditChatRequest.rules); a private group has none to edit. New rules
+    // apply from the edit on to every check the rules decide, but never
+    // remove anyone: a member who no longer satisfies the listener rules
+    // stays a member and keeps reading, as when their balance falls, though
+    // like then they cannot speak until they satisfy them again, and once
+    // they leave they must satisfy them to rejoin. The server may take a
+    // short while to apply new rules everywhere.
+    //
     // Every real change reaches the chat's members, including the caller's
     // other devices, on the event stream as one MetadataUpdate per field
     // changed: TitleChanged for the title, ProfilePictureChanged for the
     // profile picture, DescriptionChanged for the description,
-    // CoverPictureChanged for the cover picture.
+    // CoverPictureChanged for the cover picture, RulesChanged for the
+    // rules.
     rpc EditChat(EditChatRequest) returns (EditChatResponse);
 
     // MuteChat mutes a chat for the caller, until a time or indefinitely.
@@ -1032,6 +1042,30 @@ message EditChatRequest {
     // The new cover picture. Left unchanged when unset.
     CoverPicture cover_picture = 5;
 
+    // The new rules, in full: every rule the chat is to carry, not only the
+    // ones that change, as Metadata.rules shows them. Left unchanged when
+    // unset. Only a public group created with a minimum listener balance
+    // can have its rules edited; a private group is DENIED, and any other
+    // group INVALID_RULES.
+    //
+    // The server currently accepts only the following changes from the
+    // group's current rules, and refuses anything else as INVALID_RULES:
+    //  - The amount of the listener MinimumBalanceRequirement, which must
+    //    stay set, in the same currency and the same mints.
+    //  - Adding, removing, or changing the amount of a speaker
+    //    MinimumBalanceRequirement. If set, it must be in the listener
+    //    MinimumBalanceRequirement's currency and mints, and its amount must
+    //    be larger by at least the currency's minimum transfer value.
+    // Every other rule (e.g. a StaffRequirement or a CreatorRequirement)
+    // must be included exactly as the group carries it, in any order. Every
+    // MinimumBalanceRequirement must be at least the currency's minimum
+    // transfer value (one unit at its last decimal place, e.g. 0.01 USD or
+    // 1 JPY), as at creation (see StartChatRequest.GroupChatParameters).
+    // The caller must satisfy the new rules, speaker rules included
+    // (RULES_NOT_SATISFIED otherwise). Rules equal to the group's current
+    // ones are a no-op.
+    Rules rules = 6;
+
     message Title {
         string value = 1 [(validate.rules).string = {
             min_len: 1
@@ -1073,6 +1107,8 @@ message EditChatResponse {
         PROFILE_PICTURE_BLOB_NOT_ACCEPTED = 4;
         COVER_PICTURE_BLOB_NOT_ACCEPTED   = 5;
         DESCRIPTION_MODERATED             = 6;
+        INVALID_RULES                     = 7;
+        RULES_NOT_SATISFIED               = 8;
     }
 
     // The metadata for the chat after the edit, as seen by the caller,
