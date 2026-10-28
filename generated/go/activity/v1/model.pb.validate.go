@@ -742,35 +742,6 @@ func (m *DirectlySentCryptoNotificationMetadata) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetBoostedReaction()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
-					field:  "BoostedReaction",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
-					field:  "BoostedReaction",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetBoostedReaction()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return DirectlySentCryptoNotificationMetadataValidationError{
-				field:  "BoostedReaction",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	switch v := m.DestinationIdentifier.(type) {
 	case *DirectlySentCryptoNotificationMetadata_Phone:
 		if v == nil {
@@ -848,6 +819,92 @@ func (m *DirectlySentCryptoNotificationMetadata) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return DirectlySentCryptoNotificationMetadataValidationError{
 					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	switch v := m.Context.(type) {
+	case *DirectlySentCryptoNotificationMetadata_BoostedReaction:
+		if v == nil {
+			err := DirectlySentCryptoNotificationMetadataValidationError{
+				field:  "Context",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetBoostedReaction()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "BoostedReaction",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "BoostedReaction",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetBoostedReaction()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "BoostedReaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *DirectlySentCryptoNotificationMetadata_RequestedPayment:
+		if v == nil {
+			err := DirectlySentCryptoNotificationMetadataValidationError{
+				field:  "Context",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetRequestedPayment()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "RequestedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "RequestedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetRequestedPayment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "RequestedPayment",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -963,35 +1020,6 @@ func (m *ReceivedCryptoNotificationMetadata) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetBoostedReaction()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
-					field:  "BoostedReaction",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
-					field:  "BoostedReaction",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetBoostedReaction()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return ReceivedCryptoNotificationMetadataValidationError{
-				field:  "BoostedReaction",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	switch v := m.SourceIdentifier.(type) {
 	case *ReceivedCryptoNotificationMetadata_Phone:
 		if v == nil {
@@ -1069,6 +1097,92 @@ func (m *ReceivedCryptoNotificationMetadata) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ReceivedCryptoNotificationMetadataValidationError{
 					field:  "UserId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	switch v := m.Context.(type) {
+	case *ReceivedCryptoNotificationMetadata_BoostedReaction:
+		if v == nil {
+			err := ReceivedCryptoNotificationMetadataValidationError{
+				field:  "Context",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetBoostedReaction()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "BoostedReaction",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "BoostedReaction",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetBoostedReaction()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReceivedCryptoNotificationMetadataValidationError{
+					field:  "BoostedReaction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ReceivedCryptoNotificationMetadata_RequestedPayment:
+		if v == nil {
+			err := ReceivedCryptoNotificationMetadataValidationError{
+				field:  "Context",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetRequestedPayment()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "RequestedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "RequestedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetRequestedPayment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReceivedCryptoNotificationMetadataValidationError{
+					field:  "RequestedPayment",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1380,6 +1494,186 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BoostedReactionValidationError{}
+
+// Validate checks the field values on RequestedPayment with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RequestedPayment) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RequestedPayment with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RequestedPaymentMultiError, or nil if none found.
+func (m *RequestedPayment) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RequestedPayment) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := RequestedPaymentValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RequestedPaymentValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RequestedPaymentValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RequestedPaymentValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetPaymentRequestId() == nil {
+		err := RequestedPaymentValidationError{
+			field:  "PaymentRequestId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPaymentRequestId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RequestedPaymentValidationError{
+					field:  "PaymentRequestId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RequestedPaymentValidationError{
+					field:  "PaymentRequestId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPaymentRequestId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RequestedPaymentValidationError{
+				field:  "PaymentRequestId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RequestedPaymentMultiError(errors)
+	}
+
+	return nil
+}
+
+// RequestedPaymentMultiError is an error wrapping multiple validation errors
+// returned by RequestedPayment.ValidateAll() if the designated constraints
+// aren't met.
+type RequestedPaymentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RequestedPaymentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RequestedPaymentMultiError) AllErrors() []error { return m }
+
+// RequestedPaymentValidationError is the validation error returned by
+// RequestedPayment.Validate if the designated constraints aren't met.
+type RequestedPaymentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RequestedPaymentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RequestedPaymentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RequestedPaymentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RequestedPaymentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RequestedPaymentValidationError) ErrorName() string { return "RequestedPaymentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RequestedPaymentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRequestedPayment.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RequestedPaymentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RequestedPaymentValidationError{}
 
 // Validate checks the field values on WithdrewCryptoNotificationMetadata with
 // the rules defined in the proto definition for this message. If any rules

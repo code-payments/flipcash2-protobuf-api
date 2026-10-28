@@ -8,6 +8,7 @@ option objc_class_prefix = "FCPBActivityV1";
 
 import "common/v1/common.proto";
 import "messaging/v1/model.proto";
+import "paymentrequest/v1/model.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
@@ -66,11 +67,21 @@ message DirectlySentCryptoNotificationMetadata {
         common.v1.UserId      user_id = 2;
     }
 
-    // Set when the payment boosted a reaction (see BoostedReaction). A boost
-    // that paid one person names them in destination_identifier; one that
-    // paid both the message's sender and the group's creator names neither,
-    // and payment_amount is the whole boost.
-    BoostedReaction boosted_reaction = 3;
+    // What the payment was for, when it was made for something the feed can
+    // link to. Unset for any other payment (a DM or group payment, one handed
+    // off in person, ...).
+    oneof context {
+        // The payment boosted a reaction (see BoostedReaction). A boost that
+        // paid one person names them in destination_identifier; one that paid
+        // both the message's sender and the group's creator names neither, and
+        // payment_amount is the whole boost.
+        BoostedReaction boosted_reaction = 3;
+
+        // The payment paid the payer's share of a payment request (see
+        // RequestedPayment). destination_identifier names the request's
+        // creator, and payment_amount is the share.
+        RequestedPayment requested_payment = 4;
+    }
 }
 
 message ReceivedCryptoNotificationMetadata {
@@ -79,11 +90,21 @@ message ReceivedCryptoNotificationMetadata {
         common.v1.UserId      user_id = 2;
     }
 
-    // Set when the payment was the recipient's share of a boost of a
-    // reaction (see BoostedReaction), paid to them as the boosted message's
-    // sender or its group's creator. source_identifier names the payer, and
-    // payment_amount is the recipient's share alone.
-    BoostedReaction boosted_reaction = 3;
+    // What the payment was for, when it was made for something the feed can
+    // link to. Unset for any other payment (a DM or group payment, one handed
+    // off in person, ...).
+    oneof context {
+        // The payment was the recipient's share of a boost of a reaction (see
+        // BoostedReaction), paid to them as the boosted message's sender or its
+        // group's creator. source_identifier names the payer, and
+        // payment_amount is the recipient's share alone.
+        BoostedReaction boosted_reaction = 3;
+
+        // The payment was a debtor's share of the recipient's payment request
+        // (see RequestedPayment). source_identifier names the debtor, and
+        // payment_amount is the share.
+        RequestedPayment requested_payment = 4;
+    }
 }
 
 // The reaction a payment boosted: the payer's reaction with emoji on a
@@ -100,6 +121,19 @@ message BoostedReaction {
 
     // The emoji of the boosted reaction.
     messaging.v1.Emoji emoji = 3 [(validate.rules).message.required = true];
+}
+
+// The payment request a payment paid a share of: a debtor's share, paid to
+// the request's creator (see intent.v1.ChatMetadata.RequestedPayment). It is
+// what the payment was for when it was made and is not kept up to date: the
+// request may since have been closed or expired, and the viewer may no longer
+// be a member of its group, in which case fetching the request is denied.
+message RequestedPayment {
+    // The group chat the payment request is in.
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The payment request whose share was paid.
+    paymentrequest.v1.PaymentRequestId payment_request_id = 2 [(validate.rules).message.required = true];
 }
 
 message WithdrewCryptoNotificationMetadata {
