@@ -7,6 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, CryptoPaymentAmount, FiatPaymentAmount, PhoneNumber, PublicKey, Substitution, UserId } from "../../common/v1/common_pb";
 import { Emoji, MessageId } from "../../messaging/v1/model_pb";
+import { PaymentRequestId } from "../../paymentrequest/v1/model_pb";
 
 /**
  * ActivityFeedType enables multiple activity feeds, where notifications may be
@@ -314,14 +315,34 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
-   * Set when the payment boosted a reaction (see BoostedReaction). A boost
-   * that paid one person names them in destination_identifier; one that
-   * paid both the message's sender and the group's creator names neither,
-   * and payment_amount is the whole boost.
+   * What the payment was for, when it was made for something the feed can
+   * link to. Unset for any other payment (a DM or group payment, one handed
+   * off in person, ...).
    *
-   * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
+   * @generated from oneof flipcash.activity.v1.DirectlySentCryptoNotificationMetadata.context
    */
-  boostedReaction?: BoostedReaction;
+  context: {
+    /**
+     * The payment boosted a reaction (see BoostedReaction). A boost that
+     * paid one person names them in destination_identifier; one that paid
+     * both the message's sender and the group's creator names neither, and
+     * payment_amount is the whole boost.
+     *
+     * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
+     */
+    value: BoostedReaction;
+    case: "boostedReaction";
+  } | {
+    /**
+     * The payment paid the payer's share of a payment request (see
+     * RequestedPayment). destination_identifier names the request's
+     * creator, and payment_amount is the share.
+     *
+     * @generated from field: flipcash.activity.v1.RequestedPayment requested_payment = 4;
+     */
+    value: RequestedPayment;
+    case: "requestedPayment";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<DirectlySentCryptoNotificationMetadata>) {
     super();
@@ -333,7 +354,8 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "destination_identifier" },
     { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "destination_identifier" },
-    { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction },
+    { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction, oneof: "context" },
+    { no: 4, name: "requested_payment", kind: "message", T: RequestedPayment, oneof: "context" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DirectlySentCryptoNotificationMetadata {
@@ -375,14 +397,34 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
-   * Set when the payment was the recipient's share of a boost of a
-   * reaction (see BoostedReaction), paid to them as the boosted message's
-   * sender or its group's creator. source_identifier names the payer, and
-   * payment_amount is the recipient's share alone.
+   * What the payment was for, when it was made for something the feed can
+   * link to. Unset for any other payment (a DM or group payment, one handed
+   * off in person, ...).
    *
-   * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
+   * @generated from oneof flipcash.activity.v1.ReceivedCryptoNotificationMetadata.context
    */
-  boostedReaction?: BoostedReaction;
+  context: {
+    /**
+     * The payment was the recipient's share of a boost of a reaction (see
+     * BoostedReaction), paid to them as the boosted message's sender or its
+     * group's creator. source_identifier names the payer, and
+     * payment_amount is the recipient's share alone.
+     *
+     * @generated from field: flipcash.activity.v1.BoostedReaction boosted_reaction = 3;
+     */
+    value: BoostedReaction;
+    case: "boostedReaction";
+  } | {
+    /**
+     * The payment was a debtor's share of the recipient's payment request
+     * (see RequestedPayment). source_identifier names the debtor, and
+     * payment_amount is the share.
+     *
+     * @generated from field: flipcash.activity.v1.RequestedPayment requested_payment = 4;
+     */
+    value: RequestedPayment;
+    case: "requestedPayment";
+  } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ReceivedCryptoNotificationMetadata>) {
     super();
@@ -394,7 +436,8 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "phone", kind: "message", T: PhoneNumber, oneof: "source_identifier" },
     { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "source_identifier" },
-    { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction },
+    { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction, oneof: "context" },
+    { no: 4, name: "requested_payment", kind: "message", T: RequestedPayment, oneof: "context" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReceivedCryptoNotificationMetadata {
@@ -472,6 +515,59 @@ export class BoostedReaction extends Message<BoostedReaction> {
 
   static equals(a: BoostedReaction | PlainMessage<BoostedReaction> | undefined, b: BoostedReaction | PlainMessage<BoostedReaction> | undefined): boolean {
     return proto3.util.equals(BoostedReaction, a, b);
+  }
+}
+
+/**
+ * The payment request a payment paid a share of: a debtor's share, paid to
+ * the request's creator (see intent.v1.ChatMetadata.RequestedPayment). It is
+ * what the payment was for when it was made and is not kept up to date: the
+ * request may since have been closed or expired, and the viewer may no longer
+ * be a member of its group, in which case fetching the request is denied.
+ *
+ * @generated from message flipcash.activity.v1.RequestedPayment
+ */
+export class RequestedPayment extends Message<RequestedPayment> {
+  /**
+   * The group chat the payment request is in.
+   *
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The payment request whose share was paid.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 2;
+   */
+  paymentRequestId?: PaymentRequestId;
+
+  constructor(data?: PartialMessage<RequestedPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.activity.v1.RequestedPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RequestedPayment {
+    return new RequestedPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RequestedPayment {
+    return new RequestedPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RequestedPayment {
+    return new RequestedPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RequestedPayment | PlainMessage<RequestedPayment> | undefined, b: RequestedPayment | PlainMessage<RequestedPayment> | undefined): boolean {
+    return proto3.util.equals(RequestedPayment, a, b);
   }
 }
 
