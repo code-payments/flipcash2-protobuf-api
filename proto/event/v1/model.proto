@@ -10,6 +10,7 @@ import "blob/v1/model.proto";
 import "chat/v1/model.proto";
 import "common/v1/common.proto";
 import "messaging/v1/model.proto";
+import "paymentrequest/v1/model.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
@@ -147,6 +148,16 @@ message ChatUpdate {
     // event log; the creator reconciles any misses by refetching the lobby
     // with Chat.GetLobbyMembers.
     chat.v1.LobbyUpdateBatch lobby_updates = 9;
+
+    // If present, best-effort real-time changes to the chat's payment
+    // requests: one created, carried whole, and each change after that (a
+    // share paid, a request completed or closed), carried as what it did.
+    // Sent to those who can read the chat in full, never to a redacted chat
+    // preview. Like reaction_updates, they are NOT part of the gap-detected
+    // event log; clients apply each to their copy by the request's version
+    // and reconcile any misses by refetching the request (see
+    // paymentrequest.v1.PaymentRequestUpdate).
+    paymentrequest.v1.PaymentRequestUpdateBatch payment_request_updates = 10;
 }
 
 // BlobUpdate notifies the recipient in real time that blobs they uploaded have

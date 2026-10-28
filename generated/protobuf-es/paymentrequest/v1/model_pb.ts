@@ -164,9 +164,11 @@ export class IdempotencyKey extends Message<IdempotencyKey> {
  * EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
  * itself.
  *
- * Nothing announces a change in real time: no event carries a payment request
- * today. Clients refetch a request to see payments and closes land, for
- * example when they show its widget.
+ * Changes are announced in real time, best effort, by a PaymentRequestUpdate
+ * on the chat's event stream (event.v1.ChatUpdate.payment_request_updates):
+ * the request whole when it is created, and each change after that as the
+ * changes it made at its version. Clients refetch a request to reconcile any
+ * update they missed, for example when they show its widget.
  *
  * Requests are layered. The first layer is where the request lives: today a
  * group chat (GroupChatPaymentRequest). Within it, the second layer is the
@@ -822,6 +824,334 @@ export class PaidShare_Creator extends Message<PaidShare_Creator> {
 
   static equals(a: PaidShare_Creator | PlainMessage<PaidShare_Creator> | undefined, b: PaidShare_Creator | PlainMessage<PaidShare_Creator> | undefined): boolean {
     return proto3.util.equals(PaidShare_Creator, a, b);
+  }
+}
+
+/**
+ * PaymentRequestUpdate is a best-effort, real-time change to a payment
+ * request, carried on its chat's event stream (see
+ * event.v1.ChatUpdate.payment_request_updates). It is sent when a request is
+ * created, carrying it whole (`created`), and on every change that advances
+ * its version, carrying what that change did (`updates`): a share paid, by
+ * payment or by hand, or a hand mark replaced by a payment; the last share
+ * paid, which also completes the request; and a close. Expiry is not
+ * announced: it comes from the clock and moves no version, so clients judge
+ * it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
+ *
+ * Updates may arrive out of order, more than once, or not at all. A client
+ * applies them to its copy of the request by version:
+ *   - `created`: like a fetched copy, keeping the one with the greater
+ *     version (at an equal version, EXPIRED over OPEN).
+ *   - `updates` at version V, to a copy at version L:
+ *       - V <= L: already applied; ignore it.
+ *       - V == L + 1: apply every Update, in order, then set version to V.
+ *       - V > L + 1: an update was missed; refetch the request.
+ *     A client holding no copy ignores it and fetches the request when it
+ *     shows it. A client that meets an Update it cannot apply (a kind it does
+ *     not know, or a share its copy does not have) applies none of them and
+ *     refetches, rather than taking version V for a copy missing a change.
+ *
+ * A missed update is reconciled by refetching the request. A share paid by a
+ * payment is also announced by the payment's messaging.v1.CashContent
+ * message, which carries the request's payment_request_id and is part of the
+ * chat's gap-detected event log, so a client that sees one for a share it
+ * holds unpaid can refetch the request.
+ *
+ * Like GetPaymentRequest, an update reaches only those who can read the chat
+ * in full. It never carries the caller-specific payment_intent_id of
+ * GetPaymentRequestResponse; a debtor fetches the request to pay their share.
+ *
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate
+ */
+export class PaymentRequestUpdate extends Message<PaymentRequestUpdate> {
+  /**
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 1;
+   */
+  paymentRequestId?: PaymentRequestId;
+
+  /**
+   * @generated from oneof flipcash.paymentrequest.v1.PaymentRequestUpdate.kind
+   */
+  kind: {
+    /**
+     * The request was created. It is carried whole, as GetPaymentRequest
+     * returns it, and is applied like a fetched copy.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestMetadata created = 10;
+     */
+    value: PaymentRequestMetadata;
+    case: "created";
+  } | {
+    /**
+     * One change to the request: everything it did, at one version.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestUpdate.Updates updates = 11;
+     */
+    value: PaymentRequestUpdate_Updates;
+    case: "updates";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+    { no: 10, name: "created", kind: "message", T: PaymentRequestMetadata, oneof: "kind" },
+    { no: 11, name: "updates", kind: "message", T: PaymentRequestUpdate_Updates, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate {
+    return new PaymentRequestUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate {
+    return new PaymentRequestUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate {
+    return new PaymentRequestUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate | PlainMessage<PaymentRequestUpdate> | undefined, b: PaymentRequestUpdate | PlainMessage<PaymentRequestUpdate> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate, a, b);
+  }
+}
+
+/**
+ * Updates is everything one change to the request did, at the version
+ * it produced.
+ *
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.Updates
+ */
+export class PaymentRequestUpdate_Updates extends Message<PaymentRequestUpdate_Updates> {
+  /**
+   * The request's version after these updates. It advances by exactly
+   * one per change, so a client holding version - 1 applies them, and
+   * one holding less has missed one.
+   *
+   * @generated from field: uint64 version = 1;
+   */
+  version = protoInt64.zero;
+
+  /**
+   * What the change did, applied in order, all or nothing. A
+   * StatusUpdate is at most one, and the last.
+   *
+   * @generated from field: repeated flipcash.paymentrequest.v1.PaymentRequestUpdate.Update updates = 2;
+   */
+  updates: PaymentRequestUpdate_Update[] = [];
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate_Updates>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate.Updates";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 2, name: "updates", kind: "message", T: PaymentRequestUpdate_Update, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_Updates {
+    return new PaymentRequestUpdate_Updates().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_Updates {
+    return new PaymentRequestUpdate_Updates().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_Updates {
+    return new PaymentRequestUpdate_Updates().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate_Updates | PlainMessage<PaymentRequestUpdate_Updates> | undefined, b: PaymentRequestUpdate_Updates | PlainMessage<PaymentRequestUpdate_Updates> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate_Updates, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.Update
+ */
+export class PaymentRequestUpdate_Update extends Message<PaymentRequestUpdate_Update> {
+  /**
+   * @generated from oneof flipcash.paymentrequest.v1.PaymentRequestUpdate.Update.kind
+   */
+  kind: {
+    /**
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate share_payment_update = 1;
+     */
+    value: PaymentRequestUpdate_SharePaymentUpdate;
+    case: "sharePaymentUpdate";
+  } | {
+    /**
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate status_update = 2;
+     */
+    value: PaymentRequestUpdate_StatusUpdate;
+    case: "statusUpdate";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate_Update>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate.Update";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "share_payment_update", kind: "message", T: PaymentRequestUpdate_SharePaymentUpdate, oneof: "kind" },
+    { no: 2, name: "status_update", kind: "message", T: PaymentRequestUpdate_StatusUpdate, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_Update {
+    return new PaymentRequestUpdate_Update().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_Update {
+    return new PaymentRequestUpdate_Update().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_Update {
+    return new PaymentRequestUpdate_Update().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate_Update | PlainMessage<PaymentRequestUpdate_Update> | undefined, b: PaymentRequestUpdate_Update | PlainMessage<PaymentRequestUpdate_Update> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate_Update, a, b);
+  }
+}
+
+/**
+ * SharePaymentUpdate is a share paid, by payment or by hand, or a hand
+ * mark replaced by a payment (see PaidShare). Clients replace the share
+ * with the same user_id by this one.
+ *
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate
+ */
+export class PaymentRequestUpdate_SharePaymentUpdate extends Message<PaymentRequestUpdate_SharePaymentUpdate> {
+  /**
+   * The share as it now stands. Its paid is always set.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.Share share = 1;
+   */
+  share?: Share;
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate_SharePaymentUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "share", kind: "message", T: Share },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_SharePaymentUpdate {
+    return new PaymentRequestUpdate_SharePaymentUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_SharePaymentUpdate {
+    return new PaymentRequestUpdate_SharePaymentUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_SharePaymentUpdate {
+    return new PaymentRequestUpdate_SharePaymentUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate_SharePaymentUpdate | PlainMessage<PaymentRequestUpdate_SharePaymentUpdate> | undefined, b: PaymentRequestUpdate_SharePaymentUpdate | PlainMessage<PaymentRequestUpdate_SharePaymentUpdate> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate_SharePaymentUpdate, a, b);
+  }
+}
+
+/**
+ * StatusUpdate is the request leaving OPEN: CLOSED by its creator, or
+ * COMPLETED by the payment of its last unpaid share, which comes in the
+ * same Updates, before it. Both are final, so a request's status changes
+ * at most once. Expiry is never announced (see above).
+ *
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate
+ */
+export class PaymentRequestUpdate_StatusUpdate extends Message<PaymentRequestUpdate_StatusUpdate> {
+  /**
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestStatus status = 1;
+   */
+  status = PaymentRequestStatus.UNKNOWN;
+
+  /**
+   * When the request stopped being OPEN (see
+   * PaymentRequestMetadata.closed_at).
+   *
+   * @generated from field: google.protobuf.Timestamp closed_at = 2;
+   */
+  closedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate_StatusUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "status", kind: "enum", T: proto3.getEnumType(PaymentRequestStatus) },
+    { no: 2, name: "closed_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_StatusUpdate {
+    return new PaymentRequestUpdate_StatusUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_StatusUpdate {
+    return new PaymentRequestUpdate_StatusUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_StatusUpdate {
+    return new PaymentRequestUpdate_StatusUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate_StatusUpdate | PlainMessage<PaymentRequestUpdate_StatusUpdate> | undefined, b: PaymentRequestUpdate_StatusUpdate | PlainMessage<PaymentRequestUpdate_StatusUpdate> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate_StatusUpdate, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdateBatch
+ */
+export class PaymentRequestUpdateBatch extends Message<PaymentRequestUpdateBatch> {
+  /**
+   * @generated from field: repeated flipcash.paymentrequest.v1.PaymentRequestUpdate payment_request_updates = 1;
+   */
+  paymentRequestUpdates: PaymentRequestUpdate[] = [];
+
+  constructor(data?: PartialMessage<PaymentRequestUpdateBatch>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdateBatch";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payment_request_updates", kind: "message", T: PaymentRequestUpdate, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdateBatch {
+    return new PaymentRequestUpdateBatch().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdateBatch {
+    return new PaymentRequestUpdateBatch().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdateBatch {
+    return new PaymentRequestUpdateBatch().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdateBatch | PlainMessage<PaymentRequestUpdateBatch> | undefined, b: PaymentRequestUpdateBatch | PlainMessage<PaymentRequestUpdateBatch> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdateBatch, a, b);
   }
 }
 

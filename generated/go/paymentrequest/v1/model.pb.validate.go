@@ -1718,6 +1718,395 @@ var _ interface {
 	ErrorName() string
 } = PaidShareValidationError{}
 
+// Validate checks the field values on PaymentRequestUpdate with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PaymentRequestUpdate) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PaymentRequestUpdate with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PaymentRequestUpdateMultiError, or nil if none found.
+func (m *PaymentRequestUpdate) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentRequestUpdate) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetPaymentRequestId() == nil {
+		err := PaymentRequestUpdateValidationError{
+			field:  "PaymentRequestId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetPaymentRequestId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PaymentRequestUpdateValidationError{
+					field:  "PaymentRequestId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PaymentRequestUpdateValidationError{
+					field:  "PaymentRequestId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPaymentRequestId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PaymentRequestUpdateValidationError{
+				field:  "PaymentRequestId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	oneofKindPresent := false
+	switch v := m.Kind.(type) {
+	case *PaymentRequestUpdate_Created:
+		if v == nil {
+			err := PaymentRequestUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetCreated()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PaymentRequestUpdateValidationError{
+						field:  "Created",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PaymentRequestUpdateValidationError{
+						field:  "Created",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetCreated()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PaymentRequestUpdateValidationError{
+					field:  "Created",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *PaymentRequestUpdate_Updates_:
+		if v == nil {
+			err := PaymentRequestUpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetUpdates()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PaymentRequestUpdateValidationError{
+						field:  "Updates",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PaymentRequestUpdateValidationError{
+						field:  "Updates",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUpdates()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PaymentRequestUpdateValidationError{
+					field:  "Updates",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofKindPresent {
+		err := PaymentRequestUpdateValidationError{
+			field:  "Kind",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PaymentRequestUpdateMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentRequestUpdateMultiError is an error wrapping multiple validation
+// errors returned by PaymentRequestUpdate.ValidateAll() if the designated
+// constraints aren't met.
+type PaymentRequestUpdateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentRequestUpdateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentRequestUpdateMultiError) AllErrors() []error { return m }
+
+// PaymentRequestUpdateValidationError is the validation error returned by
+// PaymentRequestUpdate.Validate if the designated constraints aren't met.
+type PaymentRequestUpdateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentRequestUpdateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentRequestUpdateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentRequestUpdateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentRequestUpdateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentRequestUpdateValidationError) ErrorName() string {
+	return "PaymentRequestUpdateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PaymentRequestUpdateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentRequestUpdate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentRequestUpdateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentRequestUpdateValidationError{}
+
+// Validate checks the field values on PaymentRequestUpdateBatch with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PaymentRequestUpdateBatch) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PaymentRequestUpdateBatch with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PaymentRequestUpdateBatchMultiError, or nil if none found.
+func (m *PaymentRequestUpdateBatch) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentRequestUpdateBatch) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetPaymentRequestUpdates()); l < 1 || l > 100 {
+		err := PaymentRequestUpdateBatchValidationError{
+			field:  "PaymentRequestUpdates",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetPaymentRequestUpdates() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PaymentRequestUpdateBatchValidationError{
+						field:  fmt.Sprintf("PaymentRequestUpdates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PaymentRequestUpdateBatchValidationError{
+						field:  fmt.Sprintf("PaymentRequestUpdates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PaymentRequestUpdateBatchValidationError{
+					field:  fmt.Sprintf("PaymentRequestUpdates[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return PaymentRequestUpdateBatchMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentRequestUpdateBatchMultiError is an error wrapping multiple validation
+// errors returned by PaymentRequestUpdateBatch.ValidateAll() if the
+// designated constraints aren't met.
+type PaymentRequestUpdateBatchMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentRequestUpdateBatchMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentRequestUpdateBatchMultiError) AllErrors() []error { return m }
+
+// PaymentRequestUpdateBatchValidationError is the validation error returned by
+// PaymentRequestUpdateBatch.Validate if the designated constraints aren't met.
+type PaymentRequestUpdateBatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentRequestUpdateBatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentRequestUpdateBatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentRequestUpdateBatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentRequestUpdateBatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentRequestUpdateBatchValidationError) ErrorName() string {
+	return "PaymentRequestUpdateBatchValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PaymentRequestUpdateBatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentRequestUpdateBatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentRequestUpdateBatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentRequestUpdateBatchValidationError{}
+
 // Validate checks the field values on PaidShare_Manual with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -1919,3 +2308,643 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PaidShare_CreatorValidationError{}
+
+// Validate checks the field values on PaymentRequestUpdate_Updates with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PaymentRequestUpdate_Updates) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PaymentRequestUpdate_Updates with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PaymentRequestUpdate_UpdatesMultiError, or nil if none found.
+func (m *PaymentRequestUpdate_Updates) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentRequestUpdate_Updates) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetVersion() < 2 {
+		err := PaymentRequestUpdate_UpdatesValidationError{
+			field:  "Version",
+			reason: "value must be greater than or equal to 2",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if l := len(m.GetUpdates()); l < 1 || l > 100 {
+		err := PaymentRequestUpdate_UpdatesValidationError{
+			field:  "Updates",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetUpdates() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PaymentRequestUpdate_UpdatesValidationError{
+						field:  fmt.Sprintf("Updates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PaymentRequestUpdate_UpdatesValidationError{
+						field:  fmt.Sprintf("Updates[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PaymentRequestUpdate_UpdatesValidationError{
+					field:  fmt.Sprintf("Updates[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return PaymentRequestUpdate_UpdatesMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentRequestUpdate_UpdatesMultiError is an error wrapping multiple
+// validation errors returned by PaymentRequestUpdate_Updates.ValidateAll() if
+// the designated constraints aren't met.
+type PaymentRequestUpdate_UpdatesMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentRequestUpdate_UpdatesMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentRequestUpdate_UpdatesMultiError) AllErrors() []error { return m }
+
+// PaymentRequestUpdate_UpdatesValidationError is the validation error returned
+// by PaymentRequestUpdate_Updates.Validate if the designated constraints
+// aren't met.
+type PaymentRequestUpdate_UpdatesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentRequestUpdate_UpdatesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentRequestUpdate_UpdatesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentRequestUpdate_UpdatesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentRequestUpdate_UpdatesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentRequestUpdate_UpdatesValidationError) ErrorName() string {
+	return "PaymentRequestUpdate_UpdatesValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PaymentRequestUpdate_UpdatesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentRequestUpdate_Updates.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentRequestUpdate_UpdatesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentRequestUpdate_UpdatesValidationError{}
+
+// Validate checks the field values on PaymentRequestUpdate_Update with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PaymentRequestUpdate_Update) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PaymentRequestUpdate_Update with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PaymentRequestUpdate_UpdateMultiError, or nil if none found.
+func (m *PaymentRequestUpdate_Update) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentRequestUpdate_Update) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofKindPresent := false
+	switch v := m.Kind.(type) {
+	case *PaymentRequestUpdate_Update_SharePaymentUpdate:
+		if v == nil {
+			err := PaymentRequestUpdate_UpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetSharePaymentUpdate()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PaymentRequestUpdate_UpdateValidationError{
+						field:  "SharePaymentUpdate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PaymentRequestUpdate_UpdateValidationError{
+						field:  "SharePaymentUpdate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSharePaymentUpdate()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PaymentRequestUpdate_UpdateValidationError{
+					field:  "SharePaymentUpdate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *PaymentRequestUpdate_Update_StatusUpdate:
+		if v == nil {
+			err := PaymentRequestUpdate_UpdateValidationError{
+				field:  "Kind",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofKindPresent = true
+
+		if all {
+			switch v := interface{}(m.GetStatusUpdate()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PaymentRequestUpdate_UpdateValidationError{
+						field:  "StatusUpdate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PaymentRequestUpdate_UpdateValidationError{
+						field:  "StatusUpdate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetStatusUpdate()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PaymentRequestUpdate_UpdateValidationError{
+					field:  "StatusUpdate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofKindPresent {
+		err := PaymentRequestUpdate_UpdateValidationError{
+			field:  "Kind",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PaymentRequestUpdate_UpdateMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentRequestUpdate_UpdateMultiError is an error wrapping multiple
+// validation errors returned by PaymentRequestUpdate_Update.ValidateAll() if
+// the designated constraints aren't met.
+type PaymentRequestUpdate_UpdateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentRequestUpdate_UpdateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentRequestUpdate_UpdateMultiError) AllErrors() []error { return m }
+
+// PaymentRequestUpdate_UpdateValidationError is the validation error returned
+// by PaymentRequestUpdate_Update.Validate if the designated constraints
+// aren't met.
+type PaymentRequestUpdate_UpdateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentRequestUpdate_UpdateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentRequestUpdate_UpdateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentRequestUpdate_UpdateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentRequestUpdate_UpdateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentRequestUpdate_UpdateValidationError) ErrorName() string {
+	return "PaymentRequestUpdate_UpdateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PaymentRequestUpdate_UpdateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentRequestUpdate_Update.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentRequestUpdate_UpdateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentRequestUpdate_UpdateValidationError{}
+
+// Validate checks the field values on PaymentRequestUpdate_SharePaymentUpdate
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *PaymentRequestUpdate_SharePaymentUpdate) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// PaymentRequestUpdate_SharePaymentUpdate with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// PaymentRequestUpdate_SharePaymentUpdateMultiError, or nil if none found.
+func (m *PaymentRequestUpdate_SharePaymentUpdate) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentRequestUpdate_SharePaymentUpdate) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetShare() == nil {
+		err := PaymentRequestUpdate_SharePaymentUpdateValidationError{
+			field:  "Share",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetShare()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PaymentRequestUpdate_SharePaymentUpdateValidationError{
+					field:  "Share",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PaymentRequestUpdate_SharePaymentUpdateValidationError{
+					field:  "Share",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetShare()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PaymentRequestUpdate_SharePaymentUpdateValidationError{
+				field:  "Share",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PaymentRequestUpdate_SharePaymentUpdateMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentRequestUpdate_SharePaymentUpdateMultiError is an error wrapping
+// multiple validation errors returned by
+// PaymentRequestUpdate_SharePaymentUpdate.ValidateAll() if the designated
+// constraints aren't met.
+type PaymentRequestUpdate_SharePaymentUpdateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentRequestUpdate_SharePaymentUpdateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentRequestUpdate_SharePaymentUpdateMultiError) AllErrors() []error { return m }
+
+// PaymentRequestUpdate_SharePaymentUpdateValidationError is the validation
+// error returned by PaymentRequestUpdate_SharePaymentUpdate.Validate if the
+// designated constraints aren't met.
+type PaymentRequestUpdate_SharePaymentUpdateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentRequestUpdate_SharePaymentUpdateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentRequestUpdate_SharePaymentUpdateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentRequestUpdate_SharePaymentUpdateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentRequestUpdate_SharePaymentUpdateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentRequestUpdate_SharePaymentUpdateValidationError) ErrorName() string {
+	return "PaymentRequestUpdate_SharePaymentUpdateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PaymentRequestUpdate_SharePaymentUpdateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentRequestUpdate_SharePaymentUpdate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentRequestUpdate_SharePaymentUpdateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentRequestUpdate_SharePaymentUpdateValidationError{}
+
+// Validate checks the field values on PaymentRequestUpdate_StatusUpdate with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *PaymentRequestUpdate_StatusUpdate) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PaymentRequestUpdate_StatusUpdate
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// PaymentRequestUpdate_StatusUpdateMultiError, or nil if none found.
+func (m *PaymentRequestUpdate_StatusUpdate) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentRequestUpdate_StatusUpdate) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if _, ok := _PaymentRequestUpdate_StatusUpdate_Status_InLookup[m.GetStatus()]; !ok {
+		err := PaymentRequestUpdate_StatusUpdateValidationError{
+			field:  "Status",
+			reason: "value must be in list [PAYMENT_REQUEST_STATUS_COMPLETED PAYMENT_REQUEST_STATUS_CLOSED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetClosedAt() == nil {
+		err := PaymentRequestUpdate_StatusUpdateValidationError{
+			field:  "ClosedAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return PaymentRequestUpdate_StatusUpdateMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentRequestUpdate_StatusUpdateMultiError is an error wrapping multiple
+// validation errors returned by
+// PaymentRequestUpdate_StatusUpdate.ValidateAll() if the designated
+// constraints aren't met.
+type PaymentRequestUpdate_StatusUpdateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentRequestUpdate_StatusUpdateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentRequestUpdate_StatusUpdateMultiError) AllErrors() []error { return m }
+
+// PaymentRequestUpdate_StatusUpdateValidationError is the validation error
+// returned by PaymentRequestUpdate_StatusUpdate.Validate if the designated
+// constraints aren't met.
+type PaymentRequestUpdate_StatusUpdateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentRequestUpdate_StatusUpdateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentRequestUpdate_StatusUpdateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentRequestUpdate_StatusUpdateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentRequestUpdate_StatusUpdateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentRequestUpdate_StatusUpdateValidationError) ErrorName() string {
+	return "PaymentRequestUpdate_StatusUpdateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PaymentRequestUpdate_StatusUpdateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentRequestUpdate_StatusUpdate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentRequestUpdate_StatusUpdateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentRequestUpdate_StatusUpdateValidationError{}
+
+var _PaymentRequestUpdate_StatusUpdate_Status_InLookup = map[PaymentRequestStatus]struct{}{
+	2: {},
+	3: {},
+}

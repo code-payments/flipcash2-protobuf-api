@@ -50,9 +50,11 @@ message IdempotencyKey {
 // EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
 // itself.
 //
-// Nothing announces a change in real time: no event carries a payment request
-// today. Clients refetch a request to see payments and closes land, for
-// example when they show its widget.
+// Changes are announced in real time, best effort, by a PaymentRequestUpdate
+// on the chat's event stream (event.v1.ChatUpdate.payment_request_updates):
+// the request whole when it is created, and each change after that as the
+// changes it made at its version. Clients refetch a request to reconcile any
+// update they missed, for example when they show its widget.
 //
 // Requests are layered. The first layer is where the request lives: today a
 // group chat (GroupChatPaymentRequest). Within it, the second layer is the
@@ -316,5 +318,106 @@ enum PaymentRequestStatus {
     // client judges an OPEN request past its ends_at as EXPIRED itself rather
     // than waiting for the server to say so.
     PAYMENT_REQUEST_STATUS_EXPIRED   = 4;
+}
+
+// PaymentRequestUpdate is a best-effort, real-time change to a payment
+// request, carried on its chat's event stream (see
+// event.v1.ChatUpdate.payment_request_updates). It is sent when a request is
+// created, carrying it whole (`created`), and on every change that advances
+// its version, carrying what that change did (`updates`): a share paid, by
+// payment or by hand, or a hand mark replaced by a payment; the last share
+// paid, which also completes the request; and a close. Expiry is not
+// announced: it comes from the clock and moves no version, so clients judge
+// it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
+//
+// Updates may arrive out of order, more than once, or not at all. A client
+// applies them to its copy of the request by version:
+//   - `created`: like a fetched copy, keeping the one with the greater
+//     version (at an equal version, EXPIRED over OPEN).
+//   - `updates` at version V, to a copy at version L:
+//       - V <= L: already applied; ignore it.
+//       - V == L + 1: apply every Update, in order, then set version to V.
+//       - V > L + 1: an update was missed; refetch the request.
+//     A client holding no copy ignores it and fetches the request when it
+//     shows it. A client that meets an Update it cannot apply (a kind it does
+//     not know, or a share its copy does not have) applies none of them and
+//     refetches, rather than taking version V for a copy missing a change.
+//
+// A missed update is reconciled by refetching the request. A share paid by a
+// payment is also announced by the payment's messaging.v1.CashContent
+// message, which carries the request's payment_request_id and is part of the
+// chat's gap-detected event log, so a client that sees one for a share it
+// holds unpaid can refetch the request.
+//
+// Like GetPaymentRequest, an update reaches only those who can read the chat
+// in full. It never carries the caller-specific payment_intent_id of
+// GetPaymentRequestResponse; a debtor fetches the request to pay their share.
+message PaymentRequestUpdate {
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    oneof kind {
+        option (validate.required) = true;
+
+        // The request was created. It is carried whole, as GetPaymentRequest
+        // returns it, and is applied like a fetched copy.
+        PaymentRequestMetadata created = 10;
+
+        // One change to the request: everything it did, at one version.
+        Updates updates = 11;
+    }
+
+    // Updates is everything one change to the request did, at the version
+    // it produced.
+    message Updates {
+        // The request's version after these updates. It advances by exactly
+        // one per change, so a client holding version - 1 applies them, and
+        // one holding less has missed one.
+        uint64 version = 1 [(validate.rules).uint64.gte = 2];
+
+        // What the change did, applied in order, all or nothing. A
+        // StatusUpdate is at most one, and the last.
+        repeated Update updates = 2 [(validate.rules).repeated = {
+            min_items: 1
+            max_items: 100
+        }];
+    }
+
+    message Update {
+        oneof kind {
+            option (validate.required) = true;
+
+            SharePaymentUpdate share_payment_update = 1;
+            StatusUpdate       status_update        = 2;
+        }
+    }
+
+    // SharePaymentUpdate is a share paid, by payment or by hand, or a hand
+    // mark replaced by a payment (see PaidShare). Clients replace the share
+    // with the same user_id by this one.
+    message SharePaymentUpdate {
+        // The share as it now stands. Its paid is always set.
+        Share share = 1 [(validate.rules).message.required = true];
+    }
+
+    // StatusUpdate is the request leaving OPEN: CLOSED by its creator, or
+    // COMPLETED by the payment of its last unpaid share, which comes in the
+    // same Updates, before it. Both are final, so a request's status changes
+    // at most once. Expiry is never announced (see above).
+    message StatusUpdate {
+        PaymentRequestStatus status = 1 [(validate.rules).enum = {
+            in: [2, 3] // COMPLETED, CLOSED
+        }];
+
+        // When the request stopped being OPEN (see
+        // PaymentRequestMetadata.closed_at).
+        google.protobuf.Timestamp closed_at = 2 [(validate.rules).timestamp.required = true];
+    }
+}
+
+message PaymentRequestUpdateBatch {
+    repeated PaymentRequestUpdate payment_request_updates = 1 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 100
+    }];
 }
 

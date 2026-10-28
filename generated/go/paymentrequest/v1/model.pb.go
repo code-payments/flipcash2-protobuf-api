@@ -252,9 +252,11 @@ func (x *IdempotencyKey) GetValue() []byte {
 // EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
 // itself.
 //
-// Nothing announces a change in real time: no event carries a payment request
-// today. Clients refetch a request to see payments and closes land, for
-// example when they show its widget.
+// Changes are announced in real time, best effort, by a PaymentRequestUpdate
+// on the chat's event stream (event.v1.ChatUpdate.payment_request_updates):
+// the request whole when it is created, and each change after that as the
+// changes it made at its version. Clients refetch a request to reconcile any
+// update they missed, for example when they show its widget.
 //
 // Requests are layered. The first layer is where the request lives: today a
 // group chat (GroupChatPaymentRequest). Within it, the second layer is the
@@ -960,6 +962,173 @@ func (*PaidShare_Manual_) isPaidShare_How() {}
 
 func (*PaidShare_Creator_) isPaidShare_How() {}
 
+// PaymentRequestUpdate is a best-effort, real-time change to a payment
+// request, carried on its chat's event stream (see
+// event.v1.ChatUpdate.payment_request_updates). It is sent when a request is
+// created, carrying it whole (`created`), and on every change that advances
+// its version, carrying what that change did (`updates`): a share paid, by
+// payment or by hand, or a hand mark replaced by a payment; the last share
+// paid, which also completes the request; and a close. Expiry is not
+// announced: it comes from the clock and moves no version, so clients judge
+// it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
+//
+// Updates may arrive out of order, more than once, or not at all. A client
+// applies them to its copy of the request by version:
+//   - `created`: like a fetched copy, keeping the one with the greater
+//     version (at an equal version, EXPIRED over OPEN).
+//   - `updates` at version V, to a copy at version L:
+//   - V <= L: already applied; ignore it.
+//   - V == L + 1: apply every Update, in order, then set version to V.
+//   - V > L + 1: an update was missed; refetch the request.
+//     A client holding no copy ignores it and fetches the request when it
+//     shows it. A client that meets an Update it cannot apply (a kind it does
+//     not know, or a share its copy does not have) applies none of them and
+//     refetches, rather than taking version V for a copy missing a change.
+//
+// A missed update is reconciled by refetching the request. A share paid by a
+// payment is also announced by the payment's messaging.v1.CashContent
+// message, which carries the request's payment_request_id and is part of the
+// chat's gap-detected event log, so a client that sees one for a share it
+// holds unpaid can refetch the request.
+//
+// Like GetPaymentRequest, an update reaches only those who can read the chat
+// in full. It never carries the caller-specific payment_intent_id of
+// GetPaymentRequestResponse; a debtor fetches the request to pay their share.
+type PaymentRequestUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PaymentRequestId *PaymentRequestId `protobuf:"bytes,1,opt,name=payment_request_id,json=paymentRequestId,proto3" json:"payment_request_id,omitempty"`
+	// Types that are assignable to Kind:
+	//
+	//	*PaymentRequestUpdate_Created
+	//	*PaymentRequestUpdate_Updates_
+	Kind isPaymentRequestUpdate_Kind `protobuf_oneof:"kind"`
+}
+
+func (x *PaymentRequestUpdate) Reset() {
+	*x = PaymentRequestUpdate{}
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentRequestUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentRequestUpdate) ProtoMessage() {}
+
+func (x *PaymentRequestUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentRequestUpdate.ProtoReflect.Descriptor instead.
+func (*PaymentRequestUpdate) Descriptor() ([]byte, []int) {
+	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PaymentRequestUpdate) GetPaymentRequestId() *PaymentRequestId {
+	if x != nil {
+		return x.PaymentRequestId
+	}
+	return nil
+}
+
+func (m *PaymentRequestUpdate) GetKind() isPaymentRequestUpdate_Kind {
+	if m != nil {
+		return m.Kind
+	}
+	return nil
+}
+
+func (x *PaymentRequestUpdate) GetCreated() *PaymentRequestMetadata {
+	if x, ok := x.GetKind().(*PaymentRequestUpdate_Created); ok {
+		return x.Created
+	}
+	return nil
+}
+
+func (x *PaymentRequestUpdate) GetUpdates() *PaymentRequestUpdate_Updates {
+	if x, ok := x.GetKind().(*PaymentRequestUpdate_Updates_); ok {
+		return x.Updates
+	}
+	return nil
+}
+
+type isPaymentRequestUpdate_Kind interface {
+	isPaymentRequestUpdate_Kind()
+}
+
+type PaymentRequestUpdate_Created struct {
+	// The request was created. It is carried whole, as GetPaymentRequest
+	// returns it, and is applied like a fetched copy.
+	Created *PaymentRequestMetadata `protobuf:"bytes,10,opt,name=created,proto3,oneof"`
+}
+
+type PaymentRequestUpdate_Updates_ struct {
+	// One change to the request: everything it did, at one version.
+	Updates *PaymentRequestUpdate_Updates `protobuf:"bytes,11,opt,name=updates,proto3,oneof"`
+}
+
+func (*PaymentRequestUpdate_Created) isPaymentRequestUpdate_Kind() {}
+
+func (*PaymentRequestUpdate_Updates_) isPaymentRequestUpdate_Kind() {}
+
+type PaymentRequestUpdateBatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PaymentRequestUpdates []*PaymentRequestUpdate `protobuf:"bytes,1,rep,name=payment_request_updates,json=paymentRequestUpdates,proto3" json:"payment_request_updates,omitempty"`
+}
+
+func (x *PaymentRequestUpdateBatch) Reset() {
+	*x = PaymentRequestUpdateBatch{}
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentRequestUpdateBatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentRequestUpdateBatch) ProtoMessage() {}
+
+func (x *PaymentRequestUpdateBatch) ProtoReflect() protoreflect.Message {
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentRequestUpdateBatch.ProtoReflect.Descriptor instead.
+func (*PaymentRequestUpdateBatch) Descriptor() ([]byte, []int) {
+	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PaymentRequestUpdateBatch) GetPaymentRequestUpdates() []*PaymentRequestUpdate {
+	if x != nil {
+		return x.PaymentRequestUpdates
+	}
+	return nil
+}
+
 // A share marked paid by hand (see PaymentRequest.MarkPaid), which only
 // the request's creator can do.
 type PaidShare_Manual struct {
@@ -970,7 +1139,7 @@ type PaidShare_Manual struct {
 
 func (x *PaidShare_Manual) Reset() {
 	*x = PaidShare_Manual{}
-	mi := &file_paymentrequest_v1_model_proto_msgTypes[9]
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -982,7 +1151,7 @@ func (x *PaidShare_Manual) String() string {
 func (*PaidShare_Manual) ProtoMessage() {}
 
 func (x *PaidShare_Manual) ProtoReflect() protoreflect.Message {
-	mi := &file_paymentrequest_v1_model_proto_msgTypes[9]
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1007,7 +1176,7 @@ type PaidShare_Creator struct {
 
 func (x *PaidShare_Creator) Reset() {
 	*x = PaidShare_Creator{}
-	mi := &file_paymentrequest_v1_model_proto_msgTypes[10]
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1019,7 +1188,7 @@ func (x *PaidShare_Creator) String() string {
 func (*PaidShare_Creator) ProtoMessage() {}
 
 func (x *PaidShare_Creator) ProtoReflect() protoreflect.Message {
-	mi := &file_paymentrequest_v1_model_proto_msgTypes[10]
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1033,6 +1202,253 @@ func (x *PaidShare_Creator) ProtoReflect() protoreflect.Message {
 // Deprecated: Use PaidShare_Creator.ProtoReflect.Descriptor instead.
 func (*PaidShare_Creator) Descriptor() ([]byte, []int) {
 	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{8, 1}
+}
+
+// Updates is everything one change to the request did, at the version
+// it produced.
+type PaymentRequestUpdate_Updates struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The request's version after these updates. It advances by exactly
+	// one per change, so a client holding version - 1 applies them, and
+	// one holding less has missed one.
+	Version uint64 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	// What the change did, applied in order, all or nothing. A
+	// StatusUpdate is at most one, and the last.
+	Updates []*PaymentRequestUpdate_Update `protobuf:"bytes,2,rep,name=updates,proto3" json:"updates,omitempty"`
+}
+
+func (x *PaymentRequestUpdate_Updates) Reset() {
+	*x = PaymentRequestUpdate_Updates{}
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentRequestUpdate_Updates) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentRequestUpdate_Updates) ProtoMessage() {}
+
+func (x *PaymentRequestUpdate_Updates) ProtoReflect() protoreflect.Message {
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentRequestUpdate_Updates.ProtoReflect.Descriptor instead.
+func (*PaymentRequestUpdate_Updates) Descriptor() ([]byte, []int) {
+	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{9, 0}
+}
+
+func (x *PaymentRequestUpdate_Updates) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *PaymentRequestUpdate_Updates) GetUpdates() []*PaymentRequestUpdate_Update {
+	if x != nil {
+		return x.Updates
+	}
+	return nil
+}
+
+type PaymentRequestUpdate_Update struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Kind:
+	//
+	//	*PaymentRequestUpdate_Update_SharePaymentUpdate
+	//	*PaymentRequestUpdate_Update_StatusUpdate
+	Kind isPaymentRequestUpdate_Update_Kind `protobuf_oneof:"kind"`
+}
+
+func (x *PaymentRequestUpdate_Update) Reset() {
+	*x = PaymentRequestUpdate_Update{}
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentRequestUpdate_Update) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentRequestUpdate_Update) ProtoMessage() {}
+
+func (x *PaymentRequestUpdate_Update) ProtoReflect() protoreflect.Message {
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentRequestUpdate_Update.ProtoReflect.Descriptor instead.
+func (*PaymentRequestUpdate_Update) Descriptor() ([]byte, []int) {
+	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{9, 1}
+}
+
+func (m *PaymentRequestUpdate_Update) GetKind() isPaymentRequestUpdate_Update_Kind {
+	if m != nil {
+		return m.Kind
+	}
+	return nil
+}
+
+func (x *PaymentRequestUpdate_Update) GetSharePaymentUpdate() *PaymentRequestUpdate_SharePaymentUpdate {
+	if x, ok := x.GetKind().(*PaymentRequestUpdate_Update_SharePaymentUpdate); ok {
+		return x.SharePaymentUpdate
+	}
+	return nil
+}
+
+func (x *PaymentRequestUpdate_Update) GetStatusUpdate() *PaymentRequestUpdate_StatusUpdate {
+	if x, ok := x.GetKind().(*PaymentRequestUpdate_Update_StatusUpdate); ok {
+		return x.StatusUpdate
+	}
+	return nil
+}
+
+type isPaymentRequestUpdate_Update_Kind interface {
+	isPaymentRequestUpdate_Update_Kind()
+}
+
+type PaymentRequestUpdate_Update_SharePaymentUpdate struct {
+	SharePaymentUpdate *PaymentRequestUpdate_SharePaymentUpdate `protobuf:"bytes,1,opt,name=share_payment_update,json=sharePaymentUpdate,proto3,oneof"`
+}
+
+type PaymentRequestUpdate_Update_StatusUpdate struct {
+	StatusUpdate *PaymentRequestUpdate_StatusUpdate `protobuf:"bytes,2,opt,name=status_update,json=statusUpdate,proto3,oneof"`
+}
+
+func (*PaymentRequestUpdate_Update_SharePaymentUpdate) isPaymentRequestUpdate_Update_Kind() {}
+
+func (*PaymentRequestUpdate_Update_StatusUpdate) isPaymentRequestUpdate_Update_Kind() {}
+
+// SharePaymentUpdate is a share paid, by payment or by hand, or a hand
+// mark replaced by a payment (see PaidShare). Clients replace the share
+// with the same user_id by this one.
+type PaymentRequestUpdate_SharePaymentUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// The share as it now stands. Its paid is always set.
+	Share *Share `protobuf:"bytes,1,opt,name=share,proto3" json:"share,omitempty"`
+}
+
+func (x *PaymentRequestUpdate_SharePaymentUpdate) Reset() {
+	*x = PaymentRequestUpdate_SharePaymentUpdate{}
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentRequestUpdate_SharePaymentUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentRequestUpdate_SharePaymentUpdate) ProtoMessage() {}
+
+func (x *PaymentRequestUpdate_SharePaymentUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentRequestUpdate_SharePaymentUpdate.ProtoReflect.Descriptor instead.
+func (*PaymentRequestUpdate_SharePaymentUpdate) Descriptor() ([]byte, []int) {
+	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{9, 2}
+}
+
+func (x *PaymentRequestUpdate_SharePaymentUpdate) GetShare() *Share {
+	if x != nil {
+		return x.Share
+	}
+	return nil
+}
+
+// StatusUpdate is the request leaving OPEN: CLOSED by its creator, or
+// COMPLETED by the payment of its last unpaid share, which comes in the
+// same Updates, before it. Both are final, so a request's status changes
+// at most once. Expiry is never announced (see above).
+type PaymentRequestUpdate_StatusUpdate struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Status PaymentRequestStatus `protobuf:"varint,1,opt,name=status,proto3,enum=flipcash.paymentrequest.v1.PaymentRequestStatus" json:"status,omitempty"`
+	// When the request stopped being OPEN (see
+	// PaymentRequestMetadata.closed_at).
+	ClosedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=closed_at,json=closedAt,proto3" json:"closed_at,omitempty"`
+}
+
+func (x *PaymentRequestUpdate_StatusUpdate) Reset() {
+	*x = PaymentRequestUpdate_StatusUpdate{}
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PaymentRequestUpdate_StatusUpdate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PaymentRequestUpdate_StatusUpdate) ProtoMessage() {}
+
+func (x *PaymentRequestUpdate_StatusUpdate) ProtoReflect() protoreflect.Message {
+	mi := &file_paymentrequest_v1_model_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PaymentRequestUpdate_StatusUpdate.ProtoReflect.Descriptor instead.
+func (*PaymentRequestUpdate_StatusUpdate) Descriptor() ([]byte, []int) {
+	return file_paymentrequest_v1_model_proto_rawDescGZIP(), []int{9, 3}
+}
+
+func (x *PaymentRequestUpdate_StatusUpdate) GetStatus() PaymentRequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PaymentRequestStatus_PAYMENT_REQUEST_STATUS_UNKNOWN
+}
+
+func (x *PaymentRequestUpdate_StatusUpdate) GetClosedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ClosedAt
+	}
+	return nil
 }
 
 var File_paymentrequest_v1_model_proto protoreflect.FileDescriptor
@@ -1174,30 +1590,99 @@ var file_paymentrequest_v1_model_proto_rawDesc = []byte{
 	0x61, 0x74, 0x6f, 0x72, 0x48, 0x00, 0x52, 0x07, 0x63, 0x72, 0x65, 0x61, 0x74, 0x6f, 0x72, 0x1a,
 	0x08, 0x0a, 0x06, 0x4d, 0x61, 0x6e, 0x75, 0x61, 0x6c, 0x1a, 0x09, 0x0a, 0x07, 0x43, 0x72, 0x65,
 	0x61, 0x74, 0x6f, 0x72, 0x42, 0x0a, 0x0a, 0x03, 0x68, 0x6f, 0x77, 0x12, 0x03, 0xf8, 0x42, 0x01,
-	0x2a, 0xc8, 0x01, 0x0a, 0x14, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x22, 0x0a, 0x1e, 0x50, 0x41, 0x59,
-	0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x53, 0x54, 0x41,
-	0x54, 0x55, 0x53, 0x5f, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x1f, 0x0a,
-	0x1b, 0x50, 0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54,
-	0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x4f, 0x50, 0x45, 0x4e, 0x10, 0x01, 0x12, 0x24,
-	0x0a, 0x20, 0x50, 0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53,
-	0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x43, 0x4f, 0x4d, 0x50, 0x4c, 0x45, 0x54,
-	0x45, 0x44, 0x10, 0x02, 0x12, 0x21, 0x0a, 0x1d, 0x50, 0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54, 0x5f,
-	0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x43,
-	0x4c, 0x4f, 0x53, 0x45, 0x44, 0x10, 0x03, 0x12, 0x22, 0x0a, 0x1e, 0x50, 0x41, 0x59, 0x4d, 0x45,
+	0x22, 0xb7, 0x07, 0x0a, 0x14, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x64, 0x0a, 0x12, 0x70, 0x61, 0x79,
+	0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2c, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68,
+	0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e,
+	0x76, 0x31, 0x2e, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x49, 0x64, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x10, 0x70,
+	0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12,
+	0x4e, 0x0a, 0x07, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x32, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x70, 0x61, 0x79, 0x6d,
+	0x65, 0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61,
+	0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4d, 0x65, 0x74, 0x61,
+	0x64, 0x61, 0x74, 0x61, 0x48, 0x00, 0x52, 0x07, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x12,
+	0x54, 0x0a, 0x07, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x38, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x70, 0x61, 0x79, 0x6d,
+	0x65, 0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61,
+	0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x48, 0x00, 0x52, 0x07, 0x75, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x73, 0x1a, 0x8b, 0x01, 0x0a, 0x07, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x73, 0x12, 0x21, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x04, 0x42, 0x07, 0xfa, 0x42, 0x04, 0x32, 0x02, 0x28, 0x02, 0x52, 0x07, 0x76, 0x65, 0x72,
+	0x73, 0x69, 0x6f, 0x6e, 0x12, 0x5d, 0x0a, 0x07, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x18,
+	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x37, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68,
+	0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e,
+	0x76, 0x31, 0x2e, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x0a,
+	0xfa, 0x42, 0x07, 0x92, 0x01, 0x04, 0x08, 0x01, 0x10, 0x64, 0x52, 0x07, 0x75, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x73, 0x1a, 0xf4, 0x01, 0x0a, 0x06, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x77,
+	0x0a, 0x14, 0x73, 0x68, 0x61, 0x72, 0x65, 0x5f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x5f,
+	0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x43, 0x2e, 0x66,
+	0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e,
+	0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x2e, 0x53,
+	0x68, 0x61, 0x72, 0x65, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x48, 0x00, 0x52, 0x12, 0x73, 0x68, 0x61, 0x72, 0x65, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e,
+	0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x12, 0x64, 0x0a, 0x0d, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x5f, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x3d,
+	0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e,
+	0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x79, 0x6d,
+	0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x48, 0x00, 0x52,
+	0x0c, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x0b, 0x0a,
+	0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x03, 0xf8, 0x42, 0x01, 0x1a, 0x57, 0x0a, 0x12, 0x53, 0x68,
+	0x61, 0x72, 0x65, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x12, 0x41, 0x0a, 0x05, 0x73, 0x68, 0x61, 0x72, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x21, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65,
+	0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x53, 0x68, 0x61,
+	0x72, 0x65, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x8a, 0x01, 0x02, 0x10, 0x01, 0x52, 0x05, 0x73, 0x68,
+	0x61, 0x72, 0x65, 0x1a, 0xa7, 0x01, 0x0a, 0x0c, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x12, 0x54, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0e, 0x32, 0x30, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x2e,
+	0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76,
+	0x31, 0x2e, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x42, 0x0a, 0xfa, 0x42, 0x07, 0x82, 0x01, 0x04, 0x18, 0x02,
+	0x18, 0x03, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x41, 0x0a, 0x09, 0x63, 0x6c,
+	0x6f, 0x73, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
+	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
+	0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42, 0x08, 0xfa, 0x42, 0x05, 0xb2, 0x01,
+	0x02, 0x08, 0x01, 0x52, 0x08, 0x63, 0x6c, 0x6f, 0x73, 0x65, 0x64, 0x41, 0x74, 0x42, 0x0b, 0x0a,
+	0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x03, 0xf8, 0x42, 0x01, 0x22, 0x91, 0x01, 0x0a, 0x19, 0x50,
+	0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x42, 0x61, 0x74, 0x63, 0x68, 0x12, 0x74, 0x0a, 0x17, 0x70, 0x61, 0x79, 0x6d,
+	0x65, 0x6e, 0x74, 0x5f, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x75, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x66, 0x6c, 0x69, 0x70,
+	0x63, 0x61, 0x73, 0x68, 0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x42, 0x0a, 0xfa, 0x42, 0x07,
+	0x92, 0x01, 0x04, 0x08, 0x01, 0x10, 0x64, 0x52, 0x15, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x73, 0x2a, 0xc8,
+	0x01, 0x0a, 0x14, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x22, 0x0a, 0x1e, 0x50, 0x41, 0x59, 0x4d, 0x45,
 	0x4e, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55,
-	0x53, 0x5f, 0x45, 0x58, 0x50, 0x49, 0x52, 0x45, 0x44, 0x10, 0x04, 0x42, 0xa3, 0x01, 0x0a, 0x2a,
-	0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e, 0x66, 0x6c, 0x69, 0x70,
-	0x63, 0x61, 0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74,
-	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x5a, 0x5f, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70, 0x61, 0x79, 0x6d,
-	0x65, 0x6e, 0x74, 0x73, 0x2f, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x32, 0x2d, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e, 0x65,
-	0x72, 0x61, 0x74, 0x65, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74,
-	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x70, 0x61, 0x79, 0x6d, 0x65,
-	0x6e, 0x74, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x70, 0x62, 0xa2, 0x02, 0x13, 0x46, 0x50,
-	0x42, 0x50, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x56,
-	0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x53, 0x5f, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x1f, 0x0a, 0x1b, 0x50,
+	0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x53,
+	0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x4f, 0x50, 0x45, 0x4e, 0x10, 0x01, 0x12, 0x24, 0x0a, 0x20,
+	0x50, 0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f,
+	0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x43, 0x4f, 0x4d, 0x50, 0x4c, 0x45, 0x54, 0x45, 0x44,
+	0x10, 0x02, 0x12, 0x21, 0x0a, 0x1d, 0x50, 0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54, 0x5f, 0x52, 0x45,
+	0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x43, 0x4c, 0x4f,
+	0x53, 0x45, 0x44, 0x10, 0x03, 0x12, 0x22, 0x0a, 0x1e, 0x50, 0x41, 0x59, 0x4d, 0x45, 0x4e, 0x54,
+	0x5f, 0x52, 0x45, 0x51, 0x55, 0x45, 0x53, 0x54, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f,
+	0x45, 0x58, 0x50, 0x49, 0x52, 0x45, 0x44, 0x10, 0x04, 0x42, 0xa3, 0x01, 0x0a, 0x2a, 0x63, 0x6f,
+	0x6d, 0x2e, 0x63, 0x6f, 0x64, 0x65, 0x69, 0x6e, 0x63, 0x2e, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61,
+	0x73, 0x68, 0x2e, 0x67, 0x65, 0x6e, 0x2e, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x76, 0x31, 0x5a, 0x5f, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x64, 0x65, 0x2d, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e,
+	0x74, 0x73, 0x2f, 0x66, 0x6c, 0x69, 0x70, 0x63, 0x61, 0x73, 0x68, 0x32, 0x2d, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2d, 0x61, 0x70, 0x69, 0x2f, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61,
+	0x74, 0x65, 0x64, 0x2f, 0x67, 0x6f, 0x2f, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x72, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74,
+	0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x70, 0x62, 0xa2, 0x02, 0x13, 0x46, 0x50, 0x42, 0x50,
+	0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x56, 0x31, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1213,51 +1698,67 @@ func file_paymentrequest_v1_model_proto_rawDescGZIP() []byte {
 }
 
 var file_paymentrequest_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_paymentrequest_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_paymentrequest_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_paymentrequest_v1_model_proto_goTypes = []any{
-	(PaymentRequestStatus)(0),               // 0: flipcash.paymentrequest.v1.PaymentRequestStatus
-	(EncryptedPaymentRequestText_Scheme)(0), // 1: flipcash.paymentrequest.v1.EncryptedPaymentRequestText.Scheme
-	(*PaymentRequestId)(nil),                // 2: flipcash.paymentrequest.v1.PaymentRequestId
-	(*IdempotencyKey)(nil),                  // 3: flipcash.paymentrequest.v1.IdempotencyKey
-	(*PaymentRequestMetadata)(nil),          // 4: flipcash.paymentrequest.v1.PaymentRequestMetadata
-	(*GroupChatPaymentRequest)(nil),         // 5: flipcash.paymentrequest.v1.GroupChatPaymentRequest
-	(*Split)(nil),                           // 6: flipcash.paymentrequest.v1.Split
-	(*PaymentRequestText)(nil),              // 7: flipcash.paymentrequest.v1.PaymentRequestText
-	(*EncryptedPaymentRequestText)(nil),     // 8: flipcash.paymentrequest.v1.EncryptedPaymentRequestText
-	(*Share)(nil),                           // 9: flipcash.paymentrequest.v1.Share
-	(*PaidShare)(nil),                       // 10: flipcash.paymentrequest.v1.PaidShare
-	(*PaidShare_Manual)(nil),                // 11: flipcash.paymentrequest.v1.PaidShare.Manual
-	(*PaidShare_Creator)(nil),               // 12: flipcash.paymentrequest.v1.PaidShare.Creator
-	(*v1.UserId)(nil),                       // 13: flipcash.common.v1.UserId
-	(*timestamppb.Timestamp)(nil),           // 14: google.protobuf.Timestamp
-	(*v1.ChatId)(nil),                       // 15: flipcash.common.v1.ChatId
-	(*v1.IntentId)(nil),                     // 16: flipcash.common.v1.IntentId
+	(PaymentRequestStatus)(0),                       // 0: flipcash.paymentrequest.v1.PaymentRequestStatus
+	(EncryptedPaymentRequestText_Scheme)(0),         // 1: flipcash.paymentrequest.v1.EncryptedPaymentRequestText.Scheme
+	(*PaymentRequestId)(nil),                        // 2: flipcash.paymentrequest.v1.PaymentRequestId
+	(*IdempotencyKey)(nil),                          // 3: flipcash.paymentrequest.v1.IdempotencyKey
+	(*PaymentRequestMetadata)(nil),                  // 4: flipcash.paymentrequest.v1.PaymentRequestMetadata
+	(*GroupChatPaymentRequest)(nil),                 // 5: flipcash.paymentrequest.v1.GroupChatPaymentRequest
+	(*Split)(nil),                                   // 6: flipcash.paymentrequest.v1.Split
+	(*PaymentRequestText)(nil),                      // 7: flipcash.paymentrequest.v1.PaymentRequestText
+	(*EncryptedPaymentRequestText)(nil),             // 8: flipcash.paymentrequest.v1.EncryptedPaymentRequestText
+	(*Share)(nil),                                   // 9: flipcash.paymentrequest.v1.Share
+	(*PaidShare)(nil),                               // 10: flipcash.paymentrequest.v1.PaidShare
+	(*PaymentRequestUpdate)(nil),                    // 11: flipcash.paymentrequest.v1.PaymentRequestUpdate
+	(*PaymentRequestUpdateBatch)(nil),               // 12: flipcash.paymentrequest.v1.PaymentRequestUpdateBatch
+	(*PaidShare_Manual)(nil),                        // 13: flipcash.paymentrequest.v1.PaidShare.Manual
+	(*PaidShare_Creator)(nil),                       // 14: flipcash.paymentrequest.v1.PaidShare.Creator
+	(*PaymentRequestUpdate_Updates)(nil),            // 15: flipcash.paymentrequest.v1.PaymentRequestUpdate.Updates
+	(*PaymentRequestUpdate_Update)(nil),             // 16: flipcash.paymentrequest.v1.PaymentRequestUpdate.Update
+	(*PaymentRequestUpdate_SharePaymentUpdate)(nil), // 17: flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate
+	(*PaymentRequestUpdate_StatusUpdate)(nil),       // 18: flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate
+	(*v1.UserId)(nil),                               // 19: flipcash.common.v1.UserId
+	(*timestamppb.Timestamp)(nil),                   // 20: google.protobuf.Timestamp
+	(*v1.ChatId)(nil),                               // 21: flipcash.common.v1.ChatId
+	(*v1.IntentId)(nil),                             // 22: flipcash.common.v1.IntentId
 }
 var file_paymentrequest_v1_model_proto_depIdxs = []int32{
 	2,  // 0: flipcash.paymentrequest.v1.PaymentRequestMetadata.payment_request_id:type_name -> flipcash.paymentrequest.v1.PaymentRequestId
-	13, // 1: flipcash.paymentrequest.v1.PaymentRequestMetadata.creator:type_name -> flipcash.common.v1.UserId
-	14, // 2: flipcash.paymentrequest.v1.PaymentRequestMetadata.created_at:type_name -> google.protobuf.Timestamp
+	19, // 1: flipcash.paymentrequest.v1.PaymentRequestMetadata.creator:type_name -> flipcash.common.v1.UserId
+	20, // 2: flipcash.paymentrequest.v1.PaymentRequestMetadata.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: flipcash.paymentrequest.v1.PaymentRequestMetadata.status:type_name -> flipcash.paymentrequest.v1.PaymentRequestStatus
-	14, // 4: flipcash.paymentrequest.v1.PaymentRequestMetadata.closed_at:type_name -> google.protobuf.Timestamp
+	20, // 4: flipcash.paymentrequest.v1.PaymentRequestMetadata.closed_at:type_name -> google.protobuf.Timestamp
 	5,  // 5: flipcash.paymentrequest.v1.PaymentRequestMetadata.group_chat:type_name -> flipcash.paymentrequest.v1.GroupChatPaymentRequest
-	15, // 6: flipcash.paymentrequest.v1.GroupChatPaymentRequest.chat_id:type_name -> flipcash.common.v1.ChatId
+	21, // 6: flipcash.paymentrequest.v1.GroupChatPaymentRequest.chat_id:type_name -> flipcash.common.v1.ChatId
 	6,  // 7: flipcash.paymentrequest.v1.GroupChatPaymentRequest.split:type_name -> flipcash.paymentrequest.v1.Split
 	7,  // 8: flipcash.paymentrequest.v1.Split.plaintext:type_name -> flipcash.paymentrequest.v1.PaymentRequestText
 	8,  // 9: flipcash.paymentrequest.v1.Split.encrypted:type_name -> flipcash.paymentrequest.v1.EncryptedPaymentRequestText
-	14, // 10: flipcash.paymentrequest.v1.Split.ends_at:type_name -> google.protobuf.Timestamp
+	20, // 10: flipcash.paymentrequest.v1.Split.ends_at:type_name -> google.protobuf.Timestamp
 	9,  // 11: flipcash.paymentrequest.v1.Split.shares:type_name -> flipcash.paymentrequest.v1.Share
 	1,  // 12: flipcash.paymentrequest.v1.EncryptedPaymentRequestText.scheme:type_name -> flipcash.paymentrequest.v1.EncryptedPaymentRequestText.Scheme
-	13, // 13: flipcash.paymentrequest.v1.Share.user_id:type_name -> flipcash.common.v1.UserId
+	19, // 13: flipcash.paymentrequest.v1.Share.user_id:type_name -> flipcash.common.v1.UserId
 	10, // 14: flipcash.paymentrequest.v1.Share.paid:type_name -> flipcash.paymentrequest.v1.PaidShare
-	14, // 15: flipcash.paymentrequest.v1.PaidShare.paid_at:type_name -> google.protobuf.Timestamp
-	16, // 16: flipcash.paymentrequest.v1.PaidShare.intent:type_name -> flipcash.common.v1.IntentId
-	11, // 17: flipcash.paymentrequest.v1.PaidShare.manual:type_name -> flipcash.paymentrequest.v1.PaidShare.Manual
-	12, // 18: flipcash.paymentrequest.v1.PaidShare.creator:type_name -> flipcash.paymentrequest.v1.PaidShare.Creator
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	20, // 15: flipcash.paymentrequest.v1.PaidShare.paid_at:type_name -> google.protobuf.Timestamp
+	22, // 16: flipcash.paymentrequest.v1.PaidShare.intent:type_name -> flipcash.common.v1.IntentId
+	13, // 17: flipcash.paymentrequest.v1.PaidShare.manual:type_name -> flipcash.paymentrequest.v1.PaidShare.Manual
+	14, // 18: flipcash.paymentrequest.v1.PaidShare.creator:type_name -> flipcash.paymentrequest.v1.PaidShare.Creator
+	2,  // 19: flipcash.paymentrequest.v1.PaymentRequestUpdate.payment_request_id:type_name -> flipcash.paymentrequest.v1.PaymentRequestId
+	4,  // 20: flipcash.paymentrequest.v1.PaymentRequestUpdate.created:type_name -> flipcash.paymentrequest.v1.PaymentRequestMetadata
+	15, // 21: flipcash.paymentrequest.v1.PaymentRequestUpdate.updates:type_name -> flipcash.paymentrequest.v1.PaymentRequestUpdate.Updates
+	11, // 22: flipcash.paymentrequest.v1.PaymentRequestUpdateBatch.payment_request_updates:type_name -> flipcash.paymentrequest.v1.PaymentRequestUpdate
+	16, // 23: flipcash.paymentrequest.v1.PaymentRequestUpdate.Updates.updates:type_name -> flipcash.paymentrequest.v1.PaymentRequestUpdate.Update
+	17, // 24: flipcash.paymentrequest.v1.PaymentRequestUpdate.Update.share_payment_update:type_name -> flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate
+	18, // 25: flipcash.paymentrequest.v1.PaymentRequestUpdate.Update.status_update:type_name -> flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate
+	9,  // 26: flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate.share:type_name -> flipcash.paymentrequest.v1.Share
+	0,  // 27: flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate.status:type_name -> flipcash.paymentrequest.v1.PaymentRequestStatus
+	20, // 28: flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate.closed_at:type_name -> google.protobuf.Timestamp
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_paymentrequest_v1_model_proto_init() }
@@ -1280,13 +1781,21 @@ func file_paymentrequest_v1_model_proto_init() {
 		(*PaidShare_Manual_)(nil),
 		(*PaidShare_Creator_)(nil),
 	}
+	file_paymentrequest_v1_model_proto_msgTypes[9].OneofWrappers = []any{
+		(*PaymentRequestUpdate_Created)(nil),
+		(*PaymentRequestUpdate_Updates_)(nil),
+	}
+	file_paymentrequest_v1_model_proto_msgTypes[14].OneofWrappers = []any{
+		(*PaymentRequestUpdate_Update_SharePaymentUpdate)(nil),
+		(*PaymentRequestUpdate_Update_StatusUpdate)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_paymentrequest_v1_model_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
