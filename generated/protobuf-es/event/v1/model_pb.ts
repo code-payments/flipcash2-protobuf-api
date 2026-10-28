@@ -8,6 +8,7 @@ import { Duration, Message, proto3, protoInt64, Timestamp } from "@bufbuild/prot
 import { ChatId, UserId } from "../../common/v1/common_pb";
 import { EventBatch as EventBatch$1, IsTypingNotificationBatch, PointerBatch, ReactionUpdateBatch } from "../../messaging/v1/model_pb";
 import { LobbyUpdateBatch, MetadataUpdate, RosterUpdateBatch } from "../../chat/v1/model_pb";
+import { PaymentRequestUpdateBatch } from "../../paymentrequest/v1/model_pb";
 import { BlobBatch } from "../../blob/v1/model_pb";
 
 /**
@@ -536,6 +537,20 @@ export class ChatUpdate extends Message<ChatUpdate> {
    */
   lobbyUpdates?: LobbyUpdateBatch;
 
+  /**
+   * If present, best-effort real-time changes to the chat's payment
+   * requests: one created, carried whole, and each change after that (a
+   * share paid, a request completed or closed), carried as what it did.
+   * Sent to those who can read the chat in full, never to a redacted chat
+   * preview. Like reaction_updates, they are NOT part of the gap-detected
+   * event log; clients apply each to their copy by the request's version
+   * and reconcile any misses by refetching the request (see
+   * paymentrequest.v1.PaymentRequestUpdate).
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestUpdateBatch payment_request_updates = 10;
+   */
+  paymentRequestUpdates?: PaymentRequestUpdateBatch;
+
   constructor(data?: PartialMessage<ChatUpdate>) {
     super();
     proto3.util.initPartial(data, this);
@@ -552,6 +567,7 @@ export class ChatUpdate extends Message<ChatUpdate> {
     { no: 7, name: "reaction_updates", kind: "message", T: ReactionUpdateBatch },
     { no: 8, name: "roster_updates", kind: "message", T: RosterUpdateBatch },
     { no: 9, name: "lobby_updates", kind: "message", T: LobbyUpdateBatch },
+    { no: 10, name: "payment_request_updates", kind: "message", T: PaymentRequestUpdateBatch },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatUpdate {
