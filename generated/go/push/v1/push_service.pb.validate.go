@@ -629,3 +629,249 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteTokensResponseValidationError{}
+
+// Validate checks the field values on SendTestPushRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SendTestPushRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SendTestPushRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SendTestPushRequestMultiError, or nil if none found.
+func (m *SendTestPushRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SendTestPushRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetAuth() == nil {
+		err := SendTestPushRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SendTestPushRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SendTestPushRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SendTestPushRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SendTestPushRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SendTestPushRequestMultiError is an error wrapping multiple validation
+// errors returned by SendTestPushRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SendTestPushRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SendTestPushRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SendTestPushRequestMultiError) AllErrors() []error { return m }
+
+// SendTestPushRequestValidationError is the validation error returned by
+// SendTestPushRequest.Validate if the designated constraints aren't met.
+type SendTestPushRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SendTestPushRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SendTestPushRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SendTestPushRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SendTestPushRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SendTestPushRequestValidationError) ErrorName() string {
+	return "SendTestPushRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SendTestPushRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSendTestPushRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SendTestPushRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SendTestPushRequestValidationError{}
+
+// Validate checks the field values on SendTestPushResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SendTestPushResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SendTestPushResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SendTestPushResponseMultiError, or nil if none found.
+func (m *SendTestPushResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SendTestPushResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(errors) > 0 {
+		return SendTestPushResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SendTestPushResponseMultiError is an error wrapping multiple validation
+// errors returned by SendTestPushResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SendTestPushResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SendTestPushResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SendTestPushResponseMultiError) AllErrors() []error { return m }
+
+// SendTestPushResponseValidationError is the validation error returned by
+// SendTestPushResponse.Validate if the designated constraints aren't met.
+type SendTestPushResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SendTestPushResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SendTestPushResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SendTestPushResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SendTestPushResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SendTestPushResponseValidationError) ErrorName() string {
+	return "SendTestPushResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SendTestPushResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSendTestPushResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SendTestPushResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SendTestPushResponseValidationError{}

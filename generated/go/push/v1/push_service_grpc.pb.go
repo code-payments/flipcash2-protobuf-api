@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Push_AddToken_FullMethodName     = "/flipcash.push.v1.Push/AddToken"
 	Push_DeleteTokens_FullMethodName = "/flipcash.push.v1.Push/DeleteTokens"
+	Push_SendTestPush_FullMethodName = "/flipcash.push.v1.Push/SendTestPush"
 )
 
 // PushClient is the client API for Push service.
@@ -31,6 +32,10 @@ type PushClient interface {
 	AddToken(ctx context.Context, in *AddTokenRequest, opts ...grpc.CallOption) (*AddTokenResponse, error)
 	// DeleteTokens removes all push tokens within an app install for a user
 	DeleteTokens(ctx context.Context, in *DeleteTokensRequest, opts ...grpc.CallOption) (*DeleteTokensResponse, error)
+	// SendTestPush sends a fixed test notification to every device the caller
+	// has registered a push token for, so a user can check that notifications
+	// reach them. It carries no navigation and does not change the app badge.
+	SendTestPush(ctx context.Context, in *SendTestPushRequest, opts ...grpc.CallOption) (*SendTestPushResponse, error)
 }
 
 type pushClient struct {
@@ -61,6 +66,16 @@ func (c *pushClient) DeleteTokens(ctx context.Context, in *DeleteTokensRequest, 
 	return out, nil
 }
 
+func (c *pushClient) SendTestPush(ctx context.Context, in *SendTestPushRequest, opts ...grpc.CallOption) (*SendTestPushResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SendTestPushResponse)
+	err := c.cc.Invoke(ctx, Push_SendTestPush_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PushServer is the server API for Push service.
 // All implementations must embed UnimplementedPushServer
 // for forward compatibility.
@@ -69,6 +84,10 @@ type PushServer interface {
 	AddToken(context.Context, *AddTokenRequest) (*AddTokenResponse, error)
 	// DeleteTokens removes all push tokens within an app install for a user
 	DeleteTokens(context.Context, *DeleteTokensRequest) (*DeleteTokensResponse, error)
+	// SendTestPush sends a fixed test notification to every device the caller
+	// has registered a push token for, so a user can check that notifications
+	// reach them. It carries no navigation and does not change the app badge.
+	SendTestPush(context.Context, *SendTestPushRequest) (*SendTestPushResponse, error)
 	mustEmbedUnimplementedPushServer()
 }
 
@@ -84,6 +103,9 @@ func (UnimplementedPushServer) AddToken(context.Context, *AddTokenRequest) (*Add
 }
 func (UnimplementedPushServer) DeleteTokens(context.Context, *DeleteTokensRequest) (*DeleteTokensResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTokens not implemented")
+}
+func (UnimplementedPushServer) SendTestPush(context.Context, *SendTestPushRequest) (*SendTestPushResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendTestPush not implemented")
 }
 func (UnimplementedPushServer) mustEmbedUnimplementedPushServer() {}
 func (UnimplementedPushServer) testEmbeddedByValue()              {}
@@ -142,6 +164,24 @@ func _Push_DeleteTokens_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Push_SendTestPush_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendTestPushRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PushServer).SendTestPush(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Push_SendTestPush_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PushServer).SendTestPush(ctx, req.(*SendTestPushRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Push_ServiceDesc is the grpc.ServiceDesc for Push service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -156,6 +196,10 @@ var Push_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteTokens",
 			Handler:    _Push_DeleteTokens_Handler,
+		},
+		{
+			MethodName: "SendTestPush",
+			Handler:    _Push_SendTestPush_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

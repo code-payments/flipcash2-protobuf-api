@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddTokenRequest, AddTokenResponse, DeleteTokensRequest, DeleteTokensResponse } from "./push_service_pb";
+import { AddTokenRequest, AddTokenResponse, DeleteTokensRequest, DeleteTokensResponse, SendTestPushRequest, SendTestPushResponse } from "./push_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -32,6 +32,19 @@ export const Push = {
       name: "DeleteTokens",
       I: DeleteTokensRequest,
       O: DeleteTokensResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * SendTestPush sends a fixed test notification to every device the caller
+     * has registered a push token for, so a user can check that notifications
+     * reach them. It carries no navigation and does not change the app badge.
+     *
+     * @generated from rpc flipcash.push.v1.Push.SendTestPush
+     */
+    sendTestPush: {
+      name: "SendTestPush",
+      I: SendTestPushRequest,
+      O: SendTestPushResponse,
       kind: MethodKind.Unary,
     },
   }
