@@ -214,3 +214,91 @@ proto3.util.setEnumType(DeleteTokensResponse_Result, "flipcash.push.v1.DeleteTok
   { no: 0, name: "OK" },
 ]);
 
+/**
+ * @generated from message flipcash.push.v1.SendTestPushRequest
+ */
+export class SendTestPushRequest extends Message<SendTestPushRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 1;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<SendTestPushRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.push.v1.SendTestPushRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SendTestPushRequest {
+    return new SendTestPushRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SendTestPushRequest {
+    return new SendTestPushRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SendTestPushRequest {
+    return new SendTestPushRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SendTestPushRequest | PlainMessage<SendTestPushRequest> | undefined, b: SendTestPushRequest | PlainMessage<SendTestPushRequest> | undefined): boolean {
+    return proto3.util.equals(SendTestPushRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.push.v1.SendTestPushResponse
+ */
+export class SendTestPushResponse extends Message<SendTestPushResponse> {
+  /**
+   * @generated from field: flipcash.push.v1.SendTestPushResponse.Result result = 1;
+   */
+  result = SendTestPushResponse_Result.OK;
+
+  constructor(data?: PartialMessage<SendTestPushResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.push.v1.SendTestPushResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(SendTestPushResponse_Result) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SendTestPushResponse {
+    return new SendTestPushResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SendTestPushResponse {
+    return new SendTestPushResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SendTestPushResponse {
+    return new SendTestPushResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SendTestPushResponse | PlainMessage<SendTestPushResponse> | undefined, b: SendTestPushResponse | PlainMessage<SendTestPushResponse> | undefined): boolean {
+    return proto3.util.equals(SendTestPushResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.push.v1.SendTestPushResponse.Result
+ */
+export enum SendTestPushResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SendTestPushResponse_Result)
+proto3.util.setEnumType(SendTestPushResponse_Result, "flipcash.push.v1.SendTestPushResponse.Result", [
+  { no: 0, name: "OK" },
+]);
+

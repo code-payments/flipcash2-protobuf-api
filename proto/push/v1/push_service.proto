@@ -16,6 +16,11 @@ service Push {
 
     // DeleteTokens removes all push tokens within an app install for a user
     rpc DeleteTokens(DeleteTokensRequest) returns (DeleteTokensResponse);
+
+    // SendTestPush sends a fixed test notification to every device the caller
+    // has registered a push token for, so a user can check that notifications
+    // reach them. It carries no navigation and does not change the app badge.
+    rpc SendTestPush(SendTestPushRequest) returns (SendTestPushResponse);
 }
 
 message AddTokenRequest {
@@ -46,6 +51,17 @@ message DeleteTokensRequest {
 }
 
 message DeleteTokensResponse {
+    Result result = 1;
+    enum Result {
+        OK = 0;
+    }
+}
+
+message SendTestPushRequest {
+    common.v1.Auth auth = 1 [(validate.rules).message.required = true];
+}
+
+message SendTestPushResponse {
     Result result = 1;
     enum Result {
         OK = 0;
