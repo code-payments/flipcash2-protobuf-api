@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatId, FiatPaymentAmount, PublicKey, UserId } from "../../common/v1/common_pb";
-import { Message as Message$1, Pointer } from "../../messaging/v1/model_pb";
+import { Message as Message$1, MessageId, Pointer } from "../../messaging/v1/model_pb";
 import { Media } from "../../blob/v1/model_pb";
 import { UserProfile } from "../../profile/v1/model_pb";
 
@@ -250,6 +250,25 @@ export class Metadata extends Message<Metadata> {
   holdingsSummary?: HoldingsSummary;
 
   /**
+   * The chat's pinned messages, summarized: how many there are and the
+   * most recently pinned one, with its message, for a client to show
+   * above the conversation. Chat.GetPinnedMessages pages them all.
+   *
+   * Messaging state, like last_message: withheld from a viewer who may not
+   * read the chat, and the pinned message may be redacted (see
+   * messaging.v1.Message.redacted) under the same view mode. Otherwise
+   * always set, with count 0 and no latest when nothing is pinned.
+   *
+   * It may be unset on a chat returned by an RPC meant for list views
+   * (e.g. Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an unset value
+   * there does not mean nothing is pinned. Fetch it with Chat.GetChat, and
+   * don't let a list result clear a summary the client already holds.
+   *
+   * @generated from field: flipcash.chat.v1.PinSummary pin_summary = 19;
+   */
+  pinSummary?: PinSummary;
+
+  /**
    * Whether messages in this chat are end-to-end encrypted (see
    * messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
    * always false for group chats. A private group is always end-to-end
@@ -294,6 +313,7 @@ export class Metadata extends Message<Metadata> {
     { no: 16, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 17, name: "cover_picture", kind: "message", T: Media },
     { no: 18, name: "holdings_summary", kind: "message", T: HoldingsSummary },
+    { no: 19, name: "pin_summary", kind: "message", T: PinSummary },
     { no: 100, name: "use_e2ee", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
@@ -1005,6 +1025,155 @@ export class HoldingsSummary extends Message<HoldingsSummary> {
 }
 
 /**
+ * Pin is one pinned message in a chat (see Chat.PinMessage). A chat's pins
+ * are ordered most recently pinned first; pinning a message that is already
+ * pinned does not move it.
+ *
+ * @generated from message flipcash.chat.v1.Pin
+ */
+export class Pin extends Message<Pin> {
+  /**
+   * The pinned message.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  /**
+   * The user who pinned it.
+   *
+   * @generated from field: flipcash.common.v1.UserId pinned_by = 2;
+   */
+  pinnedBy?: UserId;
+
+  /**
+   * When it was pinned.
+   *
+   * @generated from field: google.protobuf.Timestamp pinned_at = 3;
+   */
+  pinnedAt?: Timestamp;
+
+  /**
+   * The pinned message itself, as the viewer may read it: redacted (see
+   * messaging.v1.Message.redacted) when the read that returned it was
+   * redacted. Always set.
+   *
+   * A snapshot as of the read or event that carried it. Editing or
+   * deleting a pinned message does not move PinSummary.version and
+   * publishes no MetadataUpdate.PinsChanged; the change arrives on the
+   * chat's event log like any other (see messaging.v1.Messaging.GetDelta),
+   * and clients apply it to the copies they hold in their pins.
+   *
+   * A message deleted after it was pinned stays pinned, carrying its
+   * tombstone, until someone permitted to pin unpins it, and it still
+   * counts toward the cap on a chat's pins. Clients should not show such a
+   * pin. When PinSummary.latest is one, a client that shows the next pin
+   * fetches it with Chat.GetPinnedMessages.
+   *
+   * @generated from field: flipcash.messaging.v1.Message message = 4;
+   */
+  message?: Message$1;
+
+  constructor(data?: PartialMessage<Pin>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.Pin";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+    { no: 2, name: "pinned_by", kind: "message", T: UserId },
+    { no: 3, name: "pinned_at", kind: "message", T: Timestamp },
+    { no: 4, name: "message", kind: "message", T: Message$1 },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Pin {
+    return new Pin().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Pin {
+    return new Pin().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Pin {
+    return new Pin().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Pin | PlainMessage<Pin> | undefined, b: Pin | PlainMessage<Pin> | undefined): boolean {
+    return proto3.util.equals(Pin, a, b);
+  }
+}
+
+/**
+ * PinSummary is the state of a chat's pinned messages that is shown with the
+ * chat (see Metadata.pin_summary).
+ *
+ * @generated from message flipcash.chat.v1.PinSummary
+ */
+export class PinSummary extends Message<PinSummary> {
+  /**
+   * The most recently pinned message. Unset when nothing is pinned.
+   *
+   * @generated from field: flipcash.chat.v1.Pin latest = 1;
+   */
+  latest?: Pin;
+
+  /**
+   * The number of pinned messages. The server caps how many messages a
+   * chat may have pinned, 5 today (see Chat.PinMessage).
+   *
+   * @generated from field: uint32 count = 2;
+   */
+  count = 0;
+
+  /**
+   * Version of the chat's pins: advanced by exactly one on every pin and
+   * unpin, never by a no-op, and 0 for a chat that has never had a pin.
+   * A pinned message being edited or deleted does not move it (see
+   * Pin.message).
+   *
+   * Compared like RosterSummary.version: apply the greater value and drop
+   * the rest, so delivery order does not matter. It is not the chat event
+   * sequence and has no delta to fetch against it; a client that finds
+   * itself behind refetches its pins with Chat.GetPinnedMessages (see
+   * MetadataUpdate.PinsChanged).
+   *
+   * @generated from field: uint64 version = 3;
+   */
+  version = protoInt64.zero;
+
+  constructor(data?: PartialMessage<PinSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.PinSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "latest", kind: "message", T: Pin },
+    { no: 2, name: "count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PinSummary {
+    return new PinSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PinSummary {
+    return new PinSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PinSummary {
+    return new PinSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PinSummary | PlainMessage<PinSummary> | undefined, b: PinSummary | PlainMessage<PinSummary> | undefined): boolean {
+    return proto3.util.equals(PinSummary, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.chat.v1.MetadataUpdate
  */
 export class MetadataUpdate extends Message<MetadataUpdate> {
@@ -1059,6 +1228,12 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
      */
     value: MetadataUpdate_RulesChanged;
     case: "rulesChanged";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.MetadataUpdate.PinsChanged pins_changed = 9;
+     */
+    value: MetadataUpdate_PinsChanged;
+    case: "pinsChanged";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<MetadataUpdate>) {
@@ -1077,6 +1252,7 @@ export class MetadataUpdate extends Message<MetadataUpdate> {
     { no: 6, name: "description_changed", kind: "message", T: MetadataUpdate_DescriptionChanged, oneof: "kind" },
     { no: 7, name: "cover_picture_changed", kind: "message", T: MetadataUpdate_CoverPictureChanged, oneof: "kind" },
     { no: 8, name: "rules_changed", kind: "message", T: MetadataUpdate_RulesChanged, oneof: "kind" },
+    { no: 9, name: "pins_changed", kind: "message", T: MetadataUpdate_PinsChanged, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate {
@@ -1433,6 +1609,80 @@ export class MetadataUpdate_RulesChanged extends Message<MetadataUpdate_RulesCha
 
   static equals(a: MetadataUpdate_RulesChanged | PlainMessage<MetadataUpdate_RulesChanged> | undefined, b: MetadataUpdate_RulesChanged | PlainMessage<MetadataUpdate_RulesChanged> | undefined): boolean {
     return proto3.util.equals(MetadataUpdate_RulesChanged, a, b);
+  }
+}
+
+/**
+ * A message was pinned or unpinned (see Chat.PinMessage and
+ * Chat.UnpinMessage). Delivered to the chat's members, including the
+ * caller's other devices, and to a chat preview, where the pinned
+ * message is redacted as the preview's messages are. Best-effort.
+ *
+ * A client holding the chat's pins at summary.version - 1 applies change
+ * to them and takes summary. A client further behind may have missed a
+ * change, so it takes summary and refetches its pins with
+ * Chat.GetPinnedMessages. A client at summary.version or later has
+ * already seen it and drops it.
+ *
+ * @generated from message flipcash.chat.v1.MetadataUpdate.PinsChanged
+ */
+export class MetadataUpdate_PinsChanged extends Message<MetadataUpdate_PinsChanged> {
+  /**
+   * @generated from oneof flipcash.chat.v1.MetadataUpdate.PinsChanged.change
+   */
+  change: {
+    /**
+     * The pin made, now the chat's most recently pinned message.
+     *
+     * @generated from field: flipcash.chat.v1.Pin pinned = 1;
+     */
+    value: Pin;
+    case: "pinned";
+  } | {
+    /**
+     * The message unpinned.
+     *
+     * @generated from field: flipcash.messaging.v1.MessageId unpinned = 2;
+     */
+    value: MessageId;
+    case: "unpinned";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * The chat's pin summary after the change, replacing
+   * Metadata.pin_summary.
+   *
+   * @generated from field: flipcash.chat.v1.PinSummary summary = 3;
+   */
+  summary?: PinSummary;
+
+  constructor(data?: PartialMessage<MetadataUpdate_PinsChanged>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.MetadataUpdate.PinsChanged";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "pinned", kind: "message", T: Pin, oneof: "change" },
+    { no: 2, name: "unpinned", kind: "message", T: MessageId, oneof: "change" },
+    { no: 3, name: "summary", kind: "message", T: PinSummary },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MetadataUpdate_PinsChanged {
+    return new MetadataUpdate_PinsChanged().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MetadataUpdate_PinsChanged {
+    return new MetadataUpdate_PinsChanged().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MetadataUpdate_PinsChanged {
+    return new MetadataUpdate_PinsChanged().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MetadataUpdate_PinsChanged | PlainMessage<MetadataUpdate_PinsChanged> | undefined, b: MetadataUpdate_PinsChanged | PlainMessage<MetadataUpdate_PinsChanged> | undefined): boolean {
+    return proto3.util.equals(MetadataUpdate_PinsChanged, a, b);
   }
 }
 
@@ -1854,6 +2104,15 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
    */
   canInvite = false;
 
+  /**
+   * Whether the viewer may call Chat.PinMessage and Chat.UnpinMessage
+   * on this chat. Today that is either member of a DM, and a group's
+   * creator while a member: false for every other group member.
+   *
+   * @generated from field: bool can_pin = 4;
+   */
+  canPin = false;
+
   constructor(data?: PartialMessage<ViewerState_Permissions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1865,6 +2124,7 @@ export class ViewerState_Permissions extends Message<ViewerState_Permissions> {
     { no: 1, name: "can_edit", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "moderation", kind: "message", T: ViewerState_ModerationPermissions },
     { no: 3, name: "can_invite", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "can_pin", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Permissions {
