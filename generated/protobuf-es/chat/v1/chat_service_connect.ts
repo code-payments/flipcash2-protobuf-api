@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, BanUserRequest, BanUserResponse, CreateInviteRequest, CreateInviteResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatInvitesRequest, GetChatInvitesResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetInviteRequest, GetInviteResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, RevokeInviteRequest, RevokeInviteResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, BanUserRequest, BanUserResponse, CreateInviteRequest, CreateInviteResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatInvitesRequest, GetChatInvitesResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetInviteRequest, GetInviteResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetPinnedMessagesRequest, GetPinnedMessagesResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, PinMessageRequest, PinMessageResponse, RevokeInviteRequest, RevokeInviteResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnpinMessageRequest, UnpinMessageResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -834,6 +834,90 @@ export const Chat = {
       name: "GetRestrictedUsers",
       I: GetRestrictedUsersRequest,
       O: GetRestrictedUsersResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * PinMessage pins a message in a chat, making it the chat's most
+     * recently pinned message (see Metadata.pin_summary). A message must be in
+     * the chat (MESSAGE_NOT_FOUND otherwise) and of a kind that may be pinned:
+     * a deleted message and a system message may not, and are refused with
+     * MESSAGE_NOT_ALLOWED, as is any kind of content this server does not
+     * know to be pinnable. Every other message may be pinned, whatever its
+     * content (text, media, a reply, a payment, a widget, encrypted content).
+     *
+     * Only a member the server permits to pin in the chat may call it, as
+     * reported by ViewerState.Permissions.can_pin; anyone else is DENIED.
+     * Pinning a message that is already pinned is a no-op that returns OK and
+     * leaves it where it is in the order. The server caps how many messages
+     * one chat may have pinned, 5 today, and refuses a pin past it with
+     * TOO_MANY_PINS. The cap is the server's and may be raised, so clients
+     * must not hardcode it: on TOO_MANY_PINS a client asks the user to unpin
+     * a message first, and GetPinnedMessages pages the pins whatever their
+     * number.
+     *
+     * Every real change reaches the chat's members, including all of the
+     * caller's devices, on the event stream as a MetadataUpdate.PinsChanged.
+     *
+     * The response carries the chat's PinSummary after the call, which the
+     * client takes by version as it would any other. A client holding the
+     * chat's pins at version v may also apply its own pin to them at once:
+     * a summary at v + 1 means exactly one change was made, the pin it asked
+     * for (made by this call or an identical one racing it), so the message
+     * is now summary.latest; a summary at v means the message was already
+     * pinned and nothing changed; a summary further ahead means other changes
+     * were made too, which the client learns from the event stream or by
+     * refetching its pins with GetPinnedMessages.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.PinMessage
+     */
+    pinMessage: {
+      name: "PinMessage",
+      I: PinMessageRequest,
+      O: PinMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * UnpinMessage unpins a message in a chat, whoever pinned it. Permitted
+     * exactly as PinMessage is. Unpinning a message that is not pinned is a
+     * no-op that returns OK.
+     *
+     * Every real change reaches the chat's members, including all of the
+     * caller's devices, on the event stream as a MetadataUpdate.PinsChanged.
+     *
+     * The response carries the chat's PinSummary after the call, applied as
+     * for PinMessage: a summary at v + 1 means the message was unpinned, one
+     * at v that it was not pinned, and one further ahead that other changes
+     * were made too.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.UnpinMessage
+     */
+    unpinMessage: {
+      name: "UnpinMessage",
+      I: UnpinMessageRequest,
+      O: UnpinMessageResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetPinnedMessages pages a chat's pinned messages, most recently pinned
+     * first, each Pin carrying its message.
+     *
+     * Allowed to whoever may read the chat's messages under view_mode, as for
+     * messaging.v1.Messaging.GetMessages, and redacted the same way; anyone
+     * else is DENIED.
+     *
+     * Pins change while they are paged. Every page carries the chat's
+     * PinSummary as of its read, and the cursor is the last pin returned, so
+     * a pin made during the walk lands ahead of it and arrives only as a
+     * MetadataUpdate.PinsChanged, and a pin removed during the walk may be
+     * absent from a later page. Clients merge pages with the event stream by
+     * PinSummary.version, as they do roster pages by RosterSummary.version.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.GetPinnedMessages
+     */
+    getPinnedMessages: {
+      name: "GetPinnedMessages",
+      I: GetPinnedMessagesRequest,
+      O: GetPinnedMessagesResponse,
       kind: MethodKind.Unary,
     },
   }

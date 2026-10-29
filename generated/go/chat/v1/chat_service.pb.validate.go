@@ -10653,6 +10653,1153 @@ var _ interface {
 	ErrorName() string
 } = GetRestrictedUsersResponseValidationError{}
 
+// Validate checks the field values on PinMessageRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PinMessageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PinMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PinMessageRequestMultiError, or nil if none found.
+func (m *PinMessageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PinMessageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := PinMessageRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PinMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PinMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PinMessageRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := PinMessageRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PinMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PinMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PinMessageRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := PinMessageRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PinMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PinMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PinMessageRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PinMessageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// PinMessageRequestMultiError is an error wrapping multiple validation errors
+// returned by PinMessageRequest.ValidateAll() if the designated constraints
+// aren't met.
+type PinMessageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PinMessageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PinMessageRequestMultiError) AllErrors() []error { return m }
+
+// PinMessageRequestValidationError is the validation error returned by
+// PinMessageRequest.Validate if the designated constraints aren't met.
+type PinMessageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PinMessageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PinMessageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PinMessageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PinMessageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PinMessageRequestValidationError) ErrorName() string {
+	return "PinMessageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PinMessageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPinMessageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PinMessageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PinMessageRequestValidationError{}
+
+// Validate checks the field values on PinMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PinMessageResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PinMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PinMessageResponseMultiError, or nil if none found.
+func (m *PinMessageResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PinMessageResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetPinSummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PinMessageResponseValidationError{
+					field:  "PinSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PinMessageResponseValidationError{
+					field:  "PinSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPinSummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PinMessageResponseValidationError{
+				field:  "PinSummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PinMessageResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// PinMessageResponseMultiError is an error wrapping multiple validation errors
+// returned by PinMessageResponse.ValidateAll() if the designated constraints
+// aren't met.
+type PinMessageResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PinMessageResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PinMessageResponseMultiError) AllErrors() []error { return m }
+
+// PinMessageResponseValidationError is the validation error returned by
+// PinMessageResponse.Validate if the designated constraints aren't met.
+type PinMessageResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PinMessageResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PinMessageResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PinMessageResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PinMessageResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PinMessageResponseValidationError) ErrorName() string {
+	return "PinMessageResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PinMessageResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPinMessageResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PinMessageResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PinMessageResponseValidationError{}
+
+// Validate checks the field values on UnpinMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UnpinMessageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnpinMessageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UnpinMessageRequestMultiError, or nil if none found.
+func (m *UnpinMessageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnpinMessageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := UnpinMessageRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnpinMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnpinMessageRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnpinMessageRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := UnpinMessageRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnpinMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnpinMessageRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnpinMessageRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := UnpinMessageRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnpinMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnpinMessageRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnpinMessageRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UnpinMessageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UnpinMessageRequestMultiError is an error wrapping multiple validation
+// errors returned by UnpinMessageRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UnpinMessageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnpinMessageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnpinMessageRequestMultiError) AllErrors() []error { return m }
+
+// UnpinMessageRequestValidationError is the validation error returned by
+// UnpinMessageRequest.Validate if the designated constraints aren't met.
+type UnpinMessageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnpinMessageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnpinMessageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnpinMessageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnpinMessageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnpinMessageRequestValidationError) ErrorName() string {
+	return "UnpinMessageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UnpinMessageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnpinMessageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnpinMessageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnpinMessageRequestValidationError{}
+
+// Validate checks the field values on UnpinMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UnpinMessageResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnpinMessageResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UnpinMessageResponseMultiError, or nil if none found.
+func (m *UnpinMessageResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnpinMessageResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetPinSummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnpinMessageResponseValidationError{
+					field:  "PinSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnpinMessageResponseValidationError{
+					field:  "PinSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPinSummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnpinMessageResponseValidationError{
+				field:  "PinSummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UnpinMessageResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UnpinMessageResponseMultiError is an error wrapping multiple validation
+// errors returned by UnpinMessageResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UnpinMessageResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnpinMessageResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnpinMessageResponseMultiError) AllErrors() []error { return m }
+
+// UnpinMessageResponseValidationError is the validation error returned by
+// UnpinMessageResponse.Validate if the designated constraints aren't met.
+type UnpinMessageResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnpinMessageResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnpinMessageResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnpinMessageResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnpinMessageResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnpinMessageResponseValidationError) ErrorName() string {
+	return "UnpinMessageResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UnpinMessageResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnpinMessageResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnpinMessageResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnpinMessageResponseValidationError{}
+
+// Validate checks the field values on GetPinnedMessagesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetPinnedMessagesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetPinnedMessagesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetPinnedMessagesRequestMultiError, or nil if none found.
+func (m *GetPinnedMessagesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetPinnedMessagesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetPinnedMessagesRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetPinnedMessagesRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetPinnedMessagesRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetPinnedMessagesRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetQueryOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetPinnedMessagesRequestValidationError{
+					field:  "QueryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetPinnedMessagesRequestValidationError{
+					field:  "QueryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetQueryOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetPinnedMessagesRequestValidationError{
+				field:  "QueryOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if _, ok := _GetPinnedMessagesRequest_ViewMode_InLookup[m.GetViewMode()]; !ok {
+		err := GetPinnedMessagesRequestValidationError{
+			field:  "ViewMode",
+			reason: "value must be in list [FULL FULL_OR_REDACTED REDACTED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetAuth() == nil {
+		err := GetPinnedMessagesRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetPinnedMessagesRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetPinnedMessagesRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetPinnedMessagesRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetPinnedMessagesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetPinnedMessagesRequestMultiError is an error wrapping multiple validation
+// errors returned by GetPinnedMessagesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetPinnedMessagesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetPinnedMessagesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetPinnedMessagesRequestMultiError) AllErrors() []error { return m }
+
+// GetPinnedMessagesRequestValidationError is the validation error returned by
+// GetPinnedMessagesRequest.Validate if the designated constraints aren't met.
+type GetPinnedMessagesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetPinnedMessagesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetPinnedMessagesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetPinnedMessagesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetPinnedMessagesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetPinnedMessagesRequestValidationError) ErrorName() string {
+	return "GetPinnedMessagesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetPinnedMessagesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetPinnedMessagesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetPinnedMessagesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetPinnedMessagesRequestValidationError{}
+
+var _GetPinnedMessagesRequest_ViewMode_InLookup = map[messagingpb.ViewMode]struct{}{
+	0: {},
+	1: {},
+	2: {},
+}
+
+// Validate checks the field values on GetPinnedMessagesResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetPinnedMessagesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetPinnedMessagesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetPinnedMessagesResponseMultiError, or nil if none found.
+func (m *GetPinnedMessagesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetPinnedMessagesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetPins()) > 100 {
+		err := GetPinnedMessagesResponseValidationError{
+			field:  "Pins",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetPins() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetPinnedMessagesResponseValidationError{
+						field:  fmt.Sprintf("Pins[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetPinnedMessagesResponseValidationError{
+						field:  fmt.Sprintf("Pins[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetPinnedMessagesResponseValidationError{
+					field:  fmt.Sprintf("Pins[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetPinSummary()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetPinnedMessagesResponseValidationError{
+					field:  "PinSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetPinnedMessagesResponseValidationError{
+					field:  "PinSummary",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPinSummary()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetPinnedMessagesResponseValidationError{
+				field:  "PinSummary",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagingToken()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetPinnedMessagesResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetPinnedMessagesResponseValidationError{
+					field:  "PagingToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagingToken()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetPinnedMessagesResponseValidationError{
+				field:  "PagingToken",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for HasMore
+
+	if len(errors) > 0 {
+		return GetPinnedMessagesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetPinnedMessagesResponseMultiError is an error wrapping multiple validation
+// errors returned by GetPinnedMessagesResponse.ValidateAll() if the
+// designated constraints aren't met.
+type GetPinnedMessagesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetPinnedMessagesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetPinnedMessagesResponseMultiError) AllErrors() []error { return m }
+
+// GetPinnedMessagesResponseValidationError is the validation error returned by
+// GetPinnedMessagesResponse.Validate if the designated constraints aren't met.
+type GetPinnedMessagesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetPinnedMessagesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetPinnedMessagesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetPinnedMessagesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetPinnedMessagesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetPinnedMessagesResponseValidationError) ErrorName() string {
+	return "GetPinnedMessagesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetPinnedMessagesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetPinnedMessagesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetPinnedMessagesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetPinnedMessagesResponseValidationError{}
+
 // Validate checks the field values on
 // StartChatRequest_PublicGroupChatParameters with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

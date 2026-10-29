@@ -6,8 +6,8 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, PublicKey, QueryOptions, UserId, Username } from "../../common/v1/common_pb";
-import { ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, Invite, Invite_Status, InviteId, InviteKeyEnvelope, InviteSecretEnvelope, InviteToken, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
+import { MessageId, ViewMode } from "../../messaging/v1/model_pb";
+import { ChatType, IdempotencyKey, Invite, Invite_Status, InviteId, InviteKeyEnvelope, InviteSecretEnvelope, InviteToken, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, Pin, PinSummary, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -4664,6 +4664,446 @@ export enum GetRestrictedUsersResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetRestrictedUsersResponse_Result)
 proto3.util.setEnumType(GetRestrictedUsersResponse_Result, "flipcash.chat.v1.GetRestrictedUsersResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.PinMessageRequest
+ */
+export class PinMessageRequest extends Message<PinMessageRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<PinMessageRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.PinMessageRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PinMessageRequest {
+    return new PinMessageRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PinMessageRequest {
+    return new PinMessageRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PinMessageRequest {
+    return new PinMessageRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PinMessageRequest | PlainMessage<PinMessageRequest> | undefined, b: PinMessageRequest | PlainMessage<PinMessageRequest> | undefined): boolean {
+    return proto3.util.equals(PinMessageRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.PinMessageResponse
+ */
+export class PinMessageResponse extends Message<PinMessageResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.PinMessageResponse.Result result = 1;
+   */
+  result = PinMessageResponse_Result.OK;
+
+  /**
+   * The chat's pin summary after the call (see PinMessage for how the
+   * client applies it). Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.PinSummary pin_summary = 2;
+   */
+  pinSummary?: PinSummary;
+
+  constructor(data?: PartialMessage<PinMessageResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.PinMessageResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(PinMessageResponse_Result) },
+    { no: 2, name: "pin_summary", kind: "message", T: PinSummary },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PinMessageResponse {
+    return new PinMessageResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PinMessageResponse {
+    return new PinMessageResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PinMessageResponse {
+    return new PinMessageResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PinMessageResponse | PlainMessage<PinMessageResponse> | undefined, b: PinMessageResponse | PlainMessage<PinMessageResponse> | undefined): boolean {
+    return proto3.util.equals(PinMessageResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.PinMessageResponse.Result
+ */
+export enum PinMessageResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not pin in this chat (see ViewerState.Permissions.can_pin)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * The message is not in this chat
+   *
+   * @generated from enum value: MESSAGE_NOT_FOUND = 3;
+   */
+  MESSAGE_NOT_FOUND = 3,
+
+  /**
+   * The chat has as many pinned messages as the server allows
+   *
+   * @generated from enum value: TOO_MANY_PINS = 4;
+   */
+  TOO_MANY_PINS = 4,
+
+  /**
+   * The message may not be pinned: it is deleted, or a system message (see PinMessage)
+   *
+   * @generated from enum value: MESSAGE_NOT_ALLOWED = 5;
+   */
+  MESSAGE_NOT_ALLOWED = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(PinMessageResponse_Result)
+proto3.util.setEnumType(PinMessageResponse_Result, "flipcash.chat.v1.PinMessageResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "MESSAGE_NOT_FOUND" },
+  { no: 4, name: "TOO_MANY_PINS" },
+  { no: 5, name: "MESSAGE_NOT_ALLOWED" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.UnpinMessageRequest
+ */
+export class UnpinMessageRequest extends Message<UnpinMessageRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<UnpinMessageRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnpinMessageRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnpinMessageRequest {
+    return new UnpinMessageRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnpinMessageRequest {
+    return new UnpinMessageRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnpinMessageRequest {
+    return new UnpinMessageRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnpinMessageRequest | PlainMessage<UnpinMessageRequest> | undefined, b: UnpinMessageRequest | PlainMessage<UnpinMessageRequest> | undefined): boolean {
+    return proto3.util.equals(UnpinMessageRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.UnpinMessageResponse
+ */
+export class UnpinMessageResponse extends Message<UnpinMessageResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.UnpinMessageResponse.Result result = 1;
+   */
+  result = UnpinMessageResponse_Result.OK;
+
+  /**
+   * The chat's pin summary after the call (see UnpinMessage for how the
+   * client applies it). Set only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.PinSummary pin_summary = 2;
+   */
+  pinSummary?: PinSummary;
+
+  constructor(data?: PartialMessage<UnpinMessageResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnpinMessageResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(UnpinMessageResponse_Result) },
+    { no: 2, name: "pin_summary", kind: "message", T: PinSummary },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnpinMessageResponse {
+    return new UnpinMessageResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnpinMessageResponse {
+    return new UnpinMessageResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnpinMessageResponse {
+    return new UnpinMessageResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnpinMessageResponse | PlainMessage<UnpinMessageResponse> | undefined, b: UnpinMessageResponse | PlainMessage<UnpinMessageResponse> | undefined): boolean {
+    return proto3.util.equals(UnpinMessageResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.UnpinMessageResponse.Result
+ */
+export enum UnpinMessageResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not pin in this chat (see ViewerState.Permissions.can_pin)
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UnpinMessageResponse_Result)
+proto3.util.setEnumType(UnpinMessageResponse_Result, "flipcash.chat.v1.UnpinMessageResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.GetPinnedMessagesRequest
+ */
+export class GetPinnedMessagesRequest extends Message<GetPinnedMessagesRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * QueryOptions controls page_size, capped at 100. Ordering is fixed to
+   * most recently pinned first and is not client-selectable.
+   *
+   * Leave query_options.paging_token unset on the first request. On every
+   * subsequent request, set it to the paging_token from the most recent
+   * response. The token is opaque and server-generated; do not construct
+   * it. It is bound to chat_id and refused with another chat.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 2;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * What the client intends to render of the pinned messages, and so
+   * whether they may be returned redacted (see messaging.v1.ViewMode).
+   *
+   * @generated from field: flipcash.messaging.v1.ViewMode view_mode = 3;
+   */
+  viewMode = ViewMode.FULL;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetPinnedMessagesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetPinnedMessagesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 3, name: "view_mode", kind: "enum", T: proto3.getEnumType(ViewMode) },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPinnedMessagesRequest {
+    return new GetPinnedMessagesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPinnedMessagesRequest {
+    return new GetPinnedMessagesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPinnedMessagesRequest {
+    return new GetPinnedMessagesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPinnedMessagesRequest | PlainMessage<GetPinnedMessagesRequest> | undefined, b: GetPinnedMessagesRequest | PlainMessage<GetPinnedMessagesRequest> | undefined): boolean {
+    return proto3.util.equals(GetPinnedMessagesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.GetPinnedMessagesResponse
+ */
+export class GetPinnedMessagesResponse extends Message<GetPinnedMessagesResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.GetPinnedMessagesResponse.Result result = 1;
+   */
+  result = GetPinnedMessagesResponse_Result.OK;
+
+  /**
+   * The page, most recently pinned first, each with its message. Set when
+   * result is OK.
+   *
+   * @generated from field: repeated flipcash.chat.v1.Pin pins = 2;
+   */
+  pins: Pin[] = [];
+
+  /**
+   * The chat's pin summary as of this page's read. Set when result is OK.
+   * Applied by version as described on PinSummary; see GetPinnedMessages
+   * for how the page relates to it.
+   *
+   * @generated from field: flipcash.chat.v1.PinSummary pin_summary = 3;
+   */
+  pinSummary?: PinSummary;
+
+  /**
+   * PagingToken carries the cursor after the last pin returned. The client
+   * MUST send it back in query_options.paging_token on the next
+   * GetPinnedMessagesRequest. Set when result is OK and has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 4;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain. When true, the client
+   * should issue another GetPinnedMessagesRequest with the returned
+   * paging_token.
+   *
+   * @generated from field: bool has_more = 5;
+   */
+  hasMore = false;
+
+  constructor(data?: PartialMessage<GetPinnedMessagesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.GetPinnedMessagesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetPinnedMessagesResponse_Result) },
+    { no: 2, name: "pins", kind: "message", T: Pin, repeated: true },
+    { no: 3, name: "pin_summary", kind: "message", T: PinSummary },
+    { no: 4, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 5, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPinnedMessagesResponse {
+    return new GetPinnedMessagesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPinnedMessagesResponse {
+    return new GetPinnedMessagesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPinnedMessagesResponse {
+    return new GetPinnedMessagesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPinnedMessagesResponse | PlainMessage<GetPinnedMessagesResponse> | undefined, b: GetPinnedMessagesResponse | PlainMessage<GetPinnedMessagesResponse> | undefined): boolean {
+    return proto3.util.equals(GetPinnedMessagesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.GetPinnedMessagesResponse.Result
+ */
+export enum GetPinnedMessagesResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller may not read the chat under view_mode
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetPinnedMessagesResponse_Result)
+proto3.util.setEnumType(GetPinnedMessagesResponse_Result, "flipcash.chat.v1.GetPinnedMessagesResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

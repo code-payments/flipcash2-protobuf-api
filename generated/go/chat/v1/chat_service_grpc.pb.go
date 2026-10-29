@@ -49,6 +49,9 @@ const (
 	Chat_BanUser_FullMethodName               = "/flipcash.chat.v1.Chat/BanUser"
 	Chat_UnbanUser_FullMethodName             = "/flipcash.chat.v1.Chat/UnbanUser"
 	Chat_GetRestrictedUsers_FullMethodName    = "/flipcash.chat.v1.Chat/GetRestrictedUsers"
+	Chat_PinMessage_FullMethodName            = "/flipcash.chat.v1.Chat/PinMessage"
+	Chat_UnpinMessage_FullMethodName          = "/flipcash.chat.v1.Chat/UnpinMessage"
+	Chat_GetPinnedMessages_FullMethodName     = "/flipcash.chat.v1.Chat/GetPinnedMessages"
 )
 
 // ChatClient is the client API for Chat service.
@@ -609,6 +612,63 @@ type ChatClient interface {
 	// briefly, so a user just restricted may be absent and one just
 	// released may be present.
 	GetRestrictedUsers(ctx context.Context, in *GetRestrictedUsersRequest, opts ...grpc.CallOption) (*GetRestrictedUsersResponse, error)
+	// PinMessage pins a message in a chat, making it the chat's most
+	// recently pinned message (see Metadata.pin_summary). A message must be in
+	// the chat (MESSAGE_NOT_FOUND otherwise) and of a kind that may be pinned:
+	// a deleted message and a system message may not, and are refused with
+	// MESSAGE_NOT_ALLOWED, as is any kind of content this server does not
+	// know to be pinnable. Every other message may be pinned, whatever its
+	// content (text, media, a reply, a payment, a widget, encrypted content).
+	//
+	// Only a member the server permits to pin in the chat may call it, as
+	// reported by ViewerState.Permissions.can_pin; anyone else is DENIED.
+	// Pinning a message that is already pinned is a no-op that returns OK and
+	// leaves it where it is in the order. The server caps how many messages
+	// one chat may have pinned, 5 today, and refuses a pin past it with
+	// TOO_MANY_PINS. The cap is the server's and may be raised, so clients
+	// must not hardcode it: on TOO_MANY_PINS a client asks the user to unpin
+	// a message first, and GetPinnedMessages pages the pins whatever their
+	// number.
+	//
+	// Every real change reaches the chat's members, including all of the
+	// caller's devices, on the event stream as a MetadataUpdate.PinsChanged.
+	//
+	// The response carries the chat's PinSummary after the call, which the
+	// client takes by version as it would any other. A client holding the
+	// chat's pins at version v may also apply its own pin to them at once:
+	// a summary at v + 1 means exactly one change was made, the pin it asked
+	// for (made by this call or an identical one racing it), so the message
+	// is now summary.latest; a summary at v means the message was already
+	// pinned and nothing changed; a summary further ahead means other changes
+	// were made too, which the client learns from the event stream or by
+	// refetching its pins with GetPinnedMessages.
+	PinMessage(ctx context.Context, in *PinMessageRequest, opts ...grpc.CallOption) (*PinMessageResponse, error)
+	// UnpinMessage unpins a message in a chat, whoever pinned it. Permitted
+	// exactly as PinMessage is. Unpinning a message that is not pinned is a
+	// no-op that returns OK.
+	//
+	// Every real change reaches the chat's members, including all of the
+	// caller's devices, on the event stream as a MetadataUpdate.PinsChanged.
+	//
+	// The response carries the chat's PinSummary after the call, applied as
+	// for PinMessage: a summary at v + 1 means the message was unpinned, one
+	// at v that it was not pinned, and one further ahead that other changes
+	// were made too.
+	UnpinMessage(ctx context.Context, in *UnpinMessageRequest, opts ...grpc.CallOption) (*UnpinMessageResponse, error)
+	// GetPinnedMessages pages a chat's pinned messages, most recently pinned
+	// first, each Pin carrying its message.
+	//
+	// Allowed to whoever may read the chat's messages under view_mode, as for
+	// messaging.v1.Messaging.GetMessages, and redacted the same way; anyone
+	// else is DENIED.
+	//
+	// Pins change while they are paged. Every page carries the chat's
+	// PinSummary as of its read, and the cursor is the last pin returned, so
+	// a pin made during the walk lands ahead of it and arrives only as a
+	// MetadataUpdate.PinsChanged, and a pin removed during the walk may be
+	// absent from a later page. Clients merge pages with the event stream by
+	// PinSummary.version, as they do roster pages by RosterSummary.version.
+	GetPinnedMessages(ctx context.Context, in *GetPinnedMessagesRequest, opts ...grpc.CallOption) (*GetPinnedMessagesResponse, error)
 }
 
 type chatClient struct {
@@ -913,6 +973,36 @@ func (c *chatClient) GetRestrictedUsers(ctx context.Context, in *GetRestrictedUs
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetRestrictedUsersResponse)
 	err := c.cc.Invoke(ctx, Chat_GetRestrictedUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) PinMessage(ctx context.Context, in *PinMessageRequest, opts ...grpc.CallOption) (*PinMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PinMessageResponse)
+	err := c.cc.Invoke(ctx, Chat_PinMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) UnpinMessage(ctx context.Context, in *UnpinMessageRequest, opts ...grpc.CallOption) (*UnpinMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnpinMessageResponse)
+	err := c.cc.Invoke(ctx, Chat_UnpinMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) GetPinnedMessages(ctx context.Context, in *GetPinnedMessagesRequest, opts ...grpc.CallOption) (*GetPinnedMessagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPinnedMessagesResponse)
+	err := c.cc.Invoke(ctx, Chat_GetPinnedMessages_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1477,6 +1567,63 @@ type ChatServer interface {
 	// briefly, so a user just restricted may be absent and one just
 	// released may be present.
 	GetRestrictedUsers(context.Context, *GetRestrictedUsersRequest) (*GetRestrictedUsersResponse, error)
+	// PinMessage pins a message in a chat, making it the chat's most
+	// recently pinned message (see Metadata.pin_summary). A message must be in
+	// the chat (MESSAGE_NOT_FOUND otherwise) and of a kind that may be pinned:
+	// a deleted message and a system message may not, and are refused with
+	// MESSAGE_NOT_ALLOWED, as is any kind of content this server does not
+	// know to be pinnable. Every other message may be pinned, whatever its
+	// content (text, media, a reply, a payment, a widget, encrypted content).
+	//
+	// Only a member the server permits to pin in the chat may call it, as
+	// reported by ViewerState.Permissions.can_pin; anyone else is DENIED.
+	// Pinning a message that is already pinned is a no-op that returns OK and
+	// leaves it where it is in the order. The server caps how many messages
+	// one chat may have pinned, 5 today, and refuses a pin past it with
+	// TOO_MANY_PINS. The cap is the server's and may be raised, so clients
+	// must not hardcode it: on TOO_MANY_PINS a client asks the user to unpin
+	// a message first, and GetPinnedMessages pages the pins whatever their
+	// number.
+	//
+	// Every real change reaches the chat's members, including all of the
+	// caller's devices, on the event stream as a MetadataUpdate.PinsChanged.
+	//
+	// The response carries the chat's PinSummary after the call, which the
+	// client takes by version as it would any other. A client holding the
+	// chat's pins at version v may also apply its own pin to them at once:
+	// a summary at v + 1 means exactly one change was made, the pin it asked
+	// for (made by this call or an identical one racing it), so the message
+	// is now summary.latest; a summary at v means the message was already
+	// pinned and nothing changed; a summary further ahead means other changes
+	// were made too, which the client learns from the event stream or by
+	// refetching its pins with GetPinnedMessages.
+	PinMessage(context.Context, *PinMessageRequest) (*PinMessageResponse, error)
+	// UnpinMessage unpins a message in a chat, whoever pinned it. Permitted
+	// exactly as PinMessage is. Unpinning a message that is not pinned is a
+	// no-op that returns OK.
+	//
+	// Every real change reaches the chat's members, including all of the
+	// caller's devices, on the event stream as a MetadataUpdate.PinsChanged.
+	//
+	// The response carries the chat's PinSummary after the call, applied as
+	// for PinMessage: a summary at v + 1 means the message was unpinned, one
+	// at v that it was not pinned, and one further ahead that other changes
+	// were made too.
+	UnpinMessage(context.Context, *UnpinMessageRequest) (*UnpinMessageResponse, error)
+	// GetPinnedMessages pages a chat's pinned messages, most recently pinned
+	// first, each Pin carrying its message.
+	//
+	// Allowed to whoever may read the chat's messages under view_mode, as for
+	// messaging.v1.Messaging.GetMessages, and redacted the same way; anyone
+	// else is DENIED.
+	//
+	// Pins change while they are paged. Every page carries the chat's
+	// PinSummary as of its read, and the cursor is the last pin returned, so
+	// a pin made during the walk lands ahead of it and arrives only as a
+	// MetadataUpdate.PinsChanged, and a pin removed during the walk may be
+	// absent from a later page. Clients merge pages with the event stream by
+	// PinSummary.version, as they do roster pages by RosterSummary.version.
+	GetPinnedMessages(context.Context, *GetPinnedMessagesRequest) (*GetPinnedMessagesResponse, error)
 	mustEmbedUnimplementedChatServer()
 }
 
@@ -1576,6 +1723,15 @@ func (UnimplementedChatServer) UnbanUser(context.Context, *UnbanUserRequest) (*U
 }
 func (UnimplementedChatServer) GetRestrictedUsers(context.Context, *GetRestrictedUsersRequest) (*GetRestrictedUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRestrictedUsers not implemented")
+}
+func (UnimplementedChatServer) PinMessage(context.Context, *PinMessageRequest) (*PinMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PinMessage not implemented")
+}
+func (UnimplementedChatServer) UnpinMessage(context.Context, *UnpinMessageRequest) (*UnpinMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnpinMessage not implemented")
+}
+func (UnimplementedChatServer) GetPinnedMessages(context.Context, *GetPinnedMessagesRequest) (*GetPinnedMessagesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPinnedMessages not implemented")
 }
 func (UnimplementedChatServer) mustEmbedUnimplementedChatServer() {}
 func (UnimplementedChatServer) testEmbeddedByValue()              {}
@@ -2138,6 +2294,60 @@ func _Chat_GetRestrictedUsers_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Chat_PinMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PinMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).PinMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_PinMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).PinMessage(ctx, req.(*PinMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_UnpinMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnpinMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).UnpinMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_UnpinMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).UnpinMessage(ctx, req.(*UnpinMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_GetPinnedMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPinnedMessagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).GetPinnedMessages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_GetPinnedMessages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).GetPinnedMessages(ctx, req.(*GetPinnedMessagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Chat_ServiceDesc is the grpc.ServiceDesc for Chat service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2264,6 +2474,18 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRestrictedUsers",
 			Handler:    _Chat_GetRestrictedUsers_Handler,
+		},
+		{
+			MethodName: "PinMessage",
+			Handler:    _Chat_PinMessage_Handler,
+		},
+		{
+			MethodName: "UnpinMessage",
+			Handler:    _Chat_UnpinMessage_Handler,
+		},
+		{
+			MethodName: "GetPinnedMessages",
+			Handler:    _Chat_GetPinnedMessages_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

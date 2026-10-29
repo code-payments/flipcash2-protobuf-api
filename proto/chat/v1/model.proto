@@ -160,6 +160,21 @@ message Metadata {
     // announces a change, and a client refetches the chat to refresh it.
     HoldingsSummary holdings_summary = 18;
 
+    // The chat's pinned messages, summarized: how many there are and the
+    // most recently pinned one, with its message, for a client to show
+    // above the conversation. Chat.GetPinnedMessages pages them all.
+    //
+    // Messaging state, like last_message: withheld from a viewer who may not
+    // read the chat, and the pinned message may be redacted (see
+    // messaging.v1.Message.redacted) under the same view mode. Otherwise
+    // always set, with count 0 and no latest when nothing is pinned.
+    //
+    // It may be unset on a chat returned by an RPC meant for list views
+    // (e.g. Chat.GetDmChatFeed, Chat.GetGroupChatFeed), so an unset value
+    // there does not mean nothing is pinned. Fetch it with Chat.GetChat, and
+    // don't let a list result clear a summary the client already holds.
+    PinSummary pin_summary = 19;
+
     // Whether messages in this chat are end-to-end encrypted (see
     // messaging.v1.EncryptedContent). Only supported for DMs (CONTACT_DM or DM);
     // always false for group chats. A private group is always end-to-end
@@ -387,6 +402,60 @@ message HoldingsSummary {
     google.protobuf.Timestamp as_of = 4 [(validate.rules).timestamp.required = true];
 }
 
+// Pin is one pinned message in a chat (see Chat.PinMessage). A chat's pins
+// are ordered most recently pinned first; pinning a message that is already
+// pinned does not move it.
+message Pin {
+    // The pinned message.
+    messaging.v1.MessageId message_id = 1 [(validate.rules).message.required = true];
+
+    // The user who pinned it.
+    common.v1.UserId pinned_by = 2 [(validate.rules).message.required = true];
+
+    // When it was pinned.
+    google.protobuf.Timestamp pinned_at = 3 [(validate.rules).timestamp.required = true];
+
+    // The pinned message itself, as the viewer may read it: redacted (see
+    // messaging.v1.Message.redacted) when the read that returned it was
+    // redacted. Always set.
+    //
+    // A snapshot as of the read or event that carried it. Editing or
+    // deleting a pinned message does not move PinSummary.version and
+    // publishes no MetadataUpdate.PinsChanged; the change arrives on the
+    // chat's event log like any other (see messaging.v1.Messaging.GetDelta),
+    // and clients apply it to the copies they hold in their pins.
+    //
+    // A message deleted after it was pinned stays pinned, carrying its
+    // tombstone, until someone permitted to pin unpins it, and it still
+    // counts toward the cap on a chat's pins. Clients should not show such a
+    // pin. When PinSummary.latest is one, a client that shows the next pin
+    // fetches it with Chat.GetPinnedMessages.
+    messaging.v1.Message message = 4 [(validate.rules).message.required = true];
+}
+
+// PinSummary is the state of a chat's pinned messages that is shown with the
+// chat (see Metadata.pin_summary).
+message PinSummary {
+    // The most recently pinned message. Unset when nothing is pinned.
+    Pin latest = 1;
+
+    // The number of pinned messages. The server caps how many messages a
+    // chat may have pinned, 5 today (see Chat.PinMessage).
+    uint32 count = 2;
+
+    // Version of the chat's pins: advanced by exactly one on every pin and
+    // unpin, never by a no-op, and 0 for a chat that has never had a pin.
+    // A pinned message being edited or deleted does not move it (see
+    // Pin.message).
+    //
+    // Compared like RosterSummary.version: apply the greater value and drop
+    // the rest, so delivery order does not matter. It is not the chat event
+    // sequence and has no delta to fetch against it; a client that finds
+    // itself behind refetches its pins with Chat.GetPinnedMessages (see
+    // MetadataUpdate.PinsChanged).
+    uint64 version = 3;
+}
+
 message MetadataUpdate {
     oneof kind {
         option (validate.required) = true;
@@ -399,6 +468,7 @@ message MetadataUpdate {
         DescriptionChanged    description_changed     = 6;
         CoverPictureChanged   cover_picture_changed   = 7;
         RulesChanged          rules_changed           = 8;
+        PinsChanged           pins_changed            = 9;
     }
 
     // Refreshes the entire chat metadata
@@ -467,6 +537,32 @@ message MetadataUpdate {
     message RulesChanged {
         // The chat's rules in full, replacing Metadata.rules.
         Rules new_rules = 1 [(validate.rules).message.required = true];
+    }
+
+    // A message was pinned or unpinned (see Chat.PinMessage and
+    // Chat.UnpinMessage). Delivered to the chat's members, including the
+    // caller's other devices, and to a chat preview, where the pinned
+    // message is redacted as the preview's messages are. Best-effort.
+    //
+    // A client holding the chat's pins at summary.version - 1 applies change
+    // to them and takes summary. A client further behind may have missed a
+    // change, so it takes summary and refetches its pins with
+    // Chat.GetPinnedMessages. A client at summary.version or later has
+    // already seen it and drops it.
+    message PinsChanged {
+        oneof change {
+            option (validate.required) = true;
+
+            // The pin made, now the chat's most recently pinned message.
+            Pin pinned = 1;
+
+            // The message unpinned.
+            messaging.v1.MessageId unpinned = 2;
+        }
+
+        // The chat's pin summary after the change, replacing
+        // Metadata.pin_summary.
+        PinSummary summary = 3 [(validate.rules).message.required = true];
     }
 }
 
@@ -598,6 +694,11 @@ message ViewerState {
         // it to anyone else would let them hand joiners a wrong chat key (see
         // Invite).
         bool can_invite = 3;
+
+        // Whether the viewer may call Chat.PinMessage and Chat.UnpinMessage
+        // on this chat. Today that is either member of a DM, and a group's
+        // creator while a member: false for every other group member.
+        bool can_pin = 4;
     }
 
     // ModerationPermissions are the moderation actions the viewer may take
