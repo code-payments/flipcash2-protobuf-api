@@ -19,19 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Messaging_GetMessage_FullMethodName           = "/flipcash.messaging.v1.Messaging/GetMessage"
-	Messaging_GetMessages_FullMethodName          = "/flipcash.messaging.v1.Messaging/GetMessages"
-	Messaging_GetDelta_FullMethodName             = "/flipcash.messaging.v1.Messaging/GetDelta"
-	Messaging_SendMessage_FullMethodName          = "/flipcash.messaging.v1.Messaging/SendMessage"
-	Messaging_EditMessage_FullMethodName          = "/flipcash.messaging.v1.Messaging/EditMessage"
-	Messaging_DeleteMessage_FullMethodName        = "/flipcash.messaging.v1.Messaging/DeleteMessage"
-	Messaging_AddReaction_FullMethodName          = "/flipcash.messaging.v1.Messaging/AddReaction"
-	Messaging_RemoveReaction_FullMethodName       = "/flipcash.messaging.v1.Messaging/RemoveReaction"
-	Messaging_GetReactors_FullMethodName          = "/flipcash.messaging.v1.Messaging/GetReactors"
-	Messaging_GetReactionSummary_FullMethodName   = "/flipcash.messaging.v1.Messaging/GetReactionSummary"
-	Messaging_GetReactionSummaries_FullMethodName = "/flipcash.messaging.v1.Messaging/GetReactionSummaries"
-	Messaging_AdvancePointer_FullMethodName       = "/flipcash.messaging.v1.Messaging/AdvancePointer"
-	Messaging_NotifyIsTyping_FullMethodName       = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
+	Messaging_GetMessage_FullMethodName                 = "/flipcash.messaging.v1.Messaging/GetMessage"
+	Messaging_GetMessages_FullMethodName                = "/flipcash.messaging.v1.Messaging/GetMessages"
+	Messaging_GetDelta_FullMethodName                   = "/flipcash.messaging.v1.Messaging/GetDelta"
+	Messaging_SendMessage_FullMethodName                = "/flipcash.messaging.v1.Messaging/SendMessage"
+	Messaging_EditMessage_FullMethodName                = "/flipcash.messaging.v1.Messaging/EditMessage"
+	Messaging_DeleteMessage_FullMethodName              = "/flipcash.messaging.v1.Messaging/DeleteMessage"
+	Messaging_AddReaction_FullMethodName                = "/flipcash.messaging.v1.Messaging/AddReaction"
+	Messaging_RemoveReaction_FullMethodName             = "/flipcash.messaging.v1.Messaging/RemoveReaction"
+	Messaging_GetReactors_FullMethodName                = "/flipcash.messaging.v1.Messaging/GetReactors"
+	Messaging_GetReactionSummary_FullMethodName         = "/flipcash.messaging.v1.Messaging/GetReactionSummary"
+	Messaging_GetReactionSummaries_FullMethodName       = "/flipcash.messaging.v1.Messaging/GetReactionSummaries"
+	Messaging_AdvancePointer_FullMethodName             = "/flipcash.messaging.v1.Messaging/AdvancePointer"
+	Messaging_NotifyIsTyping_FullMethodName             = "/flipcash.messaging.v1.Messaging/NotifyIsTyping"
+	Messaging_GetCashMessageReturnStatus_FullMethodName = "/flipcash.messaging.v1.Messaging/GetCashMessageReturnStatus"
 )
 
 // MessagingClient is the client API for Messaging service.
@@ -119,6 +120,12 @@ type MessagingClient interface {
 	//
 	// These requests are transient, and may be dropped at any point.
 	NotifyIsTyping(ctx context.Context, in *NotifyIsTypingRequest, opts ...grpc.CallOption) (*NotifyIsTypingResponse, error)
+	// GetCashMessageReturnStatus reports whether the payment of a cash message
+	// carrying a return offer (CashContent.Return.offer) can still be
+	// returned, and gives the message's single_receiver the intent ID the
+	// return must use (see intent.v1.ChatMetadata.ReturnPayment). Answered for
+	// the chat's members alone.
+	GetCashMessageReturnStatus(ctx context.Context, in *GetCashMessageReturnStatusRequest, opts ...grpc.CallOption) (*GetCashMessageReturnStatusResponse, error)
 }
 
 type messagingClient struct {
@@ -268,6 +275,16 @@ func (c *messagingClient) NotifyIsTyping(ctx context.Context, in *NotifyIsTyping
 	return out, nil
 }
 
+func (c *messagingClient) GetCashMessageReturnStatus(ctx context.Context, in *GetCashMessageReturnStatusRequest, opts ...grpc.CallOption) (*GetCashMessageReturnStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCashMessageReturnStatusResponse)
+	err := c.cc.Invoke(ctx, Messaging_GetCashMessageReturnStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MessagingServer is the server API for Messaging service.
 // All implementations must embed UnimplementedMessagingServer
 // for forward compatibility.
@@ -353,6 +370,12 @@ type MessagingServer interface {
 	//
 	// These requests are transient, and may be dropped at any point.
 	NotifyIsTyping(context.Context, *NotifyIsTypingRequest) (*NotifyIsTypingResponse, error)
+	// GetCashMessageReturnStatus reports whether the payment of a cash message
+	// carrying a return offer (CashContent.Return.offer) can still be
+	// returned, and gives the message's single_receiver the intent ID the
+	// return must use (see intent.v1.ChatMetadata.ReturnPayment). Answered for
+	// the chat's members alone.
+	GetCashMessageReturnStatus(context.Context, *GetCashMessageReturnStatusRequest) (*GetCashMessageReturnStatusResponse, error)
 	mustEmbedUnimplementedMessagingServer()
 }
 
@@ -401,6 +424,9 @@ func (UnimplementedMessagingServer) AdvancePointer(context.Context, *AdvancePoin
 }
 func (UnimplementedMessagingServer) NotifyIsTyping(context.Context, *NotifyIsTypingRequest) (*NotifyIsTypingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NotifyIsTyping not implemented")
+}
+func (UnimplementedMessagingServer) GetCashMessageReturnStatus(context.Context, *GetCashMessageReturnStatusRequest) (*GetCashMessageReturnStatusResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCashMessageReturnStatus not implemented")
 }
 func (UnimplementedMessagingServer) mustEmbedUnimplementedMessagingServer() {}
 func (UnimplementedMessagingServer) testEmbeddedByValue()                   {}
@@ -650,6 +676,24 @@ func _Messaging_NotifyIsTyping_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Messaging_GetCashMessageReturnStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCashMessageReturnStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MessagingServer).GetCashMessageReturnStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Messaging_GetCashMessageReturnStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MessagingServer).GetCashMessageReturnStatus(ctx, req.(*GetCashMessageReturnStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Messaging_ServiceDesc is the grpc.ServiceDesc for Messaging service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -704,6 +748,10 @@ var Messaging_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NotifyIsTyping",
 			Handler:    _Messaging_NotifyIsTyping_Handler,
+		},
+		{
+			MethodName: "GetCashMessageReturnStatus",
+			Handler:    _Messaging_GetCashMessageReturnStatus_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

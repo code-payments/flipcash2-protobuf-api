@@ -31,6 +31,7 @@ message ChatMetadata {
         GroupPayment        group_payment         = 4;
         ReactionBoost       reaction_boost        = 5;
         RequestedPayment    requested_payment     = 6;
+        ReturnPayment       return_payment        = 7;
     }
 
     // For sending a payment to a contact in a DM
@@ -161,6 +162,39 @@ message ChatMetadata {
     message RequestedPayment {
         // The payment request whose share is paid.
         paymentrequest.v1.PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+    }
+
+    // For returning a payment offered for returning: a cash message whose
+    // messaging.v1.CashContent.payment_return carries an offer. The payment is
+    // a SendPublicPayment, never a multi payment, from the cash message's
+    // single_receiver back to its sender, and returns its payment exactly:
+    //
+    //   - The chat_id must be the DM the cash message is in.
+    //   - The payment's one destination must be the message sender's owner
+    //     account, and the payer must be its single_receiver.
+    //   - The payment's currency and mint must be total_amount's, and its
+    //     native amount (its exchange data's native_amount) must be
+    //     total_amount's native_amount to within half the currency's smallest
+    //     unit.
+    //   - The payment must not have been returned already.
+    //   - The intent's ID must be the one the server generated for the
+    //     offer, which messaging.v1.GetCashMessageReturnStatus gives the
+    //     single_receiver alone
+    //     (GetCashMessageReturnStatusResponse.payment_intent_id). An intent
+    //     ID is used at most once, so this is what makes a payment
+    //     returnable at most once.
+    //   - Neither the payer nor the payee may be the Flipcash team account.
+    //
+    // An offer does not expire. Once the payment is made the server posts one
+    // messaging.v1.CashContent message into the DM as the payer, with the
+    // original's sender as its single_receiver and the original message in its
+    // payment_return.return_of, and messaging.v1.GetCashMessageReturnStatus
+    // reports the payment RETURNED. The original message is not changed. The
+    // payment is shown as SENT, and in the activity feed as a send, like any
+    // other DM payment.
+    message ReturnPayment {
+        // The message whose payment is returned.
+        messaging.v1.MessageId message_id = 1 [(validate.rules).message.required = true];
     }
 }
 

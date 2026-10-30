@@ -911,6 +911,47 @@ func (m *DirectlySentCryptoNotificationMetadata) validate(all bool) error {
 			}
 		}
 
+	case *DirectlySentCryptoNotificationMetadata_ReturnedPayment:
+		if v == nil {
+			err := DirectlySentCryptoNotificationMetadataValidationError{
+				field:  "Context",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetReturnedPayment()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "ReturnedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DirectlySentCryptoNotificationMetadataValidationError{
+						field:  "ReturnedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetReturnedPayment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DirectlySentCryptoNotificationMetadataValidationError{
+					field:  "ReturnedPayment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1183,6 +1224,47 @@ func (m *ReceivedCryptoNotificationMetadata) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ReceivedCryptoNotificationMetadataValidationError{
 					field:  "RequestedPayment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ReceivedCryptoNotificationMetadata_ReturnedPayment:
+		if v == nil {
+			err := ReceivedCryptoNotificationMetadataValidationError{
+				field:  "Context",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetReturnedPayment()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "ReturnedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ReceivedCryptoNotificationMetadataValidationError{
+						field:  "ReturnedPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetReturnedPayment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ReceivedCryptoNotificationMetadataValidationError{
+					field:  "ReturnedPayment",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1674,6 +1756,186 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RequestedPaymentValidationError{}
+
+// Validate checks the field values on ReturnedPayment with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ReturnedPayment) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReturnedPayment with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReturnedPaymentMultiError, or nil if none found.
+func (m *ReturnedPayment) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReturnedPayment) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := ReturnedPaymentValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReturnedPaymentValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReturnedPaymentValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReturnedPaymentValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := ReturnedPaymentValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ReturnedPaymentValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ReturnedPaymentValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ReturnedPaymentValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ReturnedPaymentMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReturnedPaymentMultiError is an error wrapping multiple validation errors
+// returned by ReturnedPayment.ValidateAll() if the designated constraints
+// aren't met.
+type ReturnedPaymentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReturnedPaymentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReturnedPaymentMultiError) AllErrors() []error { return m }
+
+// ReturnedPaymentValidationError is the validation error returned by
+// ReturnedPayment.Validate if the designated constraints aren't met.
+type ReturnedPaymentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReturnedPaymentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReturnedPaymentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReturnedPaymentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReturnedPaymentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReturnedPaymentValidationError) ErrorName() string { return "ReturnedPaymentValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ReturnedPaymentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReturnedPayment.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReturnedPaymentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReturnedPaymentValidationError{}
 
 // Validate checks the field values on WithdrewCryptoNotificationMetadata with
 // the rules defined in the proto definition for this message. If any rules

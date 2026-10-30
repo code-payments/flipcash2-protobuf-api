@@ -665,6 +665,16 @@ export class CashContent extends Message$1<CashContent> {
    */
   paymentRequestId?: PaymentRequestId;
 
+  /**
+   * How this payment takes part in a return: it may be offered for
+   * returning, return the payment in another message, or both. Unset on a
+   * cash message that does neither. Set by the server when the message is
+   * sent and never changed after.
+   *
+   * @generated from field: flipcash.messaging.v1.CashContent.Return payment_return = 7;
+   */
+  paymentReturn?: CashContent_Return;
+
   constructor(data?: PartialMessage<CashContent>) {
     super();
     proto3.util.initPartial(data, this);
@@ -679,6 +689,7 @@ export class CashContent extends Message$1<CashContent> {
     { no: 5, name: "multi_receiver", kind: "message", T: CashContent_Payments, oneof: "recipient" },
     { no: 4, name: "verb", kind: "enum", T: proto3.getEnumType(CashContent_Verb) },
     { no: 6, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+    { no: 7, name: "payment_return", kind: "message", T: CashContent_Return },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent {
@@ -820,6 +831,141 @@ export class CashContent_Payment extends Message$1<CashContent_Payment> {
 
   static equals(a: CashContent_Payment | PlainMessage<CashContent_Payment> | undefined, b: CashContent_Payment | PlainMessage<CashContent_Payment> | undefined): boolean {
     return proto3.util.equals(CashContent_Payment, a, b);
+  }
+}
+
+/**
+ * A payment's part in a return. Its fields are independent: a payment
+ * may return another and itself be offered for returning.
+ *
+ * @generated from message flipcash.messaging.v1.CashContent.Return
+ */
+export class CashContent_Return extends Message$1<CashContent_Return> {
+  /**
+   * Set when this payment may be returned, once, by its single_receiver
+   * to the message's sender. Today only the cash message of the payment
+   * that opened a DM carries one. Never changed after the message is
+   * sent, including once the payment has been returned: whether it can
+   * still be returned, and the intent ID the return must use, come from
+   * GetCashMessageReturnStatus.
+   *
+   * @generated from field: flipcash.messaging.v1.CashContent.Return.Offer offer = 1;
+   */
+  offer?: CashContent_Return_Offer;
+
+  /**
+   * Set when this payment returns the payment in another message: its
+   * sender is that message's single_receiver and its single_receiver
+   * is that message's sender. A client that sees it may stop offering
+   * a return on that message without asking GetCashMessageReturnStatus.
+   *
+   * @generated from field: flipcash.messaging.v1.CashContent.Return.ReturnOf return_of = 2;
+   */
+  returnOf?: CashContent_Return_ReturnOf;
+
+  constructor(data?: PartialMessage<CashContent_Return>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.CashContent.Return";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "offer", kind: "message", T: CashContent_Return_Offer },
+    { no: 2, name: "return_of", kind: "message", T: CashContent_Return_ReturnOf },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent_Return {
+    return new CashContent_Return().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CashContent_Return {
+    return new CashContent_Return().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CashContent_Return {
+    return new CashContent_Return().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CashContent_Return | PlainMessage<CashContent_Return> | undefined, b: CashContent_Return | PlainMessage<CashContent_Return> | undefined): boolean {
+    return proto3.util.equals(CashContent_Return, a, b);
+  }
+}
+
+/**
+ * An offer to return a payment: the same fiat amount as total_amount,
+ * in its currency and its mint (see
+ * intent.v1.ChatMetadata.ReturnPayment). Empty for now: its presence
+ * is the offer.
+ *
+ * @generated from message flipcash.messaging.v1.CashContent.Return.Offer
+ */
+export class CashContent_Return_Offer extends Message$1<CashContent_Return_Offer> {
+  constructor(data?: PartialMessage<CashContent_Return_Offer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.CashContent.Return.Offer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent_Return_Offer {
+    return new CashContent_Return_Offer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CashContent_Return_Offer {
+    return new CashContent_Return_Offer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CashContent_Return_Offer {
+    return new CashContent_Return_Offer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CashContent_Return_Offer | PlainMessage<CashContent_Return_Offer> | undefined, b: CashContent_Return_Offer | PlainMessage<CashContent_Return_Offer> | undefined): boolean {
+    return proto3.util.equals(CashContent_Return_Offer, a, b);
+  }
+}
+
+/**
+ * The payment a return returns
+ *
+ * @generated from message flipcash.messaging.v1.CashContent.Return.ReturnOf
+ */
+export class CashContent_Return_ReturnOf extends Message$1<CashContent_Return_ReturnOf> {
+  /**
+   * The message whose payment this one returns
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  constructor(data?: PartialMessage<CashContent_Return_ReturnOf>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.CashContent.Return.ReturnOf";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CashContent_Return_ReturnOf {
+    return new CashContent_Return_ReturnOf().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CashContent_Return_ReturnOf {
+    return new CashContent_Return_ReturnOf().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CashContent_Return_ReturnOf {
+    return new CashContent_Return_ReturnOf().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CashContent_Return_ReturnOf | PlainMessage<CashContent_Return_ReturnOf> | undefined, b: CashContent_Return_ReturnOf | PlainMessage<CashContent_Return_ReturnOf> | undefined): boolean {
+    return proto3.util.equals(CashContent_Return_ReturnOf, a, b);
   }
 }
 

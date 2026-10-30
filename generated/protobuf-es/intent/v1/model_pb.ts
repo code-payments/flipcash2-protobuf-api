@@ -126,6 +126,12 @@ export class ChatMetadata extends Message<ChatMetadata> {
      */
     value: ChatMetadata_RequestedPayment;
     case: "requestedPayment";
+  } | {
+    /**
+     * @generated from field: flipcash.intent.v1.ChatMetadata.ReturnPayment return_payment = 7;
+     */
+    value: ChatMetadata_ReturnPayment;
+    case: "returnPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ChatMetadata>) {
@@ -142,6 +148,7 @@ export class ChatMetadata extends Message<ChatMetadata> {
     { no: 4, name: "group_payment", kind: "message", T: ChatMetadata_GroupPayment, oneof: "type" },
     { no: 5, name: "reaction_boost", kind: "message", T: ChatMetadata_ReactionBoost, oneof: "type" },
     { no: 6, name: "requested_payment", kind: "message", T: ChatMetadata_RequestedPayment, oneof: "type" },
+    { no: 7, name: "return_payment", kind: "message", T: ChatMetadata_ReturnPayment, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata {
@@ -494,6 +501,74 @@ export class ChatMetadata_RequestedPayment extends Message<ChatMetadata_Requeste
 
   static equals(a: ChatMetadata_RequestedPayment | PlainMessage<ChatMetadata_RequestedPayment> | undefined, b: ChatMetadata_RequestedPayment | PlainMessage<ChatMetadata_RequestedPayment> | undefined): boolean {
     return proto3.util.equals(ChatMetadata_RequestedPayment, a, b);
+  }
+}
+
+/**
+ * For returning a payment offered for returning: a cash message whose
+ * messaging.v1.CashContent.payment_return carries an offer. The payment is
+ * a SendPublicPayment, never a multi payment, from the cash message's
+ * single_receiver back to its sender, and returns its payment exactly:
+ *
+ *   - The chat_id must be the DM the cash message is in.
+ *   - The payment's one destination must be the message sender's owner
+ *     account, and the payer must be its single_receiver.
+ *   - The payment's currency and mint must be total_amount's, and its
+ *     native amount (its exchange data's native_amount) must be
+ *     total_amount's native_amount to within half the currency's smallest
+ *     unit.
+ *   - The payment must not have been returned already.
+ *   - The intent's ID must be the one the server generated for the
+ *     offer, which messaging.v1.GetCashMessageReturnStatus gives the
+ *     single_receiver alone
+ *     (GetCashMessageReturnStatusResponse.payment_intent_id). An intent
+ *     ID is used at most once, so this is what makes a payment
+ *     returnable at most once.
+ *   - Neither the payer nor the payee may be the Flipcash team account.
+ *
+ * An offer does not expire. Once the payment is made the server posts one
+ * messaging.v1.CashContent message into the DM as the payer, with the
+ * original's sender as its single_receiver and the original message in its
+ * payment_return.return_of, and messaging.v1.GetCashMessageReturnStatus
+ * reports the payment RETURNED. The original message is not changed. The
+ * payment is shown as SENT, and in the activity feed as a send, like any
+ * other DM payment.
+ *
+ * @generated from message flipcash.intent.v1.ChatMetadata.ReturnPayment
+ */
+export class ChatMetadata_ReturnPayment extends Message<ChatMetadata_ReturnPayment> {
+  /**
+   * The message whose payment is returned.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 1;
+   */
+  messageId?: MessageId;
+
+  constructor(data?: PartialMessage<ChatMetadata_ReturnPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.intent.v1.ChatMetadata.ReturnPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message_id", kind: "message", T: MessageId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChatMetadata_ReturnPayment {
+    return new ChatMetadata_ReturnPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ChatMetadata_ReturnPayment {
+    return new ChatMetadata_ReturnPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ChatMetadata_ReturnPayment {
+    return new ChatMetadata_ReturnPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ChatMetadata_ReturnPayment | PlainMessage<ChatMetadata_ReturnPayment> | undefined, b: ChatMetadata_ReturnPayment | PlainMessage<ChatMetadata_ReturnPayment> | undefined): boolean {
+    return proto3.util.equals(ChatMetadata_ReturnPayment, a, b);
   }
 }
 

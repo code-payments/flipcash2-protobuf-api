@@ -81,6 +81,11 @@ message DirectlySentCryptoNotificationMetadata {
         // RequestedPayment). destination_identifier names the request's
         // creator, and payment_amount is the share.
         RequestedPayment requested_payment = 4;
+
+        // The payment returned a payment the recipient made to the payer in
+        // their DM (see ReturnedPayment). destination_identifier names the
+        // recipient, and payment_amount is the return.
+        ReturnedPayment returned_payment = 5;
     }
 }
 
@@ -104,6 +109,11 @@ message ReceivedCryptoNotificationMetadata {
         // (see RequestedPayment). source_identifier names the debtor, and
         // payment_amount is the share.
         RequestedPayment requested_payment = 4;
+
+        // The payment returned a payment the recipient made to the payer in
+        // their DM (see ReturnedPayment). source_identifier names the payer,
+        // and payment_amount is the return.
+        ReturnedPayment returned_payment = 5;
     }
 }
 
@@ -134,6 +144,19 @@ message RequestedPayment {
 
     // The payment request whose share was paid.
     paymentrequest.v1.PaymentRequestId payment_request_id = 2 [(validate.rules).message.required = true];
+}
+
+// The payment a return payment returned: the cash message, in a DM, of a
+// payment its receiver paid back to its sender (see
+// intent.v1.ChatMetadata.ReturnPayment and messaging.v1.CashContent.Return).
+// It is what the payment was for when it was made and is not kept up to
+// date: the message may since have been deleted.
+message ReturnedPayment {
+    // The DM the returned payment's cash message is in.
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // The cash message whose payment was returned.
+    messaging.v1.MessageId message_id = 2 [(validate.rules).message.required = true];
 }
 
 message WithdrewCryptoNotificationMetadata {

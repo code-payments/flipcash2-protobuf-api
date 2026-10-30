@@ -104,6 +104,13 @@ service Messaging {
     //
     // These requests are transient, and may be dropped at any point.
     rpc NotifyIsTyping(NotifyIsTypingRequest) returns (NotifyIsTypingResponse);
+
+    // GetCashMessageReturnStatus reports whether the payment of a cash message
+    // carrying a return offer (CashContent.Return.offer) can still be
+    // returned, and gives the message's single_receiver the intent ID the
+    // return must use (see intent.v1.ChatMetadata.ReturnPayment). Answered for
+    // the chat's members alone.
+    rpc GetCashMessageReturnStatus(GetCashMessageReturnStatusRequest) returns (GetCashMessageReturnStatusResponse);
 }
 
 message GetMessageRequest {
@@ -571,4 +578,45 @@ message NotifyIsTypingResponse {
         OK             = 0;
         DENIED         = 1;
     }
+}
+
+message GetCashMessageReturnStatusRequest {
+    common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
+
+    // A cash message in the chat carrying a return offer
+    MessageId message_id = 2 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetCashMessageReturnStatusResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        // The caller is not a member of the chat
+        DENIED    = 1;
+        // The message does not exist, or carries no return offer
+        NOT_FOUND = 2;
+    }
+
+    // Whether the payment can still be returned. Set only when result == OK.
+    // Once RETURNED it never changes again, so a client may stop asking.
+    Status status = 2;
+    enum Status {
+        UNKNOWN   = 0;
+        // The payment can be returned
+        AVAILABLE = 1;
+        // The payment has been returned
+        RETURNED  = 2;
+    }
+
+    // The intent ID the return of the payment must use. Set only when
+    // result == OK and the caller is the message's single_receiver, whatever
+    // the status. The server generates it once, when the message is sent. A
+    // return with any other intent ID is refused, and an intent ID is used at
+    // most once, so a payment is returned at most once: a retry, a second tap
+    // or a second device all pay under this one ID, and only the first payment
+    // goes through. Keep it to the payment: anyone who learns it before the
+    // payment is returned can use it up and block the return.
+    common.v1.IntentId payment_intent_id = 3;
 }
