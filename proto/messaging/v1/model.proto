@@ -327,6 +327,12 @@ message CashContent {
     // message.
     paymentrequest.v1.PaymentRequestId payment_request_id = 6;
 
+    // How this payment takes part in a return: it may be offered for
+    // returning, return the payment in another message, or both. Unset on a
+    // cash message that does neither. Set by the server when the message is
+    // sent and never changed after.
+    Return payment_return = 7;
+
     // The receivers of a payment to several people at once
     message Payments {
         // One entry per receiver, in the payment's own order. Each receiver is
@@ -349,6 +355,36 @@ message CashContent {
 
         // The amount in quarks of total_amount's mint this receiver was paid
         uint64 quarks = 3;
+    }
+
+    // A payment's part in a return. Its fields are independent: a payment
+    // may return another and itself be offered for returning.
+    message Return {
+        // Set when this payment may be returned, once, by its single_receiver
+        // to the message's sender. Today only the cash message of the payment
+        // that opened a DM carries one. Never changed after the message is
+        // sent, including once the payment has been returned: whether it can
+        // still be returned, and the intent ID the return must use, come from
+        // GetCashMessageReturnStatus.
+        Offer offer = 1;
+
+        // Set when this payment returns the payment in another message: its
+        // sender is that message's single_receiver and its single_receiver
+        // is that message's sender. A client that sees it may stop offering
+        // a return on that message without asking GetCashMessageReturnStatus.
+        ReturnOf return_of = 2;
+
+        // An offer to return a payment: the same fiat amount as total_amount,
+        // in its currency and its mint (see
+        // intent.v1.ChatMetadata.ReturnPayment). Empty for now: its presence
+        // is the offer.
+        message Offer {}
+
+        // The payment a return returns
+        message ReturnOf {
+            // The message whose payment this one returns
+            MessageId message_id = 1 [(validate.rules).message.required = true];
+        }
     }
 }
 

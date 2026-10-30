@@ -1451,6 +1451,35 @@ func (m *CashContent) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetPaymentReturn()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CashContentValidationError{
+					field:  "PaymentReturn",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CashContentValidationError{
+					field:  "PaymentReturn",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPaymentReturn()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CashContentValidationError{
+				field:  "PaymentReturn",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.Recipient.(type) {
 	case *CashContent_SingleReceiver:
 		if v == nil {
@@ -6005,6 +6034,411 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CashContent_PaymentValidationError{}
+
+// Validate checks the field values on CashContent_Return with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CashContent_Return) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CashContent_Return with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CashContent_ReturnMultiError, or nil if none found.
+func (m *CashContent_Return) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CashContent_Return) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetOffer()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CashContent_ReturnValidationError{
+					field:  "Offer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CashContent_ReturnValidationError{
+					field:  "Offer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOffer()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CashContent_ReturnValidationError{
+				field:  "Offer",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetReturnOf()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CashContent_ReturnValidationError{
+					field:  "ReturnOf",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CashContent_ReturnValidationError{
+					field:  "ReturnOf",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetReturnOf()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CashContent_ReturnValidationError{
+				field:  "ReturnOf",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CashContent_ReturnMultiError(errors)
+	}
+
+	return nil
+}
+
+// CashContent_ReturnMultiError is an error wrapping multiple validation errors
+// returned by CashContent_Return.ValidateAll() if the designated constraints
+// aren't met.
+type CashContent_ReturnMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CashContent_ReturnMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CashContent_ReturnMultiError) AllErrors() []error { return m }
+
+// CashContent_ReturnValidationError is the validation error returned by
+// CashContent_Return.Validate if the designated constraints aren't met.
+type CashContent_ReturnValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CashContent_ReturnValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CashContent_ReturnValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CashContent_ReturnValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CashContent_ReturnValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CashContent_ReturnValidationError) ErrorName() string {
+	return "CashContent_ReturnValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CashContent_ReturnValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCashContent_Return.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CashContent_ReturnValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CashContent_ReturnValidationError{}
+
+// Validate checks the field values on CashContent_Return_Offer with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CashContent_Return_Offer) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CashContent_Return_Offer with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CashContent_Return_OfferMultiError, or nil if none found.
+func (m *CashContent_Return_Offer) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CashContent_Return_Offer) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return CashContent_Return_OfferMultiError(errors)
+	}
+
+	return nil
+}
+
+// CashContent_Return_OfferMultiError is an error wrapping multiple validation
+// errors returned by CashContent_Return_Offer.ValidateAll() if the designated
+// constraints aren't met.
+type CashContent_Return_OfferMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CashContent_Return_OfferMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CashContent_Return_OfferMultiError) AllErrors() []error { return m }
+
+// CashContent_Return_OfferValidationError is the validation error returned by
+// CashContent_Return_Offer.Validate if the designated constraints aren't met.
+type CashContent_Return_OfferValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CashContent_Return_OfferValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CashContent_Return_OfferValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CashContent_Return_OfferValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CashContent_Return_OfferValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CashContent_Return_OfferValidationError) ErrorName() string {
+	return "CashContent_Return_OfferValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CashContent_Return_OfferValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCashContent_Return_Offer.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CashContent_Return_OfferValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CashContent_Return_OfferValidationError{}
+
+// Validate checks the field values on CashContent_Return_ReturnOf with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CashContent_Return_ReturnOf) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CashContent_Return_ReturnOf with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CashContent_Return_ReturnOfMultiError, or nil if none found.
+func (m *CashContent_Return_ReturnOf) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CashContent_Return_ReturnOf) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMessageId() == nil {
+		err := CashContent_Return_ReturnOfValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CashContent_Return_ReturnOfValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CashContent_Return_ReturnOfValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CashContent_Return_ReturnOfValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CashContent_Return_ReturnOfMultiError(errors)
+	}
+
+	return nil
+}
+
+// CashContent_Return_ReturnOfMultiError is an error wrapping multiple
+// validation errors returned by CashContent_Return_ReturnOf.ValidateAll() if
+// the designated constraints aren't met.
+type CashContent_Return_ReturnOfMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CashContent_Return_ReturnOfMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CashContent_Return_ReturnOfMultiError) AllErrors() []error { return m }
+
+// CashContent_Return_ReturnOfValidationError is the validation error returned
+// by CashContent_Return_ReturnOf.Validate if the designated constraints
+// aren't met.
+type CashContent_Return_ReturnOfValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CashContent_Return_ReturnOfValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CashContent_Return_ReturnOfValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CashContent_Return_ReturnOfValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CashContent_Return_ReturnOfValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CashContent_Return_ReturnOfValidationError) ErrorName() string {
+	return "CashContent_Return_ReturnOfValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CashContent_Return_ReturnOfValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCashContent_Return_ReturnOf.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CashContent_Return_ReturnOfValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CashContent_Return_ReturnOfValidationError{}
 
 // Validate checks the field values on SystemContent_UserJoined with the rules
 // defined in the proto definition for this message. If any rules are

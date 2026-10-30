@@ -342,6 +342,16 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
      */
     value: RequestedPayment;
     case: "requestedPayment";
+  } | {
+    /**
+     * The payment returned a payment the recipient made to the payer in
+     * their DM (see ReturnedPayment). destination_identifier names the
+     * recipient, and payment_amount is the return.
+     *
+     * @generated from field: flipcash.activity.v1.ReturnedPayment returned_payment = 5;
+     */
+    value: ReturnedPayment;
+    case: "returnedPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<DirectlySentCryptoNotificationMetadata>) {
@@ -356,6 +366,7 @@ export class DirectlySentCryptoNotificationMetadata extends Message<DirectlySent
     { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "destination_identifier" },
     { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction, oneof: "context" },
     { no: 4, name: "requested_payment", kind: "message", T: RequestedPayment, oneof: "context" },
+    { no: 5, name: "returned_payment", kind: "message", T: ReturnedPayment, oneof: "context" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DirectlySentCryptoNotificationMetadata {
@@ -424,6 +435,16 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
      */
     value: RequestedPayment;
     case: "requestedPayment";
+  } | {
+    /**
+     * The payment returned a payment the recipient made to the payer in
+     * their DM (see ReturnedPayment). source_identifier names the payer,
+     * and payment_amount is the return.
+     *
+     * @generated from field: flipcash.activity.v1.ReturnedPayment returned_payment = 5;
+     */
+    value: ReturnedPayment;
+    case: "returnedPayment";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ReceivedCryptoNotificationMetadata>) {
@@ -438,6 +459,7 @@ export class ReceivedCryptoNotificationMetadata extends Message<ReceivedCryptoNo
     { no: 2, name: "user_id", kind: "message", T: UserId, oneof: "source_identifier" },
     { no: 3, name: "boosted_reaction", kind: "message", T: BoostedReaction, oneof: "context" },
     { no: 4, name: "requested_payment", kind: "message", T: RequestedPayment, oneof: "context" },
+    { no: 5, name: "returned_payment", kind: "message", T: ReturnedPayment, oneof: "context" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReceivedCryptoNotificationMetadata {
@@ -568,6 +590,59 @@ export class RequestedPayment extends Message<RequestedPayment> {
 
   static equals(a: RequestedPayment | PlainMessage<RequestedPayment> | undefined, b: RequestedPayment | PlainMessage<RequestedPayment> | undefined): boolean {
     return proto3.util.equals(RequestedPayment, a, b);
+  }
+}
+
+/**
+ * The payment a return payment returned: the cash message, in a DM, of a
+ * payment its receiver paid back to its sender (see
+ * intent.v1.ChatMetadata.ReturnPayment and messaging.v1.CashContent.Return).
+ * It is what the payment was for when it was made and is not kept up to
+ * date: the message may since have been deleted.
+ *
+ * @generated from message flipcash.activity.v1.ReturnedPayment
+ */
+export class ReturnedPayment extends Message<ReturnedPayment> {
+  /**
+   * The DM the returned payment's cash message is in.
+   *
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * The cash message whose payment was returned.
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  constructor(data?: PartialMessage<ReturnedPayment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.activity.v1.ReturnedPayment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ReturnedPayment {
+    return new ReturnedPayment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ReturnedPayment {
+    return new ReturnedPayment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ReturnedPayment {
+    return new ReturnedPayment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ReturnedPayment | PlainMessage<ReturnedPayment> | undefined, b: ReturnedPayment | PlainMessage<ReturnedPayment> | undefined): boolean {
+    return proto3.util.equals(ReturnedPayment, a, b);
   }
 }
 

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetDeltaRequest, GetDeltaResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactionSummaryRequest, GetReactionSummaryResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
+import { AddReactionRequest, AddReactionResponse, AdvancePointerRequest, AdvancePointerResponse, DeleteMessageRequest, DeleteMessageResponse, EditMessageRequest, EditMessageResponse, GetCashMessageReturnStatusRequest, GetCashMessageReturnStatusResponse, GetDeltaRequest, GetDeltaResponse, GetMessageRequest, GetMessageResponse, GetMessagesRequest, GetMessagesResponse, GetReactionSummariesRequest, GetReactionSummariesResponse, GetReactionSummaryRequest, GetReactionSummaryResponse, GetReactorsRequest, GetReactorsResponse, NotifyIsTypingRequest, NotifyIsTypingResponse, RemoveReactionRequest, RemoveReactionResponse, SendMessageRequest, SendMessageResponse } from "./messaging_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -208,6 +208,21 @@ export const Messaging = {
       name: "NotifyIsTyping",
       I: NotifyIsTypingRequest,
       O: NotifyIsTypingResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetCashMessageReturnStatus reports whether the payment of a cash message
+     * carrying a return offer (CashContent.Return.offer) can still be
+     * returned, and gives the message's single_receiver the intent ID the
+     * return must use (see intent.v1.ChatMetadata.ReturnPayment). Answered for
+     * the chat's members alone.
+     *
+     * @generated from rpc flipcash.messaging.v1.Messaging.GetCashMessageReturnStatus
+     */
+    getCashMessageReturnStatus: {
+      name: "GetCashMessageReturnStatus",
+      I: GetCashMessageReturnStatusRequest,
+      O: GetCashMessageReturnStatusResponse,
       kind: MethodKind.Unary,
     },
   }

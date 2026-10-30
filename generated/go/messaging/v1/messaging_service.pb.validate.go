@@ -5008,3 +5008,366 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = NotifyIsTypingResponseValidationError{}
+
+// Validate checks the field values on GetCashMessageReturnStatusRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetCashMessageReturnStatusRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCashMessageReturnStatusRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetCashMessageReturnStatusRequestMultiError, or nil if none found.
+func (m *GetCashMessageReturnStatusRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCashMessageReturnStatusRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := GetCashMessageReturnStatusRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetCashMessageReturnStatusRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetMessageId() == nil {
+		err := GetCashMessageReturnStatusRequestValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusRequestValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetCashMessageReturnStatusRequestValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := GetCashMessageReturnStatusRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetCashMessageReturnStatusRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetCashMessageReturnStatusRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetCashMessageReturnStatusRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetCashMessageReturnStatusRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetCashMessageReturnStatusRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCashMessageReturnStatusRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCashMessageReturnStatusRequestMultiError) AllErrors() []error { return m }
+
+// GetCashMessageReturnStatusRequestValidationError is the validation error
+// returned by GetCashMessageReturnStatusRequest.Validate if the designated
+// constraints aren't met.
+type GetCashMessageReturnStatusRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCashMessageReturnStatusRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCashMessageReturnStatusRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCashMessageReturnStatusRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCashMessageReturnStatusRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCashMessageReturnStatusRequestValidationError) ErrorName() string {
+	return "GetCashMessageReturnStatusRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCashMessageReturnStatusRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCashMessageReturnStatusRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCashMessageReturnStatusRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCashMessageReturnStatusRequestValidationError{}
+
+// Validate checks the field values on GetCashMessageReturnStatusResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetCashMessageReturnStatusResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCashMessageReturnStatusResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetCashMessageReturnStatusResponseMultiError, or nil if none found.
+func (m *GetCashMessageReturnStatusResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCashMessageReturnStatusResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	// no validation rules for Status
+
+	if all {
+		switch v := interface{}(m.GetPaymentIntentId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusResponseValidationError{
+					field:  "PaymentIntentId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetCashMessageReturnStatusResponseValidationError{
+					field:  "PaymentIntentId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPaymentIntentId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetCashMessageReturnStatusResponseValidationError{
+				field:  "PaymentIntentId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetCashMessageReturnStatusResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetCashMessageReturnStatusResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetCashMessageReturnStatusResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetCashMessageReturnStatusResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCashMessageReturnStatusResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCashMessageReturnStatusResponseMultiError) AllErrors() []error { return m }
+
+// GetCashMessageReturnStatusResponseValidationError is the validation error
+// returned by GetCashMessageReturnStatusResponse.Validate if the designated
+// constraints aren't met.
+type GetCashMessageReturnStatusResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCashMessageReturnStatusResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCashMessageReturnStatusResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCashMessageReturnStatusResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCashMessageReturnStatusResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCashMessageReturnStatusResponseValidationError) ErrorName() string {
+	return "GetCashMessageReturnStatusResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCashMessageReturnStatusResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCashMessageReturnStatusResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCashMessageReturnStatusResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCashMessageReturnStatusResponseValidationError{}

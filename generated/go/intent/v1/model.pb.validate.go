@@ -466,6 +466,48 @@ func (m *ChatMetadata) validate(all bool) error {
 			}
 		}
 
+	case *ChatMetadata_ReturnPayment_:
+		if v == nil {
+			err := ChatMetadataValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetReturnPayment()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChatMetadataValidationError{
+						field:  "ReturnPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChatMetadataValidationError{
+						field:  "ReturnPayment",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetReturnPayment()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChatMetadataValidationError{
+					field:  "ReturnPayment",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -1274,3 +1316,145 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ChatMetadata_RequestedPaymentValidationError{}
+
+// Validate checks the field values on ChatMetadata_ReturnPayment with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ChatMetadata_ReturnPayment) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChatMetadata_ReturnPayment with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ChatMetadata_ReturnPaymentMultiError, or nil if none found.
+func (m *ChatMetadata_ReturnPayment) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChatMetadata_ReturnPayment) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetMessageId() == nil {
+		err := ChatMetadata_ReturnPaymentValidationError{
+			field:  "MessageId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetMessageId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChatMetadata_ReturnPaymentValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChatMetadata_ReturnPaymentValidationError{
+					field:  "MessageId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMessageId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChatMetadata_ReturnPaymentValidationError{
+				field:  "MessageId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ChatMetadata_ReturnPaymentMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChatMetadata_ReturnPaymentMultiError is an error wrapping multiple
+// validation errors returned by ChatMetadata_ReturnPayment.ValidateAll() if
+// the designated constraints aren't met.
+type ChatMetadata_ReturnPaymentMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChatMetadata_ReturnPaymentMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChatMetadata_ReturnPaymentMultiError) AllErrors() []error { return m }
+
+// ChatMetadata_ReturnPaymentValidationError is the validation error returned
+// by ChatMetadata_ReturnPayment.Validate if the designated constraints aren't met.
+type ChatMetadata_ReturnPaymentValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChatMetadata_ReturnPaymentValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChatMetadata_ReturnPaymentValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChatMetadata_ReturnPaymentValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChatMetadata_ReturnPaymentValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChatMetadata_ReturnPaymentValidationError) ErrorName() string {
+	return "ChatMetadata_ReturnPaymentValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChatMetadata_ReturnPaymentValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChatMetadata_ReturnPayment.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChatMetadata_ReturnPaymentValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChatMetadata_ReturnPaymentValidationError{}

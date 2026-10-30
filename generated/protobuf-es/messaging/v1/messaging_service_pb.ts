@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Auth, ChatId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
+import { Auth, ChatId, IntentId, PagingToken, QueryOptions } from "../../common/v1/common_pb";
 import { ClientMessageId, Content, Emoji, EmojiReaction, IsTypingNotification_State, Message as Message$1, MessageBatch, MessageId, MessageIdBatch, Pointer_Type, ReactionSummary, Reactor, ViewMode } from "./model_pb";
 
 /**
@@ -1894,5 +1894,177 @@ export enum NotifyIsTypingResponse_Result {
 proto3.util.setEnumType(NotifyIsTypingResponse_Result, "flipcash.messaging.v1.NotifyIsTypingResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
+]);
+
+/**
+ * @generated from message flipcash.messaging.v1.GetCashMessageReturnStatusRequest
+ */
+export class GetCashMessageReturnStatusRequest extends Message<GetCashMessageReturnStatusRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * A cash message in the chat carrying a return offer
+   *
+   * @generated from field: flipcash.messaging.v1.MessageId message_id = 2;
+   */
+  messageId?: MessageId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetCashMessageReturnStatusRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.GetCashMessageReturnStatusRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 2, name: "message_id", kind: "message", T: MessageId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCashMessageReturnStatusRequest {
+    return new GetCashMessageReturnStatusRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCashMessageReturnStatusRequest {
+    return new GetCashMessageReturnStatusRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCashMessageReturnStatusRequest {
+    return new GetCashMessageReturnStatusRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCashMessageReturnStatusRequest | PlainMessage<GetCashMessageReturnStatusRequest> | undefined, b: GetCashMessageReturnStatusRequest | PlainMessage<GetCashMessageReturnStatusRequest> | undefined): boolean {
+    return proto3.util.equals(GetCashMessageReturnStatusRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.messaging.v1.GetCashMessageReturnStatusResponse
+ */
+export class GetCashMessageReturnStatusResponse extends Message<GetCashMessageReturnStatusResponse> {
+  /**
+   * @generated from field: flipcash.messaging.v1.GetCashMessageReturnStatusResponse.Result result = 1;
+   */
+  result = GetCashMessageReturnStatusResponse_Result.OK;
+
+  /**
+   * Whether the payment can still be returned. Set only when result == OK.
+   * Once RETURNED it never changes again, so a client may stop asking.
+   *
+   * @generated from field: flipcash.messaging.v1.GetCashMessageReturnStatusResponse.Status status = 2;
+   */
+  status = GetCashMessageReturnStatusResponse_Status.UNKNOWN;
+
+  /**
+   * The intent ID the return of the payment must use. Set only when
+   * result == OK and the caller is the message's single_receiver, whatever
+   * the status. The server generates it once, when the message is sent. A
+   * return with any other intent ID is refused, and an intent ID is used at
+   * most once, so a payment is returned at most once: a retry, a second tap
+   * or a second device all pay under this one ID, and only the first payment
+   * goes through. Keep it to the payment: anyone who learns it before the
+   * payment is returned can use it up and block the return.
+   *
+   * @generated from field: flipcash.common.v1.IntentId payment_intent_id = 3;
+   */
+  paymentIntentId?: IntentId;
+
+  constructor(data?: PartialMessage<GetCashMessageReturnStatusResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.GetCashMessageReturnStatusResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetCashMessageReturnStatusResponse_Result) },
+    { no: 2, name: "status", kind: "enum", T: proto3.getEnumType(GetCashMessageReturnStatusResponse_Status) },
+    { no: 3, name: "payment_intent_id", kind: "message", T: IntentId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCashMessageReturnStatusResponse {
+    return new GetCashMessageReturnStatusResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCashMessageReturnStatusResponse {
+    return new GetCashMessageReturnStatusResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCashMessageReturnStatusResponse {
+    return new GetCashMessageReturnStatusResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCashMessageReturnStatusResponse | PlainMessage<GetCashMessageReturnStatusResponse> | undefined, b: GetCashMessageReturnStatusResponse | PlainMessage<GetCashMessageReturnStatusResponse> | undefined): boolean {
+    return proto3.util.equals(GetCashMessageReturnStatusResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.messaging.v1.GetCashMessageReturnStatusResponse.Result
+ */
+export enum GetCashMessageReturnStatusResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * The caller is not a member of the chat
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * The message does not exist, or carries no return offer
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetCashMessageReturnStatusResponse_Result)
+proto3.util.setEnumType(GetCashMessageReturnStatusResponse_Result, "flipcash.messaging.v1.GetCashMessageReturnStatusResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from enum flipcash.messaging.v1.GetCashMessageReturnStatusResponse.Status
+ */
+export enum GetCashMessageReturnStatusResponse_Status {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * The payment can be returned
+   *
+   * @generated from enum value: AVAILABLE = 1;
+   */
+  AVAILABLE = 1,
+
+  /**
+   * The payment has been returned
+   *
+   * @generated from enum value: RETURNED = 2;
+   */
+  RETURNED = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetCashMessageReturnStatusResponse_Status)
+proto3.util.setEnumType(GetCashMessageReturnStatusResponse_Status, "flipcash.messaging.v1.GetCashMessageReturnStatusResponse.Status", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "AVAILABLE" },
+  { no: 2, name: "RETURNED" },
 ]);
 
