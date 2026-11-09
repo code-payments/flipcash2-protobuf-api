@@ -180,6 +180,14 @@ message UserFlags {
 
 	// Duration after message creation when a message can be deleted
 	google.protobuf.Duration message_delete_window = 18;
+
+	// USDF amount, in quarks, that must be purchased when launching a new currency
+	// using the new v2 flow
+	uint64 new_currency_v2_purchase_amount = 19;
+
+	// USDF amount, in quarks, that must be paid in a fee when launching a new currency
+	// using the new v2 flow
+	uint64 new_currency_v2_fee_amount = 20;
 }
 
 message SendPresets {

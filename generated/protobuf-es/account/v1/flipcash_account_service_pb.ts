@@ -596,6 +596,22 @@ export class UserFlags extends Message<UserFlags> {
    */
   messageDeleteWindow?: Duration;
 
+  /**
+   * USDF amount, in quarks, that must be purchased when launching a new currency
+   * using the new v2 flow
+   *
+   * @generated from field: uint64 new_currency_v2_purchase_amount = 19;
+   */
+  newCurrencyV2PurchaseAmount = protoInt64.zero;
+
+  /**
+   * USDF amount, in quarks, that must be paid in a fee when launching a new currency
+   * using the new v2 flow
+   *
+   * @generated from field: uint64 new_currency_v2_fee_amount = 20;
+   */
+  newCurrencyV2FeeAmount = protoInt64.zero;
+
   constructor(data?: PartialMessage<UserFlags>) {
     super();
     proto3.util.initPartial(data, this);
@@ -622,6 +638,8 @@ export class UserFlags extends Message<UserFlags> {
     { no: 16, name: "username_min_balance", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 17, name: "message_edit_window", kind: "message", T: Duration },
     { no: 18, name: "message_delete_window", kind: "message", T: Duration },
+    { no: 19, name: "new_currency_v2_purchase_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 20, name: "new_currency_v2_fee_amount", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserFlags {
