@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
 import { Auth } from "../../common/v1/common_pb";
-import { FlaggedCategory, ModerationAttestation } from "./model_pb";
+import { ContentKind, FlaggedCategory, ModerationAttestation } from "./model_pb";
 
 /**
  * @generated from message flipcash.moderation.v1.ModerateTextRequest
@@ -24,6 +24,19 @@ export class ModerateTextRequest extends Message<ModerateTextRequest> {
    */
   auth?: Auth;
 
+  /**
+   * What the text is for, which decides the checks it is moderated under and
+   * is bound into the attestation. Text over the kind's maximum length (32
+   * bytes for a currency name, 8 for a symbol) is refused as invalid, since
+   * it could never be used as that kind.
+   *
+   * UNKNOWN_CONTENT_KIND is for legacy clients and will be refused once they
+   * are gone; new clients must always set a kind.
+   *
+   * @generated from field: flipcash.moderation.v1.ContentKind kind = 3;
+   */
+  kind = ContentKind.UNKNOWN_CONTENT_KIND;
+
   constructor(data?: PartialMessage<ModerateTextRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -34,6 +47,7 @@ export class ModerateTextRequest extends Message<ModerateTextRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "text", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "auth", kind: "message", T: Auth },
+    { no: 3, name: "kind", kind: "enum", T: proto3.getEnumType(ContentKind) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModerateTextRequest {
@@ -156,6 +170,17 @@ export class ModerateImageRequest extends Message<ModerateImageRequest> {
    */
   auth?: Auth;
 
+  /**
+   * What the image is for, which decides the checks it is moderated under and
+   * is bound into the attestation.
+   *
+   * UNKNOWN_CONTENT_KIND is for legacy clients and will be refused once they
+   * are gone; new clients must always set a kind.
+   *
+   * @generated from field: flipcash.moderation.v1.ContentKind kind = 3;
+   */
+  kind = ContentKind.UNKNOWN_CONTENT_KIND;
+
   constructor(data?: PartialMessage<ModerateImageRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -166,6 +191,7 @@ export class ModerateImageRequest extends Message<ModerateImageRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "image_data", kind: "scalar", T: 12 /* ScalarType.BYTES */ },
     { no: 2, name: "auth", kind: "message", T: Auth },
+    { no: 3, name: "kind", kind: "enum", T: proto3.getEnumType(ContentKind) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModerateImageRequest {

@@ -108,6 +108,17 @@ func (m *ModerateTextRequest) validate(all bool) error {
 		}
 	}
 
+	if _, ok := _ModerateTextRequest_Kind_InLookup[m.GetKind()]; !ok {
+		err := ModerateTextRequestValidationError{
+			field:  "Kind",
+			reason: "value must be in list [UNKNOWN_CONTENT_KIND CURRENCY_NAME CURRENCY_SYMBOL CURRENCY_DESCRIPTION]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ModerateTextRequestMultiError(errors)
 	}
@@ -187,6 +198,13 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ModerateTextRequestValidationError{}
+
+var _ModerateTextRequest_Kind_InLookup = map[ContentKind]struct{}{
+	0: {},
+	1: {},
+	2: {},
+	3: {},
+}
 
 // Validate checks the field values on ModerateTextResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -398,6 +416,17 @@ func (m *ModerateImageRequest) validate(all bool) error {
 		}
 	}
 
+	if _, ok := _ModerateImageRequest_Kind_InLookup[m.GetKind()]; !ok {
+		err := ModerateImageRequestValidationError{
+			field:  "Kind",
+			reason: "value must be in list [UNKNOWN_CONTENT_KIND CURRENCY_ICON]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return ModerateImageRequestMultiError(errors)
 	}
@@ -477,6 +506,11 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ModerateImageRequestValidationError{}
+
+var _ModerateImageRequest_Kind_InLookup = map[ContentKind]struct{}{
+	0: {},
+	4: {},
+}
 
 // Validate checks the field values on ModerateImageResponse with the rules
 // defined in the proto definition for this message. If any rules are
