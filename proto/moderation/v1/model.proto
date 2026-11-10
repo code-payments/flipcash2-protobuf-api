@@ -26,6 +26,38 @@ message ModerationAttestation {
 
     // Attestor signature over this message
     common.v1.Signature signature = 5;
+
+    // What the content was moderated as. An attestation is valid only for the
+    // kind it names: a verifier checks it against the kind the content is used
+    // as (e.g. a currency's name), so content moderated under one kind's checks
+    // cannot be used where another kind's are required.
+    //
+    // UNKNOWN_CONTENT_KIND for content moderated by a request that named no
+    // kind, under the checks every kind once shared. Accepted for any kind for
+    // a transition period, after which it is accepted for none.
+    ContentKind kind = 6;
+}
+
+// ContentKind is what a piece of moderated content is for. The server moderates
+// each kind under the checks that fit it, and binds the kind into the
+// attestation (ModerationAttestation.kind).
+enum ContentKind {
+    // Legacy: the request named no kind. Moderated under the checks every kind
+    // once shared, which treat any text short enough to be a currency name as
+    // one.
+    UNKNOWN_CONTENT_KIND = 0;
+
+    // A currency's name (text).
+    CURRENCY_NAME = 1;
+
+    // A currency's symbol (text).
+    CURRENCY_SYMBOL = 2;
+
+    // A currency's description (text).
+    CURRENCY_DESCRIPTION = 3;
+
+    // A currency's icon (image).
+    CURRENCY_ICON = 4;
 }
 
 enum FlaggedCategory {

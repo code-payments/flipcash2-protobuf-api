@@ -8,6 +8,60 @@ import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { PublicKey, Signature, UserId } from "../../common/v1/common_pb";
 
 /**
+ * ContentKind is what a piece of moderated content is for. The server moderates
+ * each kind under the checks that fit it, and binds the kind into the
+ * attestation (ModerationAttestation.kind).
+ *
+ * @generated from enum flipcash.moderation.v1.ContentKind
+ */
+export enum ContentKind {
+  /**
+   * Legacy: the request named no kind. Moderated under the checks every kind
+   * once shared, which treat any text short enough to be a currency name as
+   * one.
+   *
+   * @generated from enum value: UNKNOWN_CONTENT_KIND = 0;
+   */
+  UNKNOWN_CONTENT_KIND = 0,
+
+  /**
+   * A currency's name (text).
+   *
+   * @generated from enum value: CURRENCY_NAME = 1;
+   */
+  CURRENCY_NAME = 1,
+
+  /**
+   * A currency's symbol (text).
+   *
+   * @generated from enum value: CURRENCY_SYMBOL = 2;
+   */
+  CURRENCY_SYMBOL = 2,
+
+  /**
+   * A currency's description (text).
+   *
+   * @generated from enum value: CURRENCY_DESCRIPTION = 3;
+   */
+  CURRENCY_DESCRIPTION = 3,
+
+  /**
+   * A currency's icon (image).
+   *
+   * @generated from enum value: CURRENCY_ICON = 4;
+   */
+  CURRENCY_ICON = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ContentKind)
+proto3.util.setEnumType(ContentKind, "flipcash.moderation.v1.ContentKind", [
+  { no: 0, name: "UNKNOWN_CONTENT_KIND" },
+  { no: 1, name: "CURRENCY_NAME" },
+  { no: 2, name: "CURRENCY_SYMBOL" },
+  { no: 3, name: "CURRENCY_DESCRIPTION" },
+  { no: 4, name: "CURRENCY_ICON" },
+]);
+
+/**
  * @generated from enum flipcash.moderation.v1.FlaggedCategory
  */
 export enum FlaggedCategory {
@@ -95,6 +149,20 @@ export class ModerationAttestation extends Message<ModerationAttestation> {
    */
   signature?: Signature;
 
+  /**
+   * What the content was moderated as. An attestation is valid only for the
+   * kind it names: a verifier checks it against the kind the content is used
+   * as (e.g. a currency's name), so content moderated under one kind's checks
+   * cannot be used where another kind's are required.
+   *
+   * UNKNOWN_CONTENT_KIND for content moderated by a request that named no
+   * kind, under the checks every kind once shared. Accepted for any kind for
+   * a transition period, after which it is accepted for none.
+   *
+   * @generated from field: flipcash.moderation.v1.ContentKind kind = 6;
+   */
+  kind = ContentKind.UNKNOWN_CONTENT_KIND;
+
   constructor(data?: PartialMessage<ModerationAttestation>) {
     super();
     proto3.util.initPartial(data, this);
@@ -108,6 +176,7 @@ export class ModerationAttestation extends Message<ModerationAttestation> {
     { no: 3, name: "user_id", kind: "message", T: UserId },
     { no: 4, name: "attestor", kind: "message", T: PublicKey },
     { no: 5, name: "signature", kind: "message", T: Signature },
+    { no: 6, name: "kind", kind: "enum", T: proto3.getEnumType(ContentKind) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ModerationAttestation {

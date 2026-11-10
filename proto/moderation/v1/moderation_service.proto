@@ -26,6 +26,17 @@ message ModerateTextRequest {
     }];
 
     common.v1.Auth auth = 2 [(validate.rules).message.required = true];
+
+    // What the text is for, which decides the checks it is moderated under and
+    // is bound into the attestation. Text over the kind's maximum length (32
+    // bytes for a currency name, 8 for a symbol) is refused as invalid, since
+    // it could never be used as that kind.
+    //
+    // UNKNOWN_CONTENT_KIND is for legacy clients and will be refused once they
+    // are gone; new clients must always set a kind.
+    ContentKind kind = 3 [(validate.rules).enum = {
+        in: [0, 1, 2, 3] // UNKNOWN_CONTENT_KIND, CURRENCY_NAME, CURRENCY_SYMBOL, CURRENCY_DESCRIPTION
+    }];
 }
 
 message ModerateTextResponse {
@@ -54,6 +65,15 @@ message ModerateImageRequest {
     }];
 
     common.v1.Auth auth = 2 [(validate.rules).message.required = true];
+
+    // What the image is for, which decides the checks it is moderated under and
+    // is bound into the attestation.
+    //
+    // UNKNOWN_CONTENT_KIND is for legacy clients and will be refused once they
+    // are gone; new clients must always set a kind.
+    ContentKind kind = 3 [(validate.rules).enum = {
+        in: [0, 4] // UNKNOWN_CONTENT_KIND, CURRENCY_ICON
+    }];
 }
 
 message ModerateImageResponse {

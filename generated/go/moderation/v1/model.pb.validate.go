@@ -175,6 +175,8 @@ func (m *ModerationAttestation) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Kind
+
 	if len(errors) > 0 {
 		return ModerationAttestationMultiError(errors)
 	}
