@@ -1,0 +1,306 @@
+syntax = "proto3";
+
+package flipcash.kyc.coinbase.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/kyc/coinbase/v1;kyccoinbasepb";
+option java_package = "com.codeinc.flipcash.gen.kyc.coinbase.v1";
+option objc_class_prefix = "FPBKycCoinbaseV1";
+
+import "common/v1/common.proto";
+import "kyc/coinbase/v1/model.proto";
+import "validate/validate.proto";
+
+// Kyc verifies a user's identity with Coinbase, which the features Flipcash
+// builds on Coinbase require of a user before they can use them.
+//
+// The verification is Coinbase's. The app collects the user's information in
+// its own screens, the server passes it to Coinbase, and Coinbase decides.
+// Coinbase verifies individuals resident in the United States only.
+//
+// The flow:
+//
+//  1. GetKycState returns the user's state for a product. A user who has not
+//     begun is NOT_STARTED.
+//  2. When the user chooses to begin, StartKyc starts their verification and
+//     returns what they have to provide: information about themself and a
+//     tax form to attest to.
+//  3. The app collects it. It shows the user the tax form's certification
+//     and has them agree to it explicitly.
+//  4. SubmitKyc submits it and returns the state after the submission. The
+//     simplest client submits everything asked for in one request; one that
+//     submits a screen at a time is supported too.
+//  5. Once Coinbase has the user's address, the state lists the terms they
+//     must accept. The app shows the user each document, has them agree to
+//     it explicitly, and submits the acceptances with SubmitKyc.
+//  6. While the state is IN_REVIEW the app polls GetKycState. No event or
+//     push announces a change.
+//  7. The state settles as VERIFIED, as ACTION_REQUIRED when Coinbase could
+//     not verify something (the user corrects it and submits again), or as
+//     BLOCKED, which is final.
+//
+// A verified user changes their information (a new address, a new name) with
+// SubmitKyc as well.
+//
+// Every request names a product, since a user is verified for a product and
+// not once for all of them (see Product). What Coinbase asks of a user also
+// depends on the country they live in, which their Address carries, so the
+// terms to accept are listed only once Coinbase has their address. Today
+// there is one product and one country, the United States.
+//
+// What a user submits is sent to Coinbase and returned by no RPC: a client
+// that wants to show it again keeps it itself. With each StartKyc and
+// submission it passes to Coinbase, the server also sends the IP address the
+// request came from, which Coinbase requires.
+service Kyc {
+    // GetKycState gets the caller's verification state for a product and
+    // what they still have to provide for it. It tells Coinbase nothing and
+    // changes nothing: a caller who has not started the product is
+    // NOT_STARTED, with nothing listed until they start it.
+    rpc GetKycState(GetKycStateRequest) returns (GetKycStateResponse);
+
+    // StartKyc starts the caller's verification for a product and returns
+    // their state for it, which lists what they have to provide. It is what
+    // first tells Coinbase about the caller, so a client calls it when the
+    // user chooses to begin and not before.
+    //
+    // What a caller has already provided for another product counts: they
+    // are asked only for what this one needs beyond it, which may be nothing.
+    //
+    // Starting a product already started changes nothing and returns the
+    // caller's state for it, so a retry is safe.
+    rpc StartKyc(StartKycRequest) returns (StartKycResponse);
+
+    // SubmitKyc submits any part of what verification needs: information
+    // about the caller, acceptances of terms and tax attestations. It is how
+    // a caller who has started a product first provides them, corrects what
+    // Coinbase rejected, and changes them once verified.
+    //
+    // A submission is applied whole or not at all. It replaces each field of
+    // Individual it sets and leaves the rest as they were. One that sets
+    // nothing changes nothing and returns the caller's state.
+    //
+    // Every submission is passed to Coinbase, a repeat of an earlier one
+    // included, so a retry is safe and a resubmission is never dropped:
+    // repeating what a verified caller has already provided leaves them
+    // verified, and repeating what Coinbase rejected has it verified again.
+    //
+    // OK means Coinbase took the submission, not that the caller is verified:
+    // the returned state says where they stand. It is ACTION_REQUIRED while
+    // something is still asked for, as the terms are once the caller's
+    // address is in, and usually IN_REVIEW once nothing is. A caller Coinbase
+    // blocks, on this submission or an earlier one, gets BLOCKED instead.
+    rpc SubmitKyc(SubmitKycRequest) returns (SubmitKycResponse);
+}
+
+message GetKycStateRequest {
+    // The product to get the caller's state for.
+    Product product = 1 [(validate.rules).enum = {
+        defined_only: true
+        not_in: [0]
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetKycStateResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        // Verification with Coinbase for the product is not available to the
+        // caller.
+        DENIED = 1;
+    }
+
+    // Set only when result == OK.
+    KycState kyc_state = 2;
+}
+
+message StartKycRequest {
+    // The product to start the caller's verification for.
+    Product product = 1 [(validate.rules).enum = {
+        defined_only: true
+        not_in: [0]
+    }];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message StartKycResponse {
+    Result result = 1;
+    enum Result {
+        OK     = 0;
+        // Verification with Coinbase for the product is not available to the
+        // caller.
+        DENIED = 1;
+    }
+
+    // The caller's state for the product, now started. Set only when
+    // result == OK.
+    KycState kyc_state = 2;
+}
+
+message SubmitKycRequest {
+    // The product the caller is verifying for, which they must have started
+    // (see StartKyc). The state returned is the caller's for it.
+    Product product = 1 [(validate.rules).enum = {
+        defined_only: true
+        not_in: [0]
+    }];
+
+    // Information about the caller. Only the fields set are submitted.
+    Individual individual = 2;
+
+    // The terms the caller has agreed to, one acceptance per version. Each
+    // names a version the caller's state lists, or one it listed until the
+    // caller accepted it: accepting a version already accepted changes
+    // nothing.
+    //
+    // Terms are those of where the caller lives, and Coinbase asks a caller
+    // to accept them only once it has their address. An acceptance therefore
+    // comes after the address: the state returned by the submission that
+    // carries the address lists the terms.
+    repeated TermsOfServiceAcceptance terms_of_service_acceptances = 3 [(validate.rules).repeated.max_items = 16];
+
+    // The tax forms the caller has attested to, one attestation per form.
+    //
+    // An attestation is sent with the legal name and SSN it certifies or
+    // after them, and a request that changes either should carry a new one
+    // (see TaxAttestation). Attesting to a form already attested to is
+    // accepted.
+    repeated TaxAttestation tax_attestations = 4 [(validate.rules).repeated.max_items = 16];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message SubmitKycResponse {
+    Result result = 1;
+    enum Result {
+        OK                 = 0;
+        // Verification with Coinbase for the product is not available to the
+        // caller. Nothing was submitted.
+        DENIED             = 1;
+        // Part of the submission is not valid, and nothing was applied. It is
+        // a check of what was sent, made by the server before it sends
+        // anything to Coinbase. It is not Coinbase's verdict on the caller,
+        // which comes afterwards through the state, as a REJECTED requirement
+        // or as BLOCKED. invalid_fields and
+        // invalid_terms_of_service_acceptances say which parts and why.
+        //
+        // Rarely, Coinbase itself refuses a submission the server passed on.
+        // Nothing was applied then either, and both lists are empty when it
+        // did not say what was at fault: the user checks what they entered
+        // and submits again.
+        INVALID_SUBMISSION = 2;
+        // The caller has not started verification for the product (see
+        // StartKyc). Nothing was submitted.
+        NOT_STARTED        = 3;
+        // The caller is BLOCKED for the product, which is final. It is the
+        // answer whether Coinbase blocked the caller on this submission or
+        // before it, so a retry gets the same one. A submission from a caller
+        // already blocked is not sent to Coinbase.
+        BLOCKED            = 4;
+    }
+
+    // The caller's state after the submission. Set only when result == OK,
+    // and never BLOCKED: a blocked caller gets the BLOCKED result.
+    KycState kyc_state = 2;
+
+    // The fields of Individual that are not valid, each listed once: a date
+    // of birth that is not a real date or that makes the caller under 18 or
+    // implausibly old, a state that is not one, an address in a country whose
+    // residents Coinbase does not verify, an email address Coinbase would not
+    // take, or a phone number, or where the server requires it an email
+    // address, that is not the one the caller has verified with Flipcash.
+    // They come from the server's own checks: Coinbase does not name the
+    // field when it refuses a submission. Set only when result ==
+    // INVALID_SUBMISSION.
+    repeated InvalidField invalid_fields = 3 [(validate.rules).repeated.max_items = 16];
+
+    // The acceptances that could not be applied, each version listed once.
+    // Set only when result == INVALID_SUBMISSION. A client that finds one
+    // gets the caller's state again and shows the terms it lists.
+    repeated InvalidTermsOfServiceAcceptance invalid_terms_of_service_acceptances = 4 [(validate.rules).repeated.max_items = 16];
+
+    // InvalidField is one field of Individual the server did not submit, and
+    // why. The reasons grow over time; a client treats one it does not know
+    // as UNKNOWN.
+    message InvalidField {
+        Field field = 1;
+
+        Reason reason = 2;
+        enum Reason {
+            // Nothing more is known. The user checks the field and submits
+            // again.
+            UNKNOWN            = 0;
+
+            // Not a valid value of its kind: a date of birth that does not
+            // exist, is in the future or makes the user 110 or older, a
+            // state that is not one, an email address that is too long or
+            // whose domain has an empty part (a@b..com). The user corrects
+            // it.
+            MALFORMED          = 1;
+
+            // The date of birth makes the user under 18. A client tells the
+            // user that they must be 18 or older, and lets them correct the
+            // date if they entered it wrong. A user who is under 18 cannot
+            // be verified until they are older.
+            UNDERAGE           = 2;
+
+            // The address is somewhere whose residents Coinbase does not
+            // verify for the product: today, anywhere outside the United
+            // States. A client tells the user that verification is not
+            // available where the address is, and lets them correct it if
+            // they entered it wrong.
+            UNSUPPORTED_REGION = 3;
+
+            // The phone number or email address is not the one linked to the
+            // user's Flipcash account through phone or email verification,
+            // or the user has verified none; field says which. Given for a
+            // phone number always, and for an email address only while the
+            // server requires a verified one, which a client learns from
+            // this refusal. A client has the user verify it with Flipcash
+            // first, or submit the one they have verified.
+            NOT_VERIFIED       = 4;
+        }
+    }
+
+    // InvalidTermsOfServiceAcceptance is one acceptance the server did not
+    // submit, and why. The reasons grow over time; a client treats one it
+    // does not know as UNKNOWN.
+    message InvalidTermsOfServiceAcceptance {
+        // TermsOfServiceAcceptance.version_id of the acceptance.
+        string version_id = 1 [(validate.rules).string = {
+            min_len: 1
+            max_len: 64
+        }];
+
+        Reason reason = 2;
+        enum Reason {
+            // Nothing more is known.
+            UNKNOWN              = 0;
+
+            // The version is not among the terms Coinbase puts to the caller.
+            // Coinbase puts no terms to a caller whose address it does not
+            // have, so an acceptance sent before the address is refused this
+            // way too. A version the caller has already accepted is not
+            // refused for being sent again.
+            //
+            // Named only when the submission carried acceptances and nothing
+            // else. Coinbase does not say which part of a submission it
+            // refused, so when one that carries anything else is refused,
+            // no acceptance is named. When one of acceptances alone is
+            // refused, every version in it that the caller's state did not
+            // list is named, and a version already accepted may be among
+            // them: Coinbase does not say what a caller has accepted either,
+            // so it cannot be told from one never asked for. A client gets
+            // the caller's state again, which lists what is still to accept.
+            NOT_ASKED            = 1;
+
+            // The version is not published in the language the acceptance
+            // names. Languages are compared as written with those the version
+            // lists, so one that differs only in case is refused this way,
+            // for a version the caller has already accepted too.
+            UNSUPPORTED_LANGUAGE = 2;
+        }
+    }
+}

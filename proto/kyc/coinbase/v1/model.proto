@@ -1,0 +1,436 @@
+syntax = "proto3";
+
+package flipcash.kyc.coinbase.v1;
+
+option go_package = "github.com/code-payments/flipcash2-protobuf-api/generated/go/kyc/coinbase/v1;kyccoinbasepb";
+option java_package = "com.codeinc.flipcash.gen.kyc.coinbase.v1";
+option objc_class_prefix = "FPBKycCoinbaseV1";
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// KycState is where a user's identity verification with Coinbase stands for
+// one product, and what they still have to provide for it. It carries nothing
+// the user submitted and no reason for any decision: Coinbase gives none, and
+// clients must not guess at one or show one.
+//
+// Coinbase has no single verdict on a user. It grants or refuses each of the
+// things a user may do with it, and each product needs a set of them. The
+// status is the product's set seen as one. A user is NOT_STARTED for a
+// product until StartKyc has Coinbase asked for all of its set. After that
+// they are VERIFIED when all of the set is granted and BLOCKED when any of it
+// is refused, and otherwise ACTION_REQUIRED while requirements lists
+// something and IN_REVIEW while it lists nothing.
+//
+// What a user has provided counts for every product. A user verified for one
+// product who starts another that needs more of them is ACTION_REQUIRED for
+// it, with only the more listed.
+message KycState {
+    // The product the state is for.
+    Product product = 1;
+
+    Status status = 2;
+    enum Status {
+        UNKNOWN         = 0;
+
+        // The user has not started verification for the product, and
+        // Coinbase has not been asked about them for it. requirements is
+        // empty: StartKyc starts it and returns what the user has to
+        // provide.
+        NOT_STARTED     = 1;
+
+        // The user is not verified, and requirements lists what they must
+        // provide or correct before verification can go on.
+        ACTION_REQUIRED = 2;
+
+        // Coinbase is verifying what the user submitted, and the user has
+        // nothing to do. requirements is empty. No event announces the
+        // outcome; clients poll GetKycState.
+        IN_REVIEW       = 3;
+
+        // The user is verified. requirements may still list something, for
+        // example a newer version of the terms, usually with a deadline; a
+        // user who lets it pass stops being verified until they provide it.
+        VERIFIED        = 4;
+
+        // Coinbase has refused the user, for good. Nothing the user submits
+        // changes it (SubmitKyc answers BLOCKED), and requirements is empty.
+        // Clients show a generic message.
+        BLOCKED         = 5;
+    }
+
+    // What the user has to provide, in no particular order, each field, terms
+    // version and tax form listed once. Something the user has provided that
+    // Coinbase is still verifying is not listed.
+    repeated Requirement requirements = 3 [(validate.rules).repeated.max_items = 64];
+}
+
+// Product names something Flipcash offers that needs a user verified with
+// Coinbase. Each needs its own set of things granted by Coinbase, so a user
+// is verified for a product, not once for all of them.
+enum Product {
+    PRODUCT_UNKNOWN = 0;
+
+    // Cashing out to the user's own bank account.
+    PRODUCT_OFFRAMP = 1;
+}
+
+// Requirement is one thing a user has to provide. Each is met through
+// SubmitKyc.
+//
+// The kinds of requirement grow over time, and so do the fields and tax
+// forms. A client that finds a kind, a Field or a TaxForm it does not know
+// (FIELD_UNKNOWN and TAX_FORM_UNKNOWN among them) cannot collect what is
+// needed and should ask the user to update the app.
+message Requirement {
+    oneof kind {
+        option (validate.required) = true;
+
+        // Information about the user, sent in SubmitKycRequest.individual.
+        // Coinbase asks for some fields in parts (a name is two, an address
+        // several); the field is listed once, as REJECTED when any part of
+        // it is.
+        Field field = 1;
+
+        // Terms the user must accept, sent in
+        // SubmitKycRequest.terms_of_service_acceptances. Terms are those of
+        // the country the user lives in, so they are listed only once
+        // Coinbase has the user's address: a user who has just started is
+        // not asked for them yet.
+        TermsOfService terms_of_service = 2;
+
+        // A tax form the user must attest to, sent in
+        // SubmitKycRequest.tax_attestations.
+        TaxForm tax_form = 3;
+    }
+
+    Reason reason = 4;
+    enum Reason {
+        UNKNOWN  = 0;
+
+        // Not provided yet, or provided and no longer standing: a tax
+        // attestation ends when the user's legal name or SSN changes, and an
+        // acceptance of the terms covers only the version accepted.
+        MISSING  = 1;
+
+        // Provided, and Coinbase could not verify it. The user checks it and
+        // submits it again. Coinbase does not say what was wrong, and when it
+        // cannot verify who a user is it may reject every field about them
+        // together, the correct ones included. Fields the user leaves as they
+        // were need not be sent again: they are verified again along with the
+        // corrected ones. A user who finds nothing to correct may submit the
+        // same values again, which has Coinbase verify them again.
+        REJECTED = 2;
+    }
+
+    // When the requirement must be met by. Unset when there is no deadline,
+    // which is the usual case before a user is verified. A deadline already
+    // passed is still listed, with the requirement.
+    google.protobuf.Timestamp deadline = 5;
+}
+
+// Field names a piece of information about the user that Coinbase asks for.
+// Each is one field of Individual.
+enum Field {
+    // Something this version of the API cannot collect.
+    FIELD_UNKNOWN             = 0;
+
+    // Individual.legal_name
+    FIELD_LEGAL_NAME          = 1;
+
+    // Individual.date_of_birth
+    FIELD_DATE_OF_BIRTH       = 2;
+
+    // Individual.address
+    FIELD_RESIDENTIAL_ADDRESS = 3;
+
+    // Individual.ssn
+    FIELD_SSN                 = 4;
+
+    // Individual.email
+    FIELD_EMAIL               = 5;
+
+    // Individual.phone_number
+    FIELD_PHONE_NUMBER        = 6;
+
+    // Individual.purpose_of_account
+    FIELD_PURPOSE_OF_ACCOUNT  = 7;
+
+    // Individual.source_of_funds
+    FIELD_SOURCE_OF_FUNDS     = 8;
+}
+
+// TaxForm names a tax form a user attests to with a TaxAttestation.
+enum TaxForm {
+    // A form this version of the API cannot collect.
+    TAX_FORM_UNKNOWN = 0;
+
+    // IRS Form W-9, Request for Taxpayer Identification Number and
+    // Certification. Attested to with TaxAttestation.us_w9.
+    TAX_FORM_US_W9   = 1;
+}
+
+// TermsOfService is one version of the agreement between the user and
+// Coinbase that the user must accept.
+//
+// Before sending an acceptance, a client must show the user the document at
+// url and have them agree to it explicitly.
+message TermsOfService {
+    // Identifies the version. Opaque; sent back as is in
+    // TermsOfServiceAcceptance.version_id.
+    string version_id = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 64
+    }];
+
+    // Where the document is published. Adding a lang query parameter that
+    // names one of languages (url?lang=es) gives that translation.
+    string url = 2 [(validate.rules).string = {
+        min_len: 1
+        max_len: 2048
+    }];
+
+    // The languages the version is published in. An acceptance names the one
+    // the user read.
+    repeated common.v1.Locale languages = 3 [(validate.rules).repeated = {
+        min_items: 1
+        max_items: 64
+    }];
+}
+
+// TermsOfServiceAcceptance records that the user read and agreed to one
+// version of the terms. The server records when it received the acceptance
+// as the time the user accepted.
+message TermsOfServiceAcceptance {
+    // TermsOfService.version_id of the version the user agreed to.
+    string version_id = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 64
+    }];
+
+    // The language the user read it in, one of that version's
+    // TermsOfService.languages, sent back exactly as listed: languages are
+    // compared as written, so EN is not en.
+    common.v1.Locale language = 2 [(validate.rules).message.required = true];
+}
+
+// TaxAttestation is the user's attestation to one tax form. The server
+// records when it received the attestation as the time the user made it.
+//
+// An attestation covers the legal name and SSN the user holds when it is
+// made. It is therefore sent in the same request as them, or in a later one:
+// one sent before them may not stand once they are provided, and the form is
+// then listed as a requirement again. Changing either ends it too: a request
+// that changes one should carry a new attestation, or the form is listed as a
+// requirement again and a verified user stops being verified until they
+// attest.
+message TaxAttestation {
+    oneof form {
+        option (validate.required) = true;
+
+        UsW9 us_w9 = 1;
+    }
+
+    // Whether the user consents to receiving their tax documents
+    // electronically. Either answer is accepted.
+    bool edelivery_consent = 2;
+
+    // UsW9 is the user's certification of IRS Form W-9: that the legal name
+    // and SSN they submitted are theirs and correct, and that they are a U.S.
+    // person. Before sending one, a client must show the user the form's
+    // certification and have them agree to it explicitly.
+    message UsW9 {
+        // Whether the user is exempt from backup withholding, as they
+        // certified on the form.
+        bool is_exempt_backup_withholding = 1;
+    }
+}
+
+// Individual is information about the user, as a person. Every field is
+// optional: a submission carries the fields the user is providing or
+// changing and leaves the rest unset, and an unset field is never read as
+// clearing what the user provided before.
+//
+// Coinbase verifies residents of the United States only today, so the one
+// address it takes is a U.S. address and the identification number is an SSN.
+message Individual {
+    // Meets FIELD_LEGAL_NAME.
+    LegalName legal_name = 1;
+
+    // Meets FIELD_DATE_OF_BIRTH.
+    DateOfBirth date_of_birth = 2;
+
+    // Where the user lives. Meets FIELD_RESIDENTIAL_ADDRESS.
+    Address address = 3;
+
+    // Meets FIELD_SSN.
+    Ssn ssn = 4;
+
+    // An address Coinbase can reach the user at. One longer than 254
+    // characters, or whose domain has an empty part (a@b..com), is refused
+    // with INVALID_SUBMISSION.
+    //
+    // The server may require it to be the email address linked to the user's
+    // Flipcash account through email verification (the email_address of
+    // their own profile), exactly as it is there. While it does, any other
+    // address, and any address from a user who has verified none, is refused
+    // with INVALID_SUBMISSION and is not passed to Coinbase. While it does
+    // not, the address is taken as given. Either way it does not change the
+    // email address on the user's Flipcash profile. Meets FIELD_EMAIL.
+    common.v1.EmailAddress email = 5;
+
+    // A number Coinbase can reach the user at. It must be the phone number
+    // linked to the user's Flipcash account through phone verification (the
+    // phone_number of their own profile), exactly as it is there. Any other
+    // number, and any number from a user who has verified none, is refused
+    // with INVALID_SUBMISSION and is not passed to Coinbase. Meets
+    // FIELD_PHONE_NUMBER.
+    common.v1.PhoneNumber phone_number = 6;
+
+    // What the user mainly means to use the account for. Meets
+    // FIELD_PURPOSE_OF_ACCOUNT. PURPOSE_OF_ACCOUNT_UNKNOWN is the field left
+    // unset.
+    PurposeOfAccount purpose_of_account = 7 [(validate.rules).enum.defined_only = true];
+
+    // Where the money the user moves through the account mainly comes from.
+    // Meets FIELD_SOURCE_OF_FUNDS. SOURCE_OF_FUNDS_UNKNOWN is the field left
+    // unset.
+    SourceOfFunds source_of_funds = 8 [(validate.rules).enum.defined_only = true];
+}
+
+// LegalName is the user's name as it appears on government records, which is
+// what Coinbase checks it against.
+message LegalName {
+    // Given name.
+    string first_name = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 60
+    }];
+
+    // Family name.
+    string last_name = 2 [(validate.rules).string = {
+        min_len: 1
+        max_len: 60
+    }];
+}
+
+// DateOfBirth is the day the user was born. It must be a real date (the 30th
+// of February is not one), in the past, that makes the user at least 18 years
+// old and under 110. A date within the bounds below that is not one is
+// refused with INVALID_SUBMISSION and is not passed to Coinbase, which blocks
+// a user it is told is under 18 or impossibly old. Clients check the date
+// before submitting it.
+message DateOfBirth {
+    // Four digits, for example 1990.
+    uint32 year = 1 [(validate.rules).uint32 = {
+        gte: 1900
+        lte: 9999
+    }];
+
+    // 1 for January through 12 for December.
+    uint32 month = 2 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 12
+    }];
+
+    // Day of the month, from 1.
+    uint32 day = 3 [(validate.rules).uint32 = {
+        gte: 1
+        lte: 31
+    }];
+}
+
+// Address is the street address a user lives at.
+//
+// Coinbase verifies residents of the United States only today. An address in
+// any other country is refused with INVALID_SUBMISSION as an
+// UNSUPPORTED_REGION, and the forms of state and postal_code below are the
+// United States' ones; they widen as countries are added.
+//
+// The lines are short because Coinbase's are. A long street is shortened the
+// way IRS Publication 4164 shortens an address line: a postal suffix (St,
+// Ave, Blvd, Rd), each period replaced by a space, no two spaces in a row,
+// and no "No.", "#" or "Number" before a house, apartment or box number
+// ("859 Adams Avenue No. 7" becomes "859 Adams Ave 7").
+message Address {
+    // Number and street.
+    string line1 = 1 [(validate.rules).string = {
+        min_len: 1
+        max_len: 35
+    }];
+
+    // Apartment, suite or other second line. Empty when there is none.
+    string line2 = 2 [(validate.rules).string.max_len = 35];
+
+    string city = 3 [(validate.rules).string = {
+        min_len: 1
+        max_len: 40
+    }];
+
+    // Two-letter postal code of the state, territory or military post
+    // office, in capitals: CA, DC, PR, AE. Any other code is refused with
+    // INVALID_SUBMISSION.
+    string state = 4 [(validate.rules).string.pattern = "^[A-Z]{2}$"];
+
+    // Five-digit ZIP code.
+    string postal_code = 5 [(validate.rules).string.pattern = "^[0-9]{5}$"];
+
+    // The country the address is in, as its ISO 3166-1 alpha-2 code in
+    // capitals: US.
+    string country_code = 6 [(validate.rules).string.pattern = "^[A-Z]{2}$"];
+}
+
+// Ssn is a U.S. Social Security number.
+message Ssn {
+    // All nine digits, with no dashes or spaces.
+    string value = 1 [(validate.rules).string.pattern = "^[0-9]{9}$"];
+}
+
+// PurposeOfAccount is what a user mainly means to use their account for. The
+// values are Coinbase's, all of them; a client offers the ones that suit it.
+enum PurposeOfAccount {
+    PURPOSE_OF_ACCOUNT_UNKNOWN                      = 0;
+    PURPOSE_OF_ACCOUNT_INVESTING                    = 1;
+    PURPOSE_OF_ACCOUNT_LONG_TERM_INVESTMENT         = 2;
+    PURPOSE_OF_ACCOUNT_SHORT_TERM_INVESTMENT        = 3;
+    PURPOSE_OF_ACCOUNT_TRADING                      = 4;
+    PURPOSE_OF_ACCOUNT_TRADING_ON_COINBASE          = 5;
+    PURPOSE_OF_ACCOUNT_TRADING_ON_OTHER_EXCHANGES   = 6;
+    PURPOSE_OF_ACCOUNT_DAY_TRADING                  = 7;
+    PURPOSE_OF_ACCOUNT_ARBITRAGE_TRADING            = 8;
+    PURPOSE_OF_ACCOUNT_ONLINE_PURCHASES             = 9;
+    PURPOSE_OF_ACCOUNT_ONLINE_PAYMENTS              = 10;
+    PURPOSE_OF_ACCOUNT_PAYMENTS_OR_GIFTS            = 11;
+    PURPOSE_OF_ACCOUNT_PAYMENTS_TO_FRIENDS          = 12;
+    PURPOSE_OF_ACCOUNT_TRANSFER_CRYPTO              = 13;
+    PURPOSE_OF_ACCOUNT_INVESTING_ON_OTHER_EXCHANGES = 14;
+    PURPOSE_OF_ACCOUNT_BUSINESS                     = 15;
+    PURPOSE_OF_ACCOUNT_OTHER                        = 16;
+}
+
+// SourceOfFunds is where the money a user moves through their account mainly
+// comes from. The values are Coinbase's, all of them; a client offers the
+// ones that suit it.
+enum SourceOfFunds {
+    SOURCE_OF_FUNDS_UNKNOWN                             = 0;
+    SOURCE_OF_FUNDS_SALARY                              = 1;
+    SOURCE_OF_FUNDS_EMPLOYMENT_BUSINESS_INCOME          = 2;
+    SOURCE_OF_FUNDS_INVESTMENTS                         = 3;
+    SOURCE_OF_FUNDS_SAVINGS                             = 4;
+    SOURCE_OF_FUNDS_PENSION                             = 5;
+    SOURCE_OF_FUNDS_BUSINESS_EARNINGS                   = 6;
+    SOURCE_OF_FUNDS_CRYPTO_ASSETS                       = 7;
+    SOURCE_OF_FUNDS_INHERITANCE                         = 8;
+    SOURCE_OF_FUNDS_SALE_OF_ASSETS                      = 9;
+    SOURCE_OF_FUNDS_SALE_OF_COMPANY_SHARES_OR_DIVIDENDS = 10;
+    SOURCE_OF_FUNDS_SALE_OF_PROPERTY                    = 11;
+    SOURCE_OF_FUNDS_SALE_OF_OTHER_ASSETS                = 12;
+    SOURCE_OF_FUNDS_CREDIT_OR_LOAN                      = 13;
+    SOURCE_OF_FUNDS_GOVERNMENT_BENEFITS_OR_CREDITS      = 14;
+    SOURCE_OF_FUNDS_LEGAL_SETTLEMENT                    = 15;
+    SOURCE_OF_FUNDS_FAMILY_OR_THIRD_PARTY               = 16;
+    SOURCE_OF_FUNDS_LOTTERY_OR_GAMBLING                 = 17;
+    SOURCE_OF_FUNDS_CRYPTO_MINING                       = 18;
+    SOURCE_OF_FUNDS_OTHER                               = 19;
+}

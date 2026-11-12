@@ -17,6 +17,7 @@ The APIs and models for communication between Flipcash clients and server.
 - [Email Verification](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/email/v1/email_verification_service.proto)
 - [Event Streaming](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/event/v1/event_streaming_service.proto)
 - [IAP](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/iap/v1/iap_service.proto)
+- [KYC (Coinbase)](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/kyc/coinbase/v1/kyc_service.proto)
 - [Messaging](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/messaging/v1/messaging_service.proto)
 - [Moderation](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/moderation/v1/moderation_service.proto)
 - [Payment Request](https://github.com/code-payments/flipcash2-protobuf-api/blob/main/proto/paymentrequest/v1/paymentrequest_service.proto)

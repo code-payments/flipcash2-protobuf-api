@@ -13,8 +13,9 @@ for f in $(find /proto -type f -name "*.proto"); do
     # Get the relative path of the generated directory
     relative_path=$(realpath --relative-to=/proto $(dirname $f))
     
-    # Capitalize the first letter of the directory name and remove any slashes
-    namespace=$(echo "${relative_path%%/*}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+    # Build the namespace from every directory above the version, capitalizing
+    # the first letter of each (poll/v1 -> Poll, kyc/coinbase/v1 -> KycCoinbase)
+    namespace=$(dirname "${relative_path}" | awk -F/ '{for (i = 1; i <= NF; i++) printf "%s%s", toupper(substr($i,1,1)), substr($i,2)}')
     
     # Append an export with namespace
     echo "export * as ${namespace} from './${relative_path}';" >> /genproto/index.ts
