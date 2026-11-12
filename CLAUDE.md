@@ -52,32 +52,34 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 
 ## Service Domains
 
-| Domain | Package | Service | Purpose |
-|---|---|---|---|
-| account | `flipcash.account.v1` | `Account` | Register, Login, user flags (authenticated and unauthenticated) |
-| activity | `flipcash.activity.v1` | `ActivityFeed` | Notification feed: latest, paged, batch |
-| blob | `flipcash.blob.v1` | `BlobStorage` | Direct-to-storage uploads via presigned targets; blob status and fresh download URLs. Server derives renditions and metadata; clients only upload ORIGINALs |
-| blocklist | `flipcash.blocklist.v1` | `Blocklist` | Block/unblock users, IsBlocked, paged blocklist |
-| chat | `flipcash.chat.v1` | `Chat` | Chat metadata, DM and group chat feeds, Start/Join/Leave group chats, chat rules, private groups (lobby admission by the creator, invite links that admit up to a server-counted number of users with no approval: joining counts the use and stores the invite's signed copy of the chat key as the joiner's envelope beside the link's secret encrypted by the joiner for themself, which any of their devices opens to open the copy and replace it with their own; the server deletes the invite's copy once it stops being active and a joiner's once replaced, since the link plus the server's records is as good as the chat key; while an invite is active its token alone, with no account, previews it and reads the chat's roster; per-member key envelopes), featured groups (an ordered list of groups a user shows on their profile), pinned messages (pin/unpin by members permitted to, most recently pinned first, a versioned `PinSummary` on the metadata, changes as `MetadataUpdate.PinsChanged`, paged `GetPinnedMessages` under a view mode) |
-| common | `flipcash.common.v1` | none | Shared types: Auth, PublicKey, Signature, UserId, Username, ChatId, IntentId, PhoneNumber, EmailAddress, payment amounts, PagingToken, QueryOptions, Locale, Region, Color, Substitution |
-| community | `flipcash.community.v1` | `Community` | Public metadata about the community around a currency launched on Flipcash, keyed by its mint: the currency's name, its leader (the user who launched it) and the public groups gated on the currency whose members hold the most of it |
-| contact | `flipcash.contact.v1` | `ContactList` | Contact sync (CheckSync, DeltaUpload, streaming FullUpload) and Flipcash contact discovery |
-| email | `flipcash.email.v1` | `EmailVerification` | Send/check verification codes, unlink |
-| event | `flipcash.event.v1` | `EventStreaming` | Bidirectional `StreamEvents` for real-time updates (ChatUpdate, including payment request updates; BlobUpdate); internal `ForwardEvents` for server-to-server fan-out |
-| iap | `flipcash.iap.v1` | `Iap` | In-app purchase completion |
-| intent | `flipcash.intent.v1` | none | Models only: app metadata attached to payment intents (chat payments, a group payment paying one member or, as a multi payment, 2 to 10 at once; reaction boosts; a payment request payment, a debtor paying their share to the request's creator; a return of a DM cash message's payment to its sender), embedded in other services' requests. Imports `messaging` for the boost's and the return's message and the boost's emoji, and `paymentrequest` for the request's ID |
-| kyc/coinbase | `flipcash.kyc.coinbase.v1` | `Kyc` | Identity verification with Coinbase, which makes every decision: the app collects what Coinbase asks of a U.S. resident (legal name, date of birth, address, SSN, email, phone number, purpose of account, source of funds), acceptances of Coinbase's terms and a W-9 attestation, and the server passes them on. A user is verified for a product (`Product`, today only the offramp), and what is asked depends on the country they live in (today only the US), so every request names the product and an `Address` carries its country. `GetKycState` gives the state (NOT_STARTED, ACTION_REQUIRED, IN_REVIEW, VERIFIED, BLOCKED) and what the user still has to provide, and is a read alone; `StartKyc` is what first tells Coinbase about a user for a product and returns what Coinbase asks of them (a product not started lists nothing, and a submission for one is refused); `SubmitKyc` submits any part of it and returns the state after, or answers `INVALID_SUBMISSION` naming what it refused and why (`InvalidField`: malformed, under 18, unsupported region, a phone number, or where the server requires it an email address, other than the one the user verified with Flipcash; `InvalidTermsOfServiceAcceptance`: not asked, unsupported language), with both lists empty when Coinbase gave no reason. The terms to accept are Coinbase's for where the user lives, so they are listed only once Coinbase has the address. No RPC returns what was submitted or a reason for a decision, and nothing announces a change: clients poll while IN_REVIEW |
-| messaging | `flipcash.messaging.v1` | `Messaging` | Messages (get/send/edit/delete; text may carry sender-generated link previews; a group cash message names one receiver or lists up to 10 with each one's part, and names the payment request whose share it paid; the cash message of the payment that opened a DM offers its receiver to return it once, with `GetCashMessageReturnStatus` giving the offer's status and, to the receiver alone, the intent ID the return must use; widgets show a poll or a payment request), reactions (free, or boosted with a payment: totals on the aggregates, summaries sorted by money then count), `GetDelta` event log stream, pointer advancement (read state), typing notifications |
-| moderation | `flipcash.moderation.v1` | `Moderation` | Text and image moderation with attestations; `FlaggedCategory` is reused by other services |
-| paymentrequest | `flipcash.paymentrequest.v1` | `PaymentRequest` | Payment requests, layered: a shared layer (ID, creator, state, the RPCs) with `kind` naming where the request lives, today a group chat (`GroupChatPaymentRequest`), whose `type` names what it is, today a `Split` (private groups encrypt the title and description with the chat key): a member asks named members each for a fiat share, their own share paid from creation, paid with a Flipcash payment (`intent.v1.ChatMetadata.RequestedPayment`) or marked paid by hand by the creator; create, read, page a chat's open and resolved sections, close. OPEN, COMPLETED, CLOSED, or EXPIRED at `ends_at`. Shown in a chat as a `messaging.v1.PaymentRequestWidget`; changes announced best effort on the chat's event stream (`PaymentRequestUpdate`: the request whole on creation, then each change as the share paid and the status change it made, applied by version), clients refetch to reconcile |
-| phone | `flipcash.phone.v1` | `PhoneVerification` | Send/check verification codes, unlink, link for payment |
-| poll | `flipcash.poll.v1` | `Poll` | Polls in group chats (private groups encrypt the poll text with the chat key): create, vote, read state; polls close only at their end time. COUNT or BALANCE (balance-weighted, read at close; clients see only a ranking of the options, never amounts) modes; results hidden until the poll closes, and a COUNT poll's withheld if too few voters were counted. Shown in a chat as a `messaging.v1.PollWidget` |
-| profile | `flipcash.profile.v1` | `Profile` | Display name, username, profile picture, Flipcard, min DM init fee, social account linking |
-| push | `flipcash.push.v1` | `Push` | Push token registration; `Payload` models for push content |
-| reporting | `flipcash.reporting.v1` | `Reporting` | Report a user, chat, message, or blob for review, with optional free-form description |
-| resolver | `flipcash.resolver.v1` | `Resolver` | Resolves real-world identifiers (phone number, username) to payment destinations |
-| settings | `flipcash.settings.v1` | `Settings` | UpdateSettings |
-| thirdparty | `flipcash.thirdparty.v1` | `ThirdParty` | Third-party integrations (GetJwt) |
+| Domain | Service | Purpose |
+|---|---|---|
+| account | `Account` | Register, Login, user flags |
+| activity | `ActivityFeed` | Notification feed: latest, paged, batch |
+| blob | `BlobStorage` | Direct-to-storage uploads via presigned targets, blob status, download URLs; clients upload ORIGINALs only |
+| blocklist | `Blocklist` | Block/unblock, IsBlocked, paged blocklist |
+| chat | `Chat` | Chat metadata, DM and group feeds, group lifecycle and rules, private groups (key envelopes, lobby, invite links), moderation, featured groups, pinned messages |
+| common | none | Shared types (Auth, UserId, ChatId, IntentId, amounts, PagingToken, QueryOptions, ...) |
+| community | `Community` | Public metadata about a currency's community, keyed by mint |
+| contact | `ContactList` | Contact sync and discovery |
+| email | `EmailVerification` | Verification codes, unlink |
+| event | `EventStreaming` | Bidirectional `StreamEvents`; internal `ForwardEvents` |
+| iap | `Iap` | In-app purchase completion |
+| intent | none | App metadata attached to payment intents (chat and group payments, reaction boosts, payment request payments, returns); travels as bytes |
+| kyc/coinbase | `Kyc` | Identity verification with Coinbase (`GetKycState`, `StartKyc`, `SubmitKyc`); the only nested domain |
+| messaging | `Messaging` | Messages, reactions and boosts, `GetDelta`, pointers, typing, cash message return status |
+| moderation | `Moderation` | Text/image moderation with attestations; `FlaggedCategory` reused elsewhere |
+| paymentrequest | `PaymentRequest` | Payment requests in group chats (layered kind → type, today a `Split`) |
+| phone | `PhoneVerification` | Verification codes, unlink, link for payment |
+| poll | `Poll` | Polls in group chats |
+| profile | `Profile` | Display name, username, pictures, bio, Flipcard, DM fee, social links |
+| push | `Push` | Token registration; `Payload` models |
+| reporting | `Reporting` | Report a user, chat, message, or blob |
+| resolver | `Resolver` | Phone number / username to payment destination |
+| settings | `Settings` | UpdateSettings |
+| thirdparty | `ThirdParty` | GetJwt |
+
+Each domain's package is `flipcash.{domain}.v1` (`flipcash.kyc.coinbase.v1` for KYC). The proto files' own doc comments are the contract; read them for semantics.
 
 Cross-domain model dependencies form these layers (each imports the ones before it):
 
@@ -85,7 +87,7 @@ Cross-domain model dependencies form these layers (each imports the ones before 
 common → moderation → { blob, poll, paymentrequest } → { profile, messaging } → { chat, reporting } → { event, push, community }
 ```
 
-Concretely: `blob` imports `moderation`; `poll` imports `moderation` (its model imports only `common`); `paymentrequest` likewise imports `moderation` in its service alone, and its model imports only `common`; `profile` and `messaging` import `blob`, and `messaging` also imports `poll` and `paymentrequest`; `chat/v1/model.proto` imports `blob`, `profile`, and `messaging`; `reporting` imports `blob` and `messaging`; `event` and `push` import `chat` and `messaging`, and `event` also imports `paymentrequest`; `community` imports `chat` and `profile`. `intent` sits beside `messaging`'s importers: it imports `messaging` (for a boost's message ID and emoji) and `paymentrequest` (for a payment request payment's request ID), and nothing imports it, since its metadata travels as bytes. `activity` sits there too: it imports `messaging` (for a boosted reaction's message ID and emoji, and a returned payment's message ID) and nothing imports it. `kyc/coinbase` stands apart from the layers: it imports only `common`, and nothing imports it. A lower layer must not import a higher one, or Go gets an import cycle. `common/v1` is imported by everything and must never import another Flipcash domain (see below).
+`intent` and `activity` import `messaging` and `paymentrequest`, and nothing imports them. `kyc/coinbase` imports only `common`. **A lower layer must not import a higher one**, or Go gets an import cycle; check a new import against the layers above (`grep -r '^import' proto` shows the current graph).
 
 ## Proto Conventions
 
@@ -170,5 +172,5 @@ Create a new version directory (`proto/{domain}/v2/`) rather than editing `v1`. 
 ## Git and Release Conventions
 
 - PRs are squash-merged to `main` with the PR number appended to the title, e.g. `Add GetGroupChatFeed RPC (#99)`. Commit titles are imperative and describe the API change.
-- Releases are git tags `vMAJOR.MINOR.PATCH` (currently in the `v1.2x` range). Not every PR is tagged; a tag is cut when consumers need the change. Additive API changes bump MINOR. The one PATCH release so far (`v1.20.1`) was a fix that moved identifiers into `common` to break a Go import cycle.
+- Releases are git tags `vMAJOR.MINOR.PATCH` (see `git tag` for the latest). Not every PR is tagged; a tag is cut when consumers need the change. Additive API changes bump MINOR. The one PATCH release so far (`v1.20.1`) was a fix that moved identifiers into `common` to break a Go import cycle.
 - Consumers pin the Go module to a tag, so anything merged to `main` is effectively published once tagged.
