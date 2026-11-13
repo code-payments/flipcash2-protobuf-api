@@ -62,7 +62,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | common | none | Shared types (Auth, UserId, ChatId, IntentId, amounts, PagingToken, QueryOptions, ...) |
 | community | `Community` | Public metadata about a currency's community, keyed by mint |
 | contact | `ContactList` | Contact sync and discovery |
-| email | `EmailVerification` | Verification codes, unlink |
+| email | `EmailVerification` | Verification codes, unverified link, unlink |
 | event | `EventStreaming` | Bidirectional `StreamEvents`; internal `ForwardEvents` |
 | iap | `Iap` | In-app purchase completion |
 | intent | none | App metadata attached to payment intents (chat and group payments, reaction boosts, payment request payments, returns); travels as bytes |

@@ -64,11 +64,23 @@ export class UserProfile extends Message<UserProfile> {
 
   /**
    * Email address linked to this user. This is private and will only be returned
-   * when the requesting user asks for their own profile
+   * when the requesting user asks for their own profile. It may be unverified
+   * (see is_email_address_verified).
    *
    * @generated from field: flipcash.common.v1.EmailAddress email_address = 4;
    */
   emailAddress?: EmailAddress;
+
+  /**
+   * Whether email_address was verified with a code (EmailVerification
+   * CheckVerificationCode), rather than linked unverified (EmailVerification
+   * LinkUnverified). This is private and will only be returned when the
+   * requesting user asks for their own profile; false otherwise, and false
+   * when the user has no email address linked.
+   *
+   * @generated from field: bool is_email_address_verified = 14;
+   */
+  isEmailAddressVerified = false;
 
   /**
    * The user's profile picture, as the set of renditions it is stored as —
@@ -155,6 +167,7 @@ export class UserProfile extends Message<UserProfile> {
     { no: 2, name: "social_profiles", kind: "message", T: SocialProfile, repeated: true },
     { no: 3, name: "phone_number", kind: "message", T: PhoneNumber },
     { no: 4, name: "email_address", kind: "message", T: EmailAddress },
+    { no: 14, name: "is_email_address_verified", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 5, name: "profile_picture", kind: "message", T: Media },
     { no: 6, name: "join_ts", kind: "message", T: Timestamp },
     { no: 7, name: "flipcard_customization", kind: "message", T: FlipcardCustomization },
