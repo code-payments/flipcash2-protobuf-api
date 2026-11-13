@@ -662,6 +662,292 @@ var _ interface {
 	ErrorName() string
 } = CheckVerificationCodeResponseValidationError{}
 
+// Validate checks the field values on LinkUnverifiedRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *LinkUnverifiedRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LinkUnverifiedRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// LinkUnverifiedRequestMultiError, or nil if none found.
+func (m *LinkUnverifiedRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LinkUnverifiedRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetEmailAddress() == nil {
+		err := LinkUnverifiedRequestValidationError{
+			field:  "EmailAddress",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetEmailAddress()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, LinkUnverifiedRequestValidationError{
+					field:  "EmailAddress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, LinkUnverifiedRequestValidationError{
+					field:  "EmailAddress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEmailAddress()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LinkUnverifiedRequestValidationError{
+				field:  "EmailAddress",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := LinkUnverifiedRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, LinkUnverifiedRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, LinkUnverifiedRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return LinkUnverifiedRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return LinkUnverifiedRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// LinkUnverifiedRequestMultiError is an error wrapping multiple validation
+// errors returned by LinkUnverifiedRequest.ValidateAll() if the designated
+// constraints aren't met.
+type LinkUnverifiedRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LinkUnverifiedRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LinkUnverifiedRequestMultiError) AllErrors() []error { return m }
+
+// LinkUnverifiedRequestValidationError is the validation error returned by
+// LinkUnverifiedRequest.Validate if the designated constraints aren't met.
+type LinkUnverifiedRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LinkUnverifiedRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LinkUnverifiedRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LinkUnverifiedRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LinkUnverifiedRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LinkUnverifiedRequestValidationError) ErrorName() string {
+	return "LinkUnverifiedRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LinkUnverifiedRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLinkUnverifiedRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LinkUnverifiedRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LinkUnverifiedRequestValidationError{}
+
+// Validate checks the field values on LinkUnverifiedResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *LinkUnverifiedResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on LinkUnverifiedResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// LinkUnverifiedResponseMultiError, or nil if none found.
+func (m *LinkUnverifiedResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LinkUnverifiedResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(errors) > 0 {
+		return LinkUnverifiedResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// LinkUnverifiedResponseMultiError is an error wrapping multiple validation
+// errors returned by LinkUnverifiedResponse.ValidateAll() if the designated
+// constraints aren't met.
+type LinkUnverifiedResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LinkUnverifiedResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LinkUnverifiedResponseMultiError) AllErrors() []error { return m }
+
+// LinkUnverifiedResponseValidationError is the validation error returned by
+// LinkUnverifiedResponse.Validate if the designated constraints aren't met.
+type LinkUnverifiedResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LinkUnverifiedResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LinkUnverifiedResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LinkUnverifiedResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LinkUnverifiedResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LinkUnverifiedResponseValidationError) ErrorName() string {
+	return "LinkUnverifiedResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LinkUnverifiedResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLinkUnverifiedResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LinkUnverifiedResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LinkUnverifiedResponseValidationError{}
+
 // Validate checks the field values on UnlinkRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

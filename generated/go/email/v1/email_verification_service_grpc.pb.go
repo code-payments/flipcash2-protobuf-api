@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	EmailVerification_SendVerificationCode_FullMethodName  = "/flipcash.email.v1.EmailVerification/SendVerificationCode"
 	EmailVerification_CheckVerificationCode_FullMethodName = "/flipcash.email.v1.EmailVerification/CheckVerificationCode"
+	EmailVerification_LinkUnverified_FullMethodName        = "/flipcash.email.v1.EmailVerification/LinkUnverified"
 	EmailVerification_Unlink_FullMethodName                = "/flipcash.email.v1.EmailVerification/Unlink"
 )
 
@@ -33,8 +34,19 @@ type EmailVerificationClient interface {
 	// resent.
 	SendVerificationCode(ctx context.Context, in *SendVerificationCodeRequest, opts ...grpc.CallOption) (*SendVerificationCodeResponse, error)
 	// CheckVerificationCode validates a verification code. On success, the email
-	// address is linked to the user. Any previous links are overwritten.
+	// address is linked to the user as verified, replacing any address linked
+	// before, verified or not. An address linked unverified (LinkUnverified)
+	// becomes verified this way.
 	CheckVerificationCode(ctx context.Context, in *CheckVerificationCodeRequest, opts ...grpc.CallOption) (*CheckVerificationCodeResponse, error)
+	// LinkUnverified links an email address to the user without verifying it.
+	// No email is sent. A different address replaces any address linked before,
+	// including a verified one, and is linked as unverified. Linking the address
+	// already linked leaves it as it was, so a verified address stays verified.
+	//
+	// An address is not unique to a user: linking one another user holds leaves
+	// theirs linked. An unverified address satisfies nothing that requires a
+	// verified one (e.g. ThirdParty GetJwt's EMAIL_VERIFICATION_REQUIRED).
+	LinkUnverified(ctx context.Context, in *LinkUnverifiedRequest, opts ...grpc.CallOption) (*LinkUnverifiedResponse, error)
 	// Unlink removes the link of an email address from a user.
 	Unlink(ctx context.Context, in *UnlinkRequest, opts ...grpc.CallOption) (*UnlinkResponse, error)
 }
@@ -67,6 +79,16 @@ func (c *emailVerificationClient) CheckVerificationCode(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *emailVerificationClient) LinkUnverified(ctx context.Context, in *LinkUnverifiedRequest, opts ...grpc.CallOption) (*LinkUnverifiedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LinkUnverifiedResponse)
+	err := c.cc.Invoke(ctx, EmailVerification_LinkUnverified_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *emailVerificationClient) Unlink(ctx context.Context, in *UnlinkRequest, opts ...grpc.CallOption) (*UnlinkResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UnlinkResponse)
@@ -86,8 +108,19 @@ type EmailVerificationServer interface {
 	// resent.
 	SendVerificationCode(context.Context, *SendVerificationCodeRequest) (*SendVerificationCodeResponse, error)
 	// CheckVerificationCode validates a verification code. On success, the email
-	// address is linked to the user. Any previous links are overwritten.
+	// address is linked to the user as verified, replacing any address linked
+	// before, verified or not. An address linked unverified (LinkUnverified)
+	// becomes verified this way.
 	CheckVerificationCode(context.Context, *CheckVerificationCodeRequest) (*CheckVerificationCodeResponse, error)
+	// LinkUnverified links an email address to the user without verifying it.
+	// No email is sent. A different address replaces any address linked before,
+	// including a verified one, and is linked as unverified. Linking the address
+	// already linked leaves it as it was, so a verified address stays verified.
+	//
+	// An address is not unique to a user: linking one another user holds leaves
+	// theirs linked. An unverified address satisfies nothing that requires a
+	// verified one (e.g. ThirdParty GetJwt's EMAIL_VERIFICATION_REQUIRED).
+	LinkUnverified(context.Context, *LinkUnverifiedRequest) (*LinkUnverifiedResponse, error)
 	// Unlink removes the link of an email address from a user.
 	Unlink(context.Context, *UnlinkRequest) (*UnlinkResponse, error)
 	mustEmbedUnimplementedEmailVerificationServer()
@@ -105,6 +138,9 @@ func (UnimplementedEmailVerificationServer) SendVerificationCode(context.Context
 }
 func (UnimplementedEmailVerificationServer) CheckVerificationCode(context.Context, *CheckVerificationCodeRequest) (*CheckVerificationCodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckVerificationCode not implemented")
+}
+func (UnimplementedEmailVerificationServer) LinkUnverified(context.Context, *LinkUnverifiedRequest) (*LinkUnverifiedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LinkUnverified not implemented")
 }
 func (UnimplementedEmailVerificationServer) Unlink(context.Context, *UnlinkRequest) (*UnlinkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Unlink not implemented")
@@ -166,6 +202,24 @@ func _EmailVerification_CheckVerificationCode_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EmailVerification_LinkUnverified_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LinkUnverifiedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EmailVerificationServer).LinkUnverified(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EmailVerification_LinkUnverified_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EmailVerificationServer).LinkUnverified(ctx, req.(*LinkUnverifiedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _EmailVerification_Unlink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UnlinkRequest)
 	if err := dec(in); err != nil {
@@ -198,6 +252,10 @@ var EmailVerification_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckVerificationCode",
 			Handler:    _EmailVerification_CheckVerificationCode_Handler,
+		},
+		{
+			MethodName: "LinkUnverified",
+			Handler:    _EmailVerification_LinkUnverified_Handler,
 		},
 		{
 			MethodName: "Unlink",

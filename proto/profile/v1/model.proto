@@ -46,8 +46,16 @@ message UserProfile {
     common.v1.PhoneNumber phone_number = 3;
 
     // Email address linked to this user. This is private and will only be returned
-    // when the requesting user asks for their own profile
+    // when the requesting user asks for their own profile. It may be unverified
+    // (see is_email_address_verified).
     common.v1.EmailAddress email_address = 4;
+
+    // Whether email_address was verified with a code (EmailVerification
+    // CheckVerificationCode), rather than linked unverified (EmailVerification
+    // LinkUnverified). This is private and will only be returned when the
+    // requesting user asks for their own profile; false otherwise, and false
+    // when the user has no email address linked.
+    bool is_email_address_verified = 14;
 
     // The user's profile picture, as the set of renditions it is stored as —
     // typically a DISPLAY for the profile view and a THUMBNAIL for avatars in

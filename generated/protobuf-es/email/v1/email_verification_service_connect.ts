@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckVerificationCodeRequest, CheckVerificationCodeResponse, SendVerificationCodeRequest, SendVerificationCodeResponse, UnlinkRequest, UnlinkResponse } from "./email_verification_service_pb";
+import { CheckVerificationCodeRequest, CheckVerificationCodeResponse, LinkUnverifiedRequest, LinkUnverifiedResponse, SendVerificationCodeRequest, SendVerificationCodeResponse, UnlinkRequest, UnlinkResponse } from "./email_verification_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -27,7 +27,9 @@ export const EmailVerification = {
     },
     /**
      * CheckVerificationCode validates a verification code. On success, the email
-     * address is linked to the user. Any previous links are overwritten.
+     * address is linked to the user as verified, replacing any address linked
+     * before, verified or not. An address linked unverified (LinkUnverified)
+     * becomes verified this way.
      *
      * @generated from rpc flipcash.email.v1.EmailVerification.CheckVerificationCode
      */
@@ -35,6 +37,24 @@ export const EmailVerification = {
       name: "CheckVerificationCode",
       I: CheckVerificationCodeRequest,
       O: CheckVerificationCodeResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * LinkUnverified links an email address to the user without verifying it.
+     * No email is sent. A different address replaces any address linked before,
+     * including a verified one, and is linked as unverified. Linking the address
+     * already linked leaves it as it was, so a verified address stays verified.
+     *
+     * An address is not unique to a user: linking one another user holds leaves
+     * theirs linked. An unverified address satisfies nothing that requires a
+     * verified one (e.g. ThirdParty GetJwt's EMAIL_VERIFICATION_REQUIRED).
+     *
+     * @generated from rpc flipcash.email.v1.EmailVerification.LinkUnverified
+     */
+    linkUnverified: {
+      name: "LinkUnverified",
+      I: LinkUnverifiedRequest,
+      O: LinkUnverifiedResponse,
       kind: MethodKind.Unary,
     },
     /**

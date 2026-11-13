@@ -242,6 +242,8 @@ func (m *UserProfile) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for IsEmailAddressVerified
+
 	if all {
 		switch v := interface{}(m.GetProfilePicture()).(type) {
 		case interface{ ValidateAll() error }:
