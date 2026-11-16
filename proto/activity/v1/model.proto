@@ -133,8 +133,9 @@ message BoostedReaction {
     messaging.v1.Emoji emoji = 3 [(validate.rules).message.required = true];
 }
 
-// The payment request a payment paid a share of: a debtor's share, paid to
-// the request's creator (see intent.v1.ChatMetadata.RequestedPayment). It is
+// The payment request a payment paid into: a debtor's share of a split, or a
+// member's contribution to a collection, paid to the request's creator (see
+// intent.v1.ChatMetadata.RequestedPayment). It is
 // what the payment was for when it was made and is not kept up to date: the
 // request may since have been closed or expired, and the viewer may no longer
 // be a member of its group, in which case fetching the request is denied.
@@ -142,7 +143,7 @@ message RequestedPayment {
     // The group chat the payment request is in.
     common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
-    // The payment request whose share was paid.
+    // The payment request paid into.
     paymentrequest.v1.PaymentRequestId payment_request_id = 2 [(validate.rules).message.required = true];
 }
 

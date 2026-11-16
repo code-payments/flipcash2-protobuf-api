@@ -319,10 +319,11 @@ message CashContent {
     }
     Verb verb = 4;
 
-    // The payment request whose share this payment paid. Set only on the cash
-    // message posted when a debtor pays their share with a payment (see
+    // The payment request this payment paid into. Set only on the cash
+    // message posted when a debtor pays their share of a split, or a member
+    // contributes to a collection, with a payment (see
     // intent.v1.ChatMetadata.RequestedPayment), so clients render it
-    // against the request; such a message is from the debtor, with the
+    // against the request; such a message is from the payer, with the
     // request's creator as its single_receiver. Unset on every other cash
     // message.
     paymentrequest.v1.PaymentRequestId payment_request_id = 6;
@@ -516,7 +517,7 @@ message PollWidget {
 }
 
 // A widget that shows a payment request. It carries only the request's ID:
-// clients get the title, shares, and state from
+// clients get the request itself (its type, text, and state) from
 // paymentrequest.v1.PaymentRequest's GetPaymentRequest.
 //
 // The creator sends it after calling

@@ -4,8 +4,8 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
-import { GroupChatPaymentRequest, IdempotencyKey, PaymentRequestId, PaymentRequestMetadata } from "./model_pb";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { GroupChatPaymentRequest, IdempotencyKey, Payer, PaymentRequestId, PaymentRequestMetadata } from "./model_pb";
 import { Auth, ChatId, IntentId, PagingToken, QueryOptions, UserId } from "../../common/v1/common_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -32,7 +32,7 @@ export class CreatePaymentRequestRequest extends Message<CreatePaymentRequestReq
   kind: {
     /**
      * A request in a group chat. The caller may list themself among a
-     * split's shares; that share is created paid (PaidShare.Creator),
+     * split's shares; that share is created paid (Paid.Creator),
      * and at least one share must name someone else.
      *
      * @generated from field: flipcash.paymentrequest.v1.GroupChatPaymentRequest group_chat = 2;
@@ -164,15 +164,17 @@ export enum CreatePaymentRequestResponse_Result {
   ENCRYPTION_NOT_ALLOWED = 3,
 
   /**
-   * The chat is a private group and the text is not encrypted.
+   * The chat is a private group and the text is set but not
+   * encrypted. A request with no text is never refused for this.
    *
    * @generated from enum value: ENCRYPTION_REQUIRED = 4;
    */
   ENCRYPTION_REQUIRED = 4,
 
   /**
-   * A split's ends_at is not in the future, or is more than 4 weeks
-   * away.
+   * The request's ends_at is set and is not in the future, or is more
+   * than 4 weeks away. (A split's ends_at is required; a collection's
+   * is optional.)
    *
    * @generated from enum value: INVALID_ENDS_AT = 5;
    */
@@ -189,7 +191,7 @@ export enum CreatePaymentRequestResponse_Result {
   INVALID_SHARES = 6,
 
   /**
-   * A split's currency is one the server cannot value.
+   * The request's currency is one the server cannot value.
    *
    * @generated from enum value: INVALID_CURRENCY = 7;
    */
@@ -202,6 +204,15 @@ export enum CreatePaymentRequestResponse_Result {
    * @generated from enum value: TEXT_MODERATED = 8;
    */
   TEXT_MODERATED = 8,
+
+  /**
+   * A collection's payment_amount is invalid: for a fixed amount, its
+   * native_amount is not a whole number, at least one, of the
+   * currency's minimum transfer value.
+   *
+   * @generated from enum value: INVALID_AMOUNT = 9;
+   */
+  INVALID_AMOUNT = 9,
 }
 // Retrieve enum metadata with: proto3.getEnumType(CreatePaymentRequestResponse_Result)
 proto3.util.setEnumType(CreatePaymentRequestResponse_Result, "flipcash.paymentrequest.v1.CreatePaymentRequestResponse.Result", [
@@ -214,6 +225,7 @@ proto3.util.setEnumType(CreatePaymentRequestResponse_Result, "flipcash.paymentre
   { no: 6, name: "INVALID_SHARES" },
   { no: 7, name: "INVALID_CURRENCY" },
   { no: 8, name: "TEXT_MODERATED" },
+  { no: 9, name: "INVALID_AMOUNT" },
 ]);
 
 /**
@@ -277,20 +289,38 @@ export class GetPaymentRequestResponse extends Message<GetPaymentRequestResponse
 
   /**
    * The intent ID the caller's payment of their share must use (see
-   * intent.v1.ChatMetadata.RequestedPayment), set only when result == OK
-   * and the caller holds a share of the request that is unpaid.
+   * intent.v1.ChatMetadata.RequestedPayment), set only when result == OK,
+   * the request is a split and the caller holds a share of it that is
+   * unpaid. Never set for a collection.
    *
-   * The server generates one at random for each debtor's share when the
-   * request is created, and gives it to that debtor alone. A payment of the
-   * share with any other intent ID is refused, and an intent ID is used at
-   * most once, so a share is paid at most once: a retry, a second tap or a
-   * second device all pay under this one ID, and only the first payment
-   * goes through. Keep it to the payment: anyone who learns it before the
-   * share is paid can use it up and block the payment.
+   * It is the same ID GetPaymentIntentId gives, which documents it, and is
+   * kept here for clients that predate that RPC. New clients call
+   * GetPaymentIntentId when the user starts to pay instead of reading it
+   * here.
    *
    * @generated from field: flipcash.common.v1.IntentId payment_intent_id = 3;
    */
   paymentIntentId?: IntentId;
+
+  /**
+   * The caller's Payer, exactly as GetPayers lists it, set only when
+   * result == OK and GetPayers lists one for the caller: for a split, when
+   * the caller holds a share (the creator's own included); for a
+   * collection, when the caller has contributed. Unset otherwise.
+   *
+   * So for a collection, an unset caller_payer means the caller has not
+   * contributed: a client offers to pay when the caller is a member of the
+   * chat, is not the creator, and the collection is OPEN.
+   *
+   * A collection's caller_payer is read just after payment_request, so it
+   * may already show a contribution that payment_request's version and
+   * payer_summary predate. The PayerUpdate and PayerSummaryUpdate at the
+   * next version bring the rest of the copy level with it; applying that
+   * PayerUpdate to a Payer already showing it changes nothing.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.Payer caller_payer = 4;
+   */
+  callerPayer?: Payer;
 
   constructor(data?: PartialMessage<GetPaymentRequestResponse>) {
     super();
@@ -303,6 +333,7 @@ export class GetPaymentRequestResponse extends Message<GetPaymentRequestResponse
     { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetPaymentRequestResponse_Result) },
     { no: 2, name: "payment_request", kind: "message", T: PaymentRequestMetadata },
     { no: 3, name: "payment_intent_id", kind: "message", T: IntentId },
+    { no: 4, name: "caller_payer", kind: "message", T: Payer },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPaymentRequestResponse {
@@ -365,9 +396,10 @@ export class GetChatPaymentRequestsRequest extends Message<GetChatPaymentRequest
   chatId?: ChatId;
 
   /**
-   * Which requests to page, and in what order. A request is in exactly one
+   * Which requests to page, and in what order. A request is in at most one
    * section at any moment, decided by its status (see
-   * PaymentRequestMetadata.status).
+   * PaymentRequestMetadata.status): exactly one, but for a request with no
+   * ends_at while it is OPEN, which is in neither.
    *
    * @generated from field: flipcash.paymentrequest.v1.GetChatPaymentRequestsRequest.Section section = 2;
    */
@@ -432,12 +464,16 @@ export enum GetChatPaymentRequestsRequest_Section {
   UNKNOWN = 0,
 
   /**
-   * Requests that are OPEN: still accepting payments. Ordered by
-   * ends_at ascending, the one ending soonest first, so the most urgent
-   * leads. The section is the same for every member: a request stays
-   * here until every share is paid, the creator closes it or it
-   * reaches its ends_at, whether or not the caller has paid their own
-   * share.
+   * Requests that are OPEN and have an ends_at: still accepting
+   * payments. Ordered by ends_at ascending, the one ending soonest
+   * first, so the most urgent leads. The section is the same for every
+   * member: a request stays here until it is COMPLETED (a split, once
+   * every share is paid), the creator closes it or it reaches its
+   * ends_at, whether or not the caller has paid their own part.
+   *
+   * A request with no ends_at (a collection may have none) is never
+   * listed here: while OPEN it is reached only from its widget message,
+   * and it is listed in RESOLVED once closed.
    *
    * @generated from enum value: OPEN = 1;
    */
@@ -552,6 +588,374 @@ export enum GetChatPaymentRequestsResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(GetChatPaymentRequestsResponse_Result)
 proto3.util.setEnumType(GetChatPaymentRequestsResponse_Result, "flipcash.paymentrequest.v1.GetChatPaymentRequestsResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.GetPaymentIntentIdRequest
+ */
+export class GetPaymentIntentIdRequest extends Message<GetPaymentIntentIdRequest> {
+  /**
+   * The request the caller is about to pay into.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 1;
+   */
+  paymentRequestId?: PaymentRequestId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetPaymentIntentIdRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.GetPaymentIntentIdRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPaymentIntentIdRequest {
+    return new GetPaymentIntentIdRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPaymentIntentIdRequest {
+    return new GetPaymentIntentIdRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPaymentIntentIdRequest {
+    return new GetPaymentIntentIdRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPaymentIntentIdRequest | PlainMessage<GetPaymentIntentIdRequest> | undefined, b: GetPaymentIntentIdRequest | PlainMessage<GetPaymentIntentIdRequest> | undefined): boolean {
+    return proto3.util.equals(GetPaymentIntentIdRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.GetPaymentIntentIdResponse
+ */
+export class GetPaymentIntentIdResponse extends Message<GetPaymentIntentIdResponse> {
+  /**
+   * @generated from field: flipcash.paymentrequest.v1.GetPaymentIntentIdResponse.Result result = 1;
+   */
+  result = GetPaymentIntentIdResponse_Result.OK;
+
+  /**
+   * The intent ID the caller's payment must use. Set only when result ==
+   * OK.
+   *
+   * @generated from field: flipcash.common.v1.IntentId payment_intent_id = 2;
+   */
+  paymentIntentId?: IntentId;
+
+  constructor(data?: PartialMessage<GetPaymentIntentIdResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.GetPaymentIntentIdResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetPaymentIntentIdResponse_Result) },
+    { no: 2, name: "payment_intent_id", kind: "message", T: IntentId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPaymentIntentIdResponse {
+    return new GetPaymentIntentIdResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPaymentIntentIdResponse {
+    return new GetPaymentIntentIdResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPaymentIntentIdResponse {
+    return new GetPaymentIntentIdResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPaymentIntentIdResponse | PlainMessage<GetPaymentIntentIdResponse> | undefined, b: GetPaymentIntentIdResponse | PlainMessage<GetPaymentIntentIdResponse> | undefined): boolean {
+    return proto3.util.equals(GetPaymentIntentIdResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.paymentrequest.v1.GetPaymentIntentIdResponse.Result
+ */
+export enum GetPaymentIntentIdResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * The caller cannot read the request's chat in full, or the request
+   * is a collection and the caller is not a member of its chat.
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * The request doesn't exist.
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+
+  /**
+   * The request is not OPEN as of now: COMPLETED, CLOSED, or EXPIRED
+   * (including OPEN but past its ends_at).
+   *
+   * @generated from enum value: NOT_OPEN = 3;
+   */
+  NOT_OPEN = 3,
+
+  /**
+   * The caller has nothing to pay into the request: they are its
+   * creator, or it is a split and they hold no share of it.
+   *
+   * @generated from enum value: NOT_A_PAYER = 4;
+   */
+  NOT_A_PAYER = 4,
+
+  /**
+   * The caller has nothing left to pay: their share of a split is
+   * paid, by payment or by hand, or they have made every contribution
+   * a collection allows (today, one).
+   *
+   * @generated from enum value: ALREADY_PAID = 5;
+   */
+  ALREADY_PAID = 5,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetPaymentIntentIdResponse_Result)
+proto3.util.setEnumType(GetPaymentIntentIdResponse_Result, "flipcash.paymentrequest.v1.GetPaymentIntentIdResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+  { no: 3, name: "NOT_OPEN" },
+  { no: 4, name: "NOT_A_PAYER" },
+  { no: 5, name: "ALREADY_PAID" },
+]);
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.GetPayersRequest
+ */
+export class GetPayersRequest extends Message<GetPayersRequest> {
+  /**
+   * The request whose Payers to page.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 1;
+   */
+  paymentRequestId?: PaymentRequestId;
+
+  /**
+   * Which Payers to page, and in what order. A Payer is in exactly one
+   * section at any moment, decided by its status, and only ever moves from
+   * UNPAID to PAID.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.GetPayersRequest.Section section = 2;
+   */
+  section = GetPayersRequest_Section.UNKNOWN;
+
+  /**
+   * QueryOptions controls page_size, capped at 100. Ordering is fixed by
+   * the section and is not client-selectable. A split has at most 100
+   * shares, so a page of 100 always holds a whole section of one.
+   *
+   * Leave query_options.paging_token unset on the first request. On every
+   * subsequent request, set it to the paging_token from the most recent
+   * response. The token is opaque and server-generated; do not construct
+   * it. It is bound to payment_request_id and section and refused with
+   * another.
+   *
+   * @generated from field: flipcash.common.v1.QueryOptions query_options = 3;
+   */
+  queryOptions?: QueryOptions;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetPayersRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.GetPayersRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payment_request_id", kind: "message", T: PaymentRequestId },
+    { no: 2, name: "section", kind: "enum", T: proto3.getEnumType(GetPayersRequest_Section) },
+    { no: 3, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPayersRequest {
+    return new GetPayersRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPayersRequest {
+    return new GetPayersRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPayersRequest {
+    return new GetPayersRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPayersRequest | PlainMessage<GetPayersRequest> | undefined, b: GetPayersRequest | PlainMessage<GetPayersRequest> | undefined): boolean {
+    return proto3.util.equals(GetPayersRequest, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.paymentrequest.v1.GetPayersRequest.Section
+ */
+export enum GetPayersRequest_Section {
+  /**
+   * @generated from enum value: UNKNOWN = 0;
+   */
+  UNKNOWN = 0,
+
+  /**
+   * Payers who still owe something (status unpaid), in the order the
+   * request defines: for a split, the order the creator listed the
+   * shares. Payers only ever leave this section, so a walk misses none
+   * still owing when it reaches them. Always empty for a collection,
+   * which nothing is owed.
+   *
+   * @generated from enum value: UNPAID = 1;
+   */
+  UNPAID = 1,
+
+  /**
+   * Payers who have paid (status paid), most recently paid first: by
+   * their Paid's paid_at, newest first, ties broken by user_id. A payment
+   * is recorded some time after it is made, so a Payer paid during a walk
+   * may land on a page the walk has already passed; a client learns of it
+   * from its PaymentRequestUpdates instead (see GetPayers). A Payer whose
+   * Paid is replaced (today, a split's share marked paid by hand and then
+   * paid by a payment, see Paid) moves to its new paid_at.
+   *
+   * @generated from enum value: PAID = 2;
+   */
+  PAID = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetPayersRequest_Section)
+proto3.util.setEnumType(GetPayersRequest_Section, "flipcash.paymentrequest.v1.GetPayersRequest.Section", [
+  { no: 0, name: "UNKNOWN" },
+  { no: 1, name: "UNPAID" },
+  { no: 2, name: "PAID" },
+]);
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.GetPayersResponse
+ */
+export class GetPayersResponse extends Message<GetPayersResponse> {
+  /**
+   * @generated from field: flipcash.paymentrequest.v1.GetPayersResponse.Result result = 1;
+   */
+  result = GetPayersResponse_Result.OK;
+
+  /**
+   * The page, in the section's order. Set when result is OK.
+   *
+   * @generated from field: repeated flipcash.paymentrequest.v1.Payer payers = 2;
+   */
+  payers: Payer[] = [];
+
+  /**
+   * PagingToken carries the cursor after the last Payer returned. The
+   * client MUST send it back in query_options.paging_token on the next
+   * GetPayersRequest. Set when result is OK and has_more is true.
+   *
+   * @generated from field: flipcash.common.v1.PagingToken paging_token = 3;
+   */
+  pagingToken?: PagingToken;
+
+  /**
+   * HasMore indicates whether further pages remain. When false, the walk
+   * has read the section (see GetPayersRequest.Section for what a walk
+   * can miss). When true, the client should issue another
+   * GetPayersRequest with the returned paging_token.
+   *
+   * @generated from field: bool has_more = 4;
+   */
+  hasMore = false;
+
+  /**
+   * The request's version as of this page's read (see
+   * PaymentRequestMetadata.version). Every change at or below it is
+   * reflected in the page; a client applies PaymentRequestUpdates past it
+   * on top (see GetPayers). Set when result is OK.
+   *
+   * @generated from field: uint64 version = 5;
+   */
+  version = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GetPayersResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.GetPayersResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetPayersResponse_Result) },
+    { no: 2, name: "payers", kind: "message", T: Payer, repeated: true },
+    { no: 3, name: "paging_token", kind: "message", T: PagingToken },
+    { no: 4, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetPayersResponse {
+    return new GetPayersResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetPayersResponse {
+    return new GetPayersResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetPayersResponse {
+    return new GetPayersResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetPayersResponse | PlainMessage<GetPayersResponse> | undefined, b: GetPayersResponse | PlainMessage<GetPayersResponse> | undefined): boolean {
+    return proto3.util.equals(GetPayersResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.paymentrequest.v1.GetPayersResponse.Result
+ */
+export enum GetPayersResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * The caller cannot read the request's chat in full.
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * The request doesn't exist.
+   *
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetPayersResponse_Result)
+proto3.util.setEnumType(GetPayersResponse_Result, "flipcash.paymentrequest.v1.GetPayersResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },
@@ -805,7 +1209,8 @@ export enum MarkPaidResponse_Result {
   NOT_OPEN = 3,
 
   /**
-   * The request has no share for user_id.
+   * The request has no share for user_id, or is a collection, which
+   * has no shares.
    *
    * @generated from enum value: NOT_A_SHARE = 4;
    */

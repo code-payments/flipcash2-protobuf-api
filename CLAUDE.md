@@ -69,7 +69,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | kyc/coinbase | `Kyc` | Identity verification with Coinbase (`GetKycState`, `StartKyc`, `SubmitKyc`); the only nested domain |
 | messaging | `Messaging` | Messages, reactions and boosts, `GetDelta`, pointers, typing, cash message return status |
 | moderation | `Moderation` | Text/image moderation with attestations; `FlaggedCategory` reused elsewhere |
-| paymentrequest | `PaymentRequest` | Payment requests in group chats (layered kind → type, today a `Split`) |
+| paymentrequest | `PaymentRequest` | Payment requests in group chats (layered kind → type: a `Split` or a `Collection`), payers |
 | phone | `PhoneVerification` | Verification codes, unlink, link for payment |
 | poll | `Poll` | Polls in group chats |
 | profile | `Profile` | Display name, username, pictures, bio, Flipcard, DM fee, social links |

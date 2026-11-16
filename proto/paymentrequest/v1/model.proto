@@ -41,14 +41,16 @@ message IdempotencyKey {
 // `kind` what the request is and where it was made.
 //
 // The message is versioned whole: every change to anything in it, a share
-// paid (by payment or by hand) or a close, advances version by exactly one,
+// paid (by payment or by hand), a contribution or a close, advances version
+// by exactly one,
 // and an idempotent no-op leaves it alone. Clients keep the copy with the
 // greater version, comparing it like chat.v1.RosterSummary.version, and
 // replace the whole message, so delivery order does not matter. Expiry is
 // not a change: it comes from the clock and moves no version (see
 // PAYMENT_REQUEST_STATUS_EXPIRED), so at an equal version a client keeps
 // EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
-// itself.
+// itself. A request with no ends_at (a collection may have none) never
+// expires.
 //
 // Changes are announced in real time, best effort, by a PaymentRequestUpdate
 // on the chat's event stream (event.v1.ChatUpdate.payment_request_updates):
@@ -58,14 +60,16 @@ message IdempotencyKey {
 //
 // Requests are layered. The first layer is where the request lives: today a
 // group chat (GroupChatPaymentRequest). Within it, the second layer is the
-// type of request: today a split (Split). Kinds and types added later each
+// type of request: a split (Split) or a collection (Collection). Kinds and
+// types added later each
 // get a new arm; a client renders a request whose arm it does not know as
 // unsupported.
 message PaymentRequestMetadata {
     PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
 
     // The user that created the request, who is paid and is the only user
-    // that can close it or mark a share paid by hand.
+    // that can close it or mark a share paid by hand. The creator never pays
+    // into their own request.
     common.v1.UserId creator = 2 [(validate.rules).message.required = true];
 
     // When the request was created.
@@ -79,7 +83,7 @@ message PaymentRequestMetadata {
 
     // When the request stopped being OPEN. Set once status is not OPEN: the
     // request's ends_at when EXPIRED, when the creator closed it when CLOSED,
-    // and when its last unpaid share was paid when COMPLETED.
+    // and when its last unpaid share was paid when COMPLETED (a split only).
     google.protobuf.Timestamp closed_at = 5;
 
     // Advances by exactly one on every change to anything in this message
@@ -87,6 +91,11 @@ message PaymentRequestMetadata {
     // and keep the greater. There is no delta to fetch against it, only a
     // refetch of the request.
     uint64 version = 6;
+
+    // Totals over the request's Payers, for showing progress without walking
+    // PaymentRequest.GetPayers. Set by the server on every read; part of the
+    // versioned message like everything else (see PayerSummary).
+    PayerSummary payer_summary = 7;
 
     // What the request is and where it was made.
     oneof kind {
@@ -116,7 +125,10 @@ message GroupChatPaymentRequest {
         option (validate.required) = true;
 
         // Named members each owe the creator a share.
-        Split split = 2;
+        Split      split      = 2;
+
+        // Any member may pay the creator a fixed amount, once.
+        Collection collection = 3;
     }
 }
 
@@ -127,15 +139,14 @@ message GroupChatPaymentRequest {
 // hand (PaymentRequest.MarkPaid); the request is COMPLETED once every
 // share is paid.
 //
-// The title and description are in `text`, which is plaintext in a group
-// that is not private and encrypted in a private group. Everything else is
-// plaintext everywhere, because the server needs it to check each payment
-// against its share and to decide when the request is complete.
+// The title and description, both optional, are in `text`, which is plaintext
+// in a group that is not private and encrypted in a private group. Everything
+// else is plaintext everywhere, because the server needs it to check each
+// payment against its share and to decide when the request is complete.
 message Split {
-    // The title and description.
+    // The title and description. Optional: unset means the request has
+    // neither. When set, it must be in the form the chat takes.
     oneof text {
-        option (validate.required) = true;
-
         // Set in a group that is not private, and moderated.
         PaymentRequestText          plaintext = 1;
 
@@ -158,9 +169,9 @@ message Split {
     // them. Each share names a distinct member of the chat (or one who was a
     // member when the request was created), the creator included: the
     // creator's own share, their part of what is being split, is paid from
-    // creation (see PaidShare.Creator), and at least one share names someone
+    // creation (see Paid.Creator), and at least one share names someone
     // else. The shares are fixed at creation: nothing adds, removes or
-    // reprices one, and a paid share stays paid (see PaidShare).
+    // reprices one, and a paid share stays paid (see Paid).
     //
     // On CreatePaymentRequest, every share has paid unset.
     //
@@ -174,11 +185,83 @@ message Split {
     }];
 }
 
-// PaymentRequestText is the human-readable part of a payment request.
+// Collection asks the members of the chat to pay the creator, in one
+// currency, for example to chip in for a gift. What each payment must be is
+// its payment_amount: today always a fixed amount (FixedAmount) that every
+// payer pays exactly, no one choosing their own. Who pays
+// is not decided in advance: any member of the chat other than the creator
+// may pay it, once, with a Flipcash payment (see
+// intent.v1.ChatMetadata.RequestedPayment), a contribution. Each member who
+// has contributed is listed as a paid Payer (see PaymentRequest.GetPayers).
+// Nothing is marked paid by hand.
+//
+// A collection has no target, so it is never COMPLETED: it stays OPEN, taking
+// contributions, until the creator closes it (CLOSED) or it reaches its
+// ends_at (EXPIRED). Its ends_at is optional: one with none stays OPEN until
+// the creator closes it, and is not listed while OPEN (see
+// PaymentRequest.GetChatPaymentRequests).
+//
+// The title and description, both optional, are in `text`, as for a Split.
+// Everything else is plaintext everywhere, because the server checks each
+// payment against payment_amount.
+message Collection {
+    // The title and description. Optional: unset means the request has
+    // neither. When set, it must be in the form the chat takes.
+    oneof text {
+        // Set in a group that is not private, and moderated.
+        PaymentRequestText          plaintext = 1;
+
+        // Set in a private group. Not moderated, since the server cannot
+        // read it.
+        EncryptedPaymentRequestText encrypted = 2;
+    }
+
+    // ISO 4217 alpha-3 currency code that payment_amount, and every
+    // contribution, is in. The server must be able to value it.
+    string currency = 3 [(validate.rules).string = { pattern: "^[a-z]{3,4}$" }];
+
+    // When the request stops accepting contributions. Optional.
+    //
+    // When set, it is in the future when the request is created, and at most
+    // 4 weeks after it, and is the request's one deadline: after it, no one
+    // can contribute, and the request is EXPIRED.
+    //
+    // When unset, the request has no deadline: it stays OPEN, taking
+    // contributions, until the creator closes it, and is never EXPIRED. It is
+    // not listed in GetChatPaymentRequests' OPEN section, so while OPEN it is
+    // reached only from its widget message; once CLOSED it is listed in the
+    // RESOLVED section like any other.
+    google.protobuf.Timestamp ends_at = 4;
+
+    // What each payment into the collection must be. Fixed at creation.
+    // Kinds added later each get a new arm; a client that meets one it does
+    // not know renders the collection as unsupported.
+    oneof payment_amount {
+        option (validate.required) = true;
+
+        // Every payer pays exactly one amount.
+        FixedAmount fixed = 5;
+    }
+
+    // FixedAmount is a payment_amount that every payer pays exactly, with
+    // each contribution. A payment of any other amount is refused.
+    message FixedAmount {
+        // The amount, in the request's currency. The server requires a whole
+        // number, at least one, of the currency's minimum transfer value
+        // (its smallest unit, e.g. $0.01): $12.34, not $12.345.
+        double native_amount = 1 [(validate.rules).double.gte = 0];
+    }
+
+    // How many members have contributed, and how much, is in
+    // PaymentRequestMetadata.payer_summary.
+}
+
+// PaymentRequestText is the human-readable part of a payment request. Both
+// fields are optional; a request with neither leaves its text unset rather
+// than sending an empty PaymentRequestText.
 message PaymentRequestText {
-    // What the money is for.
+    // What the money is for. Optional: empty means none.
     string title = 1 [(validate.rules).string = {
-        min_len: 1
         max_len: 100
     }];
 
@@ -256,25 +339,30 @@ message Share {
     // intent.v1.ChatMetadata.RequestedPayment), by the creator with
     // PaymentRequest.MarkPaid, or, for the creator's own share, from
     // creation.
-    PaidShare paid = 3;
+    Paid paid = 3;
 }
 
-// PaidShare records how a share was paid. A share is paid all at once, for
-// exactly its native_amount (a payment pays the share exactly, all or
-// nothing, and a share marked paid by hand, or the creator's own, is taken
-// as settled in full), and once paid it stays paid.
+// Paid records when and how a payer was settled:
+//   - for a share of a Split, what settled the share: a payment, a hand
+//     mark, or, for the creator's own share, the request's creation;
+//   - for a Collection, the member's most recent contribution, which is
+//     always a Flipcash payment (intent): manual and creator are a split's
+//     alone.
 //
-// It changes in one case only: a share marked paid by hand (manual) is
-// replaced by a payment (intent) that lands after the mark, one the debtor
-// made while the share was still unpaid. The record then shows the money
-// that arrived, the request's version advances, and its status and
-// closed_at stay as they were. Nothing replaces a payment or the creator's
-// own share, and a hand mark never replaces anything.
-message PaidShare {
-    // When the share was paid, or marked paid.
+// A share is paid all at once, for exactly its amount (a payment pays it
+// exactly, all or nothing, and a share marked paid by hand, or the creator's
+// own, is taken as settled in full), and once paid it stays paid. Its Paid
+// changes in one case only: a share marked paid by hand (manual) is replaced
+// by a payment (intent) that lands after the mark, one the debtor made while
+// the share was still unpaid. The record then shows the money that arrived,
+// the request's version advances, and its status and closed_at stay as they
+// were. Nothing replaces a payment or the creator's own share, and a hand
+// mark never replaces anything.
+message Paid {
+    // When it was paid, or marked paid.
     google.protobuf.Timestamp paid_at = 1 [(validate.rules).timestamp.required = true];
 
-    // How the share was paid.
+    // How it was paid.
     oneof how {
         option (validate.required) = true;
 
@@ -284,12 +372,13 @@ message PaidShare {
         common.v1.IntentId intent = 2;
 
         // Marked paid by the creator, for a share settled some other way.
-        // Nothing was paid through Flipcash and no message was posted.
+        // Nothing was paid through Flipcash and no message was posted. A
+        // split's only.
         Manual             manual = 3;
 
         // The creator's own share, paid from creation: the creator is owed
         // it by themself. Nothing was paid and no message was posted.
-        // paid_at is the request's created_at.
+        // paid_at is the request's created_at. A split's only.
         Creator            creator = 4;
     }
 
@@ -301,14 +390,94 @@ message PaidShare {
     message Creator {}
 }
 
+// Payer is one user's part in a payment request, as a list of who has paid
+// and who has not shows it (see PaymentRequest.GetPayers), the same for every
+// type of request: who they are, what is due from them, what they have paid,
+// and where that stands. Amounts are in the request's currency.
+//
+// A Split has one Payer per share, the creator's own included, with the
+// share's native_amount due. A Collection has one per member who has
+// contributed: nothing is owed a collection, so nothing is due and its Payers
+// are always paid.
+//
+// Today a share is paid once, in full, and a member contributes once, so a
+// Payer is either unpaid, having paid nothing, or paid, having paid in full.
+message Payer {
+    // The user asked to pay, or who paid.
+    common.v1.UserId user_id = 1 [(validate.rules).message.required = true];
+
+    // What is due from the user: their share's native_amount for a split, 0
+    // for a collection.
+    double native_amount_due = 2 [(validate.rules).double.gte = 0];
+
+    // What the user has paid: for a split, their share's native_amount once
+    // it is paid, whether by payment, by hand or, for the creator's own
+    // share, from creation, and 0 before; for a collection, its fixed
+    // native_amount (see Collection.FixedAmount), which a contribution pays
+    // to within half the currency's smallest unit.
+    double native_amount_paid = 3 [(validate.rules).double.gte = 0];
+
+    // Where the user's payment stands. States added later each get a new
+    // arm; a client that meets one it does not know shows the Payer without
+    // a status.
+    oneof status {
+        option (validate.required) = true;
+
+        // Something is due and nothing is paid.
+        Unpaid unpaid = 4;
+
+        // Paid: when and how (see Paid).
+        Paid   paid   = 5;
+    }
+
+    message Unpaid {}
+}
+
+// PayerSummary totals a request's Payers, the same for every type, so a
+// client can show progress ("3 of 5 paid, $60 of $100") without walking
+// PaymentRequest.GetPayers. Amounts are in the request's currency.
+//
+// It covers every Payer, as GetPayers lists them. For a Split, that includes
+// the creator's own share, when they listed one: it is paid from creation,
+// so it counts as a Payer that has paid its share in full from the start. A
+// share marked paid by hand counts as paid too, as it does on its Payer. A
+// Collection's creator is never a Payer.
+//
+// For a Split it totals the shares, all of which the request carries, so a
+// client can also recompute it from them: payer_count is the number of
+// shares, paid_count those paid, native_amount_due their native_amounts
+// summed, and native_amount_paid the paid ones' native_amounts summed. For a
+// Collection, payer_count and paid_count are both the number of members who
+// have contributed, native_amount_due is 0, and native_amount_paid is what
+// they have paid.
+message PayerSummary {
+    // How many Payers the request has, both GetPayers sections.
+    uint32 payer_count = 1;
+
+    // Of those, how many are paid (status paid).
+    uint32 paid_count = 2;
+
+    // The sum of their native_amount_due: for a split, the whole of its
+    // shares, the creator's own included. 0 for a collection, which nothing
+    // is owed.
+    double native_amount_due = 3 [(validate.rules).double.gte = 0];
+
+    // The sum of their native_amount_paid, hand marks and the creator's own
+    // share included.
+    double native_amount_paid = 4 [(validate.rules).double.gte = 0];
+}
+
 // PaymentRequestStatus is where a payment request is in its life (see
 // PaymentRequestMetadata.status).
 enum PaymentRequestStatus {
     PAYMENT_REQUEST_STATUS_UNKNOWN   = 0;
-    // Accepting payments: the request is before its ends_at and has something
-    // left to pay (for a Split, at least one unpaid share).
+    // Accepting payments: the request is before its ends_at, if it has one,
+    // and has something
+    // left to pay (for a Split, at least one unpaid share; a Collection always
+    // does).
     PAYMENT_REQUEST_STATUS_OPEN      = 1;
-    // Everything asked for is paid (for a Split, every share). Final.
+    // Everything asked for is paid (for a Split, every share). Final. A
+    // Collection has no target and is never COMPLETED.
     PAYMENT_REQUEST_STATUS_COMPLETED = 2;
     // The creator closed the request (PaymentRequest.ClosePaymentRequest)
     // while it was still OPEN. Final.
@@ -316,7 +485,8 @@ enum PaymentRequestStatus {
     // The request reached its ends_at while still OPEN. Final. Decided by the
     // clock, like poll.v1.PollState's TALLYING: it moves no version, and a
     // client judges an OPEN request past its ends_at as EXPIRED itself rather
-    // than waiting for the server to say so.
+    // than waiting for the server to say so. A request with no ends_at is
+    // never EXPIRED.
     PAYMENT_REQUEST_STATUS_EXPIRED   = 4;
 }
 
@@ -326,9 +496,9 @@ enum PaymentRequestStatus {
 // created, carrying it whole (`created`), and on every change that advances
 // its version, carrying what that change did (`updates`): a share paid, by
 // payment or by hand, or a hand mark replaced by a payment; the last share
-// paid, which also completes the request; and a close. Expiry is not
-// announced: it comes from the clock and moves no version, so clients judge
-// it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
+// paid, which also completes the request; a contribution; and a close.
+// Expiry is not announced: it comes from the clock and moves no version, so
+// clients judge it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
 //
 // Updates may arrive out of order, more than once, or not at all. A client
 // applies them to its copy of the request by version:
@@ -343,15 +513,15 @@ enum PaymentRequestStatus {
 //     not know, or a share its copy does not have) applies none of them and
 //     refetches, rather than taking version V for a copy missing a change.
 //
-// A missed update is reconciled by refetching the request. A share paid by a
-// payment is also announced by the payment's messaging.v1.CashContent
-// message, which carries the request's payment_request_id and is part of the
-// chat's gap-detected event log, so a client that sees one for a share it
-// holds unpaid can refetch the request.
+// A missed update is reconciled by refetching the request. A share paid, or
+// a contribution made, by a payment is also announced by the payment's
+// messaging.v1.CashContent message, which carries the request's
+// payment_request_id and is part of the chat's gap-detected event log, so a
+// client that sees one it has not applied can refetch the request.
 //
 // Like GetPaymentRequest, an update reaches only those who can read the chat
-// in full. It never carries the caller-specific payment_intent_id of
-// GetPaymentRequestResponse; a debtor fetches the request to pay their share.
+// in full. It never carries a payment intent ID; a payer gets theirs from
+// PaymentRequest.GetPaymentIntentId when they start to pay.
 message PaymentRequestUpdate {
     PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
 
@@ -374,8 +544,10 @@ message PaymentRequestUpdate {
         // one holding less has missed one.
         uint64 version = 1 [(validate.rules).uint64.gte = 2];
 
-        // What the change did, applied in order, all or nothing. A
-        // StatusUpdate is at most one, and the last.
+        // What the change did, applied in order, all or nothing. A change
+        // that records a payment carries, in order: for a split, the
+        // SharePaymentUpdate; the PayerUpdate for the same user; and the
+        // PayerSummaryUpdate. A StatusUpdate is at most one, and the last.
         repeated Update updates = 2 [(validate.rules).repeated = {
             min_items: 1
             max_items: 100
@@ -388,21 +560,50 @@ message PaymentRequestUpdate {
 
             SharePaymentUpdate share_payment_update = 1;
             StatusUpdate       status_update        = 2;
+            PayerUpdate        payer_update         = 3;
+            PayerSummaryUpdate payer_summary_update = 4;
         }
     }
 
     // SharePaymentUpdate is a share paid, by payment or by hand, or a hand
-    // mark replaced by a payment (see PaidShare). Clients replace the share
-    // with the same user_id by this one.
+    // mark replaced by a payment (see Paid). Clients replace the share
+    // with the same user_id by this one. It is followed in the same Updates
+    // by a PayerUpdate for the same user and a PayerSummaryUpdate, which
+    // carry the same change as a Payer and a PayerSummary.
     message SharePaymentUpdate {
         // The share as it now stands. Its paid is always set.
         Share share = 1 [(validate.rules).message.required = true];
     }
 
+    // PayerUpdate is a payment recorded against a Payer, carrying the Payer
+    // as it now stands. Clients replace the Payer with the same user_id by
+    // this one, adding it if they hold none, and move it between GetPayers
+    // sections by its status.
+    //
+    // It is sent for every payment recorded, whatever the type, followed in
+    // the same Updates by a PayerSummaryUpdate: for a split, a share paid,
+    // by payment or by hand, or a hand mark replaced by a payment, after the
+    // share's SharePaymentUpdate (and before the StatusUpdate if that
+    // payment completed the request); for a collection, a contribution,
+    // which never ends a collection, so no StatusUpdate comes with it.
+    message PayerUpdate {
+        // The Payer as it now stands.
+        Payer payer = 1 [(validate.rules).message.required = true];
+    }
+
+    // PayerSummaryUpdate is the request's PayerSummary as it now stands,
+    // after the changes before it in the same Updates. Clients replace
+    // their copy's payer_summary with it. It follows every PayerUpdate (see
+    // there); a change that records no payment, such as a close, carries
+    // none, since it leaves the summary as it was.
+    message PayerSummaryUpdate {
+        PayerSummary payer_summary = 1 [(validate.rules).message.required = true];
+    }
+
     // StatusUpdate is the request leaving OPEN: CLOSED by its creator, or
-    // COMPLETED by the payment of its last unpaid share, which comes in the
-    // same Updates, before it. Both are final, so a request's status changes
-    // at most once. Expiry is never announced (see above).
+    // COMPLETED (a Split only) by the payment of its last unpaid share, which
+    // comes in the same Updates, before it. Both are final, so a request's
+    // status changes at most once. Expiry is never announced (see above).
     message StatusUpdate {
         PaymentRequestStatus status = 1 [(validate.rules).enum = {
             in: [2, 3] // COMPLETED, CLOSED

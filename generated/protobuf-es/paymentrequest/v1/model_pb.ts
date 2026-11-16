@@ -20,15 +20,18 @@ export enum PaymentRequestStatus {
   UNKNOWN = 0,
 
   /**
-   * Accepting payments: the request is before its ends_at and has something
-   * left to pay (for a Split, at least one unpaid share).
+   * Accepting payments: the request is before its ends_at, if it has one,
+   * and has something
+   * left to pay (for a Split, at least one unpaid share; a Collection always
+   * does).
    *
    * @generated from enum value: PAYMENT_REQUEST_STATUS_OPEN = 1;
    */
   OPEN = 1,
 
   /**
-   * Everything asked for is paid (for a Split, every share). Final.
+   * Everything asked for is paid (for a Split, every share). Final. A
+   * Collection has no target and is never COMPLETED.
    *
    * @generated from enum value: PAYMENT_REQUEST_STATUS_COMPLETED = 2;
    */
@@ -46,7 +49,8 @@ export enum PaymentRequestStatus {
    * The request reached its ends_at while still OPEN. Final. Decided by the
    * clock, like poll.v1.PollState's TALLYING: it moves no version, and a
    * client judges an OPEN request past its ends_at as EXPIRED itself rather
-   * than waiting for the server to say so.
+   * than waiting for the server to say so. A request with no ends_at is
+   * never EXPIRED.
    *
    * @generated from enum value: PAYMENT_REQUEST_STATUS_EXPIRED = 4;
    */
@@ -155,14 +159,16 @@ export class IdempotencyKey extends Message<IdempotencyKey> {
  * `kind` what the request is and where it was made.
  *
  * The message is versioned whole: every change to anything in it, a share
- * paid (by payment or by hand) or a close, advances version by exactly one,
+ * paid (by payment or by hand), a contribution or a close, advances version
+ * by exactly one,
  * and an idempotent no-op leaves it alone. Clients keep the copy with the
  * greater version, comparing it like chat.v1.RosterSummary.version, and
  * replace the whole message, so delivery order does not matter. Expiry is
  * not a change: it comes from the clock and moves no version (see
  * PAYMENT_REQUEST_STATUS_EXPIRED), so at an equal version a client keeps
  * EXPIRED over OPEN, and judges an OPEN request past its ends_at as EXPIRED
- * itself.
+ * itself. A request with no ends_at (a collection may have none) never
+ * expires.
  *
  * Changes are announced in real time, best effort, by a PaymentRequestUpdate
  * on the chat's event stream (event.v1.ChatUpdate.payment_request_updates):
@@ -172,7 +178,8 @@ export class IdempotencyKey extends Message<IdempotencyKey> {
  *
  * Requests are layered. The first layer is where the request lives: today a
  * group chat (GroupChatPaymentRequest). Within it, the second layer is the
- * type of request: today a split (Split). Kinds and types added later each
+ * type of request: a split (Split) or a collection (Collection). Kinds and
+ * types added later each
  * get a new arm; a client renders a request whose arm it does not know as
  * unsupported.
  *
@@ -186,7 +193,8 @@ export class PaymentRequestMetadata extends Message<PaymentRequestMetadata> {
 
   /**
    * The user that created the request, who is paid and is the only user
-   * that can close it or mark a share paid by hand.
+   * that can close it or mark a share paid by hand. The creator never pays
+   * into their own request.
    *
    * @generated from field: flipcash.common.v1.UserId creator = 2;
    */
@@ -210,7 +218,7 @@ export class PaymentRequestMetadata extends Message<PaymentRequestMetadata> {
   /**
    * When the request stopped being OPEN. Set once status is not OPEN: the
    * request's ends_at when EXPIRED, when the creator closed it when CLOSED,
-   * and when its last unpaid share was paid when COMPLETED.
+   * and when its last unpaid share was paid when COMPLETED (a split only).
    *
    * @generated from field: google.protobuf.Timestamp closed_at = 5;
    */
@@ -225,6 +233,15 @@ export class PaymentRequestMetadata extends Message<PaymentRequestMetadata> {
    * @generated from field: uint64 version = 6;
    */
   version = protoInt64.zero;
+
+  /**
+   * Totals over the request's Payers, for showing progress without walking
+   * PaymentRequest.GetPayers. Set by the server on every read; part of the
+   * versioned message like everything else (see PayerSummary).
+   *
+   * @generated from field: flipcash.paymentrequest.v1.PayerSummary payer_summary = 7;
+   */
+  payerSummary?: PayerSummary;
 
   /**
    * What the request is and where it was made.
@@ -255,6 +272,7 @@ export class PaymentRequestMetadata extends Message<PaymentRequestMetadata> {
     { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(PaymentRequestStatus) },
     { no: 5, name: "closed_at", kind: "message", T: Timestamp },
     { no: 6, name: "version", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 7, name: "payer_summary", kind: "message", T: PayerSummary },
     { no: 10, name: "group_chat", kind: "message", T: GroupChatPaymentRequest, oneof: "kind" },
   ]);
 
@@ -310,6 +328,14 @@ export class GroupChatPaymentRequest extends Message<GroupChatPaymentRequest> {
      */
     value: Split;
     case: "split";
+  } | {
+    /**
+     * Any member may pay the creator a fixed amount, once.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.Collection collection = 3;
+     */
+    value: Collection;
+    case: "collection";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<GroupChatPaymentRequest>) {
@@ -322,6 +348,7 @@ export class GroupChatPaymentRequest extends Message<GroupChatPaymentRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "chat_id", kind: "message", T: ChatId },
     { no: 2, name: "split", kind: "message", T: Split, oneof: "type" },
+    { no: 3, name: "collection", kind: "message", T: Collection, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GroupChatPaymentRequest {
@@ -349,16 +376,17 @@ export class GroupChatPaymentRequest extends Message<GroupChatPaymentRequest> {
  * hand (PaymentRequest.MarkPaid); the request is COMPLETED once every
  * share is paid.
  *
- * The title and description are in `text`, which is plaintext in a group
- * that is not private and encrypted in a private group. Everything else is
- * plaintext everywhere, because the server needs it to check each payment
- * against its share and to decide when the request is complete.
+ * The title and description, both optional, are in `text`, which is plaintext
+ * in a group that is not private and encrypted in a private group. Everything
+ * else is plaintext everywhere, because the server needs it to check each
+ * payment against its share and to decide when the request is complete.
  *
  * @generated from message flipcash.paymentrequest.v1.Split
  */
 export class Split extends Message<Split> {
   /**
-   * The title and description.
+   * The title and description. Optional: unset means the request has
+   * neither. When set, it must be in the form the chat takes.
    *
    * @generated from oneof flipcash.paymentrequest.v1.Split.text
    */
@@ -404,9 +432,9 @@ export class Split extends Message<Split> {
    * them. Each share names a distinct member of the chat (or one who was a
    * member when the request was created), the creator included: the
    * creator's own share, their part of what is being split, is paid from
-   * creation (see PaidShare.Creator), and at least one share names someone
+   * creation (see Paid.Creator), and at least one share names someone
    * else. The shares are fixed at creation: nothing adds, removes or
-   * reprices one, and a paid share stays paid (see PaidShare).
+   * reprices one, and a paid share stays paid (see Paid).
    *
    * On CreatePaymentRequest, every share has paid unset.
    *
@@ -452,13 +480,182 @@ export class Split extends Message<Split> {
 }
 
 /**
- * PaymentRequestText is the human-readable part of a payment request.
+ * Collection asks the members of the chat to pay the creator, in one
+ * currency, for example to chip in for a gift. What each payment must be is
+ * its payment_amount: today always a fixed amount (FixedAmount) that every
+ * payer pays exactly, no one choosing their own. Who pays
+ * is not decided in advance: any member of the chat other than the creator
+ * may pay it, once, with a Flipcash payment (see
+ * intent.v1.ChatMetadata.RequestedPayment), a contribution. Each member who
+ * has contributed is listed as a paid Payer (see PaymentRequest.GetPayers).
+ * Nothing is marked paid by hand.
+ *
+ * A collection has no target, so it is never COMPLETED: it stays OPEN, taking
+ * contributions, until the creator closes it (CLOSED) or it reaches its
+ * ends_at (EXPIRED). Its ends_at is optional: one with none stays OPEN until
+ * the creator closes it, and is not listed while OPEN (see
+ * PaymentRequest.GetChatPaymentRequests).
+ *
+ * The title and description, both optional, are in `text`, as for a Split.
+ * Everything else is plaintext everywhere, because the server checks each
+ * payment against payment_amount.
+ *
+ * @generated from message flipcash.paymentrequest.v1.Collection
+ */
+export class Collection extends Message<Collection> {
+  /**
+   * The title and description. Optional: unset means the request has
+   * neither. When set, it must be in the form the chat takes.
+   *
+   * @generated from oneof flipcash.paymentrequest.v1.Collection.text
+   */
+  text: {
+    /**
+     * Set in a group that is not private, and moderated.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestText plaintext = 1;
+     */
+    value: PaymentRequestText;
+    case: "plaintext";
+  } | {
+    /**
+     * Set in a private group. Not moderated, since the server cannot
+     * read it.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.EncryptedPaymentRequestText encrypted = 2;
+     */
+    value: EncryptedPaymentRequestText;
+    case: "encrypted";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  /**
+   * ISO 4217 alpha-3 currency code that payment_amount, and every
+   * contribution, is in. The server must be able to value it.
+   *
+   * @generated from field: string currency = 3;
+   */
+  currency = "";
+
+  /**
+   * When the request stops accepting contributions. Optional.
+   *
+   * When set, it is in the future when the request is created, and at most
+   * 4 weeks after it, and is the request's one deadline: after it, no one
+   * can contribute, and the request is EXPIRED.
+   *
+   * When unset, the request has no deadline: it stays OPEN, taking
+   * contributions, until the creator closes it, and is never EXPIRED. It is
+   * not listed in GetChatPaymentRequests' OPEN section, so while OPEN it is
+   * reached only from its widget message; once CLOSED it is listed in the
+   * RESOLVED section like any other.
+   *
+   * @generated from field: google.protobuf.Timestamp ends_at = 4;
+   */
+  endsAt?: Timestamp;
+
+  /**
+   * What each payment into the collection must be. Fixed at creation.
+   * Kinds added later each get a new arm; a client that meets one it does
+   * not know renders the collection as unsupported.
+   *
+   * @generated from oneof flipcash.paymentrequest.v1.Collection.payment_amount
+   */
+  paymentAmount: {
+    /**
+     * Every payer pays exactly one amount.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.Collection.FixedAmount fixed = 5;
+     */
+    value: Collection_FixedAmount;
+    case: "fixed";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Collection>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.Collection";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "plaintext", kind: "message", T: PaymentRequestText, oneof: "text" },
+    { no: 2, name: "encrypted", kind: "message", T: EncryptedPaymentRequestText, oneof: "text" },
+    { no: 3, name: "currency", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "ends_at", kind: "message", T: Timestamp },
+    { no: 5, name: "fixed", kind: "message", T: Collection_FixedAmount, oneof: "payment_amount" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Collection {
+    return new Collection().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Collection {
+    return new Collection().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Collection {
+    return new Collection().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Collection | PlainMessage<Collection> | undefined, b: Collection | PlainMessage<Collection> | undefined): boolean {
+    return proto3.util.equals(Collection, a, b);
+  }
+}
+
+/**
+ * FixedAmount is a payment_amount that every payer pays exactly, with
+ * each contribution. A payment of any other amount is refused.
+ *
+ * @generated from message flipcash.paymentrequest.v1.Collection.FixedAmount
+ */
+export class Collection_FixedAmount extends Message<Collection_FixedAmount> {
+  /**
+   * The amount, in the request's currency. The server requires a whole
+   * number, at least one, of the currency's minimum transfer value
+   * (its smallest unit, e.g. $0.01): $12.34, not $12.345.
+   *
+   * @generated from field: double native_amount = 1;
+   */
+  nativeAmount = 0;
+
+  constructor(data?: PartialMessage<Collection_FixedAmount>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.Collection.FixedAmount";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "native_amount", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Collection_FixedAmount {
+    return new Collection_FixedAmount().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Collection_FixedAmount {
+    return new Collection_FixedAmount().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Collection_FixedAmount {
+    return new Collection_FixedAmount().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Collection_FixedAmount | PlainMessage<Collection_FixedAmount> | undefined, b: Collection_FixedAmount | PlainMessage<Collection_FixedAmount> | undefined): boolean {
+    return proto3.util.equals(Collection_FixedAmount, a, b);
+  }
+}
+
+/**
+ * PaymentRequestText is the human-readable part of a payment request. Both
+ * fields are optional; a request with neither leaves its text unset rather
+ * than sending an empty PaymentRequestText.
  *
  * @generated from message flipcash.paymentrequest.v1.PaymentRequestText
  */
 export class PaymentRequestText extends Message<PaymentRequestText> {
   /**
-   * What the money is for.
+   * What the money is for. Optional: empty means none.
    *
    * @generated from field: string title = 1;
    */
@@ -636,9 +833,9 @@ export class Share extends Message<Share> {
    * PaymentRequest.MarkPaid, or, for the creator's own share, from
    * creation.
    *
-   * @generated from field: flipcash.paymentrequest.v1.PaidShare paid = 3;
+   * @generated from field: flipcash.paymentrequest.v1.Paid paid = 3;
    */
-  paid?: PaidShare;
+  paid?: Paid;
 
   constructor(data?: PartialMessage<Share>) {
     super();
@@ -650,7 +847,7 @@ export class Share extends Message<Share> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "user_id", kind: "message", T: UserId },
     { no: 2, name: "native_amount", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
-    { no: 3, name: "paid", kind: "message", T: PaidShare },
+    { no: 3, name: "paid", kind: "message", T: Paid },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Share {
@@ -671,32 +868,37 @@ export class Share extends Message<Share> {
 }
 
 /**
- * PaidShare records how a share was paid. A share is paid all at once, for
- * exactly its native_amount (a payment pays the share exactly, all or
- * nothing, and a share marked paid by hand, or the creator's own, is taken
- * as settled in full), and once paid it stays paid.
+ * Paid records when and how a payer was settled:
+ *   - for a share of a Split, what settled the share: a payment, a hand
+ *     mark, or, for the creator's own share, the request's creation;
+ *   - for a Collection, the member's most recent contribution, which is
+ *     always a Flipcash payment (intent): manual and creator are a split's
+ *     alone.
  *
- * It changes in one case only: a share marked paid by hand (manual) is
- * replaced by a payment (intent) that lands after the mark, one the debtor
- * made while the share was still unpaid. The record then shows the money
- * that arrived, the request's version advances, and its status and
- * closed_at stay as they were. Nothing replaces a payment or the creator's
- * own share, and a hand mark never replaces anything.
+ * A share is paid all at once, for exactly its amount (a payment pays it
+ * exactly, all or nothing, and a share marked paid by hand, or the creator's
+ * own, is taken as settled in full), and once paid it stays paid. Its Paid
+ * changes in one case only: a share marked paid by hand (manual) is replaced
+ * by a payment (intent) that lands after the mark, one the debtor made while
+ * the share was still unpaid. The record then shows the money that arrived,
+ * the request's version advances, and its status and closed_at stay as they
+ * were. Nothing replaces a payment or the creator's own share, and a hand
+ * mark never replaces anything.
  *
- * @generated from message flipcash.paymentrequest.v1.PaidShare
+ * @generated from message flipcash.paymentrequest.v1.Paid
  */
-export class PaidShare extends Message<PaidShare> {
+export class Paid extends Message<Paid> {
   /**
-   * When the share was paid, or marked paid.
+   * When it was paid, or marked paid.
    *
    * @generated from field: google.protobuf.Timestamp paid_at = 1;
    */
   paidAt?: Timestamp;
 
   /**
-   * How the share was paid.
+   * How it was paid.
    *
-   * @generated from oneof flipcash.paymentrequest.v1.PaidShare.how
+   * @generated from oneof flipcash.paymentrequest.v1.Paid.how
    */
   how: {
     /**
@@ -711,52 +913,53 @@ export class PaidShare extends Message<PaidShare> {
   } | {
     /**
      * Marked paid by the creator, for a share settled some other way.
-     * Nothing was paid through Flipcash and no message was posted.
+     * Nothing was paid through Flipcash and no message was posted. A
+     * split's only.
      *
-     * @generated from field: flipcash.paymentrequest.v1.PaidShare.Manual manual = 3;
+     * @generated from field: flipcash.paymentrequest.v1.Paid.Manual manual = 3;
      */
-    value: PaidShare_Manual;
+    value: Paid_Manual;
     case: "manual";
   } | {
     /**
      * The creator's own share, paid from creation: the creator is owed
      * it by themself. Nothing was paid and no message was posted.
-     * paid_at is the request's created_at.
+     * paid_at is the request's created_at. A split's only.
      *
-     * @generated from field: flipcash.paymentrequest.v1.PaidShare.Creator creator = 4;
+     * @generated from field: flipcash.paymentrequest.v1.Paid.Creator creator = 4;
      */
-    value: PaidShare_Creator;
+    value: Paid_Creator;
     case: "creator";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  constructor(data?: PartialMessage<PaidShare>) {
+  constructor(data?: PartialMessage<Paid>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.paymentrequest.v1.PaidShare";
+  static readonly typeName = "flipcash.paymentrequest.v1.Paid";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "paid_at", kind: "message", T: Timestamp },
     { no: 2, name: "intent", kind: "message", T: IntentId, oneof: "how" },
-    { no: 3, name: "manual", kind: "message", T: PaidShare_Manual, oneof: "how" },
-    { no: 4, name: "creator", kind: "message", T: PaidShare_Creator, oneof: "how" },
+    { no: 3, name: "manual", kind: "message", T: Paid_Manual, oneof: "how" },
+    { no: 4, name: "creator", kind: "message", T: Paid_Creator, oneof: "how" },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaidShare {
-    return new PaidShare().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Paid {
+    return new Paid().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaidShare {
-    return new PaidShare().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Paid {
+    return new Paid().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaidShare {
-    return new PaidShare().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Paid {
+    return new Paid().fromJsonString(jsonString, options);
   }
 
-  static equals(a: PaidShare | PlainMessage<PaidShare> | undefined, b: PaidShare | PlainMessage<PaidShare> | undefined): boolean {
-    return proto3.util.equals(PaidShare, a, b);
+  static equals(a: Paid | PlainMessage<Paid> | undefined, b: Paid | PlainMessage<Paid> | undefined): boolean {
+    return proto3.util.equals(Paid, a, b);
   }
 }
 
@@ -764,66 +967,281 @@ export class PaidShare extends Message<PaidShare> {
  * A share marked paid by hand (see PaymentRequest.MarkPaid), which only
  * the request's creator can do.
  *
- * @generated from message flipcash.paymentrequest.v1.PaidShare.Manual
+ * @generated from message flipcash.paymentrequest.v1.Paid.Manual
  */
-export class PaidShare_Manual extends Message<PaidShare_Manual> {
-  constructor(data?: PartialMessage<PaidShare_Manual>) {
+export class Paid_Manual extends Message<Paid_Manual> {
+  constructor(data?: PartialMessage<Paid_Manual>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.paymentrequest.v1.PaidShare.Manual";
+  static readonly typeName = "flipcash.paymentrequest.v1.Paid.Manual";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaidShare_Manual {
-    return new PaidShare_Manual().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Paid_Manual {
+    return new Paid_Manual().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaidShare_Manual {
-    return new PaidShare_Manual().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Paid_Manual {
+    return new Paid_Manual().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaidShare_Manual {
-    return new PaidShare_Manual().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Paid_Manual {
+    return new Paid_Manual().fromJsonString(jsonString, options);
   }
 
-  static equals(a: PaidShare_Manual | PlainMessage<PaidShare_Manual> | undefined, b: PaidShare_Manual | PlainMessage<PaidShare_Manual> | undefined): boolean {
-    return proto3.util.equals(PaidShare_Manual, a, b);
+  static equals(a: Paid_Manual | PlainMessage<Paid_Manual> | undefined, b: Paid_Manual | PlainMessage<Paid_Manual> | undefined): boolean {
+    return proto3.util.equals(Paid_Manual, a, b);
   }
 }
 
 /**
  * The creator's own share, paid from creation.
  *
- * @generated from message flipcash.paymentrequest.v1.PaidShare.Creator
+ * @generated from message flipcash.paymentrequest.v1.Paid.Creator
  */
-export class PaidShare_Creator extends Message<PaidShare_Creator> {
-  constructor(data?: PartialMessage<PaidShare_Creator>) {
+export class Paid_Creator extends Message<Paid_Creator> {
+  constructor(data?: PartialMessage<Paid_Creator>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "flipcash.paymentrequest.v1.PaidShare.Creator";
+  static readonly typeName = "flipcash.paymentrequest.v1.Paid.Creator";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaidShare_Creator {
-    return new PaidShare_Creator().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Paid_Creator {
+    return new Paid_Creator().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaidShare_Creator {
-    return new PaidShare_Creator().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Paid_Creator {
+    return new Paid_Creator().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaidShare_Creator {
-    return new PaidShare_Creator().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Paid_Creator {
+    return new Paid_Creator().fromJsonString(jsonString, options);
   }
 
-  static equals(a: PaidShare_Creator | PlainMessage<PaidShare_Creator> | undefined, b: PaidShare_Creator | PlainMessage<PaidShare_Creator> | undefined): boolean {
-    return proto3.util.equals(PaidShare_Creator, a, b);
+  static equals(a: Paid_Creator | PlainMessage<Paid_Creator> | undefined, b: Paid_Creator | PlainMessage<Paid_Creator> | undefined): boolean {
+    return proto3.util.equals(Paid_Creator, a, b);
+  }
+}
+
+/**
+ * Payer is one user's part in a payment request, as a list of who has paid
+ * and who has not shows it (see PaymentRequest.GetPayers), the same for every
+ * type of request: who they are, what is due from them, what they have paid,
+ * and where that stands. Amounts are in the request's currency.
+ *
+ * A Split has one Payer per share, the creator's own included, with the
+ * share's native_amount due. A Collection has one per member who has
+ * contributed: nothing is owed a collection, so nothing is due and its Payers
+ * are always paid.
+ *
+ * Today a share is paid once, in full, and a member contributes once, so a
+ * Payer is either unpaid, having paid nothing, or paid, having paid in full.
+ *
+ * @generated from message flipcash.paymentrequest.v1.Payer
+ */
+export class Payer extends Message<Payer> {
+  /**
+   * The user asked to pay, or who paid.
+   *
+   * @generated from field: flipcash.common.v1.UserId user_id = 1;
+   */
+  userId?: UserId;
+
+  /**
+   * What is due from the user: their share's native_amount for a split, 0
+   * for a collection.
+   *
+   * @generated from field: double native_amount_due = 2;
+   */
+  nativeAmountDue = 0;
+
+  /**
+   * What the user has paid: for a split, their share's native_amount once
+   * it is paid, whether by payment, by hand or, for the creator's own
+   * share, from creation, and 0 before; for a collection, its fixed
+   * native_amount (see Collection.FixedAmount), which a contribution pays
+   * to within half the currency's smallest unit.
+   *
+   * @generated from field: double native_amount_paid = 3;
+   */
+  nativeAmountPaid = 0;
+
+  /**
+   * Where the user's payment stands. States added later each get a new
+   * arm; a client that meets one it does not know shows the Payer without
+   * a status.
+   *
+   * @generated from oneof flipcash.paymentrequest.v1.Payer.status
+   */
+  status: {
+    /**
+     * Something is due and nothing is paid.
+     *
+     * @generated from field: flipcash.paymentrequest.v1.Payer.Unpaid unpaid = 4;
+     */
+    value: Payer_Unpaid;
+    case: "unpaid";
+  } | {
+    /**
+     * Paid: when and how (see Paid).
+     *
+     * @generated from field: flipcash.paymentrequest.v1.Paid paid = 5;
+     */
+    value: Paid;
+    case: "paid";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Payer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.Payer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "message", T: UserId },
+    { no: 2, name: "native_amount_due", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 3, name: "native_amount_paid", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 4, name: "unpaid", kind: "message", T: Payer_Unpaid, oneof: "status" },
+    { no: 5, name: "paid", kind: "message", T: Paid, oneof: "status" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payer {
+    return new Payer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Payer {
+    return new Payer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Payer {
+    return new Payer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Payer | PlainMessage<Payer> | undefined, b: Payer | PlainMessage<Payer> | undefined): boolean {
+    return proto3.util.equals(Payer, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.paymentrequest.v1.Payer.Unpaid
+ */
+export class Payer_Unpaid extends Message<Payer_Unpaid> {
+  constructor(data?: PartialMessage<Payer_Unpaid>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.Payer.Unpaid";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Payer_Unpaid {
+    return new Payer_Unpaid().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Payer_Unpaid {
+    return new Payer_Unpaid().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Payer_Unpaid {
+    return new Payer_Unpaid().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Payer_Unpaid | PlainMessage<Payer_Unpaid> | undefined, b: Payer_Unpaid | PlainMessage<Payer_Unpaid> | undefined): boolean {
+    return proto3.util.equals(Payer_Unpaid, a, b);
+  }
+}
+
+/**
+ * PayerSummary totals a request's Payers, the same for every type, so a
+ * client can show progress ("3 of 5 paid, $60 of $100") without walking
+ * PaymentRequest.GetPayers. Amounts are in the request's currency.
+ *
+ * It covers every Payer, as GetPayers lists them. For a Split, that includes
+ * the creator's own share, when they listed one: it is paid from creation,
+ * so it counts as a Payer that has paid its share in full from the start. A
+ * share marked paid by hand counts as paid too, as it does on its Payer. A
+ * Collection's creator is never a Payer.
+ *
+ * For a Split it totals the shares, all of which the request carries, so a
+ * client can also recompute it from them: payer_count is the number of
+ * shares, paid_count those paid, native_amount_due their native_amounts
+ * summed, and native_amount_paid the paid ones' native_amounts summed. For a
+ * Collection, payer_count and paid_count are both the number of members who
+ * have contributed, native_amount_due is 0, and native_amount_paid is what
+ * they have paid.
+ *
+ * @generated from message flipcash.paymentrequest.v1.PayerSummary
+ */
+export class PayerSummary extends Message<PayerSummary> {
+  /**
+   * How many Payers the request has, both GetPayers sections.
+   *
+   * @generated from field: uint32 payer_count = 1;
+   */
+  payerCount = 0;
+
+  /**
+   * Of those, how many are paid (status paid).
+   *
+   * @generated from field: uint32 paid_count = 2;
+   */
+  paidCount = 0;
+
+  /**
+   * The sum of their native_amount_due: for a split, the whole of its
+   * shares, the creator's own included. 0 for a collection, which nothing
+   * is owed.
+   *
+   * @generated from field: double native_amount_due = 3;
+   */
+  nativeAmountDue = 0;
+
+  /**
+   * The sum of their native_amount_paid, hand marks and the creator's own
+   * share included.
+   *
+   * @generated from field: double native_amount_paid = 4;
+   */
+  nativeAmountPaid = 0;
+
+  constructor(data?: PartialMessage<PayerSummary>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PayerSummary";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payer_count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 2, name: "paid_count", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 3, name: "native_amount_due", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 4, name: "native_amount_paid", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PayerSummary {
+    return new PayerSummary().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PayerSummary {
+    return new PayerSummary().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PayerSummary {
+    return new PayerSummary().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PayerSummary | PlainMessage<PayerSummary> | undefined, b: PayerSummary | PlainMessage<PayerSummary> | undefined): boolean {
+    return proto3.util.equals(PayerSummary, a, b);
   }
 }
 
@@ -834,9 +1252,9 @@ export class PaidShare_Creator extends Message<PaidShare_Creator> {
  * created, carrying it whole (`created`), and on every change that advances
  * its version, carrying what that change did (`updates`): a share paid, by
  * payment or by hand, or a hand mark replaced by a payment; the last share
- * paid, which also completes the request; and a close. Expiry is not
- * announced: it comes from the clock and moves no version, so clients judge
- * it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
+ * paid, which also completes the request; a contribution; and a close.
+ * Expiry is not announced: it comes from the clock and moves no version, so
+ * clients judge it from ends_at (see PAYMENT_REQUEST_STATUS_EXPIRED).
  *
  * Updates may arrive out of order, more than once, or not at all. A client
  * applies them to its copy of the request by version:
@@ -851,15 +1269,15 @@ export class PaidShare_Creator extends Message<PaidShare_Creator> {
  *     not know, or a share its copy does not have) applies none of them and
  *     refetches, rather than taking version V for a copy missing a change.
  *
- * A missed update is reconciled by refetching the request. A share paid by a
- * payment is also announced by the payment's messaging.v1.CashContent
- * message, which carries the request's payment_request_id and is part of the
- * chat's gap-detected event log, so a client that sees one for a share it
- * holds unpaid can refetch the request.
+ * A missed update is reconciled by refetching the request. A share paid, or
+ * a contribution made, by a payment is also announced by the payment's
+ * messaging.v1.CashContent message, which carries the request's
+ * payment_request_id and is part of the chat's gap-detected event log, so a
+ * client that sees one it has not applied can refetch the request.
  *
  * Like GetPaymentRequest, an update reaches only those who can read the chat
- * in full. It never carries the caller-specific payment_intent_id of
- * GetPaymentRequestResponse; a debtor fetches the request to pay their share.
+ * in full. It never carries a payment intent ID; a payer gets theirs from
+ * PaymentRequest.GetPaymentIntentId when they start to pay.
  *
  * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate
  */
@@ -938,8 +1356,10 @@ export class PaymentRequestUpdate_Updates extends Message<PaymentRequestUpdate_U
   version = protoInt64.zero;
 
   /**
-   * What the change did, applied in order, all or nothing. A
-   * StatusUpdate is at most one, and the last.
+   * What the change did, applied in order, all or nothing. A change
+   * that records a payment carries, in order: for a split, the
+   * SharePaymentUpdate; the PayerUpdate for the same user; and the
+   * PayerSummaryUpdate. A StatusUpdate is at most one, and the last.
    *
    * @generated from field: repeated flipcash.paymentrequest.v1.PaymentRequestUpdate.Update updates = 2;
    */
@@ -993,6 +1413,18 @@ export class PaymentRequestUpdate_Update extends Message<PaymentRequestUpdate_Up
      */
     value: PaymentRequestUpdate_StatusUpdate;
     case: "statusUpdate";
+  } | {
+    /**
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestUpdate.PayerUpdate payer_update = 3;
+     */
+    value: PaymentRequestUpdate_PayerUpdate;
+    case: "payerUpdate";
+  } | {
+    /**
+     * @generated from field: flipcash.paymentrequest.v1.PaymentRequestUpdate.PayerSummaryUpdate payer_summary_update = 4;
+     */
+    value: PaymentRequestUpdate_PayerSummaryUpdate;
+    case: "payerSummaryUpdate";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<PaymentRequestUpdate_Update>) {
@@ -1005,6 +1437,8 @@ export class PaymentRequestUpdate_Update extends Message<PaymentRequestUpdate_Up
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "share_payment_update", kind: "message", T: PaymentRequestUpdate_SharePaymentUpdate, oneof: "kind" },
     { no: 2, name: "status_update", kind: "message", T: PaymentRequestUpdate_StatusUpdate, oneof: "kind" },
+    { no: 3, name: "payer_update", kind: "message", T: PaymentRequestUpdate_PayerUpdate, oneof: "kind" },
+    { no: 4, name: "payer_summary_update", kind: "message", T: PaymentRequestUpdate_PayerSummaryUpdate, oneof: "kind" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_Update {
@@ -1026,8 +1460,10 @@ export class PaymentRequestUpdate_Update extends Message<PaymentRequestUpdate_Up
 
 /**
  * SharePaymentUpdate is a share paid, by payment or by hand, or a hand
- * mark replaced by a payment (see PaidShare). Clients replace the share
- * with the same user_id by this one.
+ * mark replaced by a payment (see Paid). Clients replace the share
+ * with the same user_id by this one. It is followed in the same Updates
+ * by a PayerUpdate for the same user and a PayerSummaryUpdate, which
+ * carry the same change as a Payer and a PayerSummary.
  *
  * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.SharePaymentUpdate
  */
@@ -1068,10 +1504,104 @@ export class PaymentRequestUpdate_SharePaymentUpdate extends Message<PaymentRequ
 }
 
 /**
+ * PayerUpdate is a payment recorded against a Payer, carrying the Payer
+ * as it now stands. Clients replace the Payer with the same user_id by
+ * this one, adding it if they hold none, and move it between GetPayers
+ * sections by its status.
+ *
+ * It is sent for every payment recorded, whatever the type, followed in
+ * the same Updates by a PayerSummaryUpdate: for a split, a share paid,
+ * by payment or by hand, or a hand mark replaced by a payment, after the
+ * share's SharePaymentUpdate (and before the StatusUpdate if that
+ * payment completed the request); for a collection, a contribution,
+ * which never ends a collection, so no StatusUpdate comes with it.
+ *
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.PayerUpdate
+ */
+export class PaymentRequestUpdate_PayerUpdate extends Message<PaymentRequestUpdate_PayerUpdate> {
+  /**
+   * The Payer as it now stands.
+   *
+   * @generated from field: flipcash.paymentrequest.v1.Payer payer = 1;
+   */
+  payer?: Payer;
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate_PayerUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate.PayerUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payer", kind: "message", T: Payer },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_PayerUpdate {
+    return new PaymentRequestUpdate_PayerUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_PayerUpdate {
+    return new PaymentRequestUpdate_PayerUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_PayerUpdate {
+    return new PaymentRequestUpdate_PayerUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate_PayerUpdate | PlainMessage<PaymentRequestUpdate_PayerUpdate> | undefined, b: PaymentRequestUpdate_PayerUpdate | PlainMessage<PaymentRequestUpdate_PayerUpdate> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate_PayerUpdate, a, b);
+  }
+}
+
+/**
+ * PayerSummaryUpdate is the request's PayerSummary as it now stands,
+ * after the changes before it in the same Updates. Clients replace
+ * their copy's payer_summary with it. It follows every PayerUpdate (see
+ * there); a change that records no payment, such as a close, carries
+ * none, since it leaves the summary as it was.
+ *
+ * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.PayerSummaryUpdate
+ */
+export class PaymentRequestUpdate_PayerSummaryUpdate extends Message<PaymentRequestUpdate_PayerSummaryUpdate> {
+  /**
+   * @generated from field: flipcash.paymentrequest.v1.PayerSummary payer_summary = 1;
+   */
+  payerSummary?: PayerSummary;
+
+  constructor(data?: PartialMessage<PaymentRequestUpdate_PayerSummaryUpdate>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.paymentrequest.v1.PaymentRequestUpdate.PayerSummaryUpdate";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "payer_summary", kind: "message", T: PayerSummary },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PaymentRequestUpdate_PayerSummaryUpdate {
+    return new PaymentRequestUpdate_PayerSummaryUpdate().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_PayerSummaryUpdate {
+    return new PaymentRequestUpdate_PayerSummaryUpdate().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PaymentRequestUpdate_PayerSummaryUpdate {
+    return new PaymentRequestUpdate_PayerSummaryUpdate().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PaymentRequestUpdate_PayerSummaryUpdate | PlainMessage<PaymentRequestUpdate_PayerSummaryUpdate> | undefined, b: PaymentRequestUpdate_PayerSummaryUpdate | PlainMessage<PaymentRequestUpdate_PayerSummaryUpdate> | undefined): boolean {
+    return proto3.util.equals(PaymentRequestUpdate_PayerSummaryUpdate, a, b);
+  }
+}
+
+/**
  * StatusUpdate is the request leaving OPEN: CLOSED by its creator, or
- * COMPLETED by the payment of its last unpaid share, which comes in the
- * same Updates, before it. Both are final, so a request's status changes
- * at most once. Expiry is never announced (see above).
+ * COMPLETED (a Split only) by the payment of its last unpaid share, which
+ * comes in the same Updates, before it. Both are final, so a request's
+ * status changes at most once. Expiry is never announced (see above).
  *
  * @generated from message flipcash.paymentrequest.v1.PaymentRequestUpdate.StatusUpdate
  */
