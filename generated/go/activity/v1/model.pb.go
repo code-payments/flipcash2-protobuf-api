@@ -832,8 +832,9 @@ func (x *BoostedReaction) GetEmoji() *v11.Emoji {
 	return nil
 }
 
-// The payment request a payment paid a share of: a debtor's share, paid to
-// the request's creator (see intent.v1.ChatMetadata.RequestedPayment). It is
+// The payment request a payment paid into: a debtor's share of a split, or a
+// member's contribution to a collection, paid to the request's creator (see
+// intent.v1.ChatMetadata.RequestedPayment). It is
 // what the payment was for when it was made and is not kept up to date: the
 // request may since have been closed or expired, and the viewer may no longer
 // be a member of its group, in which case fetching the request is denied.
@@ -844,7 +845,7 @@ type RequestedPayment struct {
 
 	// The group chat the payment request is in.
 	ChatId *v1.ChatId `protobuf:"bytes,1,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
-	// The payment request whose share was paid.
+	// The payment request paid into.
 	PaymentRequestId *v12.PaymentRequestId `protobuf:"bytes,2,opt,name=payment_request_id,json=paymentRequestId,proto3" json:"payment_request_id,omitempty"`
 }
 

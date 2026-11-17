@@ -541,8 +541,9 @@ export class BoostedReaction extends Message<BoostedReaction> {
 }
 
 /**
- * The payment request a payment paid a share of: a debtor's share, paid to
- * the request's creator (see intent.v1.ChatMetadata.RequestedPayment). It is
+ * The payment request a payment paid into: a debtor's share of a split, or a
+ * member's contribution to a collection, paid to the request's creator (see
+ * intent.v1.ChatMetadata.RequestedPayment). It is
  * what the payment was for when it was made and is not kept up to date: the
  * request may since have been closed or expired, and the viewer may no longer
  * be a member of its group, in which case fetching the request is denied.
@@ -558,7 +559,7 @@ export class RequestedPayment extends Message<RequestedPayment> {
   chatId?: ChatId;
 
   /**
-   * The payment request whose share was paid.
+   * The payment request paid into.
    *
    * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 2;
    */

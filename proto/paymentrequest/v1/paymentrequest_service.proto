@@ -12,17 +12,18 @@ import "paymentrequest/v1/model.proto";
 import "validate/validate.proto";
 
 // PaymentRequest manages payment requests: a creator asking others for money.
-// Requests are layered (see PaymentRequestMetadata): the first layer is where
-// a request is made, today a group chat (GroupChatPaymentRequest), and the
-// second is its type, today a split (Split). Every kind shares its identity,
-// creator, status, version and the RPCs below; what each layer adds is documented on
-// its message. DMs are not supported.
+// Requests are layered (see PaymentRequestMetadata): the first layer is where a
+// request is made, today a group chat (GroupChatPaymentRequest), and the second
+// is its type: a split (Split), where named members each owe a share, or a
+// collection (Collection), where any member may pay a fixed amount once. Every
+// kind shares its identity, creator, status, version and the RPCs below; what
+// each layer adds is documented on its message. DMs are not supported.
 //
 // A group chat request is shown in its chat as a message. The creator first
 // calls CreatePaymentRequest, then sends the returned PaymentRequestId with
 // Messaging.SendMessage as a messaging.v1.PaymentRequestWidget. The message
-// carries only the PaymentRequestId; clients get the request's kind, shares
-// and status from GetPaymentRequest. The request is live from creation, sent
+// carries only the PaymentRequestId; clients get the request's kind, type and
+// status from GetPaymentRequest. The request is live from creation, sent
 // or not.
 //
 // A request belongs to the chat it was created for. Its creator may send it
@@ -31,29 +32,30 @@ import "validate/validate.proto";
 // request. Deleting a message that carries a request does not touch the
 // request.
 //
-// Anyone who can read the chat in full sees the request, its shares and
-// who has paid; someone who can only preview the chat sees the widget but
-// not the request. Changes to a request are announced best effort on the
+// Anyone who can read the chat in full sees the request and who has paid (see
+// GetPayers); someone who can only preview the chat sees the widget but not
+// the request. Changes to a request are announced best effort on the
 // chat's event stream (see PaymentRequestUpdate); clients refetch a request
 // to reconcile any they missed.
 //
-// In a group that is not private, a split's title and description are
-// plaintext and moderated, and the widget is sent as plain WidgetContent.
+// A request's title and description are optional. In a group that is not
+// private, they are plaintext and moderated, and the widget is sent as plain
+// WidgetContent.
 //
 // In a private group, they are encrypted with the chat key (see
 // EncryptedPaymentRequestText), and the widget is sent inside
 // messaging.v1.EncryptedContent like everything else. The server still sees
-// everything else (the currency, ends_at, the shares and every payment),
-// since it has to check payments against the shares and decide when the
-// request is complete.
+// everything else (the currency, ends_at, the shares or the collection's
+// amount, and every payment), since it has to check payments against them and
+// decide when a split is complete.
 service PaymentRequest {
     // CreatePaymentRequest creates a payment request of the kind the request
     // carries. For a group chat request, the caller, who becomes its
-    // creator, must be able to send messages in the chat; a split's
-    // plaintext title and description are moderated together, as one text,
-    // and encrypted text is not. The request is OPEN and accepts payments as
-    // soon as it is created; the widget message the creator sends announces
-    // it.
+    // creator, must be able to send messages in the chat; a request's
+    // plaintext title and description, when it has any, are moderated
+    // together, as one text, and encrypted text is not. The request is OPEN
+    // and accepts payments as soon as it is created; the widget message the
+    // creator sends announces it.
     rpc CreatePaymentRequest(CreatePaymentRequestRequest) returns (CreatePaymentRequestResponse);
 
     // GetPaymentRequest gets a payment request. The caller must be able to read
@@ -62,18 +64,55 @@ service PaymentRequest {
     // in a private group, only its members. Being able to preview the chat is
     // not enough.
     //
-    // A caller who holds an unpaid share of the request is also given the
-    // intent ID their payment of it must use (see
-    // GetPaymentRequestResponse.payment_intent_id).
+    // A caller with a part in the request is also given it as a Payer (see
+    // GetPaymentRequestResponse.caller_payer), so a client knows whether to
+    // offer to pay without walking GetPayers. A caller who holds an unpaid
+    // share of a split is also given the intent ID
+    // their payment of it must use (see
+    // GetPaymentRequestResponse.payment_intent_id), for clients that predate
+    // GetPaymentIntentId; new clients get it from GetPaymentIntentId, the
+    // only place a collection's is given.
     rpc GetPaymentRequest(GetPaymentRequestRequest) returns (GetPaymentRequestResponse);
+
+    // GetPaymentIntentId gives the caller the intent ID their payment into a
+    // request must use (see intent.v1.ChatMetadata.RequestedPayment): for a
+    // split, the payment of their unpaid share, and for a collection, their
+    // contribution. Clients call it when the user starts to pay, and not
+    // ahead of that: for a collection, the first call stores an ID for the
+    // caller, so calling it only to show the request writes one for every
+    // member who looks.
+    //
+    // The ID is random and the server's, and the caller gets the same one
+    // until a payment uses it: for a split, the one generated for their
+    // share when the request was created; for a collection, the one
+    // generated by their first call. A payment with any other intent ID is
+    // refused, and an intent ID is used at most once, so a caller has at most
+    // one payment in flight: a retry, a second tap or a second device all pay
+    // under this one ID, and only the first payment goes through. Today that
+    // also makes a share payable, and a member able to contribute, at most
+    // once, since once it is used there is nothing left to pay (ALREADY_PAID).
+    // Keep it to the payment:
+    // anyone who learns it before it is used can use it up and block the
+    // payment. It is never given to anyone but the payer, nor carried on any
+    // read, listing or event.
+    //
+    // The caller must be able to read the chat in full, as for
+    // GetPaymentRequest, and for a collection must be a member of the chat
+    // (DENIED otherwise). The creator never pays into their own request, and a
+    // caller holding no share of a split has nothing to pay (NOT_A_PAYER). A
+    // caller with nothing left to pay is ALREADY_PAID, whatever the request's
+    // status. Otherwise the request must be OPEN as of now (NOT_OPEN): a
+    // payment's validation refuses one into a request that is not.
+    rpc GetPaymentIntentId(GetPaymentIntentIdRequest) returns (GetPaymentIntentIdResponse);
 
     // GetChatPaymentRequests pages one section of the payment requests made
     // in a group chat (every kind whose first layer is that chat): the OPEN
     // ones, soonest to end first, or the RESOLVED ones, most recently
     // resolved first (see GetChatPaymentRequestsRequest.section). Together
-    // the two sections are the chat's full history of requests, and a client
-    // showing both pages each on its own. The caller must be able to read the
-    // chat in full, as for GetPaymentRequest.
+    // the two sections are the chat's full history of requests, but for a
+    // request with no ends_at while it is OPEN, which neither lists (see
+    // Section.OPEN). A client showing both pages each on its own. The caller
+    // must be able to read the chat in full, as for GetPaymentRequest.
     //
     // A page's requests are current as of its read, and clients apply them by
     // version (see PaymentRequestMetadata) against what they already hold. A
@@ -83,6 +122,25 @@ service PaymentRequest {
     // resolve.
     rpc GetChatPaymentRequests(GetChatPaymentRequestsRequest) returns (GetChatPaymentRequestsResponse);
 
+    // GetPayers pages one section of a request's Payers, whatever its type:
+    // those who still owe something (UNPAID), or those who have paid
+    // (PAID), each in an order fixed by the section (see
+    // GetPayersRequest.section). Together the two sections are every Payer
+    // in the request, and a client showing both pages each on its own. The
+    // caller must be able to read the chat in full, as for GetPaymentRequest.
+    //
+    // What a type's Payers are is documented on Payer: a split has one per
+    // share, and a collection one per member who has contributed, so a
+    // collection's UNPAID section is always empty.
+    //
+    // Each page carries the request's version as of its read
+    // (GetPayersResponse.version). A client keeping the list up to date
+    // applies, on top of the pages, every PaymentRequestUpdate past the version
+    // of its first page (a PayerUpdate updates that user's Payer, and may move
+    // it to PAID), replacing a Payer by user_id. That covers any Payer a walk
+    // passed by, and an update a page already reflects changes nothing.
+    rpc GetPayers(GetPayersRequest) returns (GetPayersResponse);
+
     // ClosePaymentRequest closes an OPEN request, which then accepts no more
     // payments: it becomes CLOSED and advances the version. Only the creator
     // can close. Closing a request that is not OPEN (already COMPLETED,
@@ -91,14 +149,17 @@ service PaymentRequest {
 
     // MarkPaid records a debtor's share of a split as paid by hand, for a
     // share settled outside Flipcash. Only the creator can mark a share paid.
-    // The share is recorded as a PaidShare.Manual and the version advances;
+    // The share is recorded as a Paid.Manual and the version advances;
     // if it was the last unpaid share, the request becomes COMPLETED. No
     // message is posted into the chat.
     //
     // Marking a share that is already paid, by payment or by hand, is a no-op
     // that returns OK, whatever the request's status. A debtor's payment in
     // flight when the share is marked replaces the mark once it lands (see
-    // PaidShare).
+    // Paid).
+    //
+    // A collection has no shares, and nothing in it is marked paid by hand:
+    // MarkPaid on one is NOT_A_SHARE.
     rpc MarkPaid(MarkPaidRequest) returns (MarkPaidResponse);
 }
 
@@ -115,7 +176,7 @@ message CreatePaymentRequestRequest {
         option (validate.required) = true;
 
         // A request in a group chat. The caller may list themself among a
-        // split's shares; that share is created paid (PaidShare.Creator),
+        // split's shares; that share is created paid (Paid.Creator),
         // and at least one share must name someone else.
         GroupChatPaymentRequest group_chat = 2;
     }
@@ -134,21 +195,27 @@ message CreatePaymentRequestResponse {
         CHAT_NOT_SUPPORTED     = 2;
         // The text is encrypted and the chat is not a private group.
         ENCRYPTION_NOT_ALLOWED = 3;
-        // The chat is a private group and the text is not encrypted.
+        // The chat is a private group and the text is set but not
+        // encrypted. A request with no text is never refused for this.
         ENCRYPTION_REQUIRED    = 4;
-        // A split's ends_at is not in the future, or is more than 4 weeks
-        // away.
+        // The request's ends_at is set and is not in the future, or is more
+        // than 4 weeks away. (A split's ends_at is required; a collection's
+        // is optional.)
         INVALID_ENDS_AT        = 5;
         // A split's share names a user who is not a member of the chat, or
         // a user another share already names; is not a whole number, at
         // least one, of the currency's minimum transfer value; or has paid
         // set. Or no share names anyone but the caller.
         INVALID_SHARES         = 6;
-        // A split's currency is one the server cannot value.
+        // The request's currency is one the server cannot value.
         INVALID_CURRENCY       = 7;
         // The plaintext title and description, moderated together as one
         // text, were flagged.
         TEXT_MODERATED         = 8;
+        // A collection's payment_amount is invalid: for a fixed amount, its
+        // native_amount is not a whole number, at least one, of the
+        // currency's minimum transfer value.
+        INVALID_AMOUNT         = 9;
     }
 
     // The created request, or on a retry the request the first attempt
@@ -181,17 +248,31 @@ message GetPaymentRequestResponse {
     PaymentRequestMetadata payment_request = 2;
 
     // The intent ID the caller's payment of their share must use (see
-    // intent.v1.ChatMetadata.RequestedPayment), set only when result == OK
-    // and the caller holds a share of the request that is unpaid.
+    // intent.v1.ChatMetadata.RequestedPayment), set only when result == OK,
+    // the request is a split and the caller holds a share of it that is
+    // unpaid. Never set for a collection.
     //
-    // The server generates one at random for each debtor's share when the
-    // request is created, and gives it to that debtor alone. A payment of the
-    // share with any other intent ID is refused, and an intent ID is used at
-    // most once, so a share is paid at most once: a retry, a second tap or a
-    // second device all pay under this one ID, and only the first payment
-    // goes through. Keep it to the payment: anyone who learns it before the
-    // share is paid can use it up and block the payment.
+    // It is the same ID GetPaymentIntentId gives, which documents it, and is
+    // kept here for clients that predate that RPC. New clients call
+    // GetPaymentIntentId when the user starts to pay instead of reading it
+    // here.
     common.v1.IntentId payment_intent_id = 3;
+
+    // The caller's Payer, exactly as GetPayers lists it, set only when
+    // result == OK and GetPayers lists one for the caller: for a split, when
+    // the caller holds a share (the creator's own included); for a
+    // collection, when the caller has contributed. Unset otherwise.
+    //
+    // So for a collection, an unset caller_payer means the caller has not
+    // contributed: a client offers to pay when the caller is a member of the
+    // chat, is not the creator, and the collection is OPEN.
+    //
+    // A collection's caller_payer is read just after payment_request, so it
+    // may already show a contribution that payment_request's version and
+    // payer_summary predate. The PayerUpdate and PayerSummaryUpdate at the
+    // next version bring the rest of the copy level with it; applying that
+    // PayerUpdate to a Payer already showing it changes nothing.
+    Payer caller_payer = 4;
 }
 
 message GetChatPaymentRequestsRequest {
@@ -199,21 +280,26 @@ message GetChatPaymentRequestsRequest {
     // GroupChatPaymentRequest.chat_id is this chat.
     common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
-    // Which requests to page, and in what order. A request is in exactly one
+    // Which requests to page, and in what order. A request is in at most one
     // section at any moment, decided by its status (see
-    // PaymentRequestMetadata.status).
+    // PaymentRequestMetadata.status): exactly one, but for a request with no
+    // ends_at while it is OPEN, which is in neither.
     Section section = 2 [(validate.rules).enum = {
         in: [1, 2] // OPEN, RESOLVED
     }];
     enum Section {
         UNKNOWN  = 0;
 
-        // Requests that are OPEN: still accepting payments. Ordered by
-        // ends_at ascending, the one ending soonest first, so the most urgent
-        // leads. The section is the same for every member: a request stays
-        // here until every share is paid, the creator closes it or it
-        // reaches its ends_at, whether or not the caller has paid their own
-        // share.
+        // Requests that are OPEN and have an ends_at: still accepting
+        // payments. Ordered by ends_at ascending, the one ending soonest
+        // first, so the most urgent leads. The section is the same for every
+        // member: a request stays here until it is COMPLETED (a split, once
+        // every share is paid), the creator closes it or it reaches its
+        // ends_at, whether or not the caller has paid their own part.
+        //
+        // A request with no ends_at (a collection may have none) is never
+        // listed here: while OPEN it is reached only from its widget message,
+        // and it is listed in RESOLVED once closed.
         OPEN     = 1;
 
         // Requests that are COMPLETED, CLOSED or EXPIRED: no longer accepting
@@ -264,6 +350,117 @@ message GetChatPaymentRequestsResponse {
     bool has_more = 4;
 }
 
+message GetPaymentIntentIdRequest {
+    // The request the caller is about to pay into.
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetPaymentIntentIdResponse {
+    Result result = 1;
+    enum Result {
+        OK           = 0;
+        // The caller cannot read the request's chat in full, or the request
+        // is a collection and the caller is not a member of its chat.
+        DENIED       = 1;
+        // The request doesn't exist.
+        NOT_FOUND    = 2;
+        // The request is not OPEN as of now: COMPLETED, CLOSED, or EXPIRED
+        // (including OPEN but past its ends_at).
+        NOT_OPEN     = 3;
+        // The caller has nothing to pay into the request: they are its
+        // creator, or it is a split and they hold no share of it.
+        NOT_A_PAYER  = 4;
+        // The caller has nothing left to pay: their share of a split is
+        // paid, by payment or by hand, or they have made every contribution
+        // a collection allows (today, one).
+        ALREADY_PAID = 5;
+    }
+
+    // The intent ID the caller's payment must use. Set only when result ==
+    // OK.
+    common.v1.IntentId payment_intent_id = 2;
+}
+
+message GetPayersRequest {
+    // The request whose Payers to page.
+    PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
+
+    // Which Payers to page, and in what order. A Payer is in exactly one
+    // section at any moment, decided by its status, and only ever moves from
+    // UNPAID to PAID.
+    Section section = 2 [(validate.rules).enum = {
+        in: [1, 2] // UNPAID, PAID
+    }];
+    enum Section {
+        UNKNOWN = 0;
+
+        // Payers who still owe something (status unpaid), in the order the
+        // request defines: for a split, the order the creator listed the
+        // shares. Payers only ever leave this section, so a walk misses none
+        // still owing when it reaches them. Always empty for a collection,
+        // which nothing is owed.
+        UNPAID  = 1;
+
+        // Payers who have paid (status paid), most recently paid first: by
+        // their Paid's paid_at, newest first, ties broken by user_id. A payment
+        // is recorded some time after it is made, so a Payer paid during a walk
+        // may land on a page the walk has already passed; a client learns of it
+        // from its PaymentRequestUpdates instead (see GetPayers). A Payer whose
+        // Paid is replaced (today, a split's share marked paid by hand and then
+        // paid by a payment, see Paid) moves to its new paid_at.
+        PAID    = 2;
+    }
+
+    // QueryOptions controls page_size, capped at 100. Ordering is fixed by
+    // the section and is not client-selectable. A split has at most 100
+    // shares, so a page of 100 always holds a whole section of one.
+    //
+    // Leave query_options.paging_token unset on the first request. On every
+    // subsequent request, set it to the paging_token from the most recent
+    // response. The token is opaque and server-generated; do not construct
+    // it. It is bound to payment_request_id and section and refused with
+    // another.
+    common.v1.QueryOptions query_options = 3;
+
+    common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetPayersResponse {
+    Result result = 1;
+    enum Result {
+        OK        = 0;
+        // The caller cannot read the request's chat in full.
+        DENIED    = 1;
+        // The request doesn't exist.
+        NOT_FOUND = 2;
+    }
+
+    // The page, in the section's order. Set when result is OK.
+    repeated Payer payers = 2 [(validate.rules).repeated = {
+        min_items: 0
+        max_items: 100
+    }];
+
+    // PagingToken carries the cursor after the last Payer returned. The
+    // client MUST send it back in query_options.paging_token on the next
+    // GetPayersRequest. Set when result is OK and has_more is true.
+    common.v1.PagingToken paging_token = 3;
+
+    // HasMore indicates whether further pages remain. When false, the walk
+    // has read the section (see GetPayersRequest.Section for what a walk
+    // can miss). When true, the client should issue another
+    // GetPayersRequest with the returned paging_token.
+    bool has_more = 4;
+
+    // The request's version as of this page's read (see
+    // PaymentRequestMetadata.version). Every change at or below it is
+    // reflected in the page; a client applies PaymentRequestUpdates past it
+    // on top (see GetPayers). Set when result is OK.
+    uint64 version = 5;
+}
+
 message ClosePaymentRequestRequest {
     PaymentRequestId payment_request_id = 1 [(validate.rules).message.required = true];
 
@@ -305,7 +502,8 @@ message MarkPaidResponse {
         // The share is unpaid and the request is not OPEN: it is CLOSED or
         // EXPIRED.
         NOT_OPEN    = 3;
-        // The request has no share for user_id.
+        // The request has no share for user_id, or is a collection, which
+        // has no shares.
         NOT_A_SHARE = 4;
     }
 

@@ -21,7 +21,9 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	PaymentRequest_CreatePaymentRequest_FullMethodName   = "/flipcash.paymentrequest.v1.PaymentRequest/CreatePaymentRequest"
 	PaymentRequest_GetPaymentRequest_FullMethodName      = "/flipcash.paymentrequest.v1.PaymentRequest/GetPaymentRequest"
+	PaymentRequest_GetPaymentIntentId_FullMethodName     = "/flipcash.paymentrequest.v1.PaymentRequest/GetPaymentIntentId"
 	PaymentRequest_GetChatPaymentRequests_FullMethodName = "/flipcash.paymentrequest.v1.PaymentRequest/GetChatPaymentRequests"
+	PaymentRequest_GetPayers_FullMethodName              = "/flipcash.paymentrequest.v1.PaymentRequest/GetPayers"
 	PaymentRequest_ClosePaymentRequest_FullMethodName    = "/flipcash.paymentrequest.v1.PaymentRequest/ClosePaymentRequest"
 	PaymentRequest_MarkPaid_FullMethodName               = "/flipcash.paymentrequest.v1.PaymentRequest/MarkPaid"
 )
@@ -31,17 +33,18 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // PaymentRequest manages payment requests: a creator asking others for money.
-// Requests are layered (see PaymentRequestMetadata): the first layer is where
-// a request is made, today a group chat (GroupChatPaymentRequest), and the
-// second is its type, today a split (Split). Every kind shares its identity,
-// creator, status, version and the RPCs below; what each layer adds is documented on
-// its message. DMs are not supported.
+// Requests are layered (see PaymentRequestMetadata): the first layer is where a
+// request is made, today a group chat (GroupChatPaymentRequest), and the second
+// is its type: a split (Split), where named members each owe a share, or a
+// collection (Collection), where any member may pay a fixed amount once. Every
+// kind shares its identity, creator, status, version and the RPCs below; what
+// each layer adds is documented on its message. DMs are not supported.
 //
 // A group chat request is shown in its chat as a message. The creator first
 // calls CreatePaymentRequest, then sends the returned PaymentRequestId with
 // Messaging.SendMessage as a messaging.v1.PaymentRequestWidget. The message
-// carries only the PaymentRequestId; clients get the request's kind, shares
-// and status from GetPaymentRequest. The request is live from creation, sent
+// carries only the PaymentRequestId; clients get the request's kind, type and
+// status from GetPaymentRequest. The request is live from creation, sent
 // or not.
 //
 // A request belongs to the chat it was created for. Its creator may send it
@@ -50,29 +53,30 @@ const (
 // request. Deleting a message that carries a request does not touch the
 // request.
 //
-// Anyone who can read the chat in full sees the request, its shares and
-// who has paid; someone who can only preview the chat sees the widget but
-// not the request. Changes to a request are announced best effort on the
+// Anyone who can read the chat in full sees the request and who has paid (see
+// GetPayers); someone who can only preview the chat sees the widget but not
+// the request. Changes to a request are announced best effort on the
 // chat's event stream (see PaymentRequestUpdate); clients refetch a request
 // to reconcile any they missed.
 //
-// In a group that is not private, a split's title and description are
-// plaintext and moderated, and the widget is sent as plain WidgetContent.
+// A request's title and description are optional. In a group that is not
+// private, they are plaintext and moderated, and the widget is sent as plain
+// WidgetContent.
 //
 // In a private group, they are encrypted with the chat key (see
 // EncryptedPaymentRequestText), and the widget is sent inside
 // messaging.v1.EncryptedContent like everything else. The server still sees
-// everything else (the currency, ends_at, the shares and every payment),
-// since it has to check payments against the shares and decide when the
-// request is complete.
+// everything else (the currency, ends_at, the shares or the collection's
+// amount, and every payment), since it has to check payments against them and
+// decide when a split is complete.
 type PaymentRequestClient interface {
 	// CreatePaymentRequest creates a payment request of the kind the request
 	// carries. For a group chat request, the caller, who becomes its
-	// creator, must be able to send messages in the chat; a split's
-	// plaintext title and description are moderated together, as one text,
-	// and encrypted text is not. The request is OPEN and accepts payments as
-	// soon as it is created; the widget message the creator sends announces
-	// it.
+	// creator, must be able to send messages in the chat; a request's
+	// plaintext title and description, when it has any, are moderated
+	// together, as one text, and encrypted text is not. The request is OPEN
+	// and accepts payments as soon as it is created; the widget message the
+	// creator sends announces it.
 	CreatePaymentRequest(ctx context.Context, in *CreatePaymentRequestRequest, opts ...grpc.CallOption) (*CreatePaymentRequestResponse, error)
 	// GetPaymentRequest gets a payment request. The caller must be able to read
 	// the chat in full (see messaging.v1.ViewMode FULL): in a group that is
@@ -80,17 +84,53 @@ type PaymentRequestClient interface {
 	// in a private group, only its members. Being able to preview the chat is
 	// not enough.
 	//
-	// A caller who holds an unpaid share of the request is also given the
-	// intent ID their payment of it must use (see
-	// GetPaymentRequestResponse.payment_intent_id).
+	// A caller with a part in the request is also given it as a Payer (see
+	// GetPaymentRequestResponse.caller_payer), so a client knows whether to
+	// offer to pay without walking GetPayers. A caller who holds an unpaid
+	// share of a split is also given the intent ID
+	// their payment of it must use (see
+	// GetPaymentRequestResponse.payment_intent_id), for clients that predate
+	// GetPaymentIntentId; new clients get it from GetPaymentIntentId, the
+	// only place a collection's is given.
 	GetPaymentRequest(ctx context.Context, in *GetPaymentRequestRequest, opts ...grpc.CallOption) (*GetPaymentRequestResponse, error)
+	// GetPaymentIntentId gives the caller the intent ID their payment into a
+	// request must use (see intent.v1.ChatMetadata.RequestedPayment): for a
+	// split, the payment of their unpaid share, and for a collection, their
+	// contribution. Clients call it when the user starts to pay, and not
+	// ahead of that: for a collection, the first call stores an ID for the
+	// caller, so calling it only to show the request writes one for every
+	// member who looks.
+	//
+	// The ID is random and the server's, and the caller gets the same one
+	// until a payment uses it: for a split, the one generated for their
+	// share when the request was created; for a collection, the one
+	// generated by their first call. A payment with any other intent ID is
+	// refused, and an intent ID is used at most once, so a caller has at most
+	// one payment in flight: a retry, a second tap or a second device all pay
+	// under this one ID, and only the first payment goes through. Today that
+	// also makes a share payable, and a member able to contribute, at most
+	// once, since once it is used there is nothing left to pay (ALREADY_PAID).
+	// Keep it to the payment:
+	// anyone who learns it before it is used can use it up and block the
+	// payment. It is never given to anyone but the payer, nor carried on any
+	// read, listing or event.
+	//
+	// The caller must be able to read the chat in full, as for
+	// GetPaymentRequest, and for a collection must be a member of the chat
+	// (DENIED otherwise). The creator never pays into their own request, and a
+	// caller holding no share of a split has nothing to pay (NOT_A_PAYER). A
+	// caller with nothing left to pay is ALREADY_PAID, whatever the request's
+	// status. Otherwise the request must be OPEN as of now (NOT_OPEN): a
+	// payment's validation refuses one into a request that is not.
+	GetPaymentIntentId(ctx context.Context, in *GetPaymentIntentIdRequest, opts ...grpc.CallOption) (*GetPaymentIntentIdResponse, error)
 	// GetChatPaymentRequests pages one section of the payment requests made
 	// in a group chat (every kind whose first layer is that chat): the OPEN
 	// ones, soonest to end first, or the RESOLVED ones, most recently
 	// resolved first (see GetChatPaymentRequestsRequest.section). Together
-	// the two sections are the chat's full history of requests, and a client
-	// showing both pages each on its own. The caller must be able to read the
-	// chat in full, as for GetPaymentRequest.
+	// the two sections are the chat's full history of requests, but for a
+	// request with no ends_at while it is OPEN, which neither lists (see
+	// Section.OPEN). A client showing both pages each on its own. The caller
+	// must be able to read the chat in full, as for GetPaymentRequest.
 	//
 	// A page's requests are current as of its read, and clients apply them by
 	// version (see PaymentRequestMetadata) against what they already hold. A
@@ -99,6 +139,24 @@ type PaymentRequestClient interface {
 	// new request from its widget message, and refresh a section to see one
 	// resolve.
 	GetChatPaymentRequests(ctx context.Context, in *GetChatPaymentRequestsRequest, opts ...grpc.CallOption) (*GetChatPaymentRequestsResponse, error)
+	// GetPayers pages one section of a request's Payers, whatever its type:
+	// those who still owe something (UNPAID), or those who have paid
+	// (PAID), each in an order fixed by the section (see
+	// GetPayersRequest.section). Together the two sections are every Payer
+	// in the request, and a client showing both pages each on its own. The
+	// caller must be able to read the chat in full, as for GetPaymentRequest.
+	//
+	// What a type's Payers are is documented on Payer: a split has one per
+	// share, and a collection one per member who has contributed, so a
+	// collection's UNPAID section is always empty.
+	//
+	// Each page carries the request's version as of its read
+	// (GetPayersResponse.version). A client keeping the list up to date
+	// applies, on top of the pages, every PaymentRequestUpdate past the version
+	// of its first page (a PayerUpdate updates that user's Payer, and may move
+	// it to PAID), replacing a Payer by user_id. That covers any Payer a walk
+	// passed by, and an update a page already reflects changes nothing.
+	GetPayers(ctx context.Context, in *GetPayersRequest, opts ...grpc.CallOption) (*GetPayersResponse, error)
 	// ClosePaymentRequest closes an OPEN request, which then accepts no more
 	// payments: it becomes CLOSED and advances the version. Only the creator
 	// can close. Closing a request that is not OPEN (already COMPLETED,
@@ -106,14 +164,17 @@ type PaymentRequestClient interface {
 	ClosePaymentRequest(ctx context.Context, in *ClosePaymentRequestRequest, opts ...grpc.CallOption) (*ClosePaymentRequestResponse, error)
 	// MarkPaid records a debtor's share of a split as paid by hand, for a
 	// share settled outside Flipcash. Only the creator can mark a share paid.
-	// The share is recorded as a PaidShare.Manual and the version advances;
+	// The share is recorded as a Paid.Manual and the version advances;
 	// if it was the last unpaid share, the request becomes COMPLETED. No
 	// message is posted into the chat.
 	//
 	// Marking a share that is already paid, by payment or by hand, is a no-op
 	// that returns OK, whatever the request's status. A debtor's payment in
 	// flight when the share is marked replaces the mark once it lands (see
-	// PaidShare).
+	// Paid).
+	//
+	// A collection has no shares, and nothing in it is marked paid by hand:
+	// MarkPaid on one is NOT_A_SHARE.
 	MarkPaid(ctx context.Context, in *MarkPaidRequest, opts ...grpc.CallOption) (*MarkPaidResponse, error)
 }
 
@@ -145,10 +206,30 @@ func (c *paymentRequestClient) GetPaymentRequest(ctx context.Context, in *GetPay
 	return out, nil
 }
 
+func (c *paymentRequestClient) GetPaymentIntentId(ctx context.Context, in *GetPaymentIntentIdRequest, opts ...grpc.CallOption) (*GetPaymentIntentIdResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPaymentIntentIdResponse)
+	err := c.cc.Invoke(ctx, PaymentRequest_GetPaymentIntentId_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *paymentRequestClient) GetChatPaymentRequests(ctx context.Context, in *GetChatPaymentRequestsRequest, opts ...grpc.CallOption) (*GetChatPaymentRequestsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetChatPaymentRequestsResponse)
 	err := c.cc.Invoke(ctx, PaymentRequest_GetChatPaymentRequests_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *paymentRequestClient) GetPayers(ctx context.Context, in *GetPayersRequest, opts ...grpc.CallOption) (*GetPayersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPayersResponse)
+	err := c.cc.Invoke(ctx, PaymentRequest_GetPayers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -180,17 +261,18 @@ func (c *paymentRequestClient) MarkPaid(ctx context.Context, in *MarkPaidRequest
 // for forward compatibility.
 //
 // PaymentRequest manages payment requests: a creator asking others for money.
-// Requests are layered (see PaymentRequestMetadata): the first layer is where
-// a request is made, today a group chat (GroupChatPaymentRequest), and the
-// second is its type, today a split (Split). Every kind shares its identity,
-// creator, status, version and the RPCs below; what each layer adds is documented on
-// its message. DMs are not supported.
+// Requests are layered (see PaymentRequestMetadata): the first layer is where a
+// request is made, today a group chat (GroupChatPaymentRequest), and the second
+// is its type: a split (Split), where named members each owe a share, or a
+// collection (Collection), where any member may pay a fixed amount once. Every
+// kind shares its identity, creator, status, version and the RPCs below; what
+// each layer adds is documented on its message. DMs are not supported.
 //
 // A group chat request is shown in its chat as a message. The creator first
 // calls CreatePaymentRequest, then sends the returned PaymentRequestId with
 // Messaging.SendMessage as a messaging.v1.PaymentRequestWidget. The message
-// carries only the PaymentRequestId; clients get the request's kind, shares
-// and status from GetPaymentRequest. The request is live from creation, sent
+// carries only the PaymentRequestId; clients get the request's kind, type and
+// status from GetPaymentRequest. The request is live from creation, sent
 // or not.
 //
 // A request belongs to the chat it was created for. Its creator may send it
@@ -199,29 +281,30 @@ func (c *paymentRequestClient) MarkPaid(ctx context.Context, in *MarkPaidRequest
 // request. Deleting a message that carries a request does not touch the
 // request.
 //
-// Anyone who can read the chat in full sees the request, its shares and
-// who has paid; someone who can only preview the chat sees the widget but
-// not the request. Changes to a request are announced best effort on the
+// Anyone who can read the chat in full sees the request and who has paid (see
+// GetPayers); someone who can only preview the chat sees the widget but not
+// the request. Changes to a request are announced best effort on the
 // chat's event stream (see PaymentRequestUpdate); clients refetch a request
 // to reconcile any they missed.
 //
-// In a group that is not private, a split's title and description are
-// plaintext and moderated, and the widget is sent as plain WidgetContent.
+// A request's title and description are optional. In a group that is not
+// private, they are plaintext and moderated, and the widget is sent as plain
+// WidgetContent.
 //
 // In a private group, they are encrypted with the chat key (see
 // EncryptedPaymentRequestText), and the widget is sent inside
 // messaging.v1.EncryptedContent like everything else. The server still sees
-// everything else (the currency, ends_at, the shares and every payment),
-// since it has to check payments against the shares and decide when the
-// request is complete.
+// everything else (the currency, ends_at, the shares or the collection's
+// amount, and every payment), since it has to check payments against them and
+// decide when a split is complete.
 type PaymentRequestServer interface {
 	// CreatePaymentRequest creates a payment request of the kind the request
 	// carries. For a group chat request, the caller, who becomes its
-	// creator, must be able to send messages in the chat; a split's
-	// plaintext title and description are moderated together, as one text,
-	// and encrypted text is not. The request is OPEN and accepts payments as
-	// soon as it is created; the widget message the creator sends announces
-	// it.
+	// creator, must be able to send messages in the chat; a request's
+	// plaintext title and description, when it has any, are moderated
+	// together, as one text, and encrypted text is not. The request is OPEN
+	// and accepts payments as soon as it is created; the widget message the
+	// creator sends announces it.
 	CreatePaymentRequest(context.Context, *CreatePaymentRequestRequest) (*CreatePaymentRequestResponse, error)
 	// GetPaymentRequest gets a payment request. The caller must be able to read
 	// the chat in full (see messaging.v1.ViewMode FULL): in a group that is
@@ -229,17 +312,53 @@ type PaymentRequestServer interface {
 	// in a private group, only its members. Being able to preview the chat is
 	// not enough.
 	//
-	// A caller who holds an unpaid share of the request is also given the
-	// intent ID their payment of it must use (see
-	// GetPaymentRequestResponse.payment_intent_id).
+	// A caller with a part in the request is also given it as a Payer (see
+	// GetPaymentRequestResponse.caller_payer), so a client knows whether to
+	// offer to pay without walking GetPayers. A caller who holds an unpaid
+	// share of a split is also given the intent ID
+	// their payment of it must use (see
+	// GetPaymentRequestResponse.payment_intent_id), for clients that predate
+	// GetPaymentIntentId; new clients get it from GetPaymentIntentId, the
+	// only place a collection's is given.
 	GetPaymentRequest(context.Context, *GetPaymentRequestRequest) (*GetPaymentRequestResponse, error)
+	// GetPaymentIntentId gives the caller the intent ID their payment into a
+	// request must use (see intent.v1.ChatMetadata.RequestedPayment): for a
+	// split, the payment of their unpaid share, and for a collection, their
+	// contribution. Clients call it when the user starts to pay, and not
+	// ahead of that: for a collection, the first call stores an ID for the
+	// caller, so calling it only to show the request writes one for every
+	// member who looks.
+	//
+	// The ID is random and the server's, and the caller gets the same one
+	// until a payment uses it: for a split, the one generated for their
+	// share when the request was created; for a collection, the one
+	// generated by their first call. A payment with any other intent ID is
+	// refused, and an intent ID is used at most once, so a caller has at most
+	// one payment in flight: a retry, a second tap or a second device all pay
+	// under this one ID, and only the first payment goes through. Today that
+	// also makes a share payable, and a member able to contribute, at most
+	// once, since once it is used there is nothing left to pay (ALREADY_PAID).
+	// Keep it to the payment:
+	// anyone who learns it before it is used can use it up and block the
+	// payment. It is never given to anyone but the payer, nor carried on any
+	// read, listing or event.
+	//
+	// The caller must be able to read the chat in full, as for
+	// GetPaymentRequest, and for a collection must be a member of the chat
+	// (DENIED otherwise). The creator never pays into their own request, and a
+	// caller holding no share of a split has nothing to pay (NOT_A_PAYER). A
+	// caller with nothing left to pay is ALREADY_PAID, whatever the request's
+	// status. Otherwise the request must be OPEN as of now (NOT_OPEN): a
+	// payment's validation refuses one into a request that is not.
+	GetPaymentIntentId(context.Context, *GetPaymentIntentIdRequest) (*GetPaymentIntentIdResponse, error)
 	// GetChatPaymentRequests pages one section of the payment requests made
 	// in a group chat (every kind whose first layer is that chat): the OPEN
 	// ones, soonest to end first, or the RESOLVED ones, most recently
 	// resolved first (see GetChatPaymentRequestsRequest.section). Together
-	// the two sections are the chat's full history of requests, and a client
-	// showing both pages each on its own. The caller must be able to read the
-	// chat in full, as for GetPaymentRequest.
+	// the two sections are the chat's full history of requests, but for a
+	// request with no ends_at while it is OPEN, which neither lists (see
+	// Section.OPEN). A client showing both pages each on its own. The caller
+	// must be able to read the chat in full, as for GetPaymentRequest.
 	//
 	// A page's requests are current as of its read, and clients apply them by
 	// version (see PaymentRequestMetadata) against what they already hold. A
@@ -248,6 +367,24 @@ type PaymentRequestServer interface {
 	// new request from its widget message, and refresh a section to see one
 	// resolve.
 	GetChatPaymentRequests(context.Context, *GetChatPaymentRequestsRequest) (*GetChatPaymentRequestsResponse, error)
+	// GetPayers pages one section of a request's Payers, whatever its type:
+	// those who still owe something (UNPAID), or those who have paid
+	// (PAID), each in an order fixed by the section (see
+	// GetPayersRequest.section). Together the two sections are every Payer
+	// in the request, and a client showing both pages each on its own. The
+	// caller must be able to read the chat in full, as for GetPaymentRequest.
+	//
+	// What a type's Payers are is documented on Payer: a split has one per
+	// share, and a collection one per member who has contributed, so a
+	// collection's UNPAID section is always empty.
+	//
+	// Each page carries the request's version as of its read
+	// (GetPayersResponse.version). A client keeping the list up to date
+	// applies, on top of the pages, every PaymentRequestUpdate past the version
+	// of its first page (a PayerUpdate updates that user's Payer, and may move
+	// it to PAID), replacing a Payer by user_id. That covers any Payer a walk
+	// passed by, and an update a page already reflects changes nothing.
+	GetPayers(context.Context, *GetPayersRequest) (*GetPayersResponse, error)
 	// ClosePaymentRequest closes an OPEN request, which then accepts no more
 	// payments: it becomes CLOSED and advances the version. Only the creator
 	// can close. Closing a request that is not OPEN (already COMPLETED,
@@ -255,14 +392,17 @@ type PaymentRequestServer interface {
 	ClosePaymentRequest(context.Context, *ClosePaymentRequestRequest) (*ClosePaymentRequestResponse, error)
 	// MarkPaid records a debtor's share of a split as paid by hand, for a
 	// share settled outside Flipcash. Only the creator can mark a share paid.
-	// The share is recorded as a PaidShare.Manual and the version advances;
+	// The share is recorded as a Paid.Manual and the version advances;
 	// if it was the last unpaid share, the request becomes COMPLETED. No
 	// message is posted into the chat.
 	//
 	// Marking a share that is already paid, by payment or by hand, is a no-op
 	// that returns OK, whatever the request's status. A debtor's payment in
 	// flight when the share is marked replaces the mark once it lands (see
-	// PaidShare).
+	// Paid).
+	//
+	// A collection has no shares, and nothing in it is marked paid by hand:
+	// MarkPaid on one is NOT_A_SHARE.
 	MarkPaid(context.Context, *MarkPaidRequest) (*MarkPaidResponse, error)
 	mustEmbedUnimplementedPaymentRequestServer()
 }
@@ -280,8 +420,14 @@ func (UnimplementedPaymentRequestServer) CreatePaymentRequest(context.Context, *
 func (UnimplementedPaymentRequestServer) GetPaymentRequest(context.Context, *GetPaymentRequestRequest) (*GetPaymentRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentRequest not implemented")
 }
+func (UnimplementedPaymentRequestServer) GetPaymentIntentId(context.Context, *GetPaymentIntentIdRequest) (*GetPaymentIntentIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentIntentId not implemented")
+}
 func (UnimplementedPaymentRequestServer) GetChatPaymentRequests(context.Context, *GetChatPaymentRequestsRequest) (*GetChatPaymentRequestsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChatPaymentRequests not implemented")
+}
+func (UnimplementedPaymentRequestServer) GetPayers(context.Context, *GetPayersRequest) (*GetPayersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPayers not implemented")
 }
 func (UnimplementedPaymentRequestServer) ClosePaymentRequest(context.Context, *ClosePaymentRequestRequest) (*ClosePaymentRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClosePaymentRequest not implemented")
@@ -346,6 +492,24 @@ func _PaymentRequest_GetPaymentRequest_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PaymentRequest_GetPaymentIntentId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPaymentIntentIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentRequestServer).GetPaymentIntentId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentRequest_GetPaymentIntentId_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentRequestServer).GetPaymentIntentId(ctx, req.(*GetPaymentIntentIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PaymentRequest_GetChatPaymentRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChatPaymentRequestsRequest)
 	if err := dec(in); err != nil {
@@ -360,6 +524,24 @@ func _PaymentRequest_GetChatPaymentRequests_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PaymentRequestServer).GetChatPaymentRequests(ctx, req.(*GetChatPaymentRequestsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PaymentRequest_GetPayers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPayersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentRequestServer).GetPayers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PaymentRequest_GetPayers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentRequestServer).GetPayers(ctx, req.(*GetPayersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -416,8 +598,16 @@ var PaymentRequest_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PaymentRequest_GetPaymentRequest_Handler,
 		},
 		{
+			MethodName: "GetPaymentIntentId",
+			Handler:    _PaymentRequest_GetPaymentIntentId_Handler,
+		},
+		{
 			MethodName: "GetChatPaymentRequests",
 			Handler:    _PaymentRequest_GetChatPaymentRequests_Handler,
+		},
+		{
+			MethodName: "GetPayers",
+			Handler:    _PaymentRequest_GetPayers_Handler,
 		},
 		{
 			MethodName: "ClosePaymentRequest",

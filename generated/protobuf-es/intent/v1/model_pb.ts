@@ -435,42 +435,47 @@ export class ChatMetadata_ReactionBoost extends Message<ChatMetadata_ReactionBoo
 }
 
 /**
- * For paying the payer's share of a payment request made in a group chat,
- * today a paymentrequest.v1.Split (see paymentrequest.v1.PaymentRequest; a
- * kind with no shares takes no such payment). The payment is a
- * SendPublicPayment, never a multi payment, from a debtor of the request
- * to its creator, and pays the debtor's own unpaid share exactly:
+ * For paying into a payment request made in a group chat (see
+ * paymentrequest.v1.PaymentRequest): the payer's own unpaid share of a
+ * paymentrequest.v1.Split, or the payer's contribution to a
+ * paymentrequest.v1.Collection. The payment is a SendPublicPayment, never
+ * a multi payment, from the payer to the request's creator, and pays
+ * exactly what is asked:
  *
  *   - The chat_id must be the group the request was created for.
  *   - The payment's one destination must be the creator's owner account.
+ *     The creator never pays into their own request.
  *   - The payment's currency must be the request's, and its native amount
- *     (its exchange data's native_amount) must be the share's
- *     native_amount to within half the currency's smallest unit. Any mint
- *     may pay. A partial payment or an overpayment is refused: a share is
- *     paid all at once.
+ *     (its exchange data's native_amount) must be what is asked (the
+ *     share's native_amount for a split; for a collection, what its
+ *     payment_amount asks, today its fixed native_amount) to within half
+ *     the currency's smallest unit. Any mint may pay. A partial payment
+ *     or an overpayment is refused: what is asked is paid all at once.
  *   - The request must be OPEN: not COMPLETED, not closed, and not past
- *     its ends_at.
- *   - The payer must hold an unpaid share of the request.
- *   - The intent's ID must be the one the server generated for the
- *     payer's share, which paymentrequest.v1.GetPaymentRequest gives the
- *     payer alone (GetPaymentRequestResponse.payment_intent_id). An intent
- *     ID is used at most once, so this is what makes a share payable at
- *     most once.
+ *     its ends_at, if it has one.
+ *   - For a split, the payer must hold an unpaid share of the request.
+ *     For a collection, the payer must not have contributed to it.
+ *   - The intent's ID must be the one the server generated for the payer
+ *     (for a split, for the payer's share), which
+ *     paymentrequest.v1.PaymentRequest.GetPaymentIntentId gives the payer
+ *     alone. An intent ID is used at most once, so this is what makes a
+ *     share payable, and a member able to contribute, at most once.
  *   - Neither the payer nor the creator may be the Flipcash team account.
  *
- * Once the payment is made the server marks the share paid (a
- * paymentrequest.v1.PaidShare carrying the payment's intent), posts one
+ * Once the payment is made the server records it against the request, the
+ * payer's paymentrequest.v1.Payer becoming paid by a paymentrequest.v1.Paid
+ * carrying the payment's intent (for a split, the share's paid), announces
+ * the change as a paymentrequest.v1.PaymentRequestUpdate, and posts one
  * messaging.v1.CashContent message into the group as the payer, with the
  * creator as its single_receiver and the request's ID in its
- * payment_request_id. If it was the last unpaid share, the request becomes
- * COMPLETED. No event announces the change; clients see it by refetching
- * the request.
+ * payment_request_id. If it was a split's last unpaid share, the request
+ * becomes COMPLETED.
  *
  * @generated from message flipcash.intent.v1.ChatMetadata.RequestedPayment
  */
 export class ChatMetadata_RequestedPayment extends Message<ChatMetadata_RequestedPayment> {
   /**
-   * The payment request whose share is paid.
+   * The payment request paid into.
    *
    * @generated from field: flipcash.paymentrequest.v1.PaymentRequestId payment_request_id = 1;
    */

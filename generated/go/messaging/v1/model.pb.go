@@ -1036,10 +1036,11 @@ type CashContent struct {
 	//	*CashContent_MultiReceiver
 	Recipient isCashContent_Recipient `protobuf_oneof:"recipient"`
 	Verb      CashContent_Verb        `protobuf:"varint,4,opt,name=verb,proto3,enum=flipcash.messaging.v1.CashContent_Verb" json:"verb,omitempty"`
-	// The payment request whose share this payment paid. Set only on the cash
-	// message posted when a debtor pays their share with a payment (see
+	// The payment request this payment paid into. Set only on the cash
+	// message posted when a debtor pays their share of a split, or a member
+	// contributes to a collection, with a payment (see
 	// intent.v1.ChatMetadata.RequestedPayment), so clients render it
-	// against the request; such a message is from the debtor, with the
+	// against the request; such a message is from the payer, with the
 	// request's creator as its single_receiver. Unset on every other cash
 	// message.
 	PaymentRequestId *v12.PaymentRequestId `protobuf:"bytes,6,opt,name=payment_request_id,json=paymentRequestId,proto3" json:"payment_request_id,omitempty"`
@@ -1565,7 +1566,7 @@ func (x *PollWidget) GetPollId() *v13.PollId {
 }
 
 // A widget that shows a payment request. It carries only the request's ID:
-// clients get the title, shares, and state from
+// clients get the request itself (its type, text, and state) from
 // paymentrequest.v1.PaymentRequest's GetPaymentRequest.
 //
 // The creator sends it after calling
