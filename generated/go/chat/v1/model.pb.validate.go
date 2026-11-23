@@ -4768,6 +4768,116 @@ var _ interface {
 	ErrorName() string
 } = MuteStateValidationError{}
 
+// Validate checks the field values on ArchiveState with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ArchiveState) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ArchiveState with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ArchiveStateMultiError, or
+// nil if none found.
+func (m *ArchiveState) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ArchiveState) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetArchivedAt() == nil {
+		err := ArchiveStateValidationError{
+			field:  "ArchivedAt",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ArchiveStateMultiError(errors)
+	}
+
+	return nil
+}
+
+// ArchiveStateMultiError is an error wrapping multiple validation errors
+// returned by ArchiveState.ValidateAll() if the designated constraints aren't met.
+type ArchiveStateMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ArchiveStateMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ArchiveStateMultiError) AllErrors() []error { return m }
+
+// ArchiveStateValidationError is the validation error returned by
+// ArchiveState.Validate if the designated constraints aren't met.
+type ArchiveStateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ArchiveStateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ArchiveStateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ArchiveStateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ArchiveStateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ArchiveStateValidationError) ErrorName() string { return "ArchiveStateValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ArchiveStateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sArchiveState.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ArchiveStateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ArchiveStateValidationError{}
+
 // Validate checks the field values on IdempotencyKey with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -8280,6 +8390,35 @@ func (m *ViewerState_Settings) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return ViewerState_SettingsValidationError{
 				field:  "Mute",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetArchive()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ViewerState_SettingsValidationError{
+					field:  "Archive",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ViewerState_SettingsValidationError{
+					field:  "Archive",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetArchive()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ViewerState_SettingsValidationError{
+				field:  "Archive",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

@@ -31,6 +31,8 @@ const (
 	Chat_EditChat_FullMethodName              = "/flipcash.chat.v1.Chat/EditChat"
 	Chat_MuteChat_FullMethodName              = "/flipcash.chat.v1.Chat/MuteChat"
 	Chat_UnmuteChat_FullMethodName            = "/flipcash.chat.v1.Chat/UnmuteChat"
+	Chat_ArchiveChat_FullMethodName           = "/flipcash.chat.v1.Chat/ArchiveChat"
+	Chat_UnarchiveChat_FullMethodName         = "/flipcash.chat.v1.Chat/UnarchiveChat"
 	Chat_EnterLobby_FullMethodName            = "/flipcash.chat.v1.Chat/EnterLobby"
 	Chat_LeaveLobby_FullMethodName            = "/flipcash.chat.v1.Chat/LeaveLobby"
 	Chat_GetLobbyMembers_FullMethodName       = "/flipcash.chat.v1.Chat/GetLobbyMembers"
@@ -96,6 +98,19 @@ type ChatClient interface {
 	// Read together, pagination guarantees the set (every chat exactly once)
 	// and the stream guarantees freshness and ordering. The local last_activity
 	// sort is maintained by the client from the stream after the initial read.
+	//
+	// The request's folder selects which of the caller's chats are listed:
+	// INBOX, the default, those they have not archived, and ARCHIVED those
+	// they have (see ArchiveChat). The contract above is the INBOX folder's.
+	// The event stream carries nothing for an archived chat, so the ARCHIVED
+	// folder is a snapshot, current as of the read: the client pages it to
+	// exhaustion when it shows the archive and reads it again the next time,
+	// with no stream to merge. A chat the caller archives or unarchives moves
+	// between folders on the write, as its viewer_state.settings.archive
+	// says; a read under way when it moves may briefly list it in the folder
+	// it left, and the client files it by its archive state, which it learns
+	// from the ArchiveChat or UnarchiveChat response or from
+	// MetadataUpdate.ViewerStateChanged.
 	GetDmChatFeed(ctx context.Context, in *GetDmChatFeedRequest, opts ...grpc.CallOption) (*GetDmChatFeedResponse, error)
 	// GetGroupChatFeed gets the set of group chats for an owner account using
 	// a paged API, ordered by last activity with the most recent first.
@@ -119,6 +134,11 @@ type ChatClient interface {
 	// being read. Every page is served only for groups the caller is still a
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
+	//
+	// The request's folder selects INBOX or ARCHIVED groups exactly as
+	// GetDmChatFeed's does, with the same snapshot contract for ARCHIVED. A
+	// group archived or unarchived between pages is dropped from the pages
+	// of the folder it left.
 	//
 	// The feed is meant for list views, so a chat's cover_picture may be
 	// omitted from it (see Metadata). Fetch it with GetChat when the client
@@ -269,6 +289,10 @@ type ChatClient interface {
 	// KeyEnvelope), so returning means being admitted from the lobby or
 	// joining with an invite again. The creator's envelope is kept, since no
 	// one else could give them another.
+	//
+	// Leaving also ends the caller's archive of the chat, if any (see
+	// ArchiveChat), as being banned does: a return starts in the INBOX
+	// folder.
 	LeaveChat(ctx context.Context, in *LeaveChatRequest, opts ...grpc.CallOption) (*LeaveChatResponse, error)
 	// EditChat edits a group chat's record. Every editable field is optional;
 	// only the ones set in the request are changed, and the edit is atomic:
@@ -314,6 +338,45 @@ type ChatClient interface {
 	// not muted is a no-op. Every real change reaches the caller's other devices
 	// as a MetadataUpdate.ViewerStateChanged on the event stream.
 	UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts ...grpc.CallOption) (*UnmuteChatResponse, error)
+	// ArchiveChat archives a chat, a DM or a group, for the caller.
+	//
+	// Only a member may archive, and they stay a member. An archived chat is
+	// listed in the caller's ARCHIVED folder of GetDmChatFeed or
+	// GetGroupChatFeed instead of their INBOX, and is quiet for them:
+	//   - No push is sent to them for anything in it, flagged or not, and it
+	//     moves no badge. This is unlike a mute, whose pushes are still sent.
+	//   - Their event streams carry nothing for it except
+	//     MetadataUpdate.ViewerStateChanged (any change to their own state
+	//     there, the archive and its removal included) and the
+	//     RosterUpdate.MemberLeft of their own departure.
+	//
+	// Everything else about the chat is unchanged: GetChat, the messaging
+	// RPCs and everything a member may do in it work as before, and nobody
+	// else can tell it is archived.
+	//
+	// Only UnarchiveChat ends an archive while the caller is a member.
+	// Nothing that happens in the chat (a message, a payment, a reaction, a
+	// mention) and nothing the caller does there (reading, sending) moves it
+	// back to the INBOX. Leaving the chat or being banned from it ends the
+	// archive with the membership, and a return starts in the INBOX.
+	//
+	// Archiving an archived chat is a no-op that returns the current state.
+	// Every real change reaches the caller's other devices as a
+	// MetadataUpdate.ViewerStateChanged on the event stream.
+	ArchiveChat(ctx context.Context, in *ArchiveChatRequest, opts ...grpc.CallOption) (*ArchiveChatResponse, error)
+	// UnarchiveChat moves a chat the caller archived back to their INBOX
+	// folder. From then on it is a chat like any other: pushes are sent for
+	// it, subject to any mute, and the event stream carries its updates
+	// again. Nothing missed while it was archived is replayed: the response
+	// carries the chat's metadata as of the unarchive, and the client
+	// catches up on its messages from the latest event sequence it holds
+	// (see messaging.v1.Messaging.GetDelta).
+	//
+	// Only a member may unarchive. Unarchiving a chat that is not archived is
+	// a no-op that returns the current state. Every real change reaches the
+	// caller's other devices as a MetadataUpdate.ViewerStateChanged on the
+	// event stream, after which they catch up the same way.
+	UnarchiveChat(ctx context.Context, in *UnarchiveChatRequest, opts ...grpc.CallOption) (*UnarchiveChatResponse, error)
 	// EnterLobby places the caller in a private group's lobby, where they
 	// wait for the group's creator to admit them. It is how a user asks to
 	// join a private group (see Metadata.is_private) when they hold no
@@ -799,6 +862,26 @@ func (c *chatClient) UnmuteChat(ctx context.Context, in *UnmuteChatRequest, opts
 	return out, nil
 }
 
+func (c *chatClient) ArchiveChat(ctx context.Context, in *ArchiveChatRequest, opts ...grpc.CallOption) (*ArchiveChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ArchiveChatResponse)
+	err := c.cc.Invoke(ctx, Chat_ArchiveChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatClient) UnarchiveChat(ctx context.Context, in *UnarchiveChatRequest, opts ...grpc.CallOption) (*UnarchiveChatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnarchiveChatResponse)
+	err := c.cc.Invoke(ctx, Chat_UnarchiveChat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *chatClient) EnterLobby(ctx context.Context, in *EnterLobbyRequest, opts ...grpc.CallOption) (*EnterLobbyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EnterLobbyResponse)
@@ -1051,6 +1134,19 @@ type ChatServer interface {
 	// Read together, pagination guarantees the set (every chat exactly once)
 	// and the stream guarantees freshness and ordering. The local last_activity
 	// sort is maintained by the client from the stream after the initial read.
+	//
+	// The request's folder selects which of the caller's chats are listed:
+	// INBOX, the default, those they have not archived, and ARCHIVED those
+	// they have (see ArchiveChat). The contract above is the INBOX folder's.
+	// The event stream carries nothing for an archived chat, so the ARCHIVED
+	// folder is a snapshot, current as of the read: the client pages it to
+	// exhaustion when it shows the archive and reads it again the next time,
+	// with no stream to merge. A chat the caller archives or unarchives moves
+	// between folders on the write, as its viewer_state.settings.archive
+	// says; a read under way when it moves may briefly list it in the folder
+	// it left, and the client files it by its archive state, which it learns
+	// from the ArchiveChat or UnarchiveChat response or from
+	// MetadataUpdate.ViewerStateChanged.
 	GetDmChatFeed(context.Context, *GetDmChatFeedRequest) (*GetDmChatFeedResponse, error)
 	// GetGroupChatFeed gets the set of group chats for an owner account using
 	// a paged API, ordered by last activity with the most recent first.
@@ -1074,6 +1170,11 @@ type ChatServer interface {
 	// being read. Every page is served only for groups the caller is still a
 	// member of at the time of that page; a group the caller left between
 	// pages is dropped, and its removal arrives on the stream.
+	//
+	// The request's folder selects INBOX or ARCHIVED groups exactly as
+	// GetDmChatFeed's does, with the same snapshot contract for ARCHIVED. A
+	// group archived or unarchived between pages is dropped from the pages
+	// of the folder it left.
 	//
 	// The feed is meant for list views, so a chat's cover_picture may be
 	// omitted from it (see Metadata). Fetch it with GetChat when the client
@@ -1224,6 +1325,10 @@ type ChatServer interface {
 	// KeyEnvelope), so returning means being admitted from the lobby or
 	// joining with an invite again. The creator's envelope is kept, since no
 	// one else could give them another.
+	//
+	// Leaving also ends the caller's archive of the chat, if any (see
+	// ArchiveChat), as being banned does: a return starts in the INBOX
+	// folder.
 	LeaveChat(context.Context, *LeaveChatRequest) (*LeaveChatResponse, error)
 	// EditChat edits a group chat's record. Every editable field is optional;
 	// only the ones set in the request are changed, and the edit is atomic:
@@ -1269,6 +1374,45 @@ type ChatServer interface {
 	// not muted is a no-op. Every real change reaches the caller's other devices
 	// as a MetadataUpdate.ViewerStateChanged on the event stream.
 	UnmuteChat(context.Context, *UnmuteChatRequest) (*UnmuteChatResponse, error)
+	// ArchiveChat archives a chat, a DM or a group, for the caller.
+	//
+	// Only a member may archive, and they stay a member. An archived chat is
+	// listed in the caller's ARCHIVED folder of GetDmChatFeed or
+	// GetGroupChatFeed instead of their INBOX, and is quiet for them:
+	//   - No push is sent to them for anything in it, flagged or not, and it
+	//     moves no badge. This is unlike a mute, whose pushes are still sent.
+	//   - Their event streams carry nothing for it except
+	//     MetadataUpdate.ViewerStateChanged (any change to their own state
+	//     there, the archive and its removal included) and the
+	//     RosterUpdate.MemberLeft of their own departure.
+	//
+	// Everything else about the chat is unchanged: GetChat, the messaging
+	// RPCs and everything a member may do in it work as before, and nobody
+	// else can tell it is archived.
+	//
+	// Only UnarchiveChat ends an archive while the caller is a member.
+	// Nothing that happens in the chat (a message, a payment, a reaction, a
+	// mention) and nothing the caller does there (reading, sending) moves it
+	// back to the INBOX. Leaving the chat or being banned from it ends the
+	// archive with the membership, and a return starts in the INBOX.
+	//
+	// Archiving an archived chat is a no-op that returns the current state.
+	// Every real change reaches the caller's other devices as a
+	// MetadataUpdate.ViewerStateChanged on the event stream.
+	ArchiveChat(context.Context, *ArchiveChatRequest) (*ArchiveChatResponse, error)
+	// UnarchiveChat moves a chat the caller archived back to their INBOX
+	// folder. From then on it is a chat like any other: pushes are sent for
+	// it, subject to any mute, and the event stream carries its updates
+	// again. Nothing missed while it was archived is replayed: the response
+	// carries the chat's metadata as of the unarchive, and the client
+	// catches up on its messages from the latest event sequence it holds
+	// (see messaging.v1.Messaging.GetDelta).
+	//
+	// Only a member may unarchive. Unarchiving a chat that is not archived is
+	// a no-op that returns the current state. Every real change reaches the
+	// caller's other devices as a MetadataUpdate.ViewerStateChanged on the
+	// event stream, after which they catch up the same way.
+	UnarchiveChat(context.Context, *UnarchiveChatRequest) (*UnarchiveChatResponse, error)
 	// EnterLobby places the caller in a private group's lobby, where they
 	// wait for the group's creator to admit them. It is how a user asks to
 	// join a private group (see Metadata.is_private) when they hold no
@@ -1670,6 +1814,12 @@ func (UnimplementedChatServer) MuteChat(context.Context, *MuteChatRequest) (*Mut
 func (UnimplementedChatServer) UnmuteChat(context.Context, *UnmuteChatRequest) (*UnmuteChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnmuteChat not implemented")
 }
+func (UnimplementedChatServer) ArchiveChat(context.Context, *ArchiveChatRequest) (*ArchiveChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ArchiveChat not implemented")
+}
+func (UnimplementedChatServer) UnarchiveChat(context.Context, *UnarchiveChatRequest) (*UnarchiveChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnarchiveChat not implemented")
+}
 func (UnimplementedChatServer) EnterLobby(context.Context, *EnterLobbyRequest) (*EnterLobbyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnterLobby not implemented")
 }
@@ -1966,6 +2116,42 @@ func _Chat_UnmuteChat_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ChatServer).UnmuteChat(ctx, req.(*UnmuteChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_ArchiveChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ArchiveChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).ArchiveChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_ArchiveChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).ArchiveChat(ctx, req.(*ArchiveChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Chat_UnarchiveChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnarchiveChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServer).UnarchiveChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Chat_UnarchiveChat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServer).UnarchiveChat(ctx, req.(*UnarchiveChatRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2402,6 +2588,14 @@ var Chat_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnmuteChat",
 			Handler:    _Chat_UnmuteChat_Handler,
+		},
+		{
+			MethodName: "ArchiveChat",
+			Handler:    _Chat_ArchiveChat_Handler,
+		},
+		{
+			MethodName: "UnarchiveChat",
+			Handler:    _Chat_UnarchiveChat_Handler,
 		},
 		{
 			MethodName: "EnterLobby",

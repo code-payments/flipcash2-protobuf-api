@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, BanUserRequest, BanUserResponse, CreateInviteRequest, CreateInviteResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatInvitesRequest, GetChatInvitesResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetInviteRequest, GetInviteResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetPinnedMessagesRequest, GetPinnedMessagesResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, PinMessageRequest, PinMessageResponse, RevokeInviteRequest, RevokeInviteResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnpinMessageRequest, UnpinMessageResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
+import { AdmitLobbyMemberRequest, AdmitLobbyMemberResponse, ArchiveChatRequest, ArchiveChatResponse, BanUserRequest, BanUserResponse, CreateInviteRequest, CreateInviteResponse, DenyLobbyMemberRequest, DenyLobbyMemberResponse, EditChatRequest, EditChatResponse, EnterLobbyRequest, EnterLobbyResponse, GetChatInvitesRequest, GetChatInvitesResponse, GetChatRequest, GetChatResponse, GetDmChatFeedRequest, GetDmChatFeedResponse, GetFeaturedGroupsRequest, GetFeaturedGroupsResponse, GetGroupChatFeedRequest, GetGroupChatFeedResponse, GetInviteRequest, GetInviteResponse, GetKeyEnvelopeRequest, GetKeyEnvelopeResponse, GetLobbyMembersRequest, GetLobbyMembersResponse, GetMentionSuggestionsRequest, GetMentionSuggestionsResponse, GetPinnedMessagesRequest, GetPinnedMessagesResponse, GetRestrictedUsersRequest, GetRestrictedUsersResponse, GetRosterRequest, GetRosterResponse, JoinChatRequest, JoinChatResponse, LeaveChatRequest, LeaveChatResponse, LeaveLobbyRequest, LeaveLobbyResponse, MuteChatRequest, MuteChatResponse, PinMessageRequest, PinMessageResponse, RevokeInviteRequest, RevokeInviteResponse, SampleChattersRequest, SampleChattersResponse, SetFeaturedGroupsRequest, SetFeaturedGroupsResponse, SetKeyEnvelopeRequest, SetKeyEnvelopeResponse, SilenceUserRequest, SilenceUserResponse, StartChatRequest, StartChatResponse, UnarchiveChatRequest, UnarchiveChatResponse, UnbanUserRequest, UnbanUserResponse, UnmuteChatRequest, UnmuteChatResponse, UnpinMessageRequest, UnpinMessageResponse, UnsilenceUserRequest, UnsilenceUserResponse } from "./chat_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -61,6 +61,19 @@ export const Chat = {
      * and the stream guarantees freshness and ordering. The local last_activity
      * sort is maintained by the client from the stream after the initial read.
      *
+     * The request's folder selects which of the caller's chats are listed:
+     * INBOX, the default, those they have not archived, and ARCHIVED those
+     * they have (see ArchiveChat). The contract above is the INBOX folder's.
+     * The event stream carries nothing for an archived chat, so the ARCHIVED
+     * folder is a snapshot, current as of the read: the client pages it to
+     * exhaustion when it shows the archive and reads it again the next time,
+     * with no stream to merge. A chat the caller archives or unarchives moves
+     * between folders on the write, as its viewer_state.settings.archive
+     * says; a read under way when it moves may briefly list it in the folder
+     * it left, and the client files it by its archive state, which it learns
+     * from the ArchiveChat or UnarchiveChat response or from
+     * MetadataUpdate.ViewerStateChanged.
+     *
      * @generated from rpc flipcash.chat.v1.Chat.GetDmChatFeed
      */
     getDmChatFeed: {
@@ -92,6 +105,11 @@ export const Chat = {
      * being read. Every page is served only for groups the caller is still a
      * member of at the time of that page; a group the caller left between
      * pages is dropped, and its removal arrives on the stream.
+     *
+     * The request's folder selects INBOX or ARCHIVED groups exactly as
+     * GetDmChatFeed's does, with the same snapshot contract for ARCHIVED. A
+     * group archived or unarchived between pages is dropped from the pages
+     * of the folder it left.
      *
      * The feed is meant for list views, so a chat's cover_picture may be
      * omitted from it (see Metadata). Fetch it with GetChat when the client
@@ -297,6 +315,10 @@ export const Chat = {
      * joining with an invite again. The creator's envelope is kept, since no
      * one else could give them another.
      *
+     * Leaving also ends the caller's archive of the chat, if any (see
+     * ArchiveChat), as being banned does: a return starts in the INBOX
+     * folder.
+     *
      * @generated from rpc flipcash.chat.v1.Chat.LeaveChat
      */
     leaveChat: {
@@ -374,6 +396,62 @@ export const Chat = {
       name: "UnmuteChat",
       I: UnmuteChatRequest,
       O: UnmuteChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * ArchiveChat archives a chat, a DM or a group, for the caller.
+     *
+     * Only a member may archive, and they stay a member. An archived chat is
+     * listed in the caller's ARCHIVED folder of GetDmChatFeed or
+     * GetGroupChatFeed instead of their INBOX, and is quiet for them:
+     *  - No push is sent to them for anything in it, flagged or not, and it
+     *    moves no badge. This is unlike a mute, whose pushes are still sent.
+     *  - Their event streams carry nothing for it except
+     *    MetadataUpdate.ViewerStateChanged (any change to their own state
+     *    there, the archive and its removal included) and the
+     *    RosterUpdate.MemberLeft of their own departure.
+     * Everything else about the chat is unchanged: GetChat, the messaging
+     * RPCs and everything a member may do in it work as before, and nobody
+     * else can tell it is archived.
+     *
+     * Only UnarchiveChat ends an archive while the caller is a member.
+     * Nothing that happens in the chat (a message, a payment, a reaction, a
+     * mention) and nothing the caller does there (reading, sending) moves it
+     * back to the INBOX. Leaving the chat or being banned from it ends the
+     * archive with the membership, and a return starts in the INBOX.
+     *
+     * Archiving an archived chat is a no-op that returns the current state.
+     * Every real change reaches the caller's other devices as a
+     * MetadataUpdate.ViewerStateChanged on the event stream.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.ArchiveChat
+     */
+    archiveChat: {
+      name: "ArchiveChat",
+      I: ArchiveChatRequest,
+      O: ArchiveChatResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * UnarchiveChat moves a chat the caller archived back to their INBOX
+     * folder. From then on it is a chat like any other: pushes are sent for
+     * it, subject to any mute, and the event stream carries its updates
+     * again. Nothing missed while it was archived is replayed: the response
+     * carries the chat's metadata as of the unarchive, and the client
+     * catches up on its messages from the latest event sequence it holds
+     * (see messaging.v1.Messaging.GetDelta).
+     *
+     * Only a member may unarchive. Unarchiving a chat that is not archived is
+     * a no-op that returns the current state. Every real change reaches the
+     * caller's other devices as a MetadataUpdate.ViewerStateChanged on the
+     * event stream, after which they catch up the same way.
+     *
+     * @generated from rpc flipcash.chat.v1.Chat.UnarchiveChat
+     */
+    unarchiveChat: {
+      name: "UnarchiveChat",
+      I: UnarchiveChatRequest,
+      O: UnarchiveChatResponse,
       kind: MethodKind.Unary,
     },
     /**
