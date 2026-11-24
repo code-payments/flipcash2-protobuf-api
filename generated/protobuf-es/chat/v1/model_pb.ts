@@ -1377,9 +1377,10 @@ export class MetadataUpdate_LastActivityChanged extends Message<MetadataUpdate_L
 
 /**
  * The receiving user's own state for the chat has changed. Delivered for
- * a chat the user has archived too, unlike other updates for it (see
- * Chat.ArchiveChat), so their devices learn of the archive, its removal
- * and every other change to their state there.
+ * a group the user has archived even on a stream not following their
+ * archive, unlike the group's other updates (see Chat.ArchiveChat), so
+ * their devices learn of the archive, its removal and every other change
+ * to their state there.
  *
  * @generated from message flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
  */
@@ -2567,10 +2568,11 @@ export class MuteState_Forever extends Message<MuteState_Forever> {
  * ArchiveState is the viewer's archive of a chat (see Chat.ArchiveChat). An
  * archived chat is listed only in the viewer's ARCHIVED ChatFolder and is
  * quiet for them: no push is sent to them for it, it moves no badge, and
- * their event streams carry nothing for it but changes to their own state.
- * They remain a member in every other respect. An archive lasts until the
- * viewer unarchives the chat (see Chat.UnarchiveChat) or their membership
- * ends.
+ * for a group their event streams carry only what is addressed to them
+ * personally, except while a stream follows their archive (see
+ * Chat.ArchiveChat). They remain a member in every other respect. An
+ * archive lasts until the viewer unarchives the chat (see
+ * Chat.UnarchiveChat) or their membership ends.
  *
  * @generated from message flipcash.chat.v1.ArchiveState
  */

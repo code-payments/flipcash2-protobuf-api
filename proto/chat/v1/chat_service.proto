@@ -57,15 +57,13 @@ service Chat {
     //
     // The request's folder selects which of the caller's chats are listed:
     // INBOX, the default, those they have not archived, and ARCHIVED those
-    // they have (see ArchiveChat). The contract above is the INBOX folder's.
-    // The event stream carries nothing for an archived chat, so the ARCHIVED
-    // folder is a snapshot, current as of the read: the client pages it to
-    // exhaustion when it shows the archive and reads it again the next time,
-    // with no stream to merge. A chat the caller archives or unarchives moves
-    // between folders on the write, as its viewer_state.settings.archive
-    // says; a read under way when it moves may briefly list it in the folder
-    // it left, and the client files it by its archive state, which it learns
-    // from the ArchiveChat or UnarchiveChat response or from
+    // they have (see ArchiveChat). The event stream carries archived DMs as
+    // it does any other, so the contract above holds for both folders. A
+    // chat the caller archives or unarchives moves between folders on the
+    // write, as its viewer_state.settings.archive says; a read under way
+    // when it moves may briefly list it in the folder it left, and the
+    // client files it by its archive state, which it learns from the
+    // ArchiveChat or UnarchiveChat response or from
     // MetadataUpdate.ViewerStateChanged.
     rpc GetDmChatFeed(GetDmChatFeedRequest) returns (GetDmChatFeedResponse);
 
@@ -92,10 +90,17 @@ service Chat {
     // member of at the time of that page; a group the caller left between
     // pages is dropped, and its removal arrives on the stream.
     //
-    // The request's folder selects INBOX or ARCHIVED groups exactly as
-    // GetDmChatFeed's does, with the same snapshot contract for ARCHIVED. A
-    // group archived or unarchived between pages is dropped from the pages
-    // of the folder it left.
+    // The request's folder selects INBOX or ARCHIVED groups as
+    // GetDmChatFeed's does, and the contract above is the INBOX folder's.
+    // The event stream carries archived groups' updates only while it
+    // follows the user's archive (see
+    // event.v1.StreamEventsRequest.FollowArchive), so for ARCHIVED, step 1
+    // also turns following on, and the first call waits for the stream's
+    // FollowArchiveAck. The contract then holds for as long as the stream
+    // follows; a client that stops following and comes back to the archive
+    // later reads the folder again. A group archived or unarchived between
+    // pages is dropped from the pages of the folder it left once the server
+    // sees the move.
     //
     // The feed is meant for list views, so a chat's cover_picture may be
     // omitted from it (see Metadata). Fetch it with GetChat when the client
@@ -312,10 +317,14 @@ service Chat {
     // GetGroupChatFeed instead of their INBOX, and is quiet for them:
     //  - No push is sent to them for anything in it, flagged or not, and it
     //    moves no badge. This is unlike a mute, whose pushes are still sent.
-    //  - Their event streams carry nothing for it except
-    //    MetadataUpdate.ViewerStateChanged (any change to their own state
-    //    there, the archive and its removal included) and the
-    //    RosterUpdate.MemberLeft of their own departure.
+    //  - For a group, their event streams carry only what is addressed to
+    //    them personally, such as MetadataUpdate.ViewerStateChanged (any
+    //    change to their own state there, the archive and its removal
+    //    included) and the RosterUpdate.MemberLeft of their own departure,
+    //    except a stream following their archive while they look at it (see
+    //    event.v1.StreamEventsRequest.FollowArchive), which carries the
+    //    group's updates as before. An archived DM's updates are streamed as
+    //    before.
     // Everything else about the chat is unchanged: GetChat, the messaging
     // RPCs and everything a member may do in it work as before, and nobody
     // else can tell it is archived.
@@ -333,16 +342,16 @@ service Chat {
 
     // UnarchiveChat moves a chat the caller archived back to their INBOX
     // folder. From then on it is a chat like any other: pushes are sent for
-    // it, subject to any mute, and the event stream carries its updates
-    // again. Nothing missed while it was archived is replayed: the response
-    // carries the chat's metadata as of the unarchive, and the client
-    // catches up on its messages from the latest event sequence it holds
-    // (see messaging.v1.Messaging.GetDelta).
+    // it, subject to any mute, and for a group every event stream carries
+    // its updates again. Nothing a stream did not carry while the group was
+    // archived is replayed: the response carries the chat's metadata as of
+    // the unarchive, and the client catches up on its messages from the
+    // latest event sequence it holds (see messaging.v1.Messaging.GetDelta).
     //
     // Only a member may unarchive. Unarchiving a chat that is not archived is
     // a no-op that returns the current state. Every real change reaches the
     // caller's other devices as a MetadataUpdate.ViewerStateChanged on the
-    // event stream, after which they catch up the same way.
+    // event stream, after which they catch up on a group the same way.
     rpc UnarchiveChat(UnarchiveChatRequest) returns (UnarchiveChatResponse);
 
     // EnterLobby places the caller in a private group's lobby, where they

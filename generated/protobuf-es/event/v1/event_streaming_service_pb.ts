@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 import { ChatEventBatch, ClientPong, EventBatch, ServerPing, UserEventBatch } from "./model_pb";
 import { Auth, ChatId } from "../../common/v1/common_pb";
 import { ViewMode } from "../../messaging/v1/model_pb";
@@ -28,6 +28,12 @@ export class StreamEventsRequest extends Message<StreamEventsRequest> {
      */
     value: ClientPong;
     case: "pong";
+  } | {
+    /**
+     * @generated from field: flipcash.event.v1.StreamEventsRequest.FollowArchive follow_archive = 3;
+     */
+    value: StreamEventsRequest_FollowArchive;
+    case: "followArchive";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<StreamEventsRequest>) {
@@ -40,6 +46,7 @@ export class StreamEventsRequest extends Message<StreamEventsRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "params", kind: "message", T: StreamEventsRequest_Params, oneof: "type" },
     { no: 2, name: "pong", kind: "message", T: ClientPong, oneof: "type" },
+    { no: 3, name: "follow_archive", kind: "message", T: StreamEventsRequest_FollowArchive, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest {
@@ -121,6 +128,91 @@ export class StreamEventsRequest_Params extends Message<StreamEventsRequest_Para
 
   static equals(a: StreamEventsRequest_Params | PlainMessage<StreamEventsRequest_Params> | undefined, b: StreamEventsRequest_Params | PlainMessage<StreamEventsRequest_Params> | undefined): boolean {
     return proto3.util.equals(StreamEventsRequest_Params, a, b);
+  }
+}
+
+/**
+ * FollowArchive tells a user stream whether to carry the updates of the
+ * group chats the user has archived (see chat.v1.Chat.ArchiveChat). A
+ * stream opens not following them. The client turns following on while
+ * the user is looking at their archive, i.e. the ARCHIVED folder of
+ * chat.v1.Chat.GetGroupChatFeed or any archived group however it was
+ * opened, and off when they leave it; moving between the folder and an
+ * archived group keeps it on. Archived DMs are carried whatever the
+ * setting, as every DM is.
+ *
+ * While following, the stream carries every archived group's updates as
+ * it does an INBOX group's: a group archived meanwhile stays carried, and
+ * one unarchived is carried whatever the setting. While not following, a
+ * group archived meanwhile stops being carried, apart from what is
+ * addressed to the user personally (see StreamEvents).
+ *
+ * The setting is the stream's own: the user's other streams, on this
+ * device or another, are unaffected, and a new stream starts not
+ * following, so a client still in the archive when it reconnects sends
+ * FollowArchive again right after Params.
+ *
+ * The server answers every FollowArchive with a
+ * StreamEventsResponse.FollowArchiveAck carrying its seq, in order, once
+ * the stream does what was asked: after one turning following on, the
+ * stream carries the archived groups' updates from the ack on, so the
+ * client reads the ARCHIVED folder only after the ack (see
+ * chat.v1.Chat.GetGroupChatFeed). After one turning it off the stream may
+ * keep carrying them for a short while, and the client ignores what it
+ * has no use for. Turning on a stream already following, or off one not
+ * following, changes nothing and is still answered. Only a user stream
+ * follows an archive: a preview stream ignores FollowArchive and sends no
+ * ack.
+ *
+ * @generated from message flipcash.event.v1.StreamEventsRequest.FollowArchive
+ */
+export class StreamEventsRequest_FollowArchive extends Message<StreamEventsRequest_FollowArchive> {
+  /**
+   * Whether the stream follows the user's archive from now on.
+   *
+   * @generated from field: bool follow = 1;
+   */
+  follow = false;
+
+  /**
+   * Chosen by the client and echoed in the ack, so a client that turns
+   * following on and off in quick succession can tell which request an
+   * ack answers. A client increases it with every FollowArchive it
+   * sends on a stream, so the ack carrying the highest seq is the one
+   * answering its latest request and any lower one is stale. The server
+   * neither checks nor relies on it: requests take effect in the order
+   * they are sent, whatever their seq.
+   *
+   * @generated from field: uint64 seq = 2;
+   */
+  seq = protoInt64.zero;
+
+  constructor(data?: PartialMessage<StreamEventsRequest_FollowArchive>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.StreamEventsRequest.FollowArchive";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "follow", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "seq", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsRequest_FollowArchive {
+    return new StreamEventsRequest_FollowArchive().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreamEventsRequest_FollowArchive {
+    return new StreamEventsRequest_FollowArchive().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreamEventsRequest_FollowArchive {
+    return new StreamEventsRequest_FollowArchive().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StreamEventsRequest_FollowArchive | PlainMessage<StreamEventsRequest_FollowArchive> | undefined, b: StreamEventsRequest_FollowArchive | PlainMessage<StreamEventsRequest_FollowArchive> | undefined): boolean {
+    return proto3.util.equals(StreamEventsRequest_FollowArchive, a, b);
   }
 }
 
@@ -250,6 +342,12 @@ export class StreamEventsResponse extends Message<StreamEventsResponse> {
      */
     value: EventBatch;
     case: "events";
+  } | {
+    /**
+     * @generated from field: flipcash.event.v1.StreamEventsResponse.FollowArchiveAck follow_archive_ack = 4;
+     */
+    value: StreamEventsResponse_FollowArchiveAck;
+    case: "followArchiveAck";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<StreamEventsResponse>) {
@@ -263,6 +361,7 @@ export class StreamEventsResponse extends Message<StreamEventsResponse> {
     { no: 1, name: "ping", kind: "message", T: ServerPing, oneof: "type" },
     { no: 2, name: "error", kind: "message", T: StreamEventsResponse_StreamError, oneof: "type" },
     { no: 3, name: "events", kind: "message", T: EventBatch, oneof: "type" },
+    { no: 4, name: "follow_archive_ack", kind: "message", T: StreamEventsResponse_FollowArchiveAck, oneof: "type" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsResponse {
@@ -279,6 +378,48 @@ export class StreamEventsResponse extends Message<StreamEventsResponse> {
 
   static equals(a: StreamEventsResponse | PlainMessage<StreamEventsResponse> | undefined, b: StreamEventsResponse | PlainMessage<StreamEventsResponse> | undefined): boolean {
     return proto3.util.equals(StreamEventsResponse, a, b);
+  }
+}
+
+/**
+ * FollowArchiveAck answers a StreamEventsRequest.FollowArchive, sent once
+ * the stream does what it asked.
+ *
+ * @generated from message flipcash.event.v1.StreamEventsResponse.FollowArchiveAck
+ */
+export class StreamEventsResponse_FollowArchiveAck extends Message<StreamEventsResponse_FollowArchiveAck> {
+  /**
+   * The seq of the FollowArchive this answers.
+   *
+   * @generated from field: uint64 seq = 1;
+   */
+  seq = protoInt64.zero;
+
+  constructor(data?: PartialMessage<StreamEventsResponse_FollowArchiveAck>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.event.v1.StreamEventsResponse.FollowArchiveAck";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "seq", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamEventsResponse_FollowArchiveAck {
+    return new StreamEventsResponse_FollowArchiveAck().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreamEventsResponse_FollowArchiveAck {
+    return new StreamEventsResponse_FollowArchiveAck().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreamEventsResponse_FollowArchiveAck {
+    return new StreamEventsResponse_FollowArchiveAck().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StreamEventsResponse_FollowArchiveAck | PlainMessage<StreamEventsResponse_FollowArchiveAck> | undefined, b: StreamEventsResponse_FollowArchiveAck | PlainMessage<StreamEventsResponse_FollowArchiveAck> | undefined): boolean {
+    return proto3.util.equals(StreamEventsResponse_FollowArchiveAck, a, b);
   }
 }
 

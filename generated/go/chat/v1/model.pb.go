@@ -2348,10 +2348,11 @@ func (*MuteState_Forever_) isMuteState_Duration() {}
 // ArchiveState is the viewer's archive of a chat (see Chat.ArchiveChat). An
 // archived chat is listed only in the viewer's ARCHIVED ChatFolder and is
 // quiet for them: no push is sent to them for it, it moves no badge, and
-// their event streams carry nothing for it but changes to their own state.
-// They remain a member in every other respect. An archive lasts until the
-// viewer unarchives the chat (see Chat.UnarchiveChat) or their membership
-// ends.
+// for a group their event streams carry only what is addressed to them
+// personally, except while a stream follows their archive (see
+// Chat.ArchiveChat). They remain a member in every other respect. An
+// archive lasts until the viewer unarchives the chat (see
+// Chat.UnarchiveChat) or their membership ends.
 type ArchiveState struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3552,9 +3553,10 @@ func (x *MetadataUpdate_LastActivityChanged) GetNewLastActivity() *timestamppb.T
 }
 
 // The receiving user's own state for the chat has changed. Delivered for
-// a chat the user has archived too, unlike other updates for it (see
-// Chat.ArchiveChat), so their devices learn of the archive, its removal
-// and every other change to their state there.
+// a group the user has archived even on a stream not following their
+// archive, unlike the group's other updates (see Chat.ArchiveChat), so
+// their devices learn of the archive, its removal and every other change
+// to their state there.
 type MetadataUpdate_ViewerStateChanged struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
