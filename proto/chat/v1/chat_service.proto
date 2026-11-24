@@ -209,7 +209,9 @@ service Chat {
     // Requires that the caller may speak in the chat. A DM is DENIED.
     rpc GetMentionSuggestions(GetMentionSuggestionsRequest) returns (GetMentionSuggestionsResponse);
 
-    // StartChat starts a new chat.
+    // StartChat starts a new chat: a public or private group, or the DM
+    // between the caller and a user they share a private group with (see
+    // StartChatRequest.DmChatParameters, including when a client may call it).
     rpc StartChat(StartChatRequest) returns (StartChatResponse);
 
     // JoinChat adds the caller to a chat's roster.
@@ -987,13 +989,16 @@ message GetMentionSuggestionsResponse {
 
 message StartChatRequest {
     // Parameters for the kind of chat being created. The variant selects the
-    // kind of chat. Both create a chat of type GROUP: one public, one
-    // private.
+    // kind of chat: public_group and private_group create a chat of type
+    // GROUP, one public, one private; dm opens the canonical DM between the
+    // caller and another user without a payment (see DmChatParameters,
+    // including when a client may call it).
     oneof parameters {
         option (validate.required) = true;
 
         PublicGroupChatParameters  public_group  = 1;
         PrivateGroupChatParameters private_group = 2;
+        DmChatParameters           dm            = 3;
     }
 
     // Parameters for creating a public group chat: one that users join with
@@ -1082,10 +1087,58 @@ message StartChatRequest {
         blob.v1.BlobId cover_picture = 4;
     }
 
+    // Parameters for opening the DM (of type DM) between the caller and
+    // recipient without paying the recipient's DM chat initialization fee,
+    // by proving that the two share a private group: both must be members of
+    // roster_proof.
+    //
+    // WHEN TO CALL: only once the user sends their first message to the
+    // recipient. Never call it when the user merely opens a conversation
+    // screen, views a profile, or taps to message someone. The DM shows in
+    // both users' feeds as soon as it is opened, so a DM opened that the user
+    // never writes in leaves an empty chat in the recipient's feed. When the
+    // user sends, call StartChat, then send the message with
+    // Messaging.SendMessage into the returned chat. The recipient learns of
+    // the DM from that message: opening it publishes no event and sends no
+    // push. If SendMessage fails, retry it: the DM stays open, and calling
+    // StartChat again is harmless.
+    //
+    // A DM is also opened by a DM payment that meets the recipient's fee
+    // (see intent.v1.ChatMetadata.DmPayment), which needs no StartChat call.
+    // A payment below the fee does not open a DM, even between users who
+    // share a private group: open it with StartChat first, or pay the fee.
+    //
+    // The result is DENIED when recipient is the caller or the Flipcash team
+    // account, whether or not a DM with them exists. Otherwise, if the DM
+    // already exists, however it was opened, it is returned with result OK
+    // and roster_proof is not checked. If it does not, the result is DENIED
+    // when roster_proof is not a private group, or the caller or recipient is
+    // not a member of it. Blocks are not checked: a block hides a DM from the
+    // user who blocked, as it does for a DM opened by a payment, rather than
+    // keeping it from being opened.
+    //
+    // A DM opened this way never offers a return of a payment
+    // (messaging.v1.CashContent.Return.offer), since no payment opened it.
+    message DmChatParameters {
+        // The other member of the DM.
+        common.v1.UserId recipient = 1 [(validate.rules).message.required = true];
+
+        // A private group (see Metadata.is_private) that both the caller and
+        // recipient are members of. Membership alone counts: holding the
+        // group's key is not required. It is read only to open the DM, and
+        // nothing about it is kept on the DM.
+        common.v1.ChatId roster_proof = 2 [(validate.rules).message.required = true];
+    }
+
     // Key for retrying this request safely. A retry with the same key from the
     // same caller returns the chat the first attempt created, with result OK,
     // even if the parameters differ.
-    IdempotencyKey idempotency_key = 9 [(validate.rules).message.required = true];
+    //
+    // Required for public_group and private_group: the server rejects a
+    // request for either without one as INVALID_ARGUMENT. Not used for dm,
+    // which may omit it: a DM's ID is derived from its two members, so a
+    // retry finds the DM already open.
+    IdempotencyKey idempotency_key = 9;
 
     common.v1.Auth auth = 10 [(validate.rules).message.required = true];
 }
@@ -1105,7 +1158,8 @@ message StartChatResponse {
 
     // The metadata for the newly created chat, including the server-generated
     // chat_id and any profile picture or cover picture renditions the server
-    // derived. Set only when result == OK.
+    // derived. For dm, the DM's metadata, whether this call opened it or it
+    // already existed. Set only when result == OK.
     Metadata chat = 2;
 
     // The best-fit category that tripped moderation, mirroring the Moderation

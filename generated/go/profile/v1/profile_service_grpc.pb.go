@@ -62,6 +62,10 @@ type ProfileClient interface {
 	UpdateFlipcard(ctx context.Context, in *UpdateFlipcardRequest, opts ...grpc.CallOption) (*UpdateFlipcardResponse, error)
 	// SetMinDmChatInitFee sets the minimum fee another user must pay to
 	// initialize a DM chat with the caller, replacing any fee already set.
+	// Every payment that opens a DM is held to it, including one from a user
+	// who shares a private group with the caller. Such a user may instead open
+	// the DM without a payment (see chat.v1.StartChatRequest.DmChatParameters),
+	// after which any payment into it may be any amount.
 	SetMinDmChatInitFee(ctx context.Context, in *SetMinDmChatInitFeeRequest, opts ...grpc.CallOption) (*SetMinDmChatInitFeeResponse, error)
 	// LinkSocialAccount links a social account to a user
 	LinkSocialAccount(ctx context.Context, in *LinkSocialAccountRequest, opts ...grpc.CallOption) (*LinkSocialAccountResponse, error)
@@ -208,6 +212,10 @@ type ProfileServer interface {
 	UpdateFlipcard(context.Context, *UpdateFlipcardRequest) (*UpdateFlipcardResponse, error)
 	// SetMinDmChatInitFee sets the minimum fee another user must pay to
 	// initialize a DM chat with the caller, replacing any fee already set.
+	// Every payment that opens a DM is held to it, including one from a user
+	// who shares a private group with the caller. Such a user may instead open
+	// the DM without a payment (see chat.v1.StartChatRequest.DmChatParameters),
+	// after which any payment into it may be any amount.
 	SetMinDmChatInitFee(context.Context, *SetMinDmChatInitFeeRequest) (*SetMinDmChatInitFeeResponse, error)
 	// LinkSocialAccount links a social account to a user
 	LinkSocialAccount(context.Context, *LinkSocialAccountRequest) (*LinkSocialAccountResponse, error)

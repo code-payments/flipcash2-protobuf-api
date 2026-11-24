@@ -119,6 +119,9 @@ export class UserProfile extends Message<UserProfile> {
    * when the user hasn't set one, in which case the server default applies.
    * Update it with SetMinDmChatInitFee.
    *
+   * A user who shares a private group with this user may open a DM with
+   * them without paying it (see chat.v1.StartChatRequest.DmChatParameters).
+   *
    * @generated from field: flipcash.common.v1.FiatPaymentAmount min_dm_chat_init_fee = 10;
    */
   minDmChatInitFee?: FiatPaymentAmount;

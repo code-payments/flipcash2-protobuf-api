@@ -2213,17 +2213,6 @@ func (m *StartChatRequest) validate(all bool) error {
 
 	var errors []error
 
-	if m.GetIdempotencyKey() == nil {
-		err := StartChatRequestValidationError{
-			field:  "IdempotencyKey",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if all {
 		switch v := interface{}(m.GetIdempotencyKey()).(type) {
 		case interface{ ValidateAll() error }:
@@ -2373,6 +2362,48 @@ func (m *StartChatRequest) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return StartChatRequestValidationError{
 					field:  "PrivateGroup",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *StartChatRequest_Dm:
+		if v == nil {
+			err := StartChatRequestValidationError{
+				field:  "Parameters",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofParametersPresent = true
+
+		if all {
+			switch v := interface{}(m.GetDm()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, StartChatRequestValidationError{
+						field:  "Dm",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, StartChatRequestValidationError{
+						field:  "Dm",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetDm()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StartChatRequestValidationError{
+					field:  "Dm",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -12891,6 +12922,191 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = StartChatRequest_PrivateGroupChatParametersValidationError{}
+
+// Validate checks the field values on StartChatRequest_DmChatParameters with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *StartChatRequest_DmChatParameters) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StartChatRequest_DmChatParameters
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// StartChatRequest_DmChatParametersMultiError, or nil if none found.
+func (m *StartChatRequest_DmChatParameters) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StartChatRequest_DmChatParameters) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetRecipient() == nil {
+		err := StartChatRequest_DmChatParametersValidationError{
+			field:  "Recipient",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetRecipient()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StartChatRequest_DmChatParametersValidationError{
+					field:  "Recipient",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StartChatRequest_DmChatParametersValidationError{
+					field:  "Recipient",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRecipient()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StartChatRequest_DmChatParametersValidationError{
+				field:  "Recipient",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetRosterProof() == nil {
+		err := StartChatRequest_DmChatParametersValidationError{
+			field:  "RosterProof",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetRosterProof()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, StartChatRequest_DmChatParametersValidationError{
+					field:  "RosterProof",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, StartChatRequest_DmChatParametersValidationError{
+					field:  "RosterProof",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRosterProof()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return StartChatRequest_DmChatParametersValidationError{
+				field:  "RosterProof",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return StartChatRequest_DmChatParametersMultiError(errors)
+	}
+
+	return nil
+}
+
+// StartChatRequest_DmChatParametersMultiError is an error wrapping multiple
+// validation errors returned by
+// StartChatRequest_DmChatParameters.ValidateAll() if the designated
+// constraints aren't met.
+type StartChatRequest_DmChatParametersMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StartChatRequest_DmChatParametersMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StartChatRequest_DmChatParametersMultiError) AllErrors() []error { return m }
+
+// StartChatRequest_DmChatParametersValidationError is the validation error
+// returned by StartChatRequest_DmChatParameters.Validate if the designated
+// constraints aren't met.
+type StartChatRequest_DmChatParametersValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StartChatRequest_DmChatParametersValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StartChatRequest_DmChatParametersValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StartChatRequest_DmChatParametersValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StartChatRequest_DmChatParametersValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StartChatRequest_DmChatParametersValidationError) ErrorName() string {
+	return "StartChatRequest_DmChatParametersValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e StartChatRequest_DmChatParametersValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStartChatRequest_DmChatParameters.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StartChatRequest_DmChatParametersValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StartChatRequest_DmChatParametersValidationError{}
 
 // Validate checks the field values on JoinChatRequest_InviteParameters with
 // the rules defined in the proto definition for this message. If any rules
