@@ -248,7 +248,9 @@ type ChatClient interface {
 	//
 	// Requires that the caller may speak in the chat. A DM is DENIED.
 	GetMentionSuggestions(ctx context.Context, in *GetMentionSuggestionsRequest, opts ...grpc.CallOption) (*GetMentionSuggestionsResponse, error)
-	// StartChat starts a new chat.
+	// StartChat starts a new chat: a public or private group, or the DM
+	// between the caller and a user they share a private group with (see
+	// StartChatRequest.DmChatParameters, including when a client may call it).
 	StartChat(ctx context.Context, in *StartChatRequest, opts ...grpc.CallOption) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
 	//
@@ -1293,7 +1295,9 @@ type ChatServer interface {
 	//
 	// Requires that the caller may speak in the chat. A DM is DENIED.
 	GetMentionSuggestions(context.Context, *GetMentionSuggestionsRequest) (*GetMentionSuggestionsResponse, error)
-	// StartChat starts a new chat.
+	// StartChat starts a new chat: a public or private group, or the DM
+	// between the caller and a user they share a private group with (see
+	// StartChatRequest.DmChatParameters, including when a client may call it).
 	StartChat(context.Context, *StartChatRequest) (*StartChatResponse, error)
 	// JoinChat adds the caller to a chat's roster.
 	//

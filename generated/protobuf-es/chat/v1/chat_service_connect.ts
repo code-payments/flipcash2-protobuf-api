@@ -255,7 +255,9 @@ export const Chat = {
       kind: MethodKind.Unary,
     },
     /**
-     * StartChat starts a new chat.
+     * StartChat starts a new chat: a public or private group, or the DM
+     * between the caller and a user they share a private group with (see
+     * StartChatRequest.DmChatParameters, including when a client may call it).
      *
      * @generated from rpc flipcash.chat.v1.Chat.StartChat
      */

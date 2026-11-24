@@ -101,6 +101,10 @@ export const Profile = {
     /**
      * SetMinDmChatInitFee sets the minimum fee another user must pay to
      * initialize a DM chat with the caller, replacing any fee already set.
+     * Every payment that opens a DM is held to it, including one from a user
+     * who shares a private group with the caller. Such a user may instead open
+     * the DM without a payment (see chat.v1.StartChatRequest.DmChatParameters),
+     * after which any payment into it may be any amount.
      *
      * @generated from rpc flipcash.profile.v1.Profile.SetMinDmChatInitFee
      */

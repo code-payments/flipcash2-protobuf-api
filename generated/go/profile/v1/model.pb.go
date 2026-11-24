@@ -131,6 +131,9 @@ type UserProfile struct {
 	// user. Public, so it is returned for any user, not just the caller. Unset
 	// when the user hasn't set one, in which case the server default applies.
 	// Update it with SetMinDmChatInitFee.
+	//
+	// A user who shares a private group with this user may open a DM with
+	// them without paying it (see chat.v1.StartChatRequest.DmChatParameters).
 	MinDmChatInitFee *v1.FiatPaymentAmount `protobuf:"bytes,10,opt,name=min_dm_chat_init_fee,json=minDmChatInitFee,proto3" json:"min_dm_chat_init_fee,omitempty"`
 	// A short free-form description the user wrote about themself. Public, so
 	// it is returned for any user, not just the caller. Empty when the user

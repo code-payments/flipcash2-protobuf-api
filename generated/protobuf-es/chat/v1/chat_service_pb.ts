@@ -896,8 +896,10 @@ proto3.util.setEnumType(GetMentionSuggestionsResponse_Result, "flipcash.chat.v1.
 export class StartChatRequest extends Message<StartChatRequest> {
   /**
    * Parameters for the kind of chat being created. The variant selects the
-   * kind of chat. Both create a chat of type GROUP: one public, one
-   * private.
+   * kind of chat: public_group and private_group create a chat of type
+   * GROUP, one public, one private; dm opens the canonical DM between the
+   * caller and another user without a payment (see DmChatParameters,
+   * including when a client may call it).
    *
    * @generated from oneof flipcash.chat.v1.StartChatRequest.parameters
    */
@@ -913,12 +915,23 @@ export class StartChatRequest extends Message<StartChatRequest> {
      */
     value: StartChatRequest_PrivateGroupChatParameters;
     case: "privateGroup";
+  } | {
+    /**
+     * @generated from field: flipcash.chat.v1.StartChatRequest.DmChatParameters dm = 3;
+     */
+    value: StartChatRequest_DmChatParameters;
+    case: "dm";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   /**
    * Key for retrying this request safely. A retry with the same key from the
    * same caller returns the chat the first attempt created, with result OK,
    * even if the parameters differ.
+   *
+   * Required for public_group and private_group: the server rejects a
+   * request for either without one as INVALID_ARGUMENT. Not used for dm,
+   * which may omit it: a DM's ID is derived from its two members, so a
+   * retry finds the DM already open.
    *
    * @generated from field: flipcash.chat.v1.IdempotencyKey idempotency_key = 9;
    */
@@ -939,6 +952,7 @@ export class StartChatRequest extends Message<StartChatRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "public_group", kind: "message", T: StartChatRequest_PublicGroupChatParameters, oneof: "parameters" },
     { no: 2, name: "private_group", kind: "message", T: StartChatRequest_PrivateGroupChatParameters, oneof: "parameters" },
+    { no: 3, name: "dm", kind: "message", T: StartChatRequest_DmChatParameters, oneof: "parameters" },
     { no: 9, name: "idempotency_key", kind: "message", T: IdempotencyKey },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
@@ -1142,6 +1156,89 @@ export class StartChatRequest_PrivateGroupChatParameters extends Message<StartCh
 }
 
 /**
+ * Parameters for opening the DM (of type DM) between the caller and
+ * recipient without paying the recipient's DM chat initialization fee,
+ * by proving that the two share a private group: both must be members of
+ * roster_proof.
+ *
+ * WHEN TO CALL: only once the user sends their first message to the
+ * recipient. Never call it when the user merely opens a conversation
+ * screen, views a profile, or taps to message someone. The DM shows in
+ * both users' feeds as soon as it is opened, so a DM opened that the user
+ * never writes in leaves an empty chat in the recipient's feed. When the
+ * user sends, call StartChat, then send the message with
+ * Messaging.SendMessage into the returned chat. The recipient learns of
+ * the DM from that message: opening it publishes no event and sends no
+ * push. If SendMessage fails, retry it: the DM stays open, and calling
+ * StartChat again is harmless.
+ *
+ * A DM is also opened by a DM payment that meets the recipient's fee
+ * (see intent.v1.ChatMetadata.DmPayment), which needs no StartChat call.
+ * A payment below the fee does not open a DM, even between users who
+ * share a private group: open it with StartChat first, or pay the fee.
+ *
+ * The result is DENIED when recipient is the caller or the Flipcash team
+ * account, whether or not a DM with them exists. Otherwise, if the DM
+ * already exists, however it was opened, it is returned with result OK
+ * and roster_proof is not checked. If it does not, the result is DENIED
+ * when roster_proof is not a private group, or the caller or recipient is
+ * not a member of it. Blocks are not checked: a block hides a DM from the
+ * user who blocked, as it does for a DM opened by a payment, rather than
+ * keeping it from being opened.
+ *
+ * A DM opened this way never offers a return of a payment
+ * (messaging.v1.CashContent.Return.offer), since no payment opened it.
+ *
+ * @generated from message flipcash.chat.v1.StartChatRequest.DmChatParameters
+ */
+export class StartChatRequest_DmChatParameters extends Message<StartChatRequest_DmChatParameters> {
+  /**
+   * The other member of the DM.
+   *
+   * @generated from field: flipcash.common.v1.UserId recipient = 1;
+   */
+  recipient?: UserId;
+
+  /**
+   * A private group (see Metadata.is_private) that both the caller and
+   * recipient are members of. Membership alone counts: holding the
+   * group's key is not required. It is read only to open the DM, and
+   * nothing about it is kept on the DM.
+   *
+   * @generated from field: flipcash.common.v1.ChatId roster_proof = 2;
+   */
+  rosterProof?: ChatId;
+
+  constructor(data?: PartialMessage<StartChatRequest_DmChatParameters>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.StartChatRequest.DmChatParameters";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "recipient", kind: "message", T: UserId },
+    { no: 2, name: "roster_proof", kind: "message", T: ChatId },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StartChatRequest_DmChatParameters {
+    return new StartChatRequest_DmChatParameters().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StartChatRequest_DmChatParameters {
+    return new StartChatRequest_DmChatParameters().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StartChatRequest_DmChatParameters {
+    return new StartChatRequest_DmChatParameters().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StartChatRequest_DmChatParameters | PlainMessage<StartChatRequest_DmChatParameters> | undefined, b: StartChatRequest_DmChatParameters | PlainMessage<StartChatRequest_DmChatParameters> | undefined): boolean {
+    return proto3.util.equals(StartChatRequest_DmChatParameters, a, b);
+  }
+}
+
+/**
  * @generated from message flipcash.chat.v1.StartChatResponse
  */
 export class StartChatResponse extends Message<StartChatResponse> {
@@ -1153,7 +1250,8 @@ export class StartChatResponse extends Message<StartChatResponse> {
   /**
    * The metadata for the newly created chat, including the server-generated
    * chat_id and any profile picture or cover picture renditions the server
-   * derived. Set only when result == OK.
+   * derived. For dm, the DM's metadata, whether this call opened it or it
+   * already existed. Set only when result == OK.
    *
    * @generated from field: flipcash.chat.v1.Metadata chat = 2;
    */
