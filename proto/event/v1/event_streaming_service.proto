@@ -18,6 +18,14 @@ service EventStreaming {
     //
     //   - With no target set, every event addressed to the signing user, across
     //     all of their events. This stream lives until either side closes it.
+    //     For a group chat the user has archived (see
+    //     chat.v1.Chat.ArchiveChat) it carries only what is addressed to the
+    //     user personally, such as the MetadataUpdate.ViewerStateChanged of a
+    //     change to their own state there and the RosterUpdate.MemberLeft of
+    //     their own departure, unless the client has asked it to follow the
+    //     user's archive (see StreamEventsRequest.FollowArchive), and then it
+    //     carries the group's updates like any other's. What it did not carry
+    //     is not replayed. An archived DM is carried like any other DM.
     //   - With chat_preview set, ChatUpdate for that single group chat, under
     //     a messaging.v1.ViewMode, and nothing else, for a bounded window of
     //     time. This is how a viewer who is not a member of a group — and so is
@@ -41,8 +49,9 @@ message StreamEventsRequest {
     oneof type {
         option (validate.required) = true;
 
-        Params     params = 1;
-        ClientPong pong   = 2;
+        Params        params         = 1;
+        ClientPong    pong           = 2;
+        FollowArchive follow_archive = 3;
     }
 
     message Params {
@@ -61,6 +70,51 @@ message StreamEventsRequest {
         oneof target {
             ChatPreviewParams chat_preview = 3;
         }
+    }
+
+    // FollowArchive tells a user stream whether to carry the updates of the
+    // group chats the user has archived (see chat.v1.Chat.ArchiveChat). A
+    // stream opens not following them. The client turns following on while
+    // the user is looking at their archive, i.e. the ARCHIVED folder of
+    // chat.v1.Chat.GetGroupChatFeed or any archived group however it was
+    // opened, and off when they leave it; moving between the folder and an
+    // archived group keeps it on. Archived DMs are carried whatever the
+    // setting, as every DM is.
+    //
+    // While following, the stream carries every archived group's updates as
+    // it does an INBOX group's: a group archived meanwhile stays carried, and
+    // one unarchived is carried whatever the setting. While not following, a
+    // group archived meanwhile stops being carried, apart from what is
+    // addressed to the user personally (see StreamEvents).
+    //
+    // The setting is the stream's own: the user's other streams, on this
+    // device or another, are unaffected, and a new stream starts not
+    // following, so a client still in the archive when it reconnects sends
+    // FollowArchive again right after Params.
+    //
+    // The server answers every FollowArchive with a
+    // StreamEventsResponse.FollowArchiveAck carrying its seq, in order, once
+    // the stream does what was asked: after one turning following on, the
+    // stream carries the archived groups' updates from the ack on, so the
+    // client reads the ARCHIVED folder only after the ack (see
+    // chat.v1.Chat.GetGroupChatFeed). After one turning it off the stream may
+    // keep carrying them for a short while, and the client ignores what it
+    // has no use for. Turning on a stream already following, or off one not
+    // following, changes nothing and is still answered. Only a user stream
+    // follows an archive: a preview stream ignores FollowArchive and sends no
+    // ack.
+    message FollowArchive {
+        // Whether the stream follows the user's archive from now on.
+        bool follow = 1;
+
+        // Chosen by the client and echoed in the ack, so a client that turns
+        // following on and off in quick succession can tell which request an
+        // ack answers. A client increases it with every FollowArchive it
+        // sends on a stream, so the ack carrying the highest seq is the one
+        // answering its latest request and any lower one is stale. The server
+        // neither checks nor relies on it: requests take effect in the order
+        // they are sent, whatever their seq.
+        uint64 seq = 2;
     }
 
     // ChatPreviewParams targets a stream at a preview of a single group chat:
@@ -131,9 +185,17 @@ message StreamEventsResponse {
     oneof type {
         option (validate.required) = true;
 
-        ServerPing  ping   = 1;
-        StreamError error  = 2;
-        EventBatch  events = 3;
+        ServerPing       ping               = 1;
+        StreamError      error              = 2;
+        EventBatch       events             = 3;
+        FollowArchiveAck follow_archive_ack = 4;
+    }
+
+    // FollowArchiveAck answers a StreamEventsRequest.FollowArchive, sent once
+    // the stream does what it asked.
+    message FollowArchiveAck {
+        // The seq of the FollowArchive this answers.
+        uint64 seq = 1;
     }
 
     message StreamError {

@@ -20,6 +20,15 @@ enum ChatType {
     GROUP      = 3;
 }
 
+// ChatFolder is which of a user's two lists of their chats a chat is in, as
+// GetDmChatFeed and GetGroupChatFeed read them. Every chat a user is a member
+// of is in exactly one: ARCHIVED while they have archived it (see
+// ViewerState.Settings.archive), INBOX otherwise.
+enum ChatFolder {
+    INBOX    = 0;
+    ARCHIVED = 1;
+}
+
 message Metadata {
     common.v1.ChatId chat_id = 1 [(validate.rules).message.required = true];
 
@@ -481,7 +490,11 @@ message MetadataUpdate {
         google.protobuf.Timestamp new_last_activity = 1 [(validate.rules).timestamp.required = true];
     }
 
-    // The receiving user's own state for the chat has changed
+    // The receiving user's own state for the chat has changed. Delivered for
+    // a group the user has archived even on a stream not following their
+    // archive, unlike the group's other updates (see Chat.ArchiveChat), so
+    // their devices learn of the archive, its removal and every other change
+    // to their state there.
     message ViewerStateChanged {
         ViewerState viewer_state = 1 [(validate.rules).message.required = true];
     }
@@ -672,6 +685,12 @@ message ViewerState {
         // are still delivered, flagged with push.v1.ChatMetadata.muted, and the
         // client suppresses the notification.
         MuteState mute = 1;
+
+        // Present if and only if the viewer has archived the chat (see
+        // Chat.ArchiveChat), which decides the ChatFolder it is listed in.
+        // Independent of mute: archiving or unarchiving leaves a mute as it
+        // is.
+        ArchiveState archive = 2;
     }
 
     // Permissions are the actions the viewer may take in the chat. Each flag
@@ -779,6 +798,19 @@ message MuteState {
     }
 
     message Forever {}
+}
+
+// ArchiveState is the viewer's archive of a chat (see Chat.ArchiveChat). An
+// archived chat is listed only in the viewer's ARCHIVED ChatFolder and is
+// quiet for them: no push is sent to them for it, it moves no badge, and
+// for a group their event streams carry only what is addressed to them
+// personally, except while a stream follows their archive (see
+// Chat.ArchiveChat). They remain a member in every other respect. An
+// archive lasts until the viewer unarchives the chat (see
+// Chat.UnarchiveChat) or their membership ends.
+message ArchiveState {
+    // When the viewer archived the chat.
+    google.protobuf.Timestamp archived_at = 1 [(validate.rules).timestamp.required = true];
 }
 
 // IdempotencyKey lets a client safely retry a request that creates something.

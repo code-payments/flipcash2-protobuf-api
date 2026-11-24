@@ -43,6 +43,31 @@ proto3.util.setEnumType(ChatType, "flipcash.chat.v1.ChatType", [
 ]);
 
 /**
+ * ChatFolder is which of a user's two lists of their chats a chat is in, as
+ * GetDmChatFeed and GetGroupChatFeed read them. Every chat a user is a member
+ * of is in exactly one: ARCHIVED while they have archived it (see
+ * ViewerState.Settings.archive), INBOX otherwise.
+ *
+ * @generated from enum flipcash.chat.v1.ChatFolder
+ */
+export enum ChatFolder {
+  /**
+   * @generated from enum value: INBOX = 0;
+   */
+  INBOX = 0,
+
+  /**
+   * @generated from enum value: ARCHIVED = 1;
+   */
+  ARCHIVED = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ChatFolder)
+proto3.util.setEnumType(ChatFolder, "flipcash.chat.v1.ChatFolder", [
+  { no: 0, name: "INBOX" },
+  { no: 1, name: "ARCHIVED" },
+]);
+
+/**
  * @generated from message flipcash.chat.v1.Metadata
  */
 export class Metadata extends Message<Metadata> {
@@ -1351,7 +1376,11 @@ export class MetadataUpdate_LastActivityChanged extends Message<MetadataUpdate_L
 }
 
 /**
- * The receiving user's own state for the chat has changed
+ * The receiving user's own state for the chat has changed. Delivered for
+ * a group the user has archived even on a stream not following their
+ * archive, unlike the group's other updates (see Chat.ArchiveChat), so
+ * their devices learn of the archive, its removal and every other change
+ * to their state there.
  *
  * @generated from message flipcash.chat.v1.MetadataUpdate.ViewerStateChanged
  */
@@ -2039,6 +2068,16 @@ export class ViewerState_Settings extends Message<ViewerState_Settings> {
    */
   mute?: MuteState;
 
+  /**
+   * Present if and only if the viewer has archived the chat (see
+   * Chat.ArchiveChat), which decides the ChatFolder it is listed in.
+   * Independent of mute: archiving or unarchiving leaves a mute as it
+   * is.
+   *
+   * @generated from field: flipcash.chat.v1.ArchiveState archive = 2;
+   */
+  archive?: ArchiveState;
+
   constructor(data?: PartialMessage<ViewerState_Settings>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2048,6 +2087,7 @@ export class ViewerState_Settings extends Message<ViewerState_Settings> {
   static readonly typeName = "flipcash.chat.v1.ViewerState.Settings";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "mute", kind: "message", T: MuteState },
+    { no: 2, name: "archive", kind: "message", T: ArchiveState },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ViewerState_Settings {
@@ -2521,6 +2561,54 @@ export class MuteState_Forever extends Message<MuteState_Forever> {
 
   static equals(a: MuteState_Forever | PlainMessage<MuteState_Forever> | undefined, b: MuteState_Forever | PlainMessage<MuteState_Forever> | undefined): boolean {
     return proto3.util.equals(MuteState_Forever, a, b);
+  }
+}
+
+/**
+ * ArchiveState is the viewer's archive of a chat (see Chat.ArchiveChat). An
+ * archived chat is listed only in the viewer's ARCHIVED ChatFolder and is
+ * quiet for them: no push is sent to them for it, it moves no badge, and
+ * for a group their event streams carry only what is addressed to them
+ * personally, except while a stream follows their archive (see
+ * Chat.ArchiveChat). They remain a member in every other respect. An
+ * archive lasts until the viewer unarchives the chat (see
+ * Chat.UnarchiveChat) or their membership ends.
+ *
+ * @generated from message flipcash.chat.v1.ArchiveState
+ */
+export class ArchiveState extends Message<ArchiveState> {
+  /**
+   * When the viewer archived the chat.
+   *
+   * @generated from field: google.protobuf.Timestamp archived_at = 1;
+   */
+  archivedAt?: Timestamp;
+
+  constructor(data?: PartialMessage<ArchiveState>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ArchiveState";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "archived_at", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArchiveState {
+    return new ArchiveState().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ArchiveState {
+    return new ArchiveState().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ArchiveState {
+    return new ArchiveState().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ArchiveState | PlainMessage<ArchiveState> | undefined, b: ArchiveState | PlainMessage<ArchiveState> | undefined): boolean {
+    return proto3.util.equals(ArchiveState, a, b);
   }
 }
 

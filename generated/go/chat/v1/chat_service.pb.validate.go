@@ -411,6 +411,17 @@ func (m *GetDmChatFeedRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if _, ok := _GetDmChatFeedRequest_Folder_InLookup[m.GetFolder()]; !ok {
+		err := GetDmChatFeedRequestValidationError{
+			field:  "Folder",
+			reason: "value must be in list [INBOX ARCHIVED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if m.GetAuth() == nil {
 		err := GetDmChatFeedRequestValidationError{
 			field:  "Auth",
@@ -535,6 +546,11 @@ var _GetDmChatFeedRequest_DmChatType_InLookup = map[ChatType]struct{}{
 	0: {},
 	1: {},
 	2: {},
+}
+
+var _GetDmChatFeedRequest_Folder_InLookup = map[ChatFolder]struct{}{
+	0: {},
+	1: {},
 }
 
 // Validate checks the field values on GetDmChatFeedResponse with the rules
@@ -768,6 +784,17 @@ func (m *GetGroupChatFeedRequest) validate(all bool) error {
 		}
 	}
 
+	if _, ok := _GetGroupChatFeedRequest_Folder_InLookup[m.GetFolder()]; !ok {
+		err := GetGroupChatFeedRequestValidationError{
+			field:  "Folder",
+			reason: "value must be in list [INBOX ARCHIVED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if m.GetAuth() == nil {
 		err := GetGroupChatFeedRequestValidationError{
 			field:  "Auth",
@@ -887,6 +914,11 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetGroupChatFeedRequestValidationError{}
+
+var _GetGroupChatFeedRequest_Folder_InLookup = map[ChatFolder]struct{}{
+	0: {},
+	1: {},
+}
 
 // Validate checks the field values on GetGroupChatFeedResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -4321,6 +4353,665 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UnmuteChatResponseValidationError{}
+
+// Validate checks the field values on ArchiveChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ArchiveChatRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ArchiveChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ArchiveChatRequestMultiError, or nil if none found.
+func (m *ArchiveChatRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ArchiveChatRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := ArchiveChatRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ArchiveChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ArchiveChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ArchiveChatRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := ArchiveChatRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ArchiveChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ArchiveChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ArchiveChatRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ArchiveChatRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ArchiveChatRequestMultiError is an error wrapping multiple validation errors
+// returned by ArchiveChatRequest.ValidateAll() if the designated constraints
+// aren't met.
+type ArchiveChatRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ArchiveChatRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ArchiveChatRequestMultiError) AllErrors() []error { return m }
+
+// ArchiveChatRequestValidationError is the validation error returned by
+// ArchiveChatRequest.Validate if the designated constraints aren't met.
+type ArchiveChatRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ArchiveChatRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ArchiveChatRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ArchiveChatRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ArchiveChatRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ArchiveChatRequestValidationError) ErrorName() string {
+	return "ArchiveChatRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ArchiveChatRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sArchiveChatRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ArchiveChatRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ArchiveChatRequestValidationError{}
+
+// Validate checks the field values on ArchiveChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ArchiveChatResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ArchiveChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ArchiveChatResponseMultiError, or nil if none found.
+func (m *ArchiveChatResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ArchiveChatResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetViewerState()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ArchiveChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ArchiveChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetViewerState()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ArchiveChatResponseValidationError{
+				field:  "ViewerState",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ArchiveChatResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ArchiveChatResponseMultiError is an error wrapping multiple validation
+// errors returned by ArchiveChatResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ArchiveChatResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ArchiveChatResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ArchiveChatResponseMultiError) AllErrors() []error { return m }
+
+// ArchiveChatResponseValidationError is the validation error returned by
+// ArchiveChatResponse.Validate if the designated constraints aren't met.
+type ArchiveChatResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ArchiveChatResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ArchiveChatResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ArchiveChatResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ArchiveChatResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ArchiveChatResponseValidationError) ErrorName() string {
+	return "ArchiveChatResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ArchiveChatResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sArchiveChatResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ArchiveChatResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ArchiveChatResponseValidationError{}
+
+// Validate checks the field values on UnarchiveChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UnarchiveChatRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnarchiveChatRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UnarchiveChatRequestMultiError, or nil if none found.
+func (m *UnarchiveChatRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnarchiveChatRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetChatId() == nil {
+		err := UnarchiveChatRequestValidationError{
+			field:  "ChatId",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetChatId()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnarchiveChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnarchiveChatRequestValidationError{
+					field:  "ChatId",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChatId()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnarchiveChatRequestValidationError{
+				field:  "ChatId",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAuth() == nil {
+		err := UnarchiveChatRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnarchiveChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnarchiveChatRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnarchiveChatRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UnarchiveChatRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UnarchiveChatRequestMultiError is an error wrapping multiple validation
+// errors returned by UnarchiveChatRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UnarchiveChatRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnarchiveChatRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnarchiveChatRequestMultiError) AllErrors() []error { return m }
+
+// UnarchiveChatRequestValidationError is the validation error returned by
+// UnarchiveChatRequest.Validate if the designated constraints aren't met.
+type UnarchiveChatRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnarchiveChatRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnarchiveChatRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnarchiveChatRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnarchiveChatRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnarchiveChatRequestValidationError) ErrorName() string {
+	return "UnarchiveChatRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UnarchiveChatRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnarchiveChatRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnarchiveChatRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnarchiveChatRequestValidationError{}
+
+// Validate checks the field values on UnarchiveChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UnarchiveChatResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UnarchiveChatResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UnarchiveChatResponseMultiError, or nil if none found.
+func (m *UnarchiveChatResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UnarchiveChatResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if all {
+		switch v := interface{}(m.GetViewerState()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnarchiveChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnarchiveChatResponseValidationError{
+					field:  "ViewerState",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetViewerState()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnarchiveChatResponseValidationError{
+				field:  "ViewerState",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetChat()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UnarchiveChatResponseValidationError{
+					field:  "Chat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UnarchiveChatResponseValidationError{
+					field:  "Chat",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetChat()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UnarchiveChatResponseValidationError{
+				field:  "Chat",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UnarchiveChatResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UnarchiveChatResponseMultiError is an error wrapping multiple validation
+// errors returned by UnarchiveChatResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UnarchiveChatResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UnarchiveChatResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UnarchiveChatResponseMultiError) AllErrors() []error { return m }
+
+// UnarchiveChatResponseValidationError is the validation error returned by
+// UnarchiveChatResponse.Validate if the designated constraints aren't met.
+type UnarchiveChatResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UnarchiveChatResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UnarchiveChatResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UnarchiveChatResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UnarchiveChatResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UnarchiveChatResponseValidationError) ErrorName() string {
+	return "UnarchiveChatResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UnarchiveChatResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUnarchiveChatResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UnarchiveChatResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UnarchiveChatResponseValidationError{}
 
 // Validate checks the field values on EnterLobbyRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the

@@ -147,6 +147,48 @@ func (m *StreamEventsRequest) validate(all bool) error {
 			}
 		}
 
+	case *StreamEventsRequest_FollowArchive_:
+		if v == nil {
+			err := StreamEventsRequestValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetFollowArchive()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, StreamEventsRequestValidationError{
+						field:  "FollowArchive",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, StreamEventsRequestValidationError{
+						field:  "FollowArchive",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetFollowArchive()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StreamEventsRequestValidationError{
+					field:  "FollowArchive",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -385,6 +427,48 @@ func (m *StreamEventsResponse) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return StreamEventsResponseValidationError{
 					field:  "Events",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *StreamEventsResponse_FollowArchiveAck_:
+		if v == nil {
+			err := StreamEventsResponseValidationError{
+				field:  "Type",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofTypePresent = true
+
+		if all {
+			switch v := interface{}(m.GetFollowArchiveAck()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, StreamEventsResponseValidationError{
+						field:  "FollowArchiveAck",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, StreamEventsResponseValidationError{
+						field:  "FollowArchiveAck",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetFollowArchiveAck()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return StreamEventsResponseValidationError{
+					field:  "FollowArchiveAck",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -990,6 +1074,115 @@ var _ interface {
 	ErrorName() string
 } = StreamEventsRequest_ParamsValidationError{}
 
+// Validate checks the field values on StreamEventsRequest_FollowArchive with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *StreamEventsRequest_FollowArchive) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StreamEventsRequest_FollowArchive
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// StreamEventsRequest_FollowArchiveMultiError, or nil if none found.
+func (m *StreamEventsRequest_FollowArchive) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StreamEventsRequest_FollowArchive) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Follow
+
+	// no validation rules for Seq
+
+	if len(errors) > 0 {
+		return StreamEventsRequest_FollowArchiveMultiError(errors)
+	}
+
+	return nil
+}
+
+// StreamEventsRequest_FollowArchiveMultiError is an error wrapping multiple
+// validation errors returned by
+// StreamEventsRequest_FollowArchive.ValidateAll() if the designated
+// constraints aren't met.
+type StreamEventsRequest_FollowArchiveMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StreamEventsRequest_FollowArchiveMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StreamEventsRequest_FollowArchiveMultiError) AllErrors() []error { return m }
+
+// StreamEventsRequest_FollowArchiveValidationError is the validation error
+// returned by StreamEventsRequest_FollowArchive.Validate if the designated
+// constraints aren't met.
+type StreamEventsRequest_FollowArchiveValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StreamEventsRequest_FollowArchiveValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StreamEventsRequest_FollowArchiveValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StreamEventsRequest_FollowArchiveValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StreamEventsRequest_FollowArchiveValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StreamEventsRequest_FollowArchiveValidationError) ErrorName() string {
+	return "StreamEventsRequest_FollowArchiveValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e StreamEventsRequest_FollowArchiveValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStreamEventsRequest_FollowArchive.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StreamEventsRequest_FollowArchiveValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StreamEventsRequest_FollowArchiveValidationError{}
+
 // Validate checks the field values on StreamEventsRequest_ChatPreviewParams
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
@@ -1151,6 +1344,113 @@ var _StreamEventsRequest_ChatPreviewParams_ViewMode_InLookup = map[messagingpb.V
 	1: {},
 	2: {},
 }
+
+// Validate checks the field values on StreamEventsResponse_FollowArchiveAck
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *StreamEventsResponse_FollowArchiveAck) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on StreamEventsResponse_FollowArchiveAck
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// StreamEventsResponse_FollowArchiveAckMultiError, or nil if none found.
+func (m *StreamEventsResponse_FollowArchiveAck) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *StreamEventsResponse_FollowArchiveAck) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Seq
+
+	if len(errors) > 0 {
+		return StreamEventsResponse_FollowArchiveAckMultiError(errors)
+	}
+
+	return nil
+}
+
+// StreamEventsResponse_FollowArchiveAckMultiError is an error wrapping
+// multiple validation errors returned by
+// StreamEventsResponse_FollowArchiveAck.ValidateAll() if the designated
+// constraints aren't met.
+type StreamEventsResponse_FollowArchiveAckMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m StreamEventsResponse_FollowArchiveAckMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m StreamEventsResponse_FollowArchiveAckMultiError) AllErrors() []error { return m }
+
+// StreamEventsResponse_FollowArchiveAckValidationError is the validation error
+// returned by StreamEventsResponse_FollowArchiveAck.Validate if the
+// designated constraints aren't met.
+type StreamEventsResponse_FollowArchiveAckValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e StreamEventsResponse_FollowArchiveAckValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e StreamEventsResponse_FollowArchiveAckValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e StreamEventsResponse_FollowArchiveAckValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e StreamEventsResponse_FollowArchiveAckValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e StreamEventsResponse_FollowArchiveAckValidationError) ErrorName() string {
+	return "StreamEventsResponse_FollowArchiveAckValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e StreamEventsResponse_FollowArchiveAckValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sStreamEventsResponse_FollowArchiveAck.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = StreamEventsResponse_FollowArchiveAckValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = StreamEventsResponse_FollowArchiveAckValidationError{}
 
 // Validate checks the field values on StreamEventsResponse_StreamError with
 // the rules defined in the proto definition for this message. If any rules

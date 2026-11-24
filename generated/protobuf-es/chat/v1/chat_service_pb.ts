@@ -7,7 +7,7 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 import { Auth, ChatId, PagingToken, PublicKey, QueryOptions, UserId, Username } from "../../common/v1/common_pb";
 import { MessageId, ViewMode } from "../../messaging/v1/model_pb";
-import { ChatType, IdempotencyKey, Invite, Invite_Status, InviteId, InviteKeyEnvelope, InviteSecretEnvelope, InviteToken, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, Pin, PinSummary, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
+import { ChatFolder, ChatType, IdempotencyKey, Invite, Invite_Status, InviteId, InviteKeyEnvelope, InviteSecretEnvelope, InviteToken, KeyEnvelope, Lobby, LobbyMember, Member, MentionSuggestion, Metadata, MuteState, Pin, PinSummary, RestrictedUser, RosterSummary, Rules, SampledChatter, SilenceState, ViewerState } from "./model_pb";
 import { BlobId } from "../../blob/v1/model_pb";
 import { FlaggedCategory } from "../../moderation/v1/model_pb";
 
@@ -172,6 +172,15 @@ export class GetDmChatFeedRequest extends Message<GetDmChatFeedRequest> {
   dmChatType = ChatType.UNKNOWN;
 
   /**
+   * Which of the caller's DMs to list (see Chat.GetDmChatFeed). Unset is
+   * INBOX. A paging token is valid only for the folder it was minted
+   * for.
+   *
+   * @generated from field: flipcash.chat.v1.ChatFolder folder = 3;
+   */
+  folder = ChatFolder.INBOX;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -186,6 +195,7 @@ export class GetDmChatFeedRequest extends Message<GetDmChatFeedRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "query_options", kind: "message", T: QueryOptions },
     { no: 2, name: "dm_chat_type", kind: "enum", T: proto3.getEnumType(ChatType) },
+    { no: 3, name: "folder", kind: "enum", T: proto3.getEnumType(ChatFolder) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -323,6 +333,15 @@ export class GetGroupChatFeedRequest extends Message<GetGroupChatFeedRequest> {
   queryOptions?: QueryOptions;
 
   /**
+   * Which of the caller's groups to list (see Chat.GetGroupChatFeed). Unset
+   * is INBOX. A paging token is valid only for the folder it was minted
+   * for.
+   *
+   * @generated from field: flipcash.chat.v1.ChatFolder folder = 2;
+   */
+  folder = ChatFolder.INBOX;
+
+  /**
    * @generated from field: flipcash.common.v1.Auth auth = 10;
    */
   auth?: Auth;
@@ -336,6 +355,7 @@ export class GetGroupChatFeedRequest extends Message<GetGroupChatFeedRequest> {
   static readonly typeName = "flipcash.chat.v1.GetGroupChatFeedRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "query_options", kind: "message", T: QueryOptions },
+    { no: 2, name: "folder", kind: "enum", T: proto3.getEnumType(ChatFolder) },
     { no: 10, name: "auth", kind: "message", T: Auth },
   ]);
 
@@ -2180,6 +2200,253 @@ export enum UnmuteChatResponse_Result {
 }
 // Retrieve enum metadata with: proto3.getEnumType(UnmuteChatResponse_Result)
 proto3.util.setEnumType(UnmuteChatResponse_Result, "flipcash.chat.v1.UnmuteChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.ArchiveChatRequest
+ */
+export class ArchiveChatRequest extends Message<ArchiveChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<ArchiveChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ArchiveChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArchiveChatRequest {
+    return new ArchiveChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ArchiveChatRequest {
+    return new ArchiveChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ArchiveChatRequest {
+    return new ArchiveChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ArchiveChatRequest | PlainMessage<ArchiveChatRequest> | undefined, b: ArchiveChatRequest | PlainMessage<ArchiveChatRequest> | undefined): boolean {
+    return proto3.util.equals(ArchiveChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.ArchiveChatResponse
+ */
+export class ArchiveChatResponse extends Message<ArchiveChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.ArchiveChatResponse.Result result = 1;
+   */
+  result = ArchiveChatResponse_Result.OK;
+
+  /**
+   * The caller's state for the chat after the write, its
+   * settings.archive set, so the client can apply it at its version. Set
+   * only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 2;
+   */
+  viewerState?: ViewerState;
+
+  constructor(data?: PartialMessage<ArchiveChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.ArchiveChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(ArchiveChatResponse_Result) },
+    { no: 2, name: "viewer_state", kind: "message", T: ViewerState },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ArchiveChatResponse {
+    return new ArchiveChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ArchiveChatResponse {
+    return new ArchiveChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ArchiveChatResponse {
+    return new ArchiveChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ArchiveChatResponse | PlainMessage<ArchiveChatResponse> | undefined, b: ArchiveChatResponse | PlainMessage<ArchiveChatResponse> | undefined): boolean {
+    return proto3.util.equals(ArchiveChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.ArchiveChatResponse.Result
+ */
+export enum ArchiveChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not a member
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(ArchiveChatResponse_Result)
+proto3.util.setEnumType(ArchiveChatResponse_Result, "flipcash.chat.v1.ArchiveChatResponse.Result", [
+  { no: 0, name: "OK" },
+  { no: 1, name: "DENIED" },
+  { no: 2, name: "NOT_FOUND" },
+]);
+
+/**
+ * @generated from message flipcash.chat.v1.UnarchiveChatRequest
+ */
+export class UnarchiveChatRequest extends Message<UnarchiveChatRequest> {
+  /**
+   * @generated from field: flipcash.common.v1.ChatId chat_id = 1;
+   */
+  chatId?: ChatId;
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<UnarchiveChatRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnarchiveChatRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "chat_id", kind: "message", T: ChatId },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnarchiveChatRequest {
+    return new UnarchiveChatRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnarchiveChatRequest {
+    return new UnarchiveChatRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnarchiveChatRequest {
+    return new UnarchiveChatRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnarchiveChatRequest | PlainMessage<UnarchiveChatRequest> | undefined, b: UnarchiveChatRequest | PlainMessage<UnarchiveChatRequest> | undefined): boolean {
+    return proto3.util.equals(UnarchiveChatRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.chat.v1.UnarchiveChatResponse
+ */
+export class UnarchiveChatResponse extends Message<UnarchiveChatResponse> {
+  /**
+   * @generated from field: flipcash.chat.v1.UnarchiveChatResponse.Result result = 1;
+   */
+  result = UnarchiveChatResponse_Result.OK;
+
+  /**
+   * The caller's state for the chat after the write, its
+   * settings.archive unset, so the client can apply it at its version. Set
+   * only when result == OK.
+   *
+   * @generated from field: flipcash.chat.v1.ViewerState viewer_state = 2;
+   */
+  viewerState?: ViewerState;
+
+  /**
+   * The chat's metadata as seen by the caller, as GetChat returns it, so
+   * the client can show the chat again without a separate read; its
+   * viewer_state is the same as viewer_state's. Set only when result ==
+   * OK, a no-op included.
+   *
+   * @generated from field: flipcash.chat.v1.Metadata chat = 3;
+   */
+  chat?: Metadata;
+
+  constructor(data?: PartialMessage<UnarchiveChatResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.chat.v1.UnarchiveChatResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(UnarchiveChatResponse_Result) },
+    { no: 2, name: "viewer_state", kind: "message", T: ViewerState },
+    { no: 3, name: "chat", kind: "message", T: Metadata },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnarchiveChatResponse {
+    return new UnarchiveChatResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnarchiveChatResponse {
+    return new UnarchiveChatResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnarchiveChatResponse {
+    return new UnarchiveChatResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnarchiveChatResponse | PlainMessage<UnarchiveChatResponse> | undefined, b: UnarchiveChatResponse | PlainMessage<UnarchiveChatResponse> | undefined): boolean {
+    return proto3.util.equals(UnarchiveChatResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.chat.v1.UnarchiveChatResponse.Result
+ */
+export enum UnarchiveChatResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+
+  /**
+   * Caller is not a member
+   *
+   * @generated from enum value: DENIED = 1;
+   */
+  DENIED = 1,
+
+  /**
+   * @generated from enum value: NOT_FOUND = 2;
+   */
+  NOT_FOUND = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(UnarchiveChatResponse_Result)
+proto3.util.setEnumType(UnarchiveChatResponse_Result, "flipcash.chat.v1.UnarchiveChatResponse.Result", [
   { no: 0, name: "OK" },
   { no: 1, name: "DENIED" },
   { no: 2, name: "NOT_FOUND" },

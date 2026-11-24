@@ -32,6 +32,14 @@ type EventStreamingClient interface {
 	//
 	//   - With no target set, every event addressed to the signing user, across
 	//     all of their events. This stream lives until either side closes it.
+	//     For a group chat the user has archived (see
+	//     chat.v1.Chat.ArchiveChat) it carries only what is addressed to the
+	//     user personally, such as the MetadataUpdate.ViewerStateChanged of a
+	//     change to their own state there and the RosterUpdate.MemberLeft of
+	//     their own departure, unless the client has asked it to follow the
+	//     user's archive (see StreamEventsRequest.FollowArchive), and then it
+	//     carries the group's updates like any other's. What it did not carry
+	//     is not replayed. An archived DM is carried like any other DM.
 	//   - With chat_preview set, ChatUpdate for that single group chat, under
 	//     a messaging.v1.ViewMode, and nothing else, for a bounded window of
 	//     time. This is how a viewer who is not a member of a group — and so is
@@ -90,6 +98,14 @@ type EventStreamingServer interface {
 	//
 	//   - With no target set, every event addressed to the signing user, across
 	//     all of their events. This stream lives until either side closes it.
+	//     For a group chat the user has archived (see
+	//     chat.v1.Chat.ArchiveChat) it carries only what is addressed to the
+	//     user personally, such as the MetadataUpdate.ViewerStateChanged of a
+	//     change to their own state there and the RosterUpdate.MemberLeft of
+	//     their own departure, unless the client has asked it to follow the
+	//     user's archive (see StreamEventsRequest.FollowArchive), and then it
+	//     carries the group's updates like any other's. What it did not carry
+	//     is not replayed. An archived DM is carried like any other DM.
 	//   - With chat_preview set, ChatUpdate for that single group chat, under
 	//     a messaging.v1.ViewMode, and nothing else, for a bounded window of
 	//     time. This is how a viewer who is not a member of a group — and so is
