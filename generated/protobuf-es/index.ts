@@ -6,6 +6,8 @@ export * as KycCoinbase from './kyc/coinbase/v1';
 export * as KycCoinbase from './kyc/coinbase/v1';
 export * as Chat from './chat/v1';
 export * as Chat from './chat/v1';
+export * as BankPlaid from './bank/plaid/v1';
+export * as BankPlaid from './bank/plaid/v1';
 export * as Activity from './activity/v1';
 export * as Activity from './activity/v1';
 export * as Blocklist from './blocklist/v1';

@@ -33,7 +33,7 @@ Notes on the Makefile:
 **TypeScript** (`build/protobuf-es/`): `node:16-bookworm` image with `@bufbuild/protoc-gen-es` (v1.10.1) and `@bufbuild/protoc-gen-connect-es` (the legacy `@bufbuild/connect` packages, not `@connectrpc`). Emits `*_pb.ts` and `*_connect.ts` with `target=ts`, then post-processes:
 1. Strips `.js` from `import ... _pb.js` lines.
 2. Appends `export * from './<file>'` to an `index.ts` in each generated directory.
-3. Appends `export * as {Domain} from './{domain}/v1'` to the root `generated/protobuf-es/index.ts`. The namespace is every directory above the version, each with its first letter capitalized, so `poll/v1` exports as `Poll` and the nested `kyc/coinbase/v1` as `KycCoinbase`.
+3. Appends `export * as {Domain} from './{domain}/v1'` to the root `generated/protobuf-es/index.ts`. The namespace is every directory above the version, each with its first letter capitalized, so `poll/v1` exports as `Poll`, and the nested `kyc/coinbase/v1` as `KycCoinbase` and `bank/plaid/v1` as `BankPlaid`.
 
 Known quirk: step 3 runs once per proto file, so domains with both a service and a model file get a duplicate `export * as X` line in the root `index.ts`. This is how the generator behaves today; don't hand-edit `generated/` to fix it.
 
@@ -44,7 +44,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 ## Repository Layout
 
 - `proto/{domain}/v1/` – one directory per domain. Services live in `{name}_service.proto`; shared message types live in `model.proto`. Some domains only have one or the other.
-- `proto/kyc/{provider}/v1/` – the one nested domain: identity verification has a directory and a package per outside provider (`flipcash.kyc.{provider}.v1`; today only `coinbase`), and providers share no messages, since each package models its provider's own vocabulary. Generated code nests the same way (`generated/go/kyc/coinbase/v1/`, Go package `kyccoinbasepb`).
+- `proto/{area}/{provider}/v1/` – nested per-provider domains: an area built on an outside provider has a directory and a package per provider (`flipcash.{area}.{provider}.v1`). Today these are identity verification (`kyc/coinbase`) and bank linking (`bank/plaid`). Providers share no messages, since each package models its provider's own vocabulary. Generated code nests the same way (`generated/go/kyc/coinbase/v1/`, Go package `kyccoinbasepb`; `generated/go/bank/plaid/v1/`, Go package `bankplaidpb`).
 - `generated/go/{domain}/v1/` – Go package `{domain}pb`.
 - `generated/protobuf-es/{domain}/v1/` – TypeScript, plus barrel `index.ts` files.
 - `build/go/`, `build/protobuf-es/` – Dockerfile + `generate.sh` for each generator.
@@ -56,6 +56,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 |---|---|---|
 | account | `Account` | Register, Login, user flags |
 | activity | `ActivityFeed` | Notification feed: latest, paged, batch |
+| bank/plaid | `Bank` | Linking US bank accounts through Plaid (`StartBankLink`, `CompleteBankLink`, `ListBankLinks`, `StartBankUpdate`, `CompleteBankUpdate`, `RemoveBankLink`); one link per bank; nested per provider |
 | blob | `BlobStorage` | Direct-to-storage uploads via presigned targets, blob status, download URLs; clients upload ORIGINALs only |
 | blocklist | `Blocklist` | Block/unblock, IsBlocked, paged blocklist |
 | chat | `Chat` | Chat metadata, DM and group feeds, group lifecycle and rules, private groups (key envelopes, lobby, invite links), moderation, featured groups, pinned messages |
@@ -66,7 +67,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | event | `EventStreaming` | Bidirectional `StreamEvents`; internal `ForwardEvents` |
 | iap | `Iap` | In-app purchase completion |
 | intent | none | App metadata attached to payment intents (chat and group payments, reaction boosts, payment request payments, returns); travels as bytes |
-| kyc/coinbase | `Kyc` | Identity verification with Coinbase (`GetKycState`, `StartKyc`, `SubmitKyc`); the only nested domain |
+| kyc/coinbase | `Kyc` | Identity verification with Coinbase (`GetKycState`, `StartKyc`, `SubmitKyc`); nested per provider |
 | messaging | `Messaging` | Messages, reactions and boosts, `GetDelta`, pointers, typing, cash message return status |
 | moderation | `Moderation` | Text/image moderation with attestations; `FlaggedCategory` reused elsewhere |
 | paymentrequest | `PaymentRequest` | Payment requests in group chats (layered kind → type: a `Split` or a `Collection`), payers |
@@ -79,7 +80,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | settings | `Settings` | UpdateSettings |
 | thirdparty | `ThirdParty` | GetJwt |
 
-Each domain's package is `flipcash.{domain}.v1` (`flipcash.kyc.coinbase.v1` for KYC). The proto files' own doc comments are the contract; read them for semantics.
+Each domain's package is `flipcash.{domain}.v1` (`flipcash.{area}.{provider}.v1` for a nested domain, e.g. `flipcash.kyc.coinbase.v1`). The proto files' own doc comments are the contract; read them for semantics.
 
 Cross-domain model dependencies form these layers (each imports the ones before it):
 
@@ -87,7 +88,7 @@ Cross-domain model dependencies form these layers (each imports the ones before 
 common → moderation → { blob, poll, paymentrequest } → { profile, messaging } → { chat, reporting } → { event, push, community }
 ```
 
-`intent` and `activity` import `messaging` and `paymentrequest`, and nothing imports them. `kyc/coinbase` imports only `common`. **A lower layer must not import a higher one**, or Go gets an import cycle; check a new import against the layers above (`grep -r '^import' proto` shows the current graph).
+`intent` and `activity` import `messaging` and `paymentrequest`, and nothing imports them. `kyc/coinbase` and `bank/plaid` import only `common`. **A lower layer must not import a higher one**, or Go gets an import cycle; check a new import against the layers above (`grep -r '^import' proto` shows the current graph).
 
 ## Proto Conventions
 
@@ -163,7 +164,7 @@ All constrained fields carry `validate/validate.proto` rules (`protoc-gen-valida
 4. Run `make`. The generators discover files with `find`, so no Makefile or script change is needed.
 5. Add the service to the list in `README.md`.
 
-A new identity verification provider is a new package beside `kyc/coinbase`, not a change to it: `proto/kyc/{provider}/v1/`, `package flipcash.kyc.{provider}.v1`, and file options with both directories in path order (`.../generated/go/kyc/{provider}/v1;kyc{provider}pb`, `com.codeinc.flipcash.gen.kyc.{provider}.v1`, `FPBKyc{Provider}V1`).
+A new provider for a nested area (identity verification, bank linking) is a new package beside the existing ones, not a change to them: `proto/{area}/{provider}/v1/`, `package flipcash.{area}.{provider}.v1`, and file options with both directories in path order (`.../generated/go/{area}/{provider}/v1;{area}{provider}pb`, `com.codeinc.flipcash.gen.{area}.{provider}.v1`, `FPB{Area}{Provider}V1`), as `kyc/coinbase` and `bank/plaid` do.
 
 ### Breaking changes
 
