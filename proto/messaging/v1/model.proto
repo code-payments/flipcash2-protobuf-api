@@ -74,7 +74,9 @@ message Message {
     // value — they  carry the previous count forward, so every message reports
     // the running total. A member's unread count is computed entirely on the
     // client as the difference between the latest message's unread_seq and the
-    // unread_seq of the message at their READ pointer.
+    // unread_seq of the message at their READ pointer, which the pointer
+    // usually carries (see Pointer.unread_seq). A message's unread_seq never
+    // changes once it is sent; edits and deletes leave it as it was.
     uint64 unread_seq = 5;
 
     // If set, the timestamp this message was last edited at. Absent on messages
@@ -1022,6 +1024,45 @@ message Pointer {
 
     // Timestamp the pointer was last advanced at
     google.protobuf.Timestamp ts = 4 [(validate.rules).timestamp.required = true];
+
+    // The unread_seq of the message at value (see Message.unread_seq), so a
+    // client computes the member's unread count from the chat's latest message
+    // and this pointer alone, without fetching the message at value.
+    //
+    // Set only on a READ pointer, and only when the server recorded it with
+    // the pointer's current value: absent on a pointer last advanced before
+    // the server began recording it, and in the rare case the record does not
+    // match the pointer, until the pointer next advances. Never set on a
+    // DELIVERED pointer. A client works out a chat's unread count in order:
+    //  1. No READ pointer at all (a member who has neither read nor sent in
+    //     the chat): every message counting toward unread is unread, the
+    //     latest message's unread_seq.
+    //  2. A READ pointer at or past the latest message: nothing is unread.
+    //  3. Otherwise, with unread_seq set: the latest message's unread_seq
+    //     minus this value.
+    //  4. Otherwise: the latest message's unread_seq minus that of the message
+    //     at value, fetched.
+    //
+    // value and unread_seq are one state and move together: a client keeps
+    // both from the same Pointer, never the highest value from one copy and
+    // an unread_seq from another. A copy whose value is higher than the one
+    // held replaces both, so one without unread_seq (written by a server that
+    // did not record it) clears the unread_seq held; a copy whose value is
+    // not higher is ignored whole, however late it arrives.
+    //
+    // A client advancing its own READ pointer learns of it from no Pointer in
+    // a group: AdvancePointerResponse carries none, and a group's pointer
+    // advances are published to no one. It sets its pointer's value and
+    // unread_seq itself, from the message it advanced to, which is what the
+    // server records.
+    UnreadSequence unread_seq = 5;
+}
+
+// UnreadSequence is a message's unread_seq (see Message.unread_seq), wrapped
+// so its absence is told apart from a real 0: a pointer at a message that
+// precedes every message counting toward unread carries 0.
+message UnreadSequence {
+    uint64 value = 1;
 }
 
 message MessageIdBatch {

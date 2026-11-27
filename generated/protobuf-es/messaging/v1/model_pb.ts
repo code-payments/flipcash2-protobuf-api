@@ -221,7 +221,9 @@ export class Message extends Message$1<Message> {
    * value — they  carry the previous count forward, so every message reports
    * the running total. A member's unread count is computed entirely on the
    * client as the difference between the latest message's unread_seq and the
-   * unread_seq of the message at their READ pointer.
+   * unread_seq of the message at their READ pointer, which the pointer
+   * usually carries (see Pointer.unread_seq). A message's unread_seq never
+   * changes once it is sent; edits and deletes leave it as it was.
    *
    * @generated from field: uint64 unread_seq = 5;
    */
@@ -2445,6 +2447,42 @@ export class Pointer extends Message$1<Pointer> {
    */
   ts?: Timestamp;
 
+  /**
+   * The unread_seq of the message at value (see Message.unread_seq), so a
+   * client computes the member's unread count from the chat's latest message
+   * and this pointer alone, without fetching the message at value.
+   *
+   * Set only on a READ pointer, and only when the server recorded it with
+   * the pointer's current value: absent on a pointer last advanced before
+   * the server began recording it, and in the rare case the record does not
+   * match the pointer, until the pointer next advances. Never set on a
+   * DELIVERED pointer. A client works out a chat's unread count in order:
+   *  1. No READ pointer at all (a member who has neither read nor sent in
+   *     the chat): every message counting toward unread is unread, the
+   *     latest message's unread_seq.
+   *  2. A READ pointer at or past the latest message: nothing is unread.
+   *  3. Otherwise, with unread_seq set: the latest message's unread_seq
+   *     minus this value.
+   *  4. Otherwise: the latest message's unread_seq minus that of the message
+   *     at value, fetched.
+   *
+   * value and unread_seq are one state and move together: a client keeps
+   * both from the same Pointer, never the highest value from one copy and
+   * an unread_seq from another. A copy whose value is higher than the one
+   * held replaces both, so one without unread_seq (written by a server that
+   * did not record it) clears the unread_seq held; a copy whose value is
+   * not higher is ignored whole, however late it arrives.
+   *
+   * A client advancing its own READ pointer learns of it from no Pointer in
+   * a group: AdvancePointerResponse carries none, and a group's pointer
+   * advances are published to no one. It sets its pointer's value and
+   * unread_seq itself, from the message it advanced to, which is what the
+   * server records.
+   *
+   * @generated from field: flipcash.messaging.v1.UnreadSequence unread_seq = 5;
+   */
+  unreadSeq?: UnreadSequence;
+
   constructor(data?: PartialMessage<Pointer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2457,6 +2495,7 @@ export class Pointer extends Message$1<Pointer> {
     { no: 2, name: "user_id", kind: "message", T: UserId },
     { no: 3, name: "value", kind: "message", T: MessageId },
     { no: 4, name: "ts", kind: "message", T: Timestamp },
+    { no: 5, name: "unread_seq", kind: "message", T: UnreadSequence },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Pointer {
@@ -2509,6 +2548,47 @@ proto3.util.setEnumType(Pointer_Type, "flipcash.messaging.v1.Pointer.Type", [
   { no: 2, name: "DELIVERED" },
   { no: 3, name: "READ" },
 ]);
+
+/**
+ * UnreadSequence is a message's unread_seq (see Message.unread_seq), wrapped
+ * so its absence is told apart from a real 0: a pointer at a message that
+ * precedes every message counting toward unread carries 0.
+ *
+ * @generated from message flipcash.messaging.v1.UnreadSequence
+ */
+export class UnreadSequence extends Message$1<UnreadSequence> {
+  /**
+   * @generated from field: uint64 value = 1;
+   */
+  value = protoInt64.zero;
+
+  constructor(data?: PartialMessage<UnreadSequence>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.messaging.v1.UnreadSequence";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnreadSequence {
+    return new UnreadSequence().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnreadSequence {
+    return new UnreadSequence().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnreadSequence {
+    return new UnreadSequence().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnreadSequence | PlainMessage<UnreadSequence> | undefined, b: UnreadSequence | PlainMessage<UnreadSequence> | undefined): boolean {
+    return proto3.util.equals(UnreadSequence, a, b);
+  }
+}
 
 /**
  * @generated from message flipcash.messaging.v1.MessageIdBatch
