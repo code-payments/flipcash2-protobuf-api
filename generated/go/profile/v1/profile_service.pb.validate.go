@@ -403,6 +403,342 @@ var _ interface {
 	ErrorName() string
 } = GetProfileResponseValidationError{}
 
+// Validate checks the field values on GetProfilesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetProfilesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetProfilesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetProfilesRequestMultiError, or nil if none found.
+func (m *GetProfilesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetProfilesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetUserIds()); l < 1 || l > 100 {
+		err := GetProfilesRequestValidationError{
+			field:  "UserIds",
+			reason: "value must contain between 1 and 100 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetUserIds() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetProfilesRequestValidationError{
+						field:  fmt.Sprintf("UserIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetProfilesRequestValidationError{
+						field:  fmt.Sprintf("UserIds[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetProfilesRequestValidationError{
+					field:  fmt.Sprintf("UserIds[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.GetAuth() == nil {
+		err := GetProfilesRequestValidationError{
+			field:  "Auth",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetAuth()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetProfilesRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetProfilesRequestValidationError{
+					field:  "Auth",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuth()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetProfilesRequestValidationError{
+				field:  "Auth",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetProfilesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetProfilesRequestMultiError is an error wrapping multiple validation errors
+// returned by GetProfilesRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetProfilesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetProfilesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetProfilesRequestMultiError) AllErrors() []error { return m }
+
+// GetProfilesRequestValidationError is the validation error returned by
+// GetProfilesRequest.Validate if the designated constraints aren't met.
+type GetProfilesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetProfilesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetProfilesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetProfilesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetProfilesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetProfilesRequestValidationError) ErrorName() string {
+	return "GetProfilesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetProfilesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetProfilesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetProfilesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetProfilesRequestValidationError{}
+
+// Validate checks the field values on GetProfilesResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetProfilesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetProfilesResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetProfilesResponseMultiError, or nil if none found.
+func (m *GetProfilesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetProfilesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Result
+
+	if len(m.GetUserProfiles()) > 100 {
+		err := GetProfilesResponseValidationError{
+			field:  "UserProfiles",
+			reason: "value must contain no more than 100 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetUserProfiles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetProfilesResponseValidationError{
+						field:  fmt.Sprintf("UserProfiles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetProfilesResponseValidationError{
+						field:  fmt.Sprintf("UserProfiles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetProfilesResponseValidationError{
+					field:  fmt.Sprintf("UserProfiles[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetProfilesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetProfilesResponseMultiError is an error wrapping multiple validation
+// errors returned by GetProfilesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetProfilesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetProfilesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetProfilesResponseMultiError) AllErrors() []error { return m }
+
+// GetProfilesResponseValidationError is the validation error returned by
+// GetProfilesResponse.Validate if the designated constraints aren't met.
+type GetProfilesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetProfilesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetProfilesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetProfilesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetProfilesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetProfilesResponseValidationError) ErrorName() string {
+	return "GetProfilesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetProfilesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetProfilesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetProfilesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetProfilesResponseValidationError{}
+
 // Validate checks the field values on SetDisplayNameRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

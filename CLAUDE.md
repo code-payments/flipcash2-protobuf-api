@@ -72,7 +72,7 @@ Known quirk: step 3 runs once per proto file, so domains with both a service and
 | paymentrequest | `PaymentRequest` | Payment requests in group chats (layered kind → type: a `Split` or a `Collection`), payers |
 | phone | `PhoneVerification` | Verification codes, unlink, link for payment |
 | poll | `Poll` | Polls in group chats |
-| profile | `Profile` | Display name, username, pictures, bio, Flipcard, DM fee, social links |
+| profile | `Profile` | One profile in full, or a batch as row profiles (`GetProfiles`); display name, username, pictures, bio, Flipcard, DM fee, social links |
 | push | `Push` | Token registration; `Payload` models |
 | reporting | `Reporting` | Report a user, chat, message, or blob |
 | resolver | `Resolver` | Phone number / username to payment destination |

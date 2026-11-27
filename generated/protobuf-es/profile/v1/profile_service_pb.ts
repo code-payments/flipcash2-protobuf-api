@@ -140,6 +140,122 @@ proto3.util.setEnumType(GetProfileResponse_Result, "flipcash.profile.v1.GetProfi
 ]);
 
 /**
+ * @generated from message flipcash.profile.v1.GetProfilesRequest
+ */
+export class GetProfilesRequest extends Message<GetProfilesRequest> {
+  /**
+   * The users whose profiles are being fetched. A user named more than once
+   * is answered once.
+   *
+   * @generated from field: repeated flipcash.common.v1.UserId user_ids = 1;
+   */
+  userIds: UserId[] = [];
+
+  /**
+   * @generated from field: flipcash.common.v1.Auth auth = 10;
+   */
+  auth?: Auth;
+
+  constructor(data?: PartialMessage<GetProfilesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.GetProfilesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_ids", kind: "message", T: UserId, repeated: true },
+    { no: 10, name: "auth", kind: "message", T: Auth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetProfilesRequest {
+    return new GetProfilesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetProfilesRequest {
+    return new GetProfilesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetProfilesRequest {
+    return new GetProfilesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetProfilesRequest | PlainMessage<GetProfilesRequest> | undefined, b: GetProfilesRequest | PlainMessage<GetProfilesRequest> | undefined): boolean {
+    return proto3.util.equals(GetProfilesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message flipcash.profile.v1.GetProfilesResponse
+ */
+export class GetProfilesResponse extends Message<GetProfilesResponse> {
+  /**
+   * @generated from field: flipcash.profile.v1.GetProfilesResponse.Result result = 1;
+   */
+  result = GetProfilesResponse_Result.OK;
+
+  /**
+   * The profile of each requested user the server knows, once per user, in
+   * the order the request first names them. A user the server does not know
+   * is left out, so a client can tell an unknown user from one who has
+   * filled in nothing: a returned profile always carries its user_id,
+   * join_ts and flipcard_customization.
+   *
+   * Each profile carries only what a row showing the user needs: user_id,
+   * display_name, username, profile_picture (its renditions resolved, as on
+   * GetProfile), join_ts and flipcard_customization. Every other field is
+   * unset, the caller's own private fields included when the caller is
+   * among the users: the bio, cover picture, social profiles and minimum DM
+   * chat initialization fee are read with GetProfile.
+   *
+   * @generated from field: repeated flipcash.profile.v1.UserProfile user_profiles = 2;
+   */
+  userProfiles: UserProfile[] = [];
+
+  constructor(data?: PartialMessage<GetProfilesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "flipcash.profile.v1.GetProfilesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "result", kind: "enum", T: proto3.getEnumType(GetProfilesResponse_Result) },
+    { no: 2, name: "user_profiles", kind: "message", T: UserProfile, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetProfilesResponse {
+    return new GetProfilesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetProfilesResponse {
+    return new GetProfilesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetProfilesResponse {
+    return new GetProfilesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetProfilesResponse | PlainMessage<GetProfilesResponse> | undefined, b: GetProfilesResponse | PlainMessage<GetProfilesResponse> | undefined): boolean {
+    return proto3.util.equals(GetProfilesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from enum flipcash.profile.v1.GetProfilesResponse.Result
+ */
+export enum GetProfilesResponse_Result {
+  /**
+   * @generated from enum value: OK = 0;
+   */
+  OK = 0,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GetProfilesResponse_Result)
+proto3.util.setEnumType(GetProfilesResponse_Result, "flipcash.profile.v1.GetProfilesResponse.Result", [
+  { no: 0, name: "OK" },
+]);
+
+/**
  * @generated from message flipcash.profile.v1.SetDisplayNameRequest
  */
 export class SetDisplayNameRequest extends Message<SetDisplayNameRequest> {

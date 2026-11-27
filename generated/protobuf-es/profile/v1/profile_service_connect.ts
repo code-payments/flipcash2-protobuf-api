@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetProfileRequest, GetProfileResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetBioRequest, SetBioResponse, SetCoverPictureRequest, SetCoverPictureResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateFlipcardRequest, UpdateFlipcardResponse } from "./profile_service_pb";
+import { GetProfileRequest, GetProfileResponse, GetProfilesRequest, GetProfilesResponse, LinkSocialAccountRequest, LinkSocialAccountResponse, SetBioRequest, SetBioResponse, SetCoverPictureRequest, SetCoverPictureResponse, SetDisplayNameRequest, SetDisplayNameResponse, SetMinDmChatInitFeeRequest, SetMinDmChatInitFeeResponse, SetProfilePictureRequest, SetProfilePictureResponse, SetUsernameRequest, SetUsernameResponse, UnlinkSocialAccountRequest, UnlinkSocialAccountResponse, UpdateFlipcardRequest, UpdateFlipcardResponse } from "./profile_service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -19,6 +19,24 @@ export const Profile = {
       name: "GetProfile",
       I: GetProfileRequest,
       O: GetProfileResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * GetProfiles gets the profiles of a batch of users in one call, as a row
+     * showing each of them needs: the projection a chat member row, a roster
+     * page or a mention suggestion carries (see
+     * GetProfilesResponse.user_profiles). It is for a client that must name
+     * many users at once, such as the senders of a page of group messages, and
+     * would otherwise call GetProfile once per user. GetProfile remains the
+     * read for a user's profile view, and the only one carrying the fields a
+     * row leaves out.
+     *
+     * @generated from rpc flipcash.profile.v1.Profile.GetProfiles
+     */
+    getProfiles: {
+      name: "GetProfiles",
+      I: GetProfilesRequest,
+      O: GetProfilesResponse,
       kind: MethodKind.Unary,
     },
     /**

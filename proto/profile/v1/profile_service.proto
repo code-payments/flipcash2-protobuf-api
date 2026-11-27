@@ -15,6 +15,16 @@ import "validate/validate.proto";
 service Profile {
 	rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
 
+	// GetProfiles gets the profiles of a batch of users in one call, as a row
+	// showing each of them needs: the projection a chat member row, a roster
+	// page or a mention suggestion carries (see
+	// GetProfilesResponse.user_profiles). It is for a client that must name
+	// many users at once, such as the senders of a page of group messages, and
+	// would otherwise call GetProfile once per user. GetProfile remains the
+	// read for a user's profile view, and the only one carrying the fields a
+	// row leaves out.
+	rpc GetProfiles(GetProfilesRequest) returns (GetProfilesResponse);
+
 	rpc SetDisplayName(SetDisplayNameRequest) returns (SetDisplayNameResponse);
 
 	// SetUsername sets the caller's username, replacing any username already
@@ -86,6 +96,41 @@ message GetProfileResponse {
 	// Some fields may or may not be set, depending on the scope of request
 	// in the future.
 	UserProfile user_profile = 2;
+}
+
+message GetProfilesRequest {
+	// The users whose profiles are being fetched. A user named more than once
+	// is answered once.
+	repeated common.v1.UserId user_ids = 1 [(validate.rules).repeated = {
+		min_items: 1
+		max_items: 100
+	}];
+
+	common.v1.Auth auth = 10 [(validate.rules).message.required = true];
+}
+
+message GetProfilesResponse {
+	Result result = 1;
+	enum Result {
+		OK = 0;
+	}
+
+	// The profile of each requested user the server knows, once per user, in
+	// the order the request first names them. A user the server does not know
+	// is left out, so a client can tell an unknown user from one who has
+	// filled in nothing: a returned profile always carries its user_id,
+	// join_ts and flipcard_customization.
+	//
+	// Each profile carries only what a row showing the user needs: user_id,
+	// display_name, username, profile_picture (its renditions resolved, as on
+	// GetProfile), join_ts and flipcard_customization. Every other field is
+	// unset, the caller's own private fields included when the caller is
+	// among the users: the bio, cover picture, social profiles and minimum DM
+	// chat initialization fee are read with GetProfile.
+	repeated UserProfile user_profiles = 2 [(validate.rules).repeated = {
+		min_items: 0
+		max_items: 100
+	}];
 }
 
 message SetDisplayNameRequest {
