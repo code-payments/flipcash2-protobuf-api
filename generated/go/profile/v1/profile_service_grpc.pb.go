@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Profile_GetProfile_FullMethodName          = "/flipcash.profile.v1.Profile/GetProfile"
+	Profile_GetProfiles_FullMethodName         = "/flipcash.profile.v1.Profile/GetProfiles"
 	Profile_SetDisplayName_FullMethodName      = "/flipcash.profile.v1.Profile/SetDisplayName"
 	Profile_SetUsername_FullMethodName         = "/flipcash.profile.v1.Profile/SetUsername"
 	Profile_SetProfilePicture_FullMethodName   = "/flipcash.profile.v1.Profile/SetProfilePicture"
@@ -36,6 +37,15 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProfileClient interface {
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*GetProfileResponse, error)
+	// GetProfiles gets the profiles of a batch of users in one call, as a row
+	// showing each of them needs: the projection a chat member row, a roster
+	// page or a mention suggestion carries (see
+	// GetProfilesResponse.user_profiles). It is for a client that must name
+	// many users at once, such as the senders of a page of group messages, and
+	// would otherwise call GetProfile once per user. GetProfile remains the
+	// read for a user's profile view, and the only one carrying the fields a
+	// row leaves out.
+	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
 	SetDisplayName(ctx context.Context, in *SetDisplayNameRequest, opts ...grpc.CallOption) (*SetDisplayNameResponse, error)
 	// SetUsername sets the caller's username, replacing any username already
 	// set.
@@ -85,6 +95,16 @@ func (c *profileClient) GetProfile(ctx context.Context, in *GetProfileRequest, o
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetProfileResponse)
 	err := c.cc.Invoke(ctx, Profile_GetProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *profileClient) GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProfilesResponse)
+	err := c.cc.Invoke(ctx, Profile_GetProfiles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -186,6 +206,15 @@ func (c *profileClient) UnlinkSocialAccount(ctx context.Context, in *UnlinkSocia
 // for forward compatibility.
 type ProfileServer interface {
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error)
+	// GetProfiles gets the profiles of a batch of users in one call, as a row
+	// showing each of them needs: the projection a chat member row, a roster
+	// page or a mention suggestion carries (see
+	// GetProfilesResponse.user_profiles). It is for a client that must name
+	// many users at once, such as the senders of a page of group messages, and
+	// would otherwise call GetProfile once per user. GetProfile remains the
+	// read for a user's profile view, and the only one carrying the fields a
+	// row leaves out.
+	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
 	SetDisplayName(context.Context, *SetDisplayNameRequest) (*SetDisplayNameResponse, error)
 	// SetUsername sets the caller's username, replacing any username already
 	// set.
@@ -233,6 +262,9 @@ type UnimplementedProfileServer struct{}
 
 func (UnimplementedProfileServer) GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfile not implemented")
+}
+func (UnimplementedProfileServer) GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfiles not implemented")
 }
 func (UnimplementedProfileServer) SetDisplayName(context.Context, *SetDisplayNameRequest) (*SetDisplayNameResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetDisplayName not implemented")
@@ -296,6 +328,24 @@ func _Profile_GetProfile_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProfileServer).GetProfile(ctx, req.(*GetProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Profile_GetProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfileServer).GetProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Profile_GetProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfileServer).GetProfiles(ctx, req.(*GetProfilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -472,6 +522,10 @@ var Profile_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProfile",
 			Handler:    _Profile_GetProfile_Handler,
+		},
+		{
+			MethodName: "GetProfiles",
+			Handler:    _Profile_GetProfiles_Handler,
 		},
 		{
 			MethodName: "SetDisplayName",
