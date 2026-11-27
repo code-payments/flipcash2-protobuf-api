@@ -175,7 +175,10 @@ func (GetDeltaResponse_Result) EnumDescriptor() ([]byte, []int) {
 type SendMessageResponse_Result int32
 
 const (
-	SendMessageResponse_OK     SendMessageResponse_Result = 0
+	SendMessageResponse_OK SendMessageResponse_Result = 0
+	// The send is refused: the caller may not send this content to the
+	// chat, or client_message_id is carried by a message someone else sent
+	// in it (see ClientMessageId).
 	SendMessageResponse_DENIED SendMessageResponse_Result = 1
 	// The content is EncryptedContent and the chat is neither a DM nor a
 	// private group, or its scheme is not the one the chat uses.
@@ -1284,9 +1287,13 @@ type SendMessageRequest struct {
 	// chat.v1.StartChatRequest.PrivateGroupChatParameters) accepts nothing
 	// at all, and the send is DENIED.
 	Content []*Content `protobuf:"bytes,2,rep,name=content,proto3" json:"content,omitempty"`
-	// Client-generated idempotency token for this send. Used to dedup retried
-	// sends and to correlate the optimistic local echo with the server-assigned
-	// message returned in the response.
+	// Client-generated idempotency token for this send: a fresh random value
+	// for every new send, reused only to retry it. A retry is answered with
+	// the message the first send created, for as long as ClientMessageId
+	// describes, and an ID another sender's message in this chat carries is
+	// DENIED. The message carries the ID back (Message.client_message_id), so
+	// the client matches its optimistic local echo on any copy of the message,
+	// not only this response.
 	ClientMessageId *ClientMessageId `protobuf:"bytes,3,opt,name=client_message_id,json=clientMessageId,proto3" json:"client_message_id,omitempty"`
 	Auth            *v1.Auth         `protobuf:"bytes,10,opt,name=auth,proto3" json:"auth,omitempty"`
 }

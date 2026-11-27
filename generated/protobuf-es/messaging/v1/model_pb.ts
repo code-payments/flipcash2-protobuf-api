@@ -123,14 +123,25 @@ export class MessageId extends Message$1<MessageId> {
  * ClientMessageId is a client-generated identifier for a message send.
  *
  * It serves two purposes:
- *  - Idempotency: the server dedups on this value, so a retried SendMessage
- *    (e.g. after a network failure) returns the originally created message
- *    instead of assigning a new sequence number and creating a duplicate.
- *  - Correlation: clients use it to match an optimistic local echo to the
- *    server-assigned Message returned in the response.
+ *  - Idempotency: a SendMessage carrying an ID the caller already sent with
+ *    in the same chat is answered with the message that send created, rather
+ *    than creating a duplicate, for at least 30 days after that send. A retry
+ *    after a network failure is safe for that long. Past it the server may no
+ *    longer recognize the ID, and a send reusing it creates a new message, so
+ *    a client unsure whether an older send landed checks for it before
+ *    sending again. A send carrying an ID the server still recognizes as
+ *    another sender's in the chat is DENIED; it is never answered with their
+ *    message.
+ *  - Correlation: the message carries the ID back (Message.client_message_id),
+ *    so the sender's clients match it to the optimistic local echo of the
+ *    same send on any copy of the message they receive, not only the
+ *    SendMessage response.
  *
- * Unlike MessageId, this is owned by the client and is not the message's
- * canonical identity; it is typically a randomly generated UUID.
+ * It is not an identity, and the server does not enforce that it is unique:
+ * generate a fresh random value (a UUID) for every new send, and reuse it only
+ * to retry that send. Two messages in a chat may carry the same value, so a
+ * client matches it only against its own pending sends, by sender and value.
+ * MessageId is the message's identity.
  *
  * @generated from message flipcash.messaging.v1.ClientMessageId
  */
@@ -291,6 +302,24 @@ export class Message extends Message$1<Message> {
    */
   redacted = false;
 
+  /**
+   * The client message ID the sender's client sent this message with (see
+   * SendMessageRequest.client_message_id), so the sender's clients can match
+   * any copy of it to the optimistic local echo of that send: the
+   * SendMessage response, an event, a GetMessages or GetDelta page, a push.
+   *
+   * Set only on a message a user sent with SendMessage. Unset on a message
+   * the server wrote (cash, system and the Flipcash team's messages), on one
+   * sent before this field was added, and on a redacted copy. Carried to
+   * every reader, though only the sender's clients have a use for it.
+   *
+   * Not unique (see ClientMessageId): a client matches it only against its
+   * own pending sends, by sender_id and value.
+   *
+   * @generated from field: flipcash.messaging.v1.ClientMessageId client_message_id = 10;
+   */
+  clientMessageId?: ClientMessageId;
+
   constructor(data?: PartialMessage<Message>) {
     super();
     proto3.util.initPartial(data, this);
@@ -308,6 +337,7 @@ export class Message extends Message$1<Message> {
     { no: 7, name: "event_sequence", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 8, name: "reactions", kind: "message", T: ReactionSummary },
     { no: 9, name: "redacted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 10, name: "client_message_id", kind: "message", T: ClientMessageId },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Message {

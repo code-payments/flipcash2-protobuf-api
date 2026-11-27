@@ -488,9 +488,13 @@ export class SendMessageRequest extends Message<SendMessageRequest> {
   content: Content[] = [];
 
   /**
-   * Client-generated idempotency token for this send. Used to dedup retried
-   * sends and to correlate the optimistic local echo with the server-assigned
-   * message returned in the response.
+   * Client-generated idempotency token for this send: a fresh random value
+   * for every new send, reused only to retry it. A retry is answered with
+   * the message the first send created, for as long as ClientMessageId
+   * describes, and an ID another sender's message in this chat carries is
+   * DENIED. The message carries the ID back (Message.client_message_id), so
+   * the client matches its optimistic local echo on any copy of the message,
+   * not only this response.
    *
    * @generated from field: flipcash.messaging.v1.ClientMessageId client_message_id = 3;
    */
@@ -588,6 +592,10 @@ export enum SendMessageResponse_Result {
   OK = 0,
 
   /**
+   * The send is refused: the caller may not send this content to the
+   * chat, or client_message_id is carried by a message someone else sent
+   * in it (see ClientMessageId).
+   *
    * @generated from enum value: DENIED = 1;
    */
   DENIED = 1,
