@@ -1080,7 +1080,12 @@ type Member struct {
 	//
 	// If set, the list may contain DELIVERED and READ pointers. SENT pointers
 	// are only shared between the sender and server, to indicate persistence.
-	// Hydrated for a DM's participants; a group member's are never carried.
+	// Hydrated for a DM's participants, in Metadata.members and on its
+	// GetRoster page. In a group, only on the viewer's own entry in
+	// Metadata.members (the one member a group's Metadata carries), and on no
+	// other Member a group returns, its GetRoster pages included. A READ
+	// pointer usually carries the unread_seq of its message (see
+	// messaging.v1.Pointer.unread_seq).
 	Pointers []*v11.Pointer `protobuf:"bytes,3,rep,name=pointers,proto3" json:"pointers,omitempty"`
 	// When the member most recently joined the chat. A member who left and
 	// rejoined carries the rejoin time.
